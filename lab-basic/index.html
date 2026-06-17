@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32 / ESP8266</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 700px;
+      margin: 0.5rem auto 0;
+    }
+
+    .course-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* Layout Split */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glass Card Base */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent);
+    }
+
+    /* Custom Frames from LaTeX */
+    .info-frame {
+      background: var(--info-frame-bg);
+      border-left: 4px solid var(--info-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-frame h3 {
+      font-family: var(--heading-font);
+      color: #93c5fd;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.1);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Content Styling */
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+
+    h3 {
+      font-family: var(--heading-font);
+      font-size: 1.15rem;
+      margin: 1.5rem 0 0.75rem 0;
+      color: #cbd5e1;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* Equipment Table */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(15, 23, 42, 0.3);
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      color: #e2e8f0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Pinout Section */
+    .pinout-wrapper {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .pinout-diagram {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+    }
+
+    .pin-label-node {
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+
+    .pin-label-node:hover {
+      filter: drop-shadow(0 0 5px var(--accent));
+    }
+
+    .pin-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      font-size: 0.75rem;
+      margin-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 1rem;
+      width: 100%;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #e2e8f0;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .dot-power { background-color: #ef4444; }
+    .dot-gnd { background-color: #71717a; }
+    .dot-gpio { background-color: #10b981; }
+    .dot-input { background-color: #fbbf24; }
+    .dot-strap { background-color: #3b82f6; }
+
+    /* URL Copy Box styling */
+    .url-copy-box {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+    }
+    .url-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.4rem;
+    }
+    .url-input-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .url-input-group input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #38bdf8;
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      cursor: text;
+    }
+    .copy-url-btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-family: var(--body-font);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .copy-url-btn:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+    .copy-url-btn:active {
+      transform: translateY(1px);
+    }
+    .copy-url-btn.copied {
+      background: #10b981 !important;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Pinout Tabs Styling */
+    .pinout-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 0.25rem;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 0.5rem;
+    }
+    .pinout-tab-btn {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--heading-font);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .pinout-tab-btn:hover {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .pinout-tab-btn.active {
+      background: var(--accent) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+    .pinout-diagram-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pin-details-panel {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 0.85rem;
+      min-height: 80px;
+    }
+
+    .pin-details-title {
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Code Block styling */
+    .code-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-header {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+    }
+
+    pre {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    /* Input Fields & Forms */
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea {
+      padding-left: 1rem;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .code-textarea {
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #38bdf8;
+      padding: 1rem;
+      width: 100%;
+      height: 150px;
+      outline: none;
+    }
+
+    /* Drag & Drop File Upload */
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+      margin-bottom: 1rem;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .preview-thumbnail {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-details {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .preview-name {
+      font-size: 0.8rem;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-size {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: opacity 0.2s;
+    }
+
+    .remove-file-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* Dual Button layout */
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Submit Button */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .btn.btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+      color: var(--text-main);
+    }
+
+    .btn.btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Toast and Modal overlays */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalScale {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+
+    .modal-icon.success {
+      color: var(--success);
+      animation: bounce 1s;
+    }
+
+    .modal-icon.error {
+      color: var(--danger);
+      animation: shake 0.5s;
+    }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px var(--accent-glow)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 8px var(--accent)); }
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-7px); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      header, .course-badge, .logo-container, .btn, .upload-area, .remove-file-btn, .modal-overlay, .copy-btn, .code-header, .pin-legend, .pin-details-panel {
+        display: none !important;
+      }
+      .dashboard-grid {
+        display: block !important;
+      }
+      .glass-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+        backdrop-filter: none !important;
+      }
+      .glass-card::before {
+        display: none !important;
+      }
+      .card-title {
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        font-weight: bold !important;
+      }
+      .card-title i {
+        display: none !important;
+      }
+      .info-frame, .challenge-frame {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #3b82f6 !important;
+        color: #000 !important;
+      }
+      .challenge-frame {
+        border-left-color: #f59e0b !important;
+        page-break-inside: avoid;
+      }
+      .info-frame h3, .challenge-frame h3 {
+        color: #000 !important;
+      }
+      p, li, td, th, label {
+        color: #000 !important;
+      }
+      table {
+        border: 1px solid #cbd5e1 !important;
+      }
+      th, td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        background: transparent !important;
+      }
+      pre {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+      }
+      code {
+        color: #000 !important;
+      }
+      input[type="text"], input[type="date"], select, textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        border-radius: 0 !important;
+        color: #000 !important;
+        padding: 0 0 2px 0 !important;
+        box-shadow: none !important;
+      }
+      .input-wrapper i {
+        display: none !important;
+      }
+      input[type="text"], input[type="date"], textarea {
+        padding-left: 0 !important;
+      }
+      .code-textarea {
+        background: transparent !important;
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+      }
+      .blank-input-group {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .file-preview {
+        display: flex !important;
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem !important;
+        color: #000 !important;
+        page-break-inside: avoid;
+      }
+      .preview-name, .preview-size {
+        color: #000 !important;
+      }
+      .preview-thumbnail {
+        border: 1px solid #cbd5e1 !important;
+      }
+      .form-section-title {
+        color: #000 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 0.25rem !important;
+      }
+      .form-section-title i {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-screwdriver-wrench logo-icon"></i>
+        <h1>ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32 / ESP8266</h1>
+      </div>
+      <p class="subtitle">หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Lab Manual -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-book-open"></i> คู่มือปฏิบัติการทดลอง
+        </div>
+
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-circle-info"></i> วัตถุประสงค์</h3>
+          <ol>
+            <li>เพื่อเรียนรู้และติดตั้งโปรแกรม Arduino IDE และไดรเวอร์ USB-to-UART สำหรับบอร์ด ESP32 / ESP8266</li>
+            <li>เพื่อเข้าใจคุณลักษณะด้านฮาร์ดแวร์ (Specifications) ของบอร์ด ESP32</li>
+            <li>เพื่อเรียนรู้การกำหนดค่าขาและตำแหน่งพินใช้งาน (Pinout & GPIO) ของ ESP32</li>
+          </ol>
+        </div>
+
+        <h2>1. การดาวน์โหลดและติดตั้ง Arduino IDE</h2>
+        <p>การเขียนโปรแกรมลงบอร์ด ESP32 หรือ ESP8266 จำเป็นต้องมีสภาพแวดล้อมในการเขียนโปรแกรม (IDE) และไดรเวอร์ติดต่อสื่อสารกับคอมพิวเตอร์ ดังนี้:</p>
+        <ol>
+          <li>ดาวน์โหลดและติดตั้ง <strong>Arduino IDE 2.x</strong> จากหน้าเว็บทางการ <a href="https://www.arduino.cc/en/software" target="_blank" style="color: #818cf8; text-decoration: underline;">arduino.cc</a></li>
+          <li>ติดตั้งไดรเวอร์เชื่อมต่อ USB-to-UART ขึ้นอยู่กับชิปควบคุมบนบอร์ดของคุณ:
+            <ul>
+              <li>ชิป <strong>CP2102 / CP2104</strong>: ติดตั้ง <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" style="color: #818cf8; text-decoration: underline;">Silicon Labs VCP Driver</a></li>
+              <li>ชิป <strong>CH340 / CH341</strong>: ติดตั้งไดรเวอร์ CH340 จากผู้ผลิต</li>
+            </ul>
+          </li>
+          <li>เปิดโปรแกรม Arduino IDE ไปที่เมนู <strong>File &rarr; Preferences</strong></li>
+          <li>ในช่อง <strong>Additional boards manager URLs</strong> ให้คัดลอก URL ของบอร์ดที่ใช้ไปวาง (หากมีหลาย URL ให้คั่นด้วยเครื่องหมายจุลภาค `,`):
+            <div class="url-copy-box">
+              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP32 Board Manager URL</div>
+              <div class="url-input-group">
+                <input type="text" readonly value="https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json" id="esp32Url">
+                <button type="button" class="copy-url-btn" onclick="copyToClipboard('esp32Url', this)">
+                  <i class="fa-solid fa-copy"></i> คัดลอก
+                </button>
+              </div>
+            </div>
+            <div class="url-copy-box">
+              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP8266 Board Manager URL</div>
+              <div class="url-input-group">
+                <input type="text" readonly value="https://arduino.esp8266.com/stable/package_esp8266com_index.json" id="esp8266Url">
+                <button type="button" class="copy-url-btn" onclick="copyToClipboard('esp8266Url', this)">
+                  <i class="fa-solid fa-copy"></i> คัดลอก
+                </button>
+              </div>
+            </div>
+          </li>
+          <li>ไปที่เมนูเครื่องมือด้านซ้าย เลือก <strong>Boards Manager</strong> ค้นหาคำว่า <code>esp32</code> (โดย Espressif Systems) หรือ <code>esp8266</code> (โดย ESP8266 Community) แล้วกดปุ่ม <strong>Install</strong></li>
+        </ol>
+
+                <h2>2. คุณลักษณะทางเทคนิคของ ESP32 และ ESP8266 (Specifications)</h2>
+        <p>บอร์ดไมโครคอนโทรลเลอร์ทั้งสองตัวมีสเปคทางเทคนิคและขีดความสามารถที่แตกต่างกันเพื่อตอบสนองการเลือกใช้งานตามความเหมาะสม:</p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%;">คุณสมบัติ (Specification)</th>
+                <th style="width: 35%;">ESP32</th>
+                <th style="width: 35%;">ESP8266</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Processor CPU</strong></td>
+                <td>Tensilica Xtensa Dual-Core 32-bit LX6 (160 / 240 MHz)</td>
+                <td>Tensilica L106 Single-Core 32-bit (80 / 160 MHz)</td>
+              </tr>
+              <tr>
+                <td><strong>Memory</strong></td>
+                <td>ROM 448 KB, SRAM 520 KB, Flash 4MB / 8MB / 16MB</td>
+                <td>SRAM 160 KB (ใช้งานทั่วไป ~80 KB), Flash 1MB / 4MB</td>
+              </tr>
+              <tr>
+                <td><strong>Wireless Connectivity</strong></td>
+                <td>Wi-Fi 802.11 b/g/n (2.4 GHz) & Bluetooth v4.2 + BLE</td>
+                <td>Wi-Fi 802.11 b/g/n (2.4 GHz) (ไม่มี Bluetooth)</td>
+              </tr>
+              <tr>
+                <td><strong>Internal Peripherals</strong></td>
+                <td>12-bit ADC, 8-bit DAC, UART, SPI, I2C, PWM, Touch Sensor</td>
+                <td>10-bit ADC (1 ช่อง A0), UART, SPI, Software I2C, PWM</td>
+              </tr>
+              <tr>
+                <td><strong>Operating Voltage</strong></td>
+                <td>3.3V (แรงดันจ่ายเข้าบอร์ดผ่านช่อง USB: 5V)</td>
+                <td>3.3V (แรงดันจ่ายเข้าบอร์ดผ่านช่อง USB: 5V)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>3. การใช้งานพินและการจัดสรรขา (ESP32 Pinout Diagram & ESP8266 Note)</h2>
+        <p>การเชื่อมต่อเซ็นเซอร์และอุปกรณ์เอาต์พุตจำเป็นต้องรู้หน้าที่ของพินแต่ละพิน <strong>คลิกเลือกพินบนรูปบอร์ดเพื่อดูรายละเอียด หรือสลับบอร์ดด้านล่าง:</strong></p>
+
+        <!-- Interactive Pinout Tabs -->
+        <div class="pinout-tabs">
+          <button type="button" class="pinout-tab-btn active" onclick="switchPinoutTab('esp32', this)">ESP32 NodeMCU-32S</button>
+          <button type="button" class="pinout-tab-btn" onclick="switchPinoutTab('esp8266', this)">ESP8266 NodeMCU V2</button>
+        </div>
+
+        <div class="pinout-wrapper">
+          <!-- ESP32 Pinout Container -->
+          <div id="pinout-esp32" class="pinout-diagram-container">
+            <svg class="pinout-diagram" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Breadboard background -->
+              <rect x="10" y="10" width="380" height="540" rx="15" fill="#1e293b" stroke="rgba(255,255,255,0.05)" stroke-width="2"/>
+              
+              <!-- ESP32 Module Metal Shield -->
+              <rect x="110" y="50" width="180" height="150" rx="8" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+              <rect x="130" y="70" width="140" height="90" rx="4" fill="#334155" stroke="#64748b" stroke-width="2"/>
+              <text x="200" y="115" font-family="'Outfit', sans-serif" font-size="16" fill="#cbd5e1" text-anchor="middle" font-weight="bold">ESP-WROOM-32</text>
+              <rect x="150" y="40" width="100" height="10" fill="#111827" rx="2"/>
+
+              <!-- USB Port -->
+              <rect x="160" y="500" width="80" height="40" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="2"/>
+              <text x="200" y="525" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">USB PORT</text>
+
+              <!-- LDO & Buttons -->
+              <rect x="120" y="450" width="40" height="25" rx="3" fill="#0f172a"/>
+              <text x="140" y="465" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">EN</text>
+              
+              <rect x="240" y="450" width="40" height="25" rx="3" fill="#0f172a"/>
+              <text x="260" y="465" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">BOOT</text>
+
+              <!-- Pins Left Row (15 pins) -->
+              <!-- 1. EN -->
+              <g class="pin-label-node" onclick="showPinDetails('EN', 'Reset / Enable', 'Power Control', 'ใช้สำหรับรีเซ็ตไมโครคอนโทรลเลอร์ (Active Low) มีการต่อ Pull-up ในตัว บอร์ดจะทำงานใหม่เมื่อขาถูกดึงลง Ground')">
+                <rect x="30" y="200" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="213" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">EN</text>
+              </g>
+              <!-- 2. VP -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO36', 'GPIO36 / SENSOR_VP', 'Input-Only', 'ขาอินพุตอย่างเดียวเท่านั้น (ไม่มีตัวต้านทาน Pull-up/Pull-down ในตัว) สามารถใช้รับค่า ADC1_CH0 หรือตรวจรับค่าเซ็นเซอร์แรงดันขั้วบวก')">
+                <rect x="30" y="220" width="60" height="18" rx="3" fill="#fbbf24"/>
+                <text x="60" y="233" font-family="'JetBrains Mono', monospace" font-size="10" fill="#090d16" text-anchor="middle">VP(36)</text>
+              </g>
+              <!-- 3. VN -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO39', 'GPIO39 / SENSOR_VN', 'Input-Only', 'ขาอินพุตอย่างเดียวเท่านั้น (ไม่มีตัวต้านทาน Pull-up/Pull-down ในตัว) ใช้รับค่า ADC1_CH3 หรือตรวจรับค่าเซ็นเซอร์แรงดันขั้วลบ')">
+                <rect x="30" y="240" width="60" height="18" rx="3" fill="#fbbf24"/>
+                <text x="60" y="253" font-family="'JetBrains Mono', monospace" font-size="10" fill="#090d16" text-anchor="middle">VN(39)</text>
+              </g>
+              <!-- 4. G34 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO34', 'GPIO34', 'Input-Only', 'ขาอินพุตอย่างเดียวเท่านั้น (ไม่มีตัวต้านทาน Pull-up/Pull-down ในตัว) เหมาะสำหรับการเชื่อมโยงสัญญาณเซ็นเซอร์เข้าช่อง ADC1_CH6')">
+                <rect x="30" y="260" width="60" height="18" rx="3" fill="#fbbf24"/>
+                <text x="60" y="273" font-family="'JetBrains Mono', monospace" font-size="10" fill="#090d16" text-anchor="middle">G34</text>
+              </g>
+              <!-- 5. G35 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO35', 'GPIO35', 'Input-Only', 'ขาอินพุตอย่างเดียวเท่านั้น (ไม่มีตัวต้านทาน Pull-up/Pull-down ในตัว) ใช้รับสัญญาณอินพุตทางกายภาพ เช่น ADC1_CH7')">
+                <rect x="30" y="280" width="60" height="18" rx="3" fill="#fbbf24"/>
+                <text x="60" y="293" font-family="'JetBrains Mono', monospace" font-size="10" fill="#090d16" text-anchor="middle">G35</text>
+              </g>
+              <!-- 6. G32 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO32', 'GPIO32', 'General GPIO', 'พิน General Purpose Input/Output ที่ปลอดภัยสำหรับใช้งาน รับและส่งสัญญาณทั่วไป สนับสนุน ADC1_CH4, Capacitive Touch, และคริสตัลออสซิลเลเตอร์ภายนอก')">
+                <rect x="30" y="300" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="313" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G32</text>
+              </g>
+              <!-- 7. G33 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO33', 'GPIO33', 'General GPIO', 'พิน General Purpose Input/Output ที่ปลอดภัยสำหรับใช้งาน สนับสนุน ADC1_CH5, Capacitive Touch เซ็นเซอร์สัมผัสช่อง 8')">
+                <rect x="30" y="320" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="333" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G33</text>
+              </g>
+              <!-- 8. G25 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO25', 'GPIO25 / DAC1', 'General GPIO', 'พินอเนกประสงค์ มีฟังก์ชันพิเศษแปลงสัญญาณดิจิทัลเป็นอะนาล็อกแท้จริง (DAC 8-bit ช่องสัญญาณที่ 1)')">
+                <rect x="30" y="340" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="353" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G25</text>
+              </g>
+              <!-- 9. G26 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO26', 'GPIO26 / DAC2', 'General GPIO', 'พินอเนกประสงค์ มีฟังก์ชันพิเศษแปลงสัญญาณดิจิทัลเป็นอะนาล็อกแท้จริง (DAC 8-bit ช่องสัญญาณที่ 2)')">
+                <rect x="30" y="360" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="373" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G26</text>
+              </g>
+              <!-- 10. G27 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO27', 'GPIO27', 'General GPIO', 'พินอเนกประสงค์ สนับสนุน ADC2_CH7, Touch Sensor 7 สามารถนำมาใช้ส่งสัญญาณ Output ทั่วไปได้')">
+                <rect x="30" y="380" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="393" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G27</text>
+              </g>
+              <!-- 11. G14 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO14', 'GPIO14 / HSPI_CLK', 'General GPIO', 'พินใช้งานทั่วไป หรือใช้ในสื่อสารความเร็วสูง SPI คีย์สัญญาณ Clock (HSPI_CLK)')">
+                <rect x="30" y="400" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="413" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G14</text>
+              </g>
+              <!-- 12. G12 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO12', 'GPIO12 / MTDI / HSPI_MISO', 'Strapping Pin', 'เป็นหนึ่งใน Strapping pins บอร์ดจะบูตไม่ขึ้นหากพินนี้ถูกดึงแรงดันไฟฟ้าเป็น High ขณะเริ่มต้นบูต (Boot) ปกติใช้ร่วมกับ HSPI_MISO')">
+                <rect x="30" y="420" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="433" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G12</text>
+              </g>
+              <!-- 13. G13 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO13', 'GPIO13 / HSPI_MOSI', 'General GPIO', 'พินใช้ทำงานทั่วไป และการเชื่อมต่อสื่อสาร HSPI_MOSI หรือเป็นช่อง ADC2_CH4')">
+                <rect x="30" y="440" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="60" y="453" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G13</text>
+              </g>
+              <!-- 14. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="30" y="460" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="473" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">GND</text>
+              </g>
+              <!-- 15. VIN -->
+              <g class="pin-label-node" onclick="showPinDetails('VIN', 'Voltage Input 5V', 'Power', 'ช่องป้อนไฟเข้าเลี้ยงบอร์ดที่แรงดันไฟตรงประมาณ 5V โดยจ่ายเข้าไอซี LDO เพื่อแปลงลดแรงดันลงเหลือ 3.3V เลี้ยงวงจรต่อไป')">
+                <rect x="30" y="480" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="60" y="493" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">VIN</text>
+              </g>
+
+              <!-- Pins Right Row (15 pins) -->
+              <!-- 16. D23 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO23', 'GPIO23 / VSPI_MOSI', 'General GPIO', 'พินความปลอดภัยสูง มักใช้เป็นขาสื่อสาร SPI หลักของระบบ (VSPI Master Output Slave Input)')">
+                <rect x="310" y="200" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="213" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D23</text>
+              </g>
+              <!-- 17. D22 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO22', 'GPIO22 / I2C_SCL', 'General GPIO', 'พินใช้ทำงานทั่วไป และนิยมดึงค่าเริ่มต้นใช้เป็นพิน Clock ของระบบเชื่อมต่อบัส I2C (I2C_SCL)')">
+                <rect x="310" y="220" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="233" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D22</text>
+              </g>
+              <!-- 18. TX0 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO1', 'GPIO1 / TXD0', 'General GPIO', 'พินส่งสัญญาณ Serial ของระบบ ใช้ติดต่อสื่อสารคอมพิวเตอร์และดาวน์โหลดโปรแกรม ไม่แนะนำให้นำมาต่อใช้งานทั่วไปขณะมีกระบวนการ Debug')">
+                <rect x="310" y="240" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="253" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">TX0</text>
+              </g>
+              <!-- 19. RX0 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO3', 'GPIO3 / RXD0', 'General GPIO', 'พินรับสัญญาณ Serial ของระบบ ไม่แนะนำให้นำมาต่อวงจรโหลดขณะพยายามอัปโหลดโค้ด')">
+                <rect x="310" y="260" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="273" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">RX0</text>
+              </g>
+              <!-- 20. D21 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO21', 'GPIO21 / I2C_SDA', 'General GPIO', 'พินใช้ส่งข้อมูลดิจิทัล และระบบตั้งไว้เป็นขาข้อมูลของระบบสื่อสาร I2C (I2C_SDA)')">
+                <rect x="310" y="280" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="293" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D21</text>
+              </g>
+              <!-- 21. D19 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO19', 'GPIO19 / VSPI_MISO', 'General GPIO', 'พินใช้ทำงานทั่วไป และการเชื่อมต่อสื่อสารระบบ VSPI (VSPI Master Input Slave Output)')">
+                <rect x="310" y="300" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="313" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D19</text>
+              </g>
+              <!-- 22. D18 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO18', 'GPIO18 / VSPI_CLK', 'General GPIO', 'พินใช้สื่อสาร ทำหน้าที่เป็นแหล่งจ่ายสัญญาณ Clock สำหรับเครือข่าย VSPI')">
+                <rect x="310" y="320" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="333" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D18</text>
+              </g>
+              <!-- 23. D5 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO5', 'GPIO5 / VSPI_CS', 'Strapping Pin', 'เป็นหนึ่งใน Strapping pins บอร์ดจะบูตไม่ขึ้นหากขานี้ถูกบังคับแรงดันลง Low ขณะเริ่มเปิดเครื่อง ดึงใช้ในระบบ VSPI_CS')">
+                <rect x="310" y="340" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="353" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D5</text>
+              </g>
+              <!-- 24. TX2 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO17', 'GPIO17 / TXD2', 'General GPIO', 'พินอเนกประสงค์ หรือใช้งานส่งข้อมูลในเครือข่าย UART พอร์ตที่ 2 (TXD2) ปลอดภัยมาก')">
+                <rect x="310" y="360" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="373" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">TX2(17)</text>
+              </g>
+              <!-- 25. RX2 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO16', 'GPIO16 / RXD2', 'General GPIO', 'พินอเนกประสงค์ หรือใช้รับข้อมูลในเครือข่าย UART พอร์ตที่ 2 (RXD2) ปลอดภัยมาก')">
+                <rect x="310" y="380" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="373" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">RX2(16)</text>
+              </g>
+              <!-- 26. D4 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO4', 'GPIO4', 'General GPIO', 'พินรับส่งสัญญาณทั่วไป หรือใช้เป็นช่อง ADC2_CH0, Capacitive Touch 0')">
+                <rect x="310" y="400" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="413" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D4</text>
+              </g>
+              <!-- 27. D2 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO2', 'GPIO2 / Built-in LED', 'Strapping Pin', 'เป็น Strapping pin และต่ออยู่กับไฟ LED บนบอร์ด (ดึงแรงดันไฟฟ้ากระตุ้น LED ทำงาน) หากถูกดึงแรงดันไฟฟ้าบอร์ดจะส่งสิทธิ์ควบคุมต่างไป')">
+                <rect x="310" y="420" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="433" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D2</text>
+              </g>
+              <!-- 28. D15 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO15', 'GPIO15 / HSPI_CS', 'Strapping Pin', 'เป็นหนึ่งใน Strapping pins บอร์ดดึงใช้งานในฟังก์ชันส่งออกหรือดึง HSPI_CS ในการบูตระบบ')">
+                <rect x="310" y="440" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="453" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D15</text>
+              </g>
+              <!-- 29. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="310" y="460" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="340" y="473" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">GND</text>
+              </g>
+              <!-- 30. 3V3 -->
+              <g class="pin-label-node" onclick="showPinDetails('3V3', '3.3V Power Output', 'Power', 'แหล่งจ่ายไฟตรงออก (Output) แรงดัน 3.3V สำหรับเลี้ยงชิปเซ็นเซอร์และอุปกรณ์ประมวลผลขนาดเล็กอื่นๆ')">
+                <rect x="310" y="480" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="340" y="493" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">3V3</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- ESP8266 Pinout Container -->
+          <div id="pinout-esp8266" class="pinout-diagram-container" style="display: none;">
+            <svg class="pinout-diagram" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Breadboard background -->
+              <rect x="10" y="10" width="380" height="540" rx="15" fill="#1e293b" stroke="rgba(255,255,255,0.05)" stroke-width="2"/>
+              
+              <!-- ESP-12E Module Metal Shield -->
+              <rect x="110" y="50" width="180" height="150" rx="8" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+              <rect x="130" y="70" width="140" height="90" rx="4" fill="#334155" stroke="#64748b" stroke-width="2"/>
+              <text x="200" y="115" font-family="'Outfit', sans-serif" font-size="16" fill="#cbd5e1" text-anchor="middle" font-weight="bold">ESP8266 MOD</text>
+              <text x="200" y="135" font-family="'Outfit', sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">MODEL ESP-12E/F</text>
+              <rect x="140" y="30" width="120" height="20" fill="#0f172a" rx="2"/>
+
+              <!-- USB Port -->
+              <rect x="160" y="500" width="80" height="40" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="2"/>
+              <text x="200" y="525" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">USB PORT</text>
+
+              <!-- Buttons -->
+              <rect x="120" y="450" width="40" height="25" rx="3" fill="#0f172a"/>
+              <text x="140" y="465" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">RST</text>
+              
+              <rect x="240" y="450" width="40" height="25" rx="3" fill="#0f172a"/>
+              <text x="260" y="465" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">FLASH</text>
+
+              <!-- Pins Left Row (15 pins) -->
+              <!-- 1. A0 -->
+              <g class="pin-label-node" onclick="showPinDetails('A0', 'A0 / ADC0', 'Input-Only', 'ขาอินพุตอะนาล็อกเพียงช่องเดียวของ ESP8266 รองรับแรงดันไฟฟ้าเข้า 0 - 3.3V (บอร์ด NodeMCU มีวงจรแบ่งแรงดันภายใน ลดแรงดันจาก 3.3V ให้เหลือ 0-1.0V ก่อนเข้าขาชิป)')">
+                <rect x="30" y="200" width="60" height="18" rx="3" fill="#fbbf24"/>
+                <text x="60" y="213" font-family="'JetBrains Mono', monospace" font-size="10" fill="#090d16" text-anchor="middle">A0</text>
+              </g>
+              <!-- 2. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="30" y="220" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="233" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G</text>
+              </g>
+              <!-- 3. VU -->
+              <g class="pin-label-node" onclick="showPinDetails('VU', 'VU / 5V USB Power Output', 'Power', 'แหล่งจ่ายไฟตรงออกแรงดัน 5V จากช่อง USB (มีไฟเมื่อเสียบสาย USB เท่านั้น) สามารถจ่ายกระแสได้ตามพอร์ต USB ของคอมพิวเตอร์')">
+                <rect x="30" y="240" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="60" y="253" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">VU</text>
+              </g>
+              <!-- 4. S3 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO10', 'GPIO10 / SD3', 'Internal SPI', 'ขาที่ใช้เชื่อมต่อกับหน่วยความจำแฟลชภายในชิป (Internal Flash) ไม่แนะนำให้นำมาใช้งานทั่วไปเพราะจะทำให้โปรแกรมทำงานผิดพลาดหรือค้าง')">
+                <rect x="30" y="260" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="273" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">S3</text>
+              </g>
+              <!-- 5. S2 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO9', 'GPIO9 / SD2', 'Internal SPI', 'ขาที่ใช้เชื่อมต่อกับหน่วยความจำแฟลชภายในชิป (Internal Flash) ไม่แนะนำให้นำมาใช้งานทั่วไปเพราะจะทำให้โปรแกรมทำงานผิดพลาดหรือค้าง')">
+                <rect x="30" y="280" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="293" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">S2</text>
+              </g>
+              <!-- 6. S1 -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO8', 'GPIO8 / SD1 / MOSI', 'Internal SPI', 'ขาสำหรับหน่วยความจำแฟลชภายในชิป ไม่แนะนำให้นำมาใช้งานทั่วไป')">
+                <rect x="30" y="300" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="313" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">S1</text>
+              </g>
+              <!-- 7. SC -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO11', 'GPIO11 / SDCLK / SCLK', 'Internal SPI', 'ขาสำหรับส่งสัญญาณนาฬิกาให้หน่วยความจำแฟลชภายในชิป ไม่แนะนำให้นำมาใช้งานทั่วไป')">
+                <rect x="30" y="320" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="333" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">SC</text>
+              </g>
+              <!-- 8. SO -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO7', 'GPIO7 / SD0 / MISO', 'Internal SPI', 'ขาสำหรับหน่วยความจำแฟลชภายในชิป ไม่แนะนำให้นำมาใช้งานทั่วไป')">
+                <rect x="30" y="340" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="353" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">SO</text>
+              </g>
+              <!-- 9. SK -->
+              <g class="pin-label-node" onclick="showPinDetails('GPIO6', 'GPIO6 / SCK', 'Internal SPI', 'ขาสำหรับส่งสัญญาณนาฬิกาหน่วยความจำแฟลชภายในชิป ไม่แนะนำให้นำมาใช้งานทั่วไป')">
+                <rect x="30" y="360" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="60" y="373" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">SK</text>
+              </g>
+              <!-- 10. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="30" y="380" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="393" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G</text>
+              </g>
+              <!-- 11. 3V3 -->
+              <g class="pin-label-node" onclick="showPinDetails('3V3', '3.3V Power Output', 'Power', 'แหล่งจ่ายไฟตรงออก (Output) แรงดัน 3.3V จากไอซีเรกูเลเตอร์บนบอร์ด สำหรับจ่ายไฟให้เซ็นเซอร์และอุปกรณ์อื่นๆ')">
+                <rect x="30" y="400" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="60" y="413" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">3V</text>
+              </g>
+              <!-- 12. EN -->
+              <g class="pin-label-node" onclick="showPinDetails('EN', 'Chip Enable (CH_PD)', 'Power Control', 'ขาเปิดใช้งานชิป (Active High) ต้องมีแรงดัน 3.3V เพื่อให้ชิปทำงาน ปกติบอร์ดจะต่อ Pull-up ไว้ให้เรียบร้อยแล้ว')">
+                <rect x="30" y="420" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="433" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">EN</text>
+              </g>
+              <!-- 13. RST -->
+              <g class="pin-label-node" onclick="showPinDetails('RST', 'Reset Pin', 'Power Control', 'ใช้สำหรับรีเซ็ตไมโครคอนโทรลเลอร์ (Active Low) มีการต่อ Pull-up ในตัว บอร์ดจะรีสตาร์ททำงานใหม่เมื่อขานี้ถูกดึงลง Ground')">
+                <rect x="30" y="440" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="453" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">RST</text>
+              </g>
+              <!-- 14. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="30" y="460" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="60" y="473" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G</text>
+              </g>
+              <!-- 15. VIN -->
+              <g class="pin-label-node" onclick="showPinDetails('VIN', 'Voltage Input 5V', 'Power', 'ช่องป้อนไฟเข้าเลี้ยงบอร์ดที่แรงดันไฟตรงประมาณ 5V โดยจ่ายเข้าไอซี LDO เพื่อแปลงลดแรงดันลงเหลือ 3.3V เลี้ยงวงจรต่อไป')">
+                <rect x="30" y="480" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="60" y="493" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">VIN</text>
+              </g>
+
+              <!-- Pins Right Row (15 pins) -->
+              <!-- 16. D0 -->
+              <g class="pin-label-node" onclick="showPinDetails('D0', 'GPIO16 / D0 / WAKE', 'General GPIO', 'พินอเนกประสงค์ GPIO16 ใช้สำหรับปลุกชิปจากโหมดหลับลึก (Deep Sleep) โดยต้องเชื่อมต่อกับขา RST และเป็นขาที่สามารถตั้งค่าเป็นอินพุตโดยดึงตัวต้านทาน Pull-Down ภายในได้ (ขานี้ไม่มี Pull-up ภายใน)')">
+                <rect x="310" y="200" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="213" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D0(16)</text>
+              </g>
+              <!-- 17. D1 -->
+              <g class="pin-label-node" onclick="showPinDetails('D1', 'GPIO5 / D1 / SCL', 'General GPIO', 'พินใช้งานทั่วไปที่ปลอดภัยมาก และนิยมกำหนดเป็นขา SCL (Clock) ของการสื่อสารระบบบัส I2C')">
+                <rect x="310" y="220" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="233" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D1(5)</text>
+              </g>
+              <!-- 18. D2 -->
+              <g class="pin-label-node" onclick="showPinDetails('D2', 'GPIO4 / D2 / SDA', 'General GPIO', 'พินใช้งานทั่วไปที่ปลอดภัยมาก และนิยมกำหนดเป็นขา SDA (Data) ของการสื่อสารระบบบัส I2C')">
+                <rect x="310" y="240" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="233" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D2(4)</text>
+              </g>
+              <!-- 19. D3 -->
+              <g class="pin-label-node" onclick="showPinDetails('D3', 'GPIO0 / D3 / Flash Button', 'Strapping Pin', 'เป็นหนึ่งใน Strapping pins ต่อกับปุ่ม FLASH บนบอร์ด ต้องมีระดับแรงดันเป็น HIGH ในขณะเปิดเครื่องเพื่อบูตเข้าทำงานปกติ หากแรงดันเป็น LOW บอร์ดจะเข้าโหมดอัปโหลดโปรแกรม (Flash Mode) มีตัวต้านทาน Pull-up ในตัว')">
+                <rect x="310" y="260" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="273" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D3(0)</text>
+              </g>
+              <!-- 20. D4 -->
+              <g class="pin-label-node" onclick="showPinDetails('D4', 'GPIO2 / D4 / Built-in LED', 'Strapping Pin', 'ต่อกับไฟ LED สีน้ำเงินบนโมดูล ESP-12F (สว่างเมื่อส่งเอาต์พุต LOW) และเป็น Strapping pin ที่ต้องมีแรงดันเป็น HIGH ขณะบูตเครื่อง มีตัวต้านทาน Pull-up ในตัว')">
+                <rect x="310" y="280" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="293" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D4(2)</text>
+              </g>
+              <!-- 21. 3V3 -->
+              <g class="pin-label-node" onclick="showPinDetails('3V3', '3.3V Power Output', 'Power', 'แหล่งจ่ายไฟตรงออก (Output) แรงดัน 3.3V')">
+                <rect x="310" y="300" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="340" y="313" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">3V</text>
+              </g>
+              <!-- 22. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="310" y="320" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="340" y="333" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G</text>
+              </g>
+              <!-- 23. D5 -->
+              <g class="pin-label-node" onclick="showPinDetails('D5', 'GPIO14 / D5 / HSCLK', 'General GPIO', 'พินอเนกประสงค์ หรือใช้เชื่อมต่อระบบสื่อสาร SPI ในตำแหน่งสัญญาณนาฬิกา (HSCLK)')">
+                <rect x="310" y="340" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="353" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D5(14)</text>
+              </g>
+              <!-- 24. D6 -->
+              <g class="pin-label-node" onclick="showPinDetails('D6', 'GPIO12 / D6 / HMISO', 'General GPIO', 'พินอเนกประสงค์ หรือใช้เชื่อมต่อระบบสื่อสาร SPI ในตำแหน่งสัญญาณฝั่งรับข้อมูล (HMISO)')">
+                <rect x="310" y="360" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="373" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D6(12)</text>
+              </g>
+              <!-- 25. D7 -->
+              <g class="pin-label-node" onclick="showPinDetails('D7', 'GPIO13 / D7 / HMOSI', 'General GPIO', 'พินอเนกประสงค์ หรือใช้เชื่อมต่อระบบสื่อสาร SPI ในตำแหน่งส่งข้อมูลออก (HMOSI) หรือรองรับขาสัญญาณ RX ของ UART2')">
+                <rect x="310" y="380" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="393" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D7(13)</text>
+              </g>
+              <!-- 26. D8 -->
+              <g class="pin-label-node" onclick="showPinDetails('D8', 'GPIO15 / D8 / HCS', 'Strapping Pin', 'เป็น Strapping pin ที่ต้องมีระดับแรงดันเป็น LOW (Ground) เสมอในขณะบูตเครื่องเพื่อทำงานปกติ หากต่อเซ็นเซอร์ที่ดึงแรงดันเป็น HIGH จะเปิดเครื่องไม่ขึ้น มีตัวต้านทาน Pull-down ภายในบอร์ด')">
+                <rect x="310" y="400" width="60" height="18" rx="3" fill="#3b82f6"/>
+                <text x="340" y="413" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">D8(15)</text>
+              </g>
+              <!-- 27. RX -->
+              <g class="pin-label-node" onclick="showPinDetails('RX', 'GPIO3 / RXD0', 'Serial Debug', 'ขารับสัญญาณสื่อสาร Serial พอร์ตหลัก (UART0) สำหรับรับโปรแกรมและแสดง Debug Monitor หลีกเลี่ยงการเชื่อมต่อวงจรภายนอกขณะอัปโหลดโค้ด')">
+                <rect x="310" y="420" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="433" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">RX(3)</text>
+              </g>
+              <!-- 28. TX -->
+              <g class="pin-label-node" onclick="showPinDetails('TX', 'GPIO1 / TXD0', 'Serial Debug', 'ขาส่งสัญญาณสื่อสาร Serial พอร์ตหลัก (UART0) สำหรับส่งคำสั่งและดีบักคอมพิวเตอร์ หลีกเลี่ยงการเชื่อมต่อวงจรภายนอกขณะอัปโหลดโค้ด')">
+                <rect x="310" y="440" width="60" height="18" rx="3" fill="#10b981"/>
+                <text x="340" y="453" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">TX(1)</text>
+              </g>
+              <!-- 29. GND -->
+              <g class="pin-label-node" onclick="showPinDetails('GND', 'Ground พินสายดิน', 'Ground', 'ขั้วลบแรงดันไฟฟ้าอ้างอิงเชื่อมต่อวงจร (Ground)')">
+                <rect x="310" y="460" width="60" height="18" rx="3" fill="#71717a"/>
+                <text x="340" y="473" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">G</text>
+              </g>
+              <!-- 30. 3V3 -->
+              <g class="pin-label-node" onclick="showPinDetails('3V3', '3.3V Power Output', 'Power', 'แหล่งจ่ายไฟตรงออก (Output) แรงดัน 3.3V สำหรับบอร์ด')">
+                <rect x="310" y="480" width="60" height="18" rx="3" fill="#ef4444"/>
+                <text x="340" y="493" font-family="'JetBrains Mono', monospace" font-size="10" fill="#ffffff" text-anchor="middle">3V</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+<div class="challenge-frame">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
+          <p><strong>โจทย์:</strong> ให้นักเรียนเขียนโปรแกรมตัวอย่างไฟกะพริบ (Blink Code) สั่งการให้ไฟ LED ที่ติดตั้งอยู่บนตัวบอร์ด (ขาพิน GPIO 2 หรือพินไฟสถานะของบอร์ด) สว่าง 1 วินาทีและดับ 1 วินาที สลับกันไปอย่างต่อเนื่อง และอัปโหลดลงบนบอร์ดทดลองจริงสำเร็จ</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Submission Form -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-pen-to-square"></i> แบบฟอร์มส่งบันทึกผลการทดลอง
+        </div>
+
+        <form id="labForm" onsubmit="handleSubmit(event)">
+          
+          <!-- Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลนักศึกษา
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName">ชื่อ-นามสกุล</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="studentName" placeholder="นาย/นางสาว เรียนดี มีสุข" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="studentId">รหัสนักศึกษา</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-id-card input-icon"></i>
+                  <input type="text" id="studentId" placeholder="6956578556" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="studentGroup">ห้อง/กลุ่ม</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-users input-icon"></i>
+                  <input type="text" id="studentGroup" placeholder="เช่น 4/1" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="labDate">วันที่ทำการทดลอง</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-calendar-days input-icon"></i>
+                <input type="date" id="labDate" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Challenge Solution -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-code"></i> คำตอบส่วนโจทย์ท้าทาย (Challenge)
+            </div>
+            <div class="form-group">
+              <label for="codeBlank1">โค้ดไฟกะพริบ (Blink Code) ที่อัปโหลดลงบอร์ดไมโครคอนโทรลเลอร์:</label>
+              <textarea id="codeBlank1" class="code-textarea" placeholder="// เขียนโค้ดไฟกะพริบสั่งการ GPIO 2 ที่นี่
+void setup() {
+  pinMode(2, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(2, HIGH);
+  delay(1000);
+  digitalWrite(2, LOW);
+  delay(1000);
+}" required></textarea>
+            </div>
+          </div>
+
+          <!-- Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-circle-question"></i> คำถามท้ายการทดลอง
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. จงอธิบายข้อจำกัดในการเลือกใช้งานขาพินสำหรับเป็นสัญญาณอินพุต (Input) ของบอร์ด ESP32 หรือ ESP8266 (เช่น ขาที่เป็น Input-Only ใน ESP32 หรือขาที่มีการจำกัดตัวต้านทาน Pull-up/Pull-down ใน ESP8266) ว่าส่งผลอย่างไรต่อการออกแบบวงจร?</label>
+              <textarea id="question1" rows="3" placeholder="อธิบายข้อจำกัดการต่อดึงค่า หรือวงจร Pull-up/Pull-down..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. เพราะเหตุใดในการใช้งานขาบางขา เช่น GPIO 0, GPIO 2, GPIO 12/15 (Strapping Pins) ของ ESP32 หรือ ESP8266 จึงต้องใช้ความระมัดระวังเป็นพิเศษ และส่งผลอย่างไรหากต่อวงจรดึงแรงดันไฟฟ้าไว้ขณะบอร์ดเริ่มทำงาน (Boot)?</label>
+              <textarea id="question2" rows="3" placeholder="อธิบายผลกระทบของระดับแรงดันต่อโหมดการทำงานขณะ Boot บอร์ด..." required></textarea>
+            </div>
+          </div>
+
+          <!-- File Uploads -->
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-cloud-arrow-up"></i> แนบหลักฐานการทดลอง
+            </div>
+
+            <!-- Screenshot Upload -->
+            <div class="form-group">
+              <label>1. รูปถ่ายหน้าจอ Arduino IDE ขณะคอมไพล์และอัปโหลดโค้ดสำเร็จ (Done Uploading)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-solid fa-image upload-icon"></i>
+                <div class="upload-text">ลากไฟล์รูปภาพมาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์รูปภาพ PNG, JPG, JPEG (ขนาดไม่เกิน 10MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" alt="Thumbnail" class="preview-thumbnail" id="screenshotThumb">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Code/Flow JSON File Upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โปรแกรม Arduino (.ino)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeFileInput').click()">
+                <i class="fa-solid fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากไฟล์ .ino มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์โปรแกรม (.ino) ขนาดไม่เกิน 5MB</div>
+                <input type="file" id="codeFileInput" class="file-input" accept=".ino" onchange="handleFileSelect(this, 'code')">
+              </div>
+              <div class="file-preview" id="codePreview">
+                <div class="preview-details" style="padding-left: 0.5rem;">
+                  <div class="preview-name" id="codeFileName">blink.ino</div>
+                  <div class="preview-size" id="codeFileSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Experiment Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-square-poll-vertical"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">สรุปสิ่งที่ได้รับจากการเรียนรู้การติดตั้งโปรแกรมและฮาร์ดแวร์ ESP32 / ESP8266:</label>
+              <textarea id="conclusion" rows="4" placeholder="เขียนสรุปอธิบายสิ่งที่ได้เรียนรู้และทักษะพื้นฐานในใบงาน..." required></textarea>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="button-group">
+            <button type="button" class="btn btn-secondary" onclick="window.print()">
+              <i class="fa-solid fa-print"></i> พิมพ์ / PDF
+            </button>
+            <button type="submit" class="btn" id="submitBtn">
+              <i class="fa-solid fa-paper-plane"></i> ส่งรายงานผลการทดลอง
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status Modals -->
+  <div class="modal-overlay" id="statusModal">
+    <div class="modal-content">
+      <span class="modal-icon" id="modalIcon"></span>
+      <h3 class="modal-title" id="modalTitle">กำลังดำเนินการ</h3>
+      <p class="modal-text" id="modalText">กรุณารอสักครู่ ระบบกำลังอัปโหลดไฟล์และส่งบันทึกผลการเรียนรู้...</p>
+      <button class="modal-close-btn" onclick="closeModal()">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+
+  <script>
+    // Local Storage persistence keys
+    const LS_NAME = 'student_name';
+    const LS_ID = 'student_id';
+    const LS_GROUP = 'student_group';
+
+    // File base64 buffers
+    let screenshotBase64 = null;
+    let screenshotName = null;
+    let screenshotType = null;
+
+    let codeBase64 = null;
+    let codeFileName = null;
+    let codeFileType = null;
+
+    // Copy URL to clipboard
+    function copyToClipboard(inputId, buttonEl) {
+      const input = document.getElementById(inputId);
+      input.select();
+      input.setSelectionRange(0, 99999); // For mobile devices
+      
+      navigator.clipboard.writeText(input.value).then(() => {
+        const originalHTML = buttonEl.innerHTML;
+        buttonEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> คัดลอกแล้ว!';
+        buttonEl.classList.add('copied');
+        
+        setTimeout(() => {
+          buttonEl.innerHTML = originalHTML;
+          buttonEl.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Could not copy text: ', err);
+      });
+    }
+
+    // Switch between ESP32 and ESP8266 Pinouts
+    function switchPinoutTab(boardType, buttonEl) {
+      // Toggle display of SVG containers
+      if (boardType === 'esp32') {
+        document.getElementById('pinout-esp32').style.display = 'flex';
+        document.getElementById('pinout-esp8266').style.display = 'none';
+        // Set default pin text
+        showPinDetails('GPIO2', 'GPIO2 / Built-in LED', 'Strapping Pin', 'เป็นขาต่อกับ LED สีฟ้าบนบอร์ด (Active High) และเป็นหนึ่งใน Strapping Pin ที่ควบคุมการเข้าสู่โหมดดาวน์โหลด หากดึงกระแสขาพินนี้ขณะเปิดคอมไพล์ให้แน่ใจว่าไม่ได้รบกวนการบูตของ ESP32');
+      } else {
+        document.getElementById('pinout-esp32').style.display = 'none';
+        document.getElementById('pinout-esp8266').style.display = 'flex';
+        // Set default pin text for ESP8266
+        showPinDetails('D4', 'GPIO2 / D4 / Built-in LED', 'Strapping Pin', 'ต่อกับไฟ LED สีน้ำเงินบนโมดูล ESP-12F (สว่างเมื่อส่งเอาต์พุต LOW) และเป็น Strapping pin ที่ต้องมีแรงดันเป็น HIGH ขณะบูตเครื่อง มีตัวต้านทาน Pull-up ในตัว');
+      }
+
+      // Update active tab buttons
+      const tabButtons = document.querySelectorAll('.pinout-tab-btn');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      buttonEl.classList.add('active');
+    }
+
+    // Show selected pin details
+    function showPinDetails(pinName, pinTitleText, pinType, pinDescText) {
+      document.getElementById('pinTitle').innerHTML = pinTitleText + ' <span style="font-size:0.75rem; padding: 0.15rem 0.4rem; border-radius:3px; background: rgba(255,255,255,0.1); color:#fff; font-weight:normal;">' + pinType + '</span>';
+      document.getElementById('pinDesc').textContent = pinDescText;
+      
+      // Highlight selection panel
+      const panel = document.getElementById('pinDetailsPanel');
+      panel.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.4)';
+      panel.style.borderColor = 'var(--accent)';
+      setTimeout(() => {
+        panel.style.boxShadow = 'none';
+        panel.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+      }, 500);
+    }
+
+    // Load persisted metadata
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('studentName').value = localStorage.getItem(LS_NAME) || '';
+      document.getElementById('studentId').value = localStorage.getItem(LS_ID) || '';
+      document.getElementById('studentGroup').value = localStorage.getItem(LS_GROUP) || '';
+      
+      // Auto-set current date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('labDate').value = today;
+
+      setupDragAndDrop();
+    });
+
+    // Save student metadata to localStorage on change
+    document.getElementById('studentName').addEventListener('input', e => localStorage.setItem(LS_NAME, e.target.value));
+    document.getElementById('studentId').addEventListener('input', e => localStorage.setItem(LS_ID, e.target.value));
+    document.getElementById('studentGroup').addEventListener('input', e => localStorage.setItem(LS_GROUP, e.target.value));
+
+    // Drag and Drop implementation
+    function setupDragAndDrop() {
+      const dropAreas = [
+        { id: 'screenshotArea', type: 'screenshot' },
+        { id: 'codeArea', type: 'code' }
+      ];
+
+      dropAreas.forEach(area => {
+        const element = document.getElementById(area.id);
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+          element.addEventListener(eventName, e => {
+            e.preventDefault();
+            element.classList.add('dragover');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          element.addEventListener(eventName, e => {
+            e.preventDefault();
+            element.classList.remove('dragover');
+          }, false);
+        });
+
+        element.addEventListener('drop', e => {
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            const fileInput = element.querySelector('.file-input');
+            fileInput.files = files;
+            handleFileSelect(fileInput, area.type);
+          }
+        }, false);
+      });
+    }
+
+    // Convert file to base64
+    function handleFileSelect(input, type) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (type === 'screenshot') {
+          screenshotBase64 = e.target.result;
+          screenshotName = file.name;
+          screenshotType = file.type;
+          
+          document.getElementById('screenshotName').textContent = file.name;
+          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('screenshotThumb').src = e.target.result;
+          document.getElementById('screenshotPreview').style.display = 'flex';
+          document.getElementById('screenshotArea').style.display = 'none';
+        } else {
+          codeBase64 = e.target.result;
+          codeFileName = file.name;
+          codeFileType = 'text/plain'; // Custom INO mime override
+          
+          document.getElementById('codeFileName').textContent = file.name;
+          document.getElementById('codeFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('codePreview').style.display = 'flex';
+          document.getElementById('codeArea').style.display = 'none';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Remove selected file
+    function removeFile(type) {
+      if (type === 'screenshot') {
+        screenshotBase64 = null;
+        screenshotName = null;
+        screenshotType = null;
+        document.getElementById('screenshotInput').value = '';
+        document.getElementById('screenshotPreview').style.display = 'none';
+        document.getElementById('screenshotArea').style.display = 'block';
+      } else {
+        codeBase64 = null;
+        codeFileName = null;
+        codeFileType = null;
+        document.getElementById('codeFileInput').value = '';
+        document.getElementById('codePreview').style.display = 'none';
+        document.getElementById('codeArea').style.display = 'block';
+      }
+    }
+
+    // Handle Form Submit
+    function handleSubmit(event) {
+      event.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      
+      showModal('info', 'กำลังดำเนินการ', 'กำลังแปลงไฟล์และอัปโหลดส่งรายงานผล... <br><i class="fa-solid fa-spinner loading-spinner" style="margin-top:1rem; font-size:1.5rem"></i>', false);
+
+      const payload = {
+        challengeCode: document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '',
+        studentName: document.getElementById('studentName').value,
+        studentId: document.getElementById('studentId').value,
+        studentGroup: document.getElementById('studentGroup').value,
+        labDate: document.getElementById('labDate').value,
+        codeBlank1: document.getElementById('codeBlank1').value,
+        question1: document.getElementById('question1').value,
+        question2: document.getElementById('question2').value,
+        conclusion: document.getElementById('conclusion').value,
+        screenshotBase64: screenshotBase64,
+        screenshotName: screenshotName,
+        screenshotType: screenshotType,
+        codeBase64: codeBase64,
+        codeFileName: codeFileName,
+        codeFileType: codeFileType
+      };
+
+      // Check if running in GAS Environment or standalone
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .submitLabData(payload);
+      } else {
+        // Simulation Mode (Local Testing)
+        console.log('Form Payload:', payload);
+        setTimeout(() => {
+          onSuccess({
+            status: 'success',
+            message: 'โหมดทดสอบในเครื่อง: บันทึกข้อมูลสำเร็จ! หากติดตั้งบน Google Sheets สคริปต์จะบันทึกเข้าตารางผลการเรียนและไดรฟ์โดยตรง'
+          });
+        }, 1500);
+      }
+    }
+
+    function onSuccess(response) {
+      document.getElementById('submitBtn').disabled = false;
+      if (response.status === 'success') {
+              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+        showModal('success', 'ส่งรายงานสำเร็จ', response.message, true);
+        // Reset inputs that are not student details
+        document.getElementById('codeBlank1').value = '';
+        document.getElementById('question1').value = '';
+        document.getElementById('question2').value = '';
+        document.getElementById('conclusion').value = '';
+        removeFile('screenshot');
+        removeFile('code');
+      } else {
+        showModal('error', 'เกิดข้อผิดพลาด', response.message, true);
+      }
+    }
+
+    function onFailure(error) {
+      document.getElementById('submitBtn').disabled = false;
+      showModal('error', 'เกิดข้อผิดพลาดรุนแรง', error.toString(), true);
+    }
+
+    // Modal Control Utility
+    function showModal(type, title, text, showButton) {
+      const modal = document.getElementById('statusModal');
+      const icon = document.getElementById('modalIcon');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalText = document.getElementById('modalText');
+      const closeBtn = modal.querySelector('.modal-close-btn');
+
+      modalTitle.textContent = title;
+      modalText.innerHTML = text;
+
+      icon.className = 'modal-icon';
+      if (type === 'success') {
+        icon.classList.add('success');
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else if (type === 'error') {
+        icon.classList.add('error');
+        icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+      } else {
+        icon.innerHTML = '';
+      }
+
+      closeBtn.style.display = showButton ? 'inline-block' : 'none';
+      modal.style.display = 'flex';
+    }
+
+    // Initial load click simulation to fill panel
+    window.addEventListener('load', () => {
+      // simulate selection of GPIO2
+      showPinDetails('GPIO2', 'GPIO2 / Built-in LED', 'Strapping Pin', 'เป็นขาต่อกับ LED สีฟ้าบนบอร์ด (Active High) และเป็นหนึ่งใน Strapping Pin ที่ควบคุมการเข้าสู่โหมดดาวน์โหลด หากดึงกระแสขาพินนี้ขณะเปิดคอมไพล์ให้แน่ใจว่าไม่ได้รบกวนการบูตของ ESP32');
+    });
+
+    function closeModal() {
+      document.getElementById('statusModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 700px;
+      margin: 0.5rem auto 0;
+    }
+
+    .course-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent);
+    }
+
+    .info-frame {
+      background: var(--info-frame-bg);
+      border-left: 4px solid var(--info-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-frame h3 {
+      font-family: var(--heading-font);
+      color: #93c5fd;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.1);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    .code-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-header {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+    }
+
+    pre {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea {
+      padding-left: 1rem;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .blank-input-group {
+      background: rgba(15, 23, 42, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 1.25rem;
+    }
+
+    .blank-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .blank-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .blank-label {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .blank-input {
+      flex-grow: 1;
+    }
+
+    .blank-input input {
+      padding-left: 1rem;
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+    }
+
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .preview-thumbnail {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-details {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .preview-name {
+      font-size: 0.8rem;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-size {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: opacity 0.2s;
+    }
+
+    .remove-file-btn:hover {
+      opacity: 0.8;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalScale {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+
+    .modal-icon.success { color: var(--success); animation: bounce 1s; }
+    .modal-icon.error { color: var(--danger); animation: shake 0.5s; }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px var(--accent-glow)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 8px var(--accent)); }
+    }
+
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      header, .course-badge, .logo-container, .btn, .upload-area, .remove-file-btn, .modal-overlay, .copy-btn, .code-header {
+        display: none !important;
+      }
+      .dashboard-grid {
+        display: block !important;
+      }
+      .glass-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+        backdrop-filter: none !important;
+      }
+      .glass-card::before {
+        display: none !important;
+      }
+      .card-title {
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        font-weight: bold !important;
+      }
+      .card-title i {
+        display: none !important;
+      }
+      .info-frame, .challenge-frame {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #3b82f6 !important;
+        color: #000 !important;
+      }
+      .challenge-frame {
+        border-left-color: #f59e0b !important;
+      }
+      .info-frame h3, .challenge-frame h3 {
+        color: #000 !important;
+      }
+      p, li, td, th, label {
+        color: #000 !important;
+      }
+      table {
+        border: 1px solid #cbd5e1 !important;
+      }
+      th, td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        background: transparent !important;
+      }
+      pre {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+      }
+      code {
+        color: #000 !important;
+      }
+      input[type="text"], input[type="date"], select, textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        border-radius: 0 !important;
+        color: #000 !important;
+        padding: 0 0 2px 0 !important;
+        box-shadow: none !important;
+      }
+      .input-wrapper i {
+        display: none !important;
+      }
+      input[type="text"], input[type="date"], textarea {
+        padding-left: 0 !important;
+      }
+      .blank-input-group {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .blank-row {
+        margin-bottom: 0.5rem !important;
+      }
+      .blank-label {
+        color: #000 !important;
+      }
+      .file-preview {
+        display: flex !important;
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem !important;
+        color: #000 !important;
+      }
+      .preview-name, .preview-size {
+        color: #000 !important;
+      }
+      .preview-thumbnail {
+        border: 1px solid #cbd5e1 !important;
+      }
+      .form-section-title {
+        color: #000 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 0.25rem !important;
+      }
+      .form-section-title i {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-tv logo-icon"></i>
+        <h1>ใบงานที่ 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)</h1>
+      </div>
+      <p class="subtitle">(SSD1306 OLED Display) - หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Lab Sheet Manual -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-book-open"></i>
+          <span>คู่มือใบงานการทดลอง</span>
+        </div>
+
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</h3>
+          <ol>
+            <li>เพื่อเรียนรู้การเชื่อมต่อจอภาพ OLED ขนาดเล็กผ่านโปรโตคอลการสื่อสารแบบ I2C</li>
+            <li>เพื่อแสดงข้อมูลข้อความและตัวแปรตัวเลขแบบไดนามิกบนจอภาพในพิกเซลที่ต้องการ</li>
+            <li>เพื่อฝึกฝนสร้างหน้าจอแสดงสถานะอินเทอร์เฟซผู้ใช้งานแบบดั้งเดิม (Status UI)</li>
+          </ol>
+        </div>
+
+        <h2>การเชื่อมต่อวงจร (Wiring)</h2>
+        <ul>
+          <li>เชื่อมต่อระบบเซ็นเซอร์และรีเลย์จากใบงานที่ 1 ไว้ตามเดิม</li>
+          <li><strong>SSD1306 OLED Display:</strong> VCC &rarr; 3.3V, GND &rarr; GND, SDA &rarr; <code>GPIO 21 (หรือ D2/GPIO 4 สำหรับ ESP8266)</code>, SCL &rarr; <code>GPIO 22 (หรือ D1/GPIO 5 สำหรับ ESP8266)</code></li>
+        </ul>
+
+        <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
+        <p>ศึกษาโค้ดต่อไปนี้และค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือให้สมบูรณ์:</p>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <span>oled_demo.ino</span>
+            <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
+          </div>
+<pre><code>#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+void setup() {
+  Serial.begin(115200);
+  #if defined(ESP8266)
+  Wire.begin(4, 5); // SDA = GPIO4 (D2), SCL = GPIO5 (D1) สำหรับ ESP8266
+  #else
+  Wire.begin(21, 22); // SDA = GPIO21, SCL = GPIO22 สำหรับ ESP32
+  #endif
+  
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);
+  }
+  
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+}
+
+void loop() {
+  display.clearDisplay();
+  
+  // 1. เขียนข้อความพาดหัว (Header) ไว้ที่แถวบนสุด
+  display.setCursor(0, 0);
+  display.print("MONITORING NODE");
+  
+  // 2. วาดเส้นแบ่งกึ่งกลางหน้าจอแนวนอนที่พิกเซล Y = 10
+  display.drawLine(0, 10, 128, 10, [ ช่องที่ 1 ] );
+  
+  // 3. แสดงค่าเซ็นเซอร์อุณหภูมิที่อ่านได้ (สมมติค่าอุณหภูมิ = 28.5)
+  display.setCursor(0, 15);
+  display.printf("Temp: %.1f C", 28.5);
+  
+  // 4. แสดงผลข้อความส่งคำสั่งออกจอภาพจริง
+  display. [ ช่องที่ 2 ] ;
+  delay(1000);
+}</code></pre>
+        </div>
+
+        <div class="challenge-frame">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
+          <p><strong>โจทย์:</strong> ให้นักเรียนนำสถานะการเปิด-ปิดของรีเลย์ในใบงานที่ 1 (Fan และ Mist) มาแสดงผลที่แถวพิกเซลด้านล่างสุดของจอภาพ โดยให้แสดงข้อความตามจริง เช่น <code>Fan: ON</code> หรือ <code>Fan: OFF</code></p>
+        </div>
+      </div>
+
+      <!-- Right Column: Submission Form -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>ฟอร์มบันทึกและส่งรายงานผล</span>
+        </div>
+
+        <form id="labForm" onsubmit="handleFormSubmit(event)">
+          
+          <!-- 1. Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งรายงาน
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName">ชื่อ-นามสกุล</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="studentName" required placeholder="นาย/นางสาว สมชาย ดีใจ">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="studentId">รหัสนักศึกษา</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-id-card input-icon"></i>
+                  <input type="text" id="studentId" required placeholder="เช่น 64010512">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="studentGroup">กลุ่ม / ห้องเรียน</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-users input-icon"></i>
+                  <input type="text" id="studentGroup" required placeholder="เช่น 4/1">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="labDate">วันที่ทำการทดลอง</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-calendar input-icon"></i>
+                <input type="date" id="labDate" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Code Fill-in-the-blanks -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-code"></i> เติมคำตอบในช่องว่างของโค้ด (Skeleton Code)
+            </div>
+            
+            <div class="blank-input-group">
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 1:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank1" required placeholder="เช่น SSD1306_WHITE หรือ 1">
+                </div>
+              </div>
+              
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 2:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank2" required placeholder="เช่น display()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. ขา SDA และ SCL ในโปรโตคอล I2C ย่อมาจากอะไร และทำหน้าที่อะไรในวงจร?</label>
+              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. ฟังก์ชัน display.display() มีหน้าที่อะไร? หากไม่ใช้ คำสั่งก่อนหน้าจะแสดงผลบนจอภาพหรือไม่?</label>
+              <textarea id="question2" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Result File Uploads -->
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพผลการทดลองแสดงหน้าจอ OLED (หรือ Serial Monitor)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดจริง (.ino หรือ .zip จากโจทย์ท้าทายที่นำสถานะรีเลย์มาแสดงผล)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์และผลลัพธ์ของโจทย์ท้าทายที่แสดงสถานะรีเลย์ Fan: ON/OFF บนหน้าจอ OLED..."></textarea>
+            </div>
+          </div>
+
+          <!-- Submit & Print Button Group -->
+          <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn" id="submitBtn" style="flex: 1;">
+              <i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="modal-overlay" id="alertModal">
+    <div class="modal-content">
+      <div class="modal-icon success" id="modalIcon"><i class="fa-regular fa-circle-check"></i></div>
+      <div class="modal-title" id="modalTitle">ส่งใบงานสำเร็จ</div>
+      <div class="modal-text" id="modalText">รายละเอียดของข้อความระบบจะแสดงตรงนี้</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    let uploadedScreenshotBase64 = null;
+    let uploadedScreenshotName = null;
+    let uploadedScreenshotType = null;
+    let uploadedCodeBase64 = null;
+    let uploadedCodeFileName = null;
+    let uploadedCodeFileType = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('labDate').value = today;
+
+      if (localStorage.getItem('studentName')) {
+        document.getElementById('studentName').value = localStorage.getItem('studentName');
+      }
+      if (localStorage.getItem('studentId')) {
+        document.getElementById('studentId').value = localStorage.getItem('studentId');
+      }
+      if (localStorage.getItem('studentGroup')) {
+        document.getElementById('studentGroup').value = localStorage.getItem('studentGroup');
+      }
+      
+      initDragAndDrop();
+    });
+
+    function copyCode() {
+      const codeText = `// Skeleton Code for Lab 2
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(21, 22); // SDA, SCL
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);
+  }
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+}
+
+void loop() {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.print("MONITORING NODE");
+  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.printf("Temp: %.1f C", 28.5);
+  display.display();
+  delay(1000);
+}`;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const copyBtn = document.querySelector('.copy-btn');
+        copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+        }, 2000);
+      });
+    }
+
+    function initDragAndDrop() {
+      const dropAreas = [
+        { id: 'screenshotArea', type: 'screenshot', inputId: 'screenshotInput' },
+        { id: 'codeArea', type: 'code', inputId: 'codeInput' }
+      ];
+      dropAreas.forEach(area => {
+        const element = document.getElementById(area.id);
+        const input = document.getElementById(area.inputId);
+        ['dragenter', 'dragover'].forEach(eventName => {
+          element.addEventListener(eventName, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            element.classList.add('dragover');
+          }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+          element.addEventListener(eventName, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            element.classList.remove('dragover');
+          }, false);
+        });
+        element.addEventListener('drop', (e) => {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          if (files.length > 0) {
+            input.files = files;
+            handleFileSelect(input, area.type);
+          }
+        }, false);
+      });
+    }
+
+    function handleFileSelect(input, type) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showModal('ขนาดไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB', false);
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      if (type === 'screenshot') {
+        reader.onload = function(e) {
+          uploadedScreenshotBase64 = e.target.result;
+          uploadedScreenshotName = file.name;
+          uploadedScreenshotType = file.type;
+          document.getElementById('screenshotImg').src = e.target.result;
+          document.getElementById('screenshotName').textContent = file.name;
+          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('screenshotArea').style.display = 'none';
+          document.getElementById('screenshotPreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        reader.onload = function(e) {
+          uploadedCodeBase64 = e.target.result;
+          uploadedCodeFileName = file.name;
+          uploadedCodeFileType = file.type || "application/octet-stream";
+          document.getElementById('codeName').textContent = file.name;
+          document.getElementById('codeSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('codeArea').style.display = 'none';
+          document.getElementById('codePreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeFile(type) {
+      if (type === 'screenshot') {
+        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        document.getElementById('screenshotInput').value = '';
+        document.getElementById('screenshotArea').style.display = 'block';
+        document.getElementById('screenshotPreview').style.display = 'none';
+      } else {
+        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        document.getElementById('codeInput').value = '';
+        document.getElementById('codeArea').style.display = 'block';
+        document.getElementById('codePreview').style.display = 'none';
+      }
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+
+      const studentName = document.getElementById('studentName').value.trim();
+      const studentId = document.getElementById('studentId').value.trim();
+      const studentGroup = document.getElementById('studentGroup').value.trim();
+      const labDate = document.getElementById('labDate').value;
+      const codeBlank1 = document.getElementById('codeBlank1').value.trim();
+      const codeBlank2 = document.getElementById('codeBlank2').value.trim();
+      const question1 = document.getElementById('question1').value.trim();
+      const question2 = document.getElementById('question2').value.trim();
+      const conclusion = document.getElementById('conclusion').value.trim();
+
+      localStorage.setItem('studentName', studentName);
+      localStorage.setItem('studentId', studentId);
+      localStorage.setItem('studentGroup', studentGroup);
+
+      const payload = {
+        challengeCode: document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '',
+        studentName, studentId, studentGroup, labDate,
+        codeBlank1, codeBlank2,
+        question1, question2,
+        screenshotBase64: uploadedScreenshotBase64,
+        screenshotName: uploadedScreenshotName,
+        screenshotType: uploadedScreenshotType,
+        codeBase64: uploadedCodeBase64,
+        codeFileName: uploadedCodeFileName,
+        codeFileType: uploadedCodeFileType,
+        conclusion
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((response) => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+            if (response.status === 'success') {
+              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+              showModal('ส่งใบงานสำเร็จ', response.message, true);
+              removeFile('screenshot'); removeFile('code');
+              document.getElementById('codeBlank1').value = '';
+              document.getElementById('codeBlank2').value = '';
+              document.getElementById('question1').value = '';
+              document.getElementById('question2').value = '';
+              document.getElementById('conclusion').value = '';
+            } else {
+              showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
+            }
+          })
+          .withFailureHandler((error) => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+            showModal('เกิดข้อผิดพลาด', error.toString(), false);
+          })
+          .submitLabData(payload);
+      } else {
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+          showModal('โหมดจำลอง (Local Preview)', 'ฟังก์ชันจำลองสำเร็จแล้ว!', true);
+        }, 1500);
+      }
+    }
+
+    function showModal(title, text, isSuccess) {
+      const modal = document.getElementById('alertModal');
+      const icon = document.getElementById('modalIcon');
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalText').textContent = text;
+      if (isSuccess) {
+        icon.className = 'modal-icon success';
+        icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+      } else {
+        icon.className = 'modal-icon error';
+        icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('alertModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

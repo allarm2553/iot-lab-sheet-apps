@@ -1,0 +1,29 @@
+[
+  {
+    "timestamp": "2026-06-14T23:49:07.159Z",
+    "studentName": "ทดสอบ",
+    "studentId": "1234567",
+    "studentGroup": "4/1",
+    "labDate": "2026-06-14",
+    "codeBlank1": "#define LED_BUILTIN 2\n\nvoid setup() {\n  // initialize digital pin LED_BUILTIN as an output.\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\n// the loop function runs over and over again forever\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);  // change state of the LED by setting the pin to the HIGH voltage level\n  delay(1000);                      // wait for a second\n  digitalWrite(LED_BUILTIN, LOW);   // change state of the LED by setting the pin to the LOW voltage level\n  delay(1000);                      // wait for a second\n}",
+    "codeBlank2": "",
+    "codeBlank3": "",
+    "codeBlank4": "",
+    "codeBlank5": "",
+    "question1": "ขา GPIO ทั่วไป (เช่น GPIO 4, 5, 18) สามารถตั้งค่าเป็นได้ทั้ง Input และ Output เพื่อควบคุมหรือรับค่าอุปกรณ์อื่นๆ ส่วนขา Input-Only (GPIO 34, 35, 36, 39) ทำได้เพียงรับค่าเข้ามาเท่านั้น ไม่สามารถจ่ายสัญญาณออก (Output) หรือกำหนดสถานะทางไฟฟ้าภายในได้",
+    "question2": "สาเหตุที่ต้องระมัดระวังขา Strapping Pins (เช่น GPIO 0, GPIO 12, GPIO 2, GPIO 15 บนบอร์ดอย่าง ESP32) เป็นพิเศษ เพราะไมโครคอนโทรลเลอร์จะอ่านสถานะระดับแรงดัน (ดึงไฟขึ้น High หรือลง Low) ในช่วงเปิด/รีเซ็ตเครื่องเพื่อกำหนด โหมดการบูต (Boot Mode) หากวงจรต่อดึงแรงดันไว้ผิดพลาด บอร์ดอาจบูตไม่ขึ้น",
+    "screenshotUrl": "/submissions/uploads/lab-basic/1234567_ทดสอบ_screenshot_Screenshot_2026-06-15_064738.png",
+    "codeFileUrl": "/submissions/uploads/lab-basic/1234567_ทดสอบ_code_pro1.ino",
+    "conclusion": "test",
+    "score": 8.5,
+    "maxScore": 10,
+    "gradingBreakdown": {
+      "challenge": 4,
+      "q1": 1,
+      "q2": 1.5,
+      "attachments": 2
+    },
+    "feedback": "- โจทย์ท้าทาย (Challenge): ตรงประเด็น 6/6 ส่วนหลัก (+4.0/4.0 คะแนน)\n- คำถามข้อที่ 1: ตรวจพบคำอธิบายตรงประเด็น 4/8 จุดหลัก (+1.0/2.0 คะแนน)\n- คำถามข้อที่ 2: ตรวจพบคำอธิบายตรงประเด็น 6/8 จุดหลัก (+1.5/2.0 คะแนน)\n- แนบหลักฐาน: แนบรูปผลลัพธ์ แล้ว (+1.0), แนบไฟล์โค้ด แล้ว (+1.0) (+2.0/2.0 คะแนน)",
+    "isManuallyGraded": false
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2026-06-15T10:30:07.537Z",
+    "studentName": "Test Student",
+    "studentId": "64000000",
+    "studentGroup": "Room A",
+    "labDate": "2026-06-15",
+    "codeBlank1": "OUTPUT",
+    "codeBlank2": "OUTPUT",
+    "codeBlank3": "4095",
+    "codeBlank4": "HIGH",
+    "codeBlank5": "LOW",
+    "challengeCode": "#include <DHT.h>`n#define DHTPIN 5`n#define DHTTYPE DHT11`n#define ANALOG_PIN 36`n#define FAN_RELAY_PIN 23`n#define MIST_RELAY_PIN 19`n`nDHT dht(DHTPIN, DHTTYPE);`nint rawAnalog = 0;`nfloat analogPercent = 0;`nfloat temperature = 0;`nvoid setup() {`n  Serial.begin(115200);`n  dht.begin();`n  pinMode(FAN_RELAY_PIN, OUTPUT );`n  pinMode(MIST_RELAY_PIN, OUTPUT );`n  analogSetPinAttenuation(ANALOG_PIN, ADC_11db);`n  digitalWrite(FAN_RELAY_PIN, LOW);`n  digitalWrite(MIST_RELAY_PIN, LOW );`n}`nvoid loop() {`n  temperature = dht.readTemperature();`n  rawAnalog = analogRead(ANALOG_PIN);`n  analogPercent = (rawAnalog / 4095.0) * 100.0;`n  Serial.printf(\"Temp: %.1f C | Analog: %.1f%%\\n\", temperature, analogPercent);`n  if (temperature > 30.0) {`n    digitalWrite(FAN_RELAY_PIN, HIGH);`n  } else if (temperature < 29.5) {`n    digitalWrite(FAN_RELAY_PIN, LOW);`n  }`n  delay(1000);`n}",
+    "controlLogic": "",
+    "challengeLogic": "",
+    "question1": "12-bit resolution 4095 3.3V",
+    "question2": "transistor 3.3V to 5V relay",
+    "screenshotUrl": "/submissions/uploads/lab1/64000000_Test_Student_screenshot_test.png",
+    "codeFileUrl": "/submissions/uploads/lab1/64000000_Test_Student_code_test.ino",
+    "conclusion": "Test conclusion",
+    "score": 8.2,
+    "maxScore": 10,
+    "gradingBreakdown": {
+      "challenge": 4,
+      "q1": 1.2,
+      "q2": 1,
+      "attachments": 2
+    },
+    "feedback": "- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น 5/5 ส่วนหลัก (+1.5/1.5 คะแนน)\n- โจทย์ท้าทาย (Challenge Code): ตรวจพบความสอดคล้องของตรรกะ 5/5 จุด (+2.5/2.5 คะแนน)\n- คำถามข้อที่ 1: ตรวจพบคำอธิบายตรงประเด็น 3/5 จุดหลัก (+1.2/2.0 คะแนน)\n- คำถามข้อที่ 2: ตรวจพบคำอธิบายตรงประเด็น 4/8 จุดหลัก (+1.0/2.0 คะแนน)\n- แนบหลักฐาน: แนบรูปผลลัพธ์ แล้ว (+1.0), แนบไฟล์โค้ด แล้ว (+1.0) (+2.0/2.0 คะแนน)",
+    "isManuallyGraded": false
+  }
+]

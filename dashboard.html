@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แผงควบคุมคุณครู - IoT Worksheets Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-logo i {
+      font-size: 2.25rem;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-logo h1 {
+      font-family: var(--heading-font);
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .header-logo span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: -0.25rem;
+    }
+
+    /* Statistics Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stats-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .stats-card.card-success::before { background: var(--success); }
+    .stats-card.card-warning::before { background: var(--warning); }
+
+    .stats-info h4 {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .stats-info h2 {
+      font-family: var(--heading-font);
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .stats-icon {
+      font-size: 2.25rem;
+      opacity: 0.15;
+      color: var(--text-main);
+    }
+
+    /* Layout: Tabs and Tables */
+    .layout-split {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 992px) {
+      .layout-split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar Lab List */
+    .sidebar-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      height: fit-content;
+    }
+
+    .sidebar-title {
+      font-family: var(--heading-font);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 0.5rem 0.75rem 1rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 0.5rem;
+    }
+
+    .lab-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .lab-item {
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #cbd5e1;
+    }
+
+    .lab-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .lab-item.active {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-weight: 500;
+    }
+
+    .badge-count {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-family: var(--heading-font);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .lab-item.active .badge-count {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    /* Main Table Container */
+    .main-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      min-height: 500px;
+    }
+
+    .main-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .main-card-title {
+      font-family: var(--heading-font);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    /* Search & Filter bar */
+    .toolbar {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex-grow: 1;
+      max-width: 400px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.6rem 1rem 0.6rem 2.25rem;
+      font-family: var(--body-font);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-select {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.6rem 2rem 0.6rem 1rem;
+      font-family: var(--body-font);
+      font-size: 0.9rem;
+      outline: none;
+      width: 180px;
+      cursor: pointer;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.25rem;
+      font-family: var(--heading-font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: opacity 0.2s;
+      margin-left: auto;
+    }
+
+    .export-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Submissions Table */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      color: #e2e8f0;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .student-id {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #a5b4fc;
+    }
+
+    /* Score Badges */
+    .score-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-family: var(--heading-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .score-high {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .score-mid {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .score-low {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .action-link {
+      color: #38bdf8;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+    }
+
+    .action-link:hover {
+      color: #6366f1;
+    }
+
+    .action-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    /* Modal dialog */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 950px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .modal-close-x {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .modal-close-x:hover {
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    .modal-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: right;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.5rem 1.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Details styling inside modal */
+    .detail-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-section-title {
+      font-family: var(--heading-font);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.5rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 0.5rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .detail-meta-item {
+      font-size: 0.85rem;
+    }
+
+    .detail-meta-label {
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 0.1rem;
+    }
+
+    .detail-meta-value {
+      font-weight: 500;
+    }
+
+    .code-display {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      max-height: 200px;
+    }
+
+    .text-answer {
+      background: rgba(15, 23, 42, 0.3);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    .media-attachments {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .media-card {
+      background: rgba(15, 23, 42, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 0.75rem;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .media-img-wrapper {
+      width: 100%;
+      height: 120px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .media-title {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      header, .stats-grid, .sidebar-card, .toolbar, .modal-overlay {
+        display: none !important;
+      }
+      .layout-split {
+        display: block !important;
+      }
+      .main-card {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="header-logo">
+        <i class="fa-solid fa-server"></i>
+        <div>
+          <h1>แผงควบคุมการส่งใบงานคุณครู</h1>
+          <span>IoT Web Apps Submission Server - Local Mode</span>
+        </div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        <i class="fa-regular fa-clock" style="margin-right: 0.25rem;"></i> เซิร์ฟเวอร์และระบบตรวจคะแนนอัตโนมัติเปิดอยู่
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div class="stats-info">
+          <h4>จำนวนรายงานส่งทั้งหมด</h4>
+          <h2 id="statTotalSubmissions">0</h2>
+        </div>
+        <i class="fa-solid fa-file-invoice stats-icon"></i>
+      </div>
+      <div class="stats-card card-success">
+        <div class="stats-info">
+          <h4>นักศึกษาที่ส่งงานแล้ว (รายคน)</h4>
+          <h2 id="statTotalStudents">0</h2>
+        </div>
+        <i class="fa-solid fa-user-check stats-icon"></i>
+      </div>
+      <div class="stats-card card-warning">
+        <div class="stats-info">
+          <h4>งานที่ส่งในแล็บที่เลือก</h4>
+          <h2 id="statCurrentLabSubmissions">0</h2>
+        </div>
+        <i class="fa-solid fa-circle-notch stats-icon"></i>
+      </div>
+    </div>
+
+    <!-- Main Section Split -->
+    <div class="layout-split">
+      
+      <!-- Left: Labs List Selection -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">เลือกใบงานที่ต้องการตรวจ</div>
+        <ul class="lab-list" id="labListContainer">
+          <!-- Labs will be populated dynamically -->
+        </ul>
+      </div>
+
+      <!-- Right: Submissions Table -->
+      <div class="main-card">
+        <div class="main-card-header">
+          <div class="main-card-title" id="currentLabTitle">ใบงานที่เลือก</div>
+        </div>
+
+        <!-- Toolbar: Filters and Export -->
+        <div class="toolbar">
+          <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาโดยชื่อ หรือ รหัสนักศึกษา..." oninput="applyFilters()">
+          </div>
+          
+          <select class="filter-select" id="groupFilter" onchange="applyFilters()">
+            <option value="">ทั้งหมดทุกห้อง/กลุ่ม</option>
+          </select>
+          
+          <button class="export-btn" onclick="exportToCSV()">
+            <i class="fa-solid fa-file-excel"></i> ส่งออกไฟล์คะแนน CSV
+          </button>
+        </div>
+
+        <!-- Table Grid -->
+        <div class="table-container">
+          <table id="submissionsTable">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">ลำดับ</th>
+                <th style="width: 130px;">รหัสนักศึกษา</th>
+                <th>ชื่อ-นามสกุล</th>
+                <th style="width: 100px;">ห้อง/กลุ่ม</th>
+                <th style="width: 120px; text-align: center;">คะแนน</th>
+                <th style="width: 110px; text-align: center;">ผลการทดลอง</th>
+                <th style="width: 110px; text-align: center;">ไฟล์โค้ด</th>
+                <th style="width: 120px; text-align: center;">ตรวจคำตอบ</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Submissions rows populated dynamically -->
+            </tbody>
+          </table>
+          
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <i class="fa-regular fa-folder-open empty-icon"></i>
+            <h3>ยังไม่มีการส่งข้อมูลในใบงานนี้</h3>
+            <p>เมื่อนักศึกษากดส่งผลลัพธ์ผ่านหน้าจอเว็บแอป ข้อมูลจะมาปรากฏขึ้นที่ตารางนี้โดยอัตโนมัติ</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail Inspection Modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">ข้อมูลรายงานผลการทดลองอย่างละเอียด</h3>
+        <button class="modal-close-x" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Auto-Grading & Manual Override Panel -->
+        <div class="detail-section">
+          <div class="detail-section-title">ผลการประเมินคะแนนและข้อเสนอแนะ</div>
+          <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+            <!-- Score & Feedback display -->
+            <div style="background:rgba(15, 23, 42, 0.4); padding:1.25rem; border-radius:8px; flex-grow:1; min-width:280px; border:1px solid rgba(255,255,255,0.03);">
+              <span style="color:var(--text-muted); font-size:0.8rem; display:block; text-transform:uppercase; letter-spacing:0.05em">คะแนนประเมินรวม</span>
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.25rem;">
+                <span style="font-size:2.25rem; font-weight:bold; color:#a5b4fc;" id="modalScoreDisplay">0.0 / 10.0</span>
+                <span id="modalManualFlag" style="display:none; font-size:0.7rem; padding:0.2rem 0.5rem; border-radius:4px; background:var(--accent); color:#fff; font-weight:500;">แมนนวล</span>
+              </div>
+              <span style="color:var(--text-muted); font-size:0.8rem; display:block; margin-top:0.75rem; font-weight:600; border-top:1px solid rgba(255,255,255,0.05); padding-top:0.5rem;">บันทึกเกณฑ์ตรวจและข้อเสนอแนะ:</span>
+              <pre style="white-space:pre-wrap; font-family:var(--body-font); font-size:0.85rem; color:#cbd5e1; margin-top:0.25rem; line-height:1.5;" id="modalGradingFeedback"></pre>
+            </div>
+            
+            <!-- scoring override block -->
+            <div style="background:rgba(99, 102, 241, 0.08); border:1px dashed rgba(99, 102, 241, 0.3); padding:1.25rem; border-radius:8px; width:340px; display:flex; flex-direction:column; gap:0.6rem;">
+              <span style="font-weight:600; color:#a5b4fc; font-size:0.85rem;"><i class="fa-solid fa-user-pen"></i> การให้คะแนนแบบแมนนวล (โดยผู้สอน)</span>
+              
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.25rem;">
+                <label for="inputOverrideScore" style="font-size:0.8rem; color:#cbd5e1;">คะแนนที่ได้:</label>
+                <input type="number" id="inputOverrideScore" min="0" max="10" step="0.1" style="width:90px; padding:0.35rem; background:rgba(15,23,42,0.8); border:1px solid var(--card-border); border-radius:6px; color:#fff; font-family:var(--heading-font); text-align:center; font-size:1rem; font-weight:bold; outline:none;">
+                <span style="color:#cbd5e1;">/ 10.0 คะแนน</span>
+              </div>
+              
+              <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                <label for="inputOverrideFeedback" style="font-size:0.8rem; color:#cbd5e1;">บันทึกครูตรวจ / ข้อเสนอแนะ:</label>
+                <textarea id="inputOverrideFeedback" rows="3" style="width:100%; padding:0.5rem; background:rgba(15,23,42,0.8); border:1px solid var(--card-border); border-radius:6px; color:#fff; font-size:0.8rem; font-family:var(--body-font); resize:none; outline:none;" placeholder="พิมพ์คำแนะนำนักเรียนเพิ่มเติมสำหรับการปรับเกรด..."></textarea>
+              </div>
+              
+              <button type="button" class="btn" style="padding:0.5rem; font-size:0.85rem; box-shadow:none; margin-top:0.25rem;" id="btnSaveOverride" onclick="saveScoreOverride()">
+                <i class="fa-solid fa-floppy-disk"></i> บันทึกคะแนนใหม่
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="detail-section">
+          <div class="detail-section-title">ข้อมูลนักศึกษา</div>
+          <div class="detail-grid">
+            <div class="detail-meta-item">
+              <span class="detail-meta-label">ชื่อ-นามสกุล</span>
+              <span class="detail-meta-value" id="modalStudentName">-</span>
+            </div>
+            <div class="detail-meta-item">
+              <span class="detail-meta-label">รหัสนักศึกษา</span>
+              <span class="detail-meta-value student-id" id="modalStudentId">-</span>
+            </div>
+            <div class="detail-meta-item">
+              <span class="detail-meta-label">ห้อง/กลุ่ม</span>
+              <span class="detail-meta-value" id="modalStudentGroup">-</span>
+            </div>
+            <div class="detail-meta-item">
+              <span class="detail-meta-label">วันที่ทำการทดลอง</span>
+              <span class="detail-meta-value" id="modalLabDate">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Challenge Code -->
+        <div class="detail-section">
+          <div class="detail-section-title" id="modalCodeLabel">โค้ดคำตอบโจทย์ท้าทาย (Challenge)</div>
+          <pre class="code-display" id="modalChallengeCode">ไม่มีข้อมูลโค้ดคำตอบ</pre>
+        </div>
+
+        <!-- Question 1 -->
+        <div class="detail-section" id="modalQ1Wrapper">
+          <div class="detail-section-title" id="modalQ1Label">คำถามข้อที่ 1</div>
+          <div class="text-answer" id="modalQ1Answer">ไม่มีคำตอบ</div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="detail-section" id="modalQ2Wrapper">
+          <div class="detail-section-title" id="modalQ2Label">คำถามข้อที่ 2</div>
+          <div class="text-answer" id="modalQ2Answer">ไม่มีคำตอบ</div>
+        </div>
+
+        <!-- Screenshot Attachment -->
+        <div class="detail-section">
+          <div class="detail-section-title">ไฟล์แนบหลักฐานผลการทดลอง</div>
+          <div class="media-attachments">
+            <div class="media-card" id="modalScreenshotCard">
+              <div class="media-img-wrapper">
+                <img src="" alt="Screenshot" class="media-img" id="modalScreenshotImg">
+              </div>
+              <div class="media-title">รูปภาพผลงาน / แดชบอร์ด</div>
+              <a href="" target="_blank" class="action-link" id="modalScreenshotLink" style="font-size:0.8rem;">
+                <i class="fa-solid fa-external-link"></i> เปิดรูปขนาดจริง
+              </a>
+            </div>
+            <div class="media-card" id="modalCodeCard" style="display:flex; justify-content:center; align-items:center; height:180px; text-align:center;">
+              <i class="fa-solid fa-file-code" style="font-size:3rem; color:var(--accent); opacity:0.8; margin-bottom:0.5rem"></i>
+              <div class="media-title" id="modalCodeFilename">ไฟล์ซอร์สโค้ดโปรเจกต์</div>
+              <a href="" target="_blank" class="action-btn" id="modalCodeLink" style="font-size:0.75rem; text-decoration:none; margin-top:0.5rem">
+                <i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conclusion -->
+        <div class="detail-section">
+          <div class="detail-section-title">สรุปผลการทดลอง</div>
+          <div class="text-answer" id="modalConclusion">ไม่มีคำสรุปการทดลอง</div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close-btn" onclick="closeModal()">ปิดหน้าตรวจ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration details for Labs
+    const labMetadata = {
+      'lab-basic': { title: 'ใบงาน Basic', name: 'การติดตั้ง Arduino IDE & Spec ESP32', codeLabel: 'โค้ดไฟกะพริบ (Blink Code)', q1: '1. อธิบายความแตกต่างระหว่างขา GPIO ทั่วไป กับขา GPIO ที่มีคุณสมบัติ Input-Only', q2: '2. เพราะเหตุใดในการใช้งานขาบางขา เช่น GPIO 0 หรือ GPIO 12 จึงต้องระมัดระวัง?' },
+      'lab1': { title: 'ใบงานที่ 1', name: 'การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายความเข้าใจเรื่องความละเอียด (Resolution) ของพินรับสัญญาณ Analog (ADC)', q2: '2. เหตุใดในการสั่งงานรีเลย์ขนาด 5V จากขาของ ESP32 (3.3V) จึงต้องใช้ทรานซิสเตอร์?' },
+      'lab2': { title: 'ใบงานที่ 2', name: 'การแสดงผลผ่านจอ OLED SSD1306 (I2C)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. ขาสัญญาณหลัก I2C (SDA และ SCL) มีหน้าที่อะไรแตกต่างกันอย่างไร?', q2: '2. ในการสั่งวาดข้อมูลบนจอ เหตุใดจึงต้องสั่ง display.display() ตามหลังคำสั่งการวาด?' },
+      'lab3': { title: 'ใบงานที่ 3', name: 'เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. LittleFS และ SPIFFS มีความแตกต่างกันอย่างไร และเหตุใดจึงนิยมนำมาใช้กับ ESP32?', q2: '2. ในการส่งไฟล์เว็บผ่านระบบ Network การเรียกใช้งาน streamFile ส่งผลดีกว่า send อย่างไร?' },
+      'lab4': { title: 'ใบงานที่ 4', name: 'ส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. สรุปข้อดีของการส่งข้อมูลแบบ WebSocket เมื่อเทียบกับการดึงข้อมูลแบบ HTTP Polling', q2: '2. โครงสร้าง JSON payload มีประโยชน์ต่องานส่งข้อมูลควบคุมอุปกรณ์ฝั่งฮาร์ดแวร์อย่างไร?' },
+      'lab5': { title: 'ใบงานที่ 5', name: 'การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายโครงสร้างของ Pub/Sub และหน้าที่หลักของ MQTT Broker', q2: '2. การชนกันของ Client ID ในการเข้าเชื่อมต่อ Broker ก่อให้เกิดผลลัพธ์ที่เป็นอันตรายอย่างไร?' },
+      'lab6': { title: 'ใบงานที่ 6', name: 'การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายความสำคัญของการสั่งรีเซ็ตเชื่อมต่อ MQTT แบบ Non-blocking', q2: '2. การนำระบบ Hybrid Node รันภายในวง LAN เครือข่ายออฟไลน์มีประโยชน์กับอุตสาหกรรมอย่างไร?' },
+      'lab-extra': { title: 'ใบงานเสริม', name: 'การพัฒนา Web Dashboard ด้วย HTML, CSS & JS', codeLabel: 'อธิบายกระบวนการพัฒนา Challenge', q1: '1. คุณสมบัติ backdrop-filter: blur(8px) ส่งผลอย่างไรต่อการแสดงผลแดชบอร์ดแบบ Glassmorphism?', q2: '2. ฟังก์ชัน document.getElementById() มีหน้าที่อะไร?' },
+      'lab7': { title: 'ใบงานที่ 7', name: 'การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED', codeLabel: 'โค้ด JavaScript โหนด function (ตรวจสอบความชื้น)', q1: '1. โหนด json ใน Node-RED ทำหน้าที่อะไรและเหตุใดจึงต้องใช้ต่อท้ายโหนด mqtt in?', q2: '2. โหนด change มีประโยชน์อย่างไรเมื่อต่อเชื่อมโยงกับ ui_switch ก่อนส่งออก mqtt out?' },
+      'lab8': { title: 'ใบงานที่ 8', name: 'การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)', codeLabel: 'โค้ด JavaScript โหนด function (แปลงรีเลย์ ON/OFF เป็น 1/0)', q1: '1. เหตุใดการเก็บข้อมูลเซ็นเซอร์จึงนิยมเก็บลงฐานข้อมูล Time-Series มากกว่า MySQL?', q2: '2. อธิบายความหมายของโครงสร้าง Bucket, Measurement, Tags, และ Fields ใน InfluxDB' },
+      'lab9': { title: 'ใบงานที่ 9', name: 'การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana', codeLabel: 'สคริปต์ Flux Query ดึงค่าความชื้นดินเฉลี่ย 24 ชม.', q1: '1. ข้อดีของการแยกแดชบอร์ดฝั่ง Node-RED และ Grafana ออกจากกันมีประโยชน์ต่อนักพัฒนาอย่างไร?', q2: '2. อธิบายการทำงานของฟังก์ชัน aggregateWindow() และ v.windowPeriod ในภาษา Flux Query' }
+    };
+
+    // Submissions memory buffer
+    let serverSubmissions = {};
+    let activeLab = 'lab-basic';
+    let filteredRecords = [];
+
+    // Initialize Page
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchSubmissions();
+      // Auto-refresh logs every 15 seconds
+      setInterval(fetchSubmissions, 15000);
+    });
+
+    // Fetch database logs from server
+    function fetchSubmissions() {
+      fetch('/api/submissions')
+        .then(res => res.json())
+        .then(data => {
+          serverSubmissions = data;
+          renderLabList();
+          renderActiveLabTable();
+          updateTotalStats();
+        })
+        .catch(err => console.error('Error fetching submissions:', err));
+    }
+
+    // Update Top statistics numbers
+    function updateTotalStats() {
+      let totalSub = 0;
+      const uniqueStudentIds = new Set();
+      
+      Object.keys(serverSubmissions).forEach(lab => {
+        const subs = serverSubmissions[lab];
+        totalSub += subs.length;
+        subs.forEach(s => {
+          if (s.studentId) uniqueStudentIds.add(s.studentId.trim().toUpperCase());
+        });
+      });
+
+      document.getElementById('statTotalSubmissions').textContent = totalSub;
+      document.getElementById('statTotalStudents').textContent = uniqueStudentIds.size;
+      
+      const currentLabCount = serverSubmissions[activeLab] ? serverSubmissions[activeLab].length : 0;
+      document.getElementById('statCurrentLabSubmissions').textContent = currentLabCount;
+    }
+
+    // Populate Sidebar labs
+    function renderLabList() {
+      const container = document.getElementById('labListContainer');
+      container.innerHTML = '';
+
+      Object.keys(labMetadata).forEach(labKey => {
+        const meta = labMetadata[labKey];
+        const count = serverSubmissions[labKey] ? serverSubmissions[labKey].length : 0;
+        
+        const li = document.createElement('li');
+        li.className = `lab-item ${labKey === activeLab ? 'active' : ''}`;
+        li.onclick = () => selectLab(labKey);
+        li.innerHTML = `
+          <span><strong>${meta.title}</strong>: <span style="font-size:0.75rem; opacity:0.8">${meta.name.substring(0, 18)}...</span></span>
+          <span class="badge-count">${count}</span>
+        `;
+        container.appendChild(li);
+      });
+    }
+
+    // Switch active lab view
+    function selectLab(labKey) {
+      activeLab = labKey;
+      document.querySelectorAll('.lab-item').forEach(item => item.classList.remove('active'));
+      
+      // Update filters UI
+      document.getElementById('searchInput').value = '';
+      
+      renderLabList();
+      renderActiveLabTable();
+      updateTotalStats();
+    }
+
+    // Populate Submissions Table
+    function renderActiveLabTable() {
+      const meta = labMetadata[activeLab];
+      document.getElementById('currentLabTitle').textContent = `${meta.title}: ${meta.name}`;
+
+      const records = serverSubmissions[activeLab] || [];
+      
+      // Populate unique groups/rooms inside select dropdown
+      const groups = new Set();
+      records.forEach(r => { if (r.studentGroup) groups.add(r.studentGroup.trim()); });
+      
+      const filterSelect = document.getElementById('groupFilter');
+      const prevVal = filterSelect.value;
+      filterSelect.innerHTML = '<option value="">ทั้งหมดทุกห้อง/กลุ่ม</option>';
+      Array.from(groups).sort().forEach(g => {
+        filterSelect.innerHTML += `<option value="${g}">${g}</option>`;
+      });
+      filterSelect.value = prevVal;
+
+      applyFilters();
+    }
+
+    // Apply Filter logic on UI elements
+    function applyFilters() {
+      const records = serverSubmissions[activeLab] || [];
+      const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+      const groupFilter = document.getElementById('groupFilter').value;
+
+      filteredRecords = records.filter(r => {
+        const matchesSearch = (r.studentName && r.studentName.toLowerCase().includes(searchQuery)) || 
+                              (r.studentId && r.studentId.toLowerCase().includes(searchQuery));
+        const matchesGroup = groupFilter === '' || (r.studentGroup && r.studentGroup.trim() === groupFilter);
+        return matchesSearch && matchesGroup;
+      });
+
+      // Sort by Student ID ascending
+      filteredRecords.sort((a, b) => a.studentId.localeCompare(b.studentId));
+
+      const tableBody = document.getElementById('tableBody');
+      const table = document.getElementById('submissionsTable');
+      const emptyState = document.getElementById('emptyState');
+
+      tableBody.innerHTML = '';
+      
+      if (filteredRecords.length === 0) {
+        table.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      table.style.display = 'table';
+      emptyState.style.display = 'none';
+
+      filteredRecords.forEach((record, index) => {
+        const tr = document.createElement('tr');
+        
+        let screenshotTd = 'ไม่ได้แนบ';
+        if (record.screenshotUrl && record.screenshotUrl !== 'ไม่ได้แนบไฟล์') {
+          screenshotTd = `<a href="${record.screenshotUrl}" target="_blank" class="action-link"><i class="fa-regular fa-image"></i> เปิดรูป</a>`;
+        }
+
+        let codeTd = 'ไม่ได้แนบ';
+        if (record.codeFileUrl && record.codeFileUrl !== 'ไม่ได้แนบไฟล์') {
+          const extension = record.codeFileUrl.split('.').pop();
+          codeTd = `<a href="${record.codeFileUrl}" download class="action-link" style="color:var(--success)"><i class="fa-solid fa-file-arrow-down"></i> โค้ด (${extension})</a>`;
+        }
+
+        // Auto-grading score badge mapping
+        const currentScore = record.score !== undefined ? record.score : 0.0;
+        const currentMax = record.maxScore !== undefined ? record.maxScore : 10.0;
+        let scoreClass = 'score-low';
+        if (currentScore >= 8.0) scoreClass = 'score-high';
+        else if (currentScore >= 5.0) scoreClass = 'score-mid';
+
+        const manualBadge = record.isManuallyGraded ? 
+          `<span style="font-size:0.6rem; padding:1px 4px; border-radius:3px; background:#6366f1; color:#fff; margin-left:4px; font-weight:normal; letter-spacing:0.02em">MANUAL</span>` : '';
+
+        tr.innerHTML = `
+          <td style="text-align: center;">${index + 1}</td>
+          <td><span class="student-id">${record.studentId}</span></td>
+          <td><strong>${record.studentName}</strong></td>
+          <td>${record.studentGroup}</td>
+          <td style="text-align: center;">
+            <span class="score-badge ${scoreClass}">${currentScore.toFixed(1)} / ${currentMax.toFixed(1)}</span>
+            ${manualBadge}
+          </td>
+          <td style="text-align: center;">${screenshotTd}</td>
+          <td style="text-align: center;">${codeTd}</td>
+          <td style="text-align: center;">
+            <button class="action-btn" onclick="openDetailsModal(${index})"><i class="fa-solid fa-magnifying-glass"></i> ตรวจคำตอบ</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Modal inspection opening
+    function openDetailsModal(filteredIndex) {
+      const record = filteredRecords[filteredIndex];
+      const meta = labMetadata[activeLab];
+
+      document.getElementById('modalStudentName').textContent = record.studentName || '-';
+      document.getElementById('modalStudentId').textContent = record.studentId || '-';
+      document.getElementById('modalStudentGroup').textContent = record.studentGroup || '-';
+      document.getElementById('modalLabDate').textContent = record.labDate || '-';
+
+      // Auto-grading display
+      const currentScore = record.score !== undefined ? record.score : 0.0;
+      const currentMax = record.maxScore !== undefined ? record.maxScore : 10.0;
+      document.getElementById('modalScoreDisplay').textContent = `${currentScore.toFixed(1)} / ${currentMax.toFixed(1)} คะแนน`;
+      document.getElementById('modalGradingFeedback').textContent = record.feedback || 'ไม่มีรายงานประเมินผล';
+      
+      document.getElementById('modalManualFlag').style.display = record.isManuallyGraded ? 'inline-block' : 'none';
+
+      // Load manual override panel fields
+      document.getElementById('inputOverrideScore').value = currentScore;
+      document.getElementById('inputOverrideFeedback').value = record.isManuallyGraded ? record.feedback : '';
+
+      // Challenge Code/Answers
+      document.getElementById('modalCodeLabel').textContent = meta.codeLabel;
+      
+      let challengeContent = record.challengeCode || '';
+      if (!challengeContent) {
+        let blanksContent = '';
+        if (record.codeBlank1) blanksContent += `[คำตอบ / ซอร์สโค้ด]:\n${record.codeBlank1}\n`;
+        if (record.codeBlank2) blanksContent += `\n[คำตอบเสริมช่องที่ 2]:\n${record.codeBlank2}\n`;
+        if (record.codeBlank3) blanksContent += `\n[คำตอบเสริมช่องที่ 3]:\n${record.codeBlank3}\n`;
+        if (record.codeBlank4) blanksContent += `\n[คำตอบเสริมช่องที่ 4]:\n${record.codeBlank4}\n`;
+        if (record.codeBlank5) blanksContent += `\n[คำตอบเสริมช่องที่ 5]:\n${record.codeBlank5}\n`;
+        challengeContent = blanksContent;
+      } else {
+        let blanksContent = '';
+        if (record.codeBlank1) blanksContent += `ช่องที่ 1: ${record.codeBlank1} | `;
+        if (record.codeBlank2) blanksContent += `ช่องที่ 2: ${record.codeBlank2} | `;
+        if (record.codeBlank3) blanksContent += `ช่องที่ 3: ${record.codeBlank3} | `;
+        if (record.codeBlank4) blanksContent += `ช่องที่ 4: ${record.codeBlank4} | `;
+        if (record.codeBlank5) blanksContent += `ช่องที่ 5: ${record.codeBlank5} | `;
+        if (blanksContent) {
+          challengeContent = `[คำตอบช่องว่าง Skeleton Code]:\n${blanksContent.slice(0, -3)}\n\n[ซอร์สโค้ดโจทย์ท้าทาย (Challenge Code)]:\n${challengeContent}`;
+        }
+      }
+      
+      if (record.controlLogic) {
+        challengeContent = `[คำอธิบายตรรกะควบคุม]:\n${record.controlLogic}\n\n${challengeContent}`;
+      }
+      if (record.challengeLogic) {
+        challengeContent = `[คำอธิบายโจทย์ท้าทาย]:\n${record.challengeLogic}\n\n${challengeContent}`;
+      }
+      
+      document.getElementById('modalChallengeCode').textContent = challengeContent || 'ไม่มีข้อมูลโค้ดคำตอบ';
+
+      // Q1 & Q2 text labels and answers
+      document.getElementById('modalQ1Label').textContent = meta.q1;
+      document.getElementById('modalQ1Answer').textContent = record.question1 || 'ไม่มีคำตอบ';
+
+      if (meta.q2) {
+        document.getElementById('modalQ2Wrapper').style.display = 'block';
+        document.getElementById('modalQ2Label').textContent = meta.q2;
+        document.getElementById('modalQ2Answer').textContent = record.question2 || 'ไม่มีคำตอบ';
+      } else {
+        document.getElementById('modalQ2Wrapper').style.display = 'none';
+      }
+
+      // Screenshot link image
+      const screenshotImg = document.getElementById('modalScreenshotImg');
+      const screenshotLink = document.getElementById('modalScreenshotLink');
+      if (record.screenshotUrl && record.screenshotUrl !== 'ไม่ได้แนบไฟล์') {
+        screenshotImg.src = record.screenshotUrl;
+        screenshotLink.href = record.screenshotUrl;
+        document.getElementById('modalScreenshotCard').style.display = 'flex';
+      } else {
+        document.getElementById('modalScreenshotCard').style.display = 'none';
+      }
+
+      // Code download link
+      const codeLink = document.getElementById('modalCodeLink');
+      const codeFilename = document.getElementById('modalCodeFilename');
+      if (record.codeFileUrl && record.codeFileUrl !== 'ไม่ได้แนบไฟล์') {
+        codeLink.href = record.codeFileUrl;
+        const parts = record.codeFileUrl.split('/');
+        codeFilename.textContent = parts[parts.length - 1];
+        document.getElementById('modalCodeCard').style.display = 'flex';
+      } else {
+        document.getElementById('modalCodeCard').style.display = 'none';
+      }
+
+      // Conclusion text
+      document.getElementById('modalConclusion').textContent = record.conclusion || 'ไม่มีคำสรุปการทดลอง';
+
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    // Post manual override to server
+    function saveScoreOverride() {
+      const score = parseFloat(document.getElementById('inputOverrideScore').value);
+      const feedback = document.getElementById('inputOverrideFeedback').value.trim();
+      const studentId = document.getElementById('modalStudentId').textContent.trim();
+
+      if (isNaN(score) || score < 0.0 || score > 10.0) {
+        alert('กรุณากรอกคะแนนตัวเลขที่ถูกต้องระหว่าง 0 ถึง 10');
+        return;
+      }
+
+      const btn = document.getElementById('btnSaveOverride');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังบันทึก...';
+
+      fetch('/api/override-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lab: activeLab,
+          studentId: studentId,
+          score: score,
+          feedback: feedback || 'คะแนนได้รับการประเมินและปรับเปลี่ยนแมนนวลโดยครูผู้ตรวจ'
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกคะแนนใหม่';
+        
+        if (res.status === 'success') {
+          alert('บันทึกปรับเปลี่ยนคะแนนเรียบร้อย!');
+          closeModal();
+          fetchSubmissions();
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + res.message);
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกคะแนนใหม่';
+        alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์หลัก: ' + err.toString());
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // Export tabular data as CSV locally
+    function exportToCSV() {
+      if (filteredRecords.length === 0) {
+        alert('ไม่มีข้อมูลสำหรับทำการส่งออก');
+        return;
+      }
+
+      const meta = labMetadata[activeLab];
+      
+      const headers = [
+        'รหัสนักศึกษา',
+        'ชื่อ-นามสกุล',
+        'ห้อง/กลุ่ม',
+        'วันที่ทำการทดลอง',
+        'คะแนนที่ได้',
+        'คะแนนเต็ม',
+        'ครูประเมินแมนนวล?',
+        'คำตอบ Challenge/โค้ดช่องที่ 1',
+        'คำตอบช่องที่ 2',
+        'คำตอบช่องที่ 3',
+        'คำตอบช่องที่ 4',
+        'คำตอบช่องที่ 5',
+        'โค้ดโจทย์ท้าทาย (Challenge Code)',
+        'คำอธิบายตรรกะ (controlLogic)',
+        'คำอธิบายโจทย์ท้าทาย (challengeLogic)',
+        `คำถามข้อที่ 1: ${meta.q1.replace(/,/g, ' ')}`,
+        `คำถามข้อที่ 2: ${meta.q2 ? meta.q2.replace(/,/g, ' ') : '-'}`,
+        'ลิงก์ไฟล์รูปภาพผลการทดลอง',
+        'ลิงก์ไฟล์โค้ด',
+        'สรุปผลการทดลอง'
+      ];
+
+      const rows = filteredRecords.map(r => [
+        r.studentId,
+        r.studentName,
+        r.studentGroup,
+        r.labDate || '',
+        r.score !== undefined ? r.score : 0.0,
+        r.maxScore !== undefined ? r.maxScore : 10.0,
+        r.isManuallyGraded ? 'YES' : 'NO',
+        `"${(r.codeBlank1 || '').replace(/"/g, '""')}"`,
+        `"${(r.codeBlank2 || '').replace(/"/g, '""')}"`,
+        `"${(r.codeBlank3 || '').replace(/"/g, '""')}"`,
+        `"${(r.codeBlank4 || '').replace(/"/g, '""')}"`,
+        `"${(r.codeBlank5 || '').replace(/"/g, '""')}"`,
+        `"${(r.challengeCode || '').replace(/"/g, '""')}"`,
+        `"${(r.controlLogic || '').replace(/"/g, '""')}"`,
+        `"${(r.challengeLogic || '').replace(/"/g, '""')}"`,
+        `"${(r.question1 || '').replace(/"/g, '""')}"`,
+        `"${(r.question2 || '').replace(/"/g, '""')}"`,
+        r.screenshotUrl,
+        r.codeFileUrl,
+        `"${(r.conclusion || '').replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = '\uFEFF' + [
+        headers.join(','),
+        ...rows.map(e => e.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const filename = `submissions_${activeLab}_${new Date().toISOString().split('T')[0]}.csv`;
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

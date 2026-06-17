@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 8: การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 700px;
+      margin: 0.5rem auto 0;
+    }
+
+    .course-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* Layout Split */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glass Card Base */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent);
+    }
+
+    /* Custom Frames from LaTeX */
+    .info-frame {
+      background: var(--info-frame-bg);
+      border-left: 4px solid var(--info-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-frame h3 {
+      font-family: var(--heading-font);
+      color: #93c5fd;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.1);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Content Styling */
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+
+    h3 {
+      font-family: var(--heading-font);
+      font-size: 1.15rem;
+      margin: 1.5rem 0 0.75rem 0;
+      color: #cbd5e1;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* Equipment Table */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(15, 23, 42, 0.3);
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      color: #e2e8f0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Code Block styling */
+    .code-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-header {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+    }
+
+    pre {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    /* Input Fields & Forms */
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea {
+      padding-left: 1rem;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .code-textarea {
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #38bdf8;
+      padding: 1rem;
+      width: 100%;
+      height: 150px;
+      outline: none;
+    }
+
+    /* Drag & Drop File Upload */
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+      margin-bottom: 1rem;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .preview-thumbnail {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-details {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .preview-name {
+      font-size: 0.8rem;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-size {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: opacity 0.2s;
+    }
+
+    .remove-file-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* Dual Button layout */
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Submit Button */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .btn.btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+      color: var(--text-main);
+    }
+
+    .btn.btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Toast and Modal overlays */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalScale {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+
+    .modal-icon.success {
+      color: var(--success);
+      animation: bounce 1s;
+    }
+
+    .modal-icon.error {
+      color: var(--danger);
+      animation: shake 0.5s;
+    }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px var(--accent-glow)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 8px var(--accent)); }
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-7px); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      header, .course-badge, .logo-container, .btn, .upload-area, .remove-file-btn, .modal-overlay, .copy-btn, .code-header {
+        display: none !important;
+      }
+      .dashboard-grid {
+        display: block !important;
+      }
+      .glass-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+        backdrop-filter: none !important;
+      }
+      .glass-card::before {
+        display: none !important;
+      }
+      .card-title {
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        font-weight: bold !important;
+      }
+      .card-title i {
+        display: none !important;
+      }
+      .info-frame, .challenge-frame {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #3b82f6 !important;
+        color: #000 !important;
+      }
+      .challenge-frame {
+        border-left-color: #f59e0b !important;
+        page-break-inside: avoid;
+      }
+      .info-frame h3, .challenge-frame h3 {
+        color: #000 !important;
+      }
+      p, li, td, th, label {
+        color: #000 !important;
+      }
+      table {
+        border: 1px solid #cbd5e1 !important;
+      }
+      th, td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        background: transparent !important;
+      }
+      pre {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+      }
+      code {
+        color: #000 !important;
+      }
+      input[type="text"], input[type="date"], select, textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        border-radius: 0 !important;
+        color: #000 !important;
+        padding: 0 0 2px 0 !important;
+        box-shadow: none !important;
+      }
+      .input-wrapper i {
+        display: none !important;
+      }
+      input[type="text"], input[type="date"], textarea {
+        padding-left: 0 !important;
+      }
+      .code-textarea {
+        background: transparent !important;
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+      }
+      .blank-input-group {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .file-preview {
+        display: flex !important;
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem !important;
+        color: #000 !important;
+        page-break-inside: avoid;
+      }
+      .preview-name, .preview-size {
+        color: #000 !important;
+      }
+      .preview-thumbnail {
+        border: 1px solid #cbd5e1 !important;
+      }
+      .form-section-title {
+        color: #000 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 0.25rem !important;
+      }
+      .form-section-title i {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-database logo-icon"></i>
+        <h1>ใบงานที่ 8: การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)</h1>
+      </div>
+      <p class="subtitle">หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Lab Manual -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-book-open"></i> คู่มือปฏิบัติการทดลอง
+        </div>
+
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-circle-info"></i> วัตถุประสงค์</h3>
+          <ol>
+            <li>เพื่อเข้าใจโครงสร้างฐานข้อมูลอนุกรมเวลา (Time-Series Database)</li>
+            <li>เพื่อบันทึกข้อมูลภูมิอากาศและสถานะรีเลย์จาก ESP32 ลงใน InfluxDB โดยใช้ Node-RED</li>
+          </ol>
+        </div>
+
+        <h3><i class="fa-solid fa-toolbox"></i> เครื่องมือที่ใช้ในการทดลอง</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 45%;">ชื่อซอฟต์แวร์ / ไลบรารี</th>
+                <th style="width: 55%;">คำสั่งรัน / ติดตั้ง</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>InfluxDB (Docker)</strong></td>
+                <td><code>docker run -d -p 8086:8086 influxdb</code></td>
+              </tr>
+              <tr>
+                <td><strong>node-red-contrib-influxdb</strong></td>
+                <td>ติดตั้งใน Node-RED ผ่าน Palette Manager</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3><i class="fa-solid fa-table-cells"></i> โครงสร้างข้อมูล InfluxDB (Data Schema)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%;">ประเภทโครงสร้าง</th>
+                <th style="width: 35%;">ชื่อคีย์</th>
+                <th style="width: 35%;">รายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Bucket</strong></td>
+                <td><code>esp32_iot_data</code></td>
+                <td>ชื่อถังเก็บฐานข้อมูล</td>
+              </tr>
+              <tr>
+                <td><strong>Measurement</strong></td>
+                <td><code>climate_metrics</code></td>
+                <td>ตารางเก็บข้อมูลเปรียบเสมือน Table</td>
+              </tr>
+              <tr>
+                <td><strong>Tags</strong></td>
+                <td><code>device_id = ESP32-ClimateNode</code></td>
+                <td>คีย์สำหรับแยกแยะแหล่งที่มา (Index)</td>
+              </tr>
+              <tr>
+                <td><strong>Fields</strong></td>
+                <td><code>temp</code>, <code>humidity</code>, <code>analog</code></td>
+                <td>ข้อมูลค่าตัวเลขดิบที่ต้องการจัดเก็บ</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3><i class="fa-solid fa-list-check"></i> ขั้นตอนการทดลอง</h3>
+        <ol>
+          <li>เปิด InfluxDB UI ผ่านเว็บเบราว์เซอร์ที่พอร์ต <code>http://localhost:8086</code> สมัครเข้าใช้งานครั้งแรกเพื่อรับ <strong>API Token</strong>, สร้าง <strong>Organization</strong> และสร้าง Bucket ชื่อ <code>esp32_iot_data</code></li>
+          <li>ใน Node-RED ให้ติดตั้งไลบรารี <code>node-red-contrib-influxdb</code></li>
+          <li>ลากโหนด <strong><code>influxdb out</code></strong> มาวาง และตั้งค่าการเชื่อมโยงข้อมูลดังนี้:
+            <ul>
+              <li><strong>Version:</strong> 2.0 (หรือ 1.8 ตามเวอร์ชันที่ใช้งานจริง)</li>
+              <li><strong>URL:</strong> <code>http://localhost:8086</code></li>
+              <li><strong>Token / Org / Bucket:</strong> กรอกข้อมูลที่คัดลอกมาจาก InfluxDB UI</li>
+              <li><strong>Measurement:</strong> <code>climate_metrics</code></li>
+            </ul>
+          </li>
+          <li>ลากโหนด <strong><code>function</code></strong> มาเชื่อมต่อก่อนหน้าโหนด InfluxDB เขียนสคริปต์เพื่อจัดรูปแบบ Payload ให้อยู่ในโครงสร้าง Field Key ดังต่อไปนี้:</li>
+        </ol>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>JavaScript Payload Formatter</span>
+            <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('codeExample').innerText); this.innerHTML='<i class=\'fa-solid fa-check\'></i> Copied!'; setTimeout(()=>this.innerHTML='<i class=\'fa-solid fa-copy\'></i> Copy', 2000)"><i class="fa-solid fa-copy"></i> Copy</button>
+          </div>
+          <pre><code id="codeExample">// ดึงค่าตัวเลขทศนิยมจากข้อมูลเซ็นเซอร์ที่ได้รับ
+const val = parseFloat(msg.payload);
+
+// จัดรูปแบบเป็น Field key และส่งออกไป
+msg.payload = {
+    temp: val
+};
+return msg;</code></pre>
+        </div>
+
+        <div class="challenge-frame">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
+          <p><strong>โจทย์:</strong> เขียน Flow เพิ่มเติมเพื่อบันทึกสถานะเปิด-ปิดของรีเลย์พัดลมและปั๊มน้ำ (พารามิเตอร์ข้อความ <code>"ON"</code> หรือ <code>"OFF"</code> แปลงให้เป็นตัวเลขจำนวนเต็ม <code>1</code> หรือ <code>0</code>) ลงไปใน Measurement เดียวกัน เพื่อใช้สำหรับการคำนวณและประเมินชั่วโมงการทำงานของฮาร์ดแวร์ในอนาคต</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Submission Form -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-pen-to-square"></i> แบบฟอร์มส่งบันทึกผลการทดลอง
+        </div>
+
+        <form id="labForm" onsubmit="handleSubmit(event)">
+          
+          <!-- Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลนักศึกษา
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName">ชื่อ-นามสกุล</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="studentName" placeholder="นาย/นางสาว เรียนดี มีสุข" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="studentId">รหัสนักศึกษา</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-id-card input-icon"></i>
+                  <input type="text" id="studentId" placeholder="694565555" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="studentGroup">ห้อง/กลุ่ม</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-users input-icon"></i>
+                  <input type="text" id="studentGroup" placeholder="เช่น 4/1" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="labDate">วันที่ทำการทดลอง</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-calendar-days input-icon"></i>
+                <input type="date" id="labDate" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Challenge Solution -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-code"></i> คำตอบส่วนโจทย์ท้าทาย (Challenge)
+            </div>
+            <div class="form-group">
+              <label for="codeBlank1">โค้ด JavaScript โหนด Function (แปลงสถานะ ON/OFF รีเลย์ เป็น 1/0):</label>
+              <textarea id="codeBlank1" class="code-textarea" placeholder="// เขียนสคริปต์คัดกรองแปลงข้อความ ON/OFF ของรีเลย์เป็นตัวเลข 1/0
+let statusVal = 0;
+if (msg.payload === 'ON') {
+    statusVal = 1;
+}
+..." required></textarea>
+            </div>
+          </div>
+
+          <!-- Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-circle-question"></i> คำถามท้ายการทดลอง
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. เหตุใดการเก็บข้อมูลเซ็นเซอร์ประเภทอุณหภูมิและความชื้นจึงนิยมเก็บลงบนฐานข้อมูลแบบ Time-Series (ฐานข้อมูลอนุกรมเวลา) มากกว่าฐานข้อมูลตารางความสัมพันธ์ทั่วไป เช่น MySQL?</label>
+              <textarea id="question1" rows="3" placeholder="อธิบายเปรียบเทียบในมุมมองด้านประสิทธิภาพ, ขนาดข้อมูล, และความถี่ในการเขียนข้อมูล..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. โครงสร้างข้อมูล (Data Schema) ของ InfluxDB ที่ใช้ในการทดลองนี้ประกอบด้วยองค์ประกอบใดบ้าง จงอธิบายความหมายของ Bucket, Measurement, Tags, และ Fields พอสังเขป</label>
+              <textarea id="question2" rows="3" placeholder="อธิบายตามความเข้าใจจากการสร้างฐานข้อมูลและการแมปค่า..." required></textarea>
+            </div>
+          </div>
+
+          <!-- File Uploads -->
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-cloud-arrow-up"></i> แนบหลักฐานการทดลอง
+            </div>
+
+            <!-- Screenshot Upload -->
+            <div class="form-group">
+              <label>1. รูปถ่ายหน้าจอ Flow Node-RED หรือตารางข้อมูลที่บันทึกสำเร็จใน InfluxDB UI</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-solid fa-image upload-icon"></i>
+                <div class="upload-text">ลากไฟล์รูปภาพมาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์รูปภาพ PNG, JPG, JPEG (ขนาดไม่เกิน 10MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" alt="Thumbnail" class="preview-thumbnail" id="screenshotThumb">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Code/Flow JSON File Upload -->
+            <div class="form-group">
+              <label>2. ไฟล์ส่งออก Flow JSON จาก Node-RED (ไฟล์นามสกุล .json)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeFileInput').click()">
+                <i class="fa-solid fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากไฟล์ .json มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์ JSON (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeFileInput" class="file-input" accept=".json,application/json" onchange="handleFileSelect(this, 'code')">
+              </div>
+              <div class="file-preview" id="codePreview">
+                <div class="preview-details" style="padding-left: 0.5rem;">
+                  <div class="preview-name" id="codeFileName">flow.json</div>
+                  <div class="preview-size" id="codeFileSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Experiment Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-square-poll-vertical"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">สรุปสิ่งที่ได้รับจากการเรียนรู้และการทดลองระบบบันทึก InfluxDB:</label>
+              <textarea id="conclusion" rows="4" placeholder="เขียนสรุปอธิบายหลักการทำงานและประโยชน์ของ Time-Series Database..." required></textarea>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="button-group">
+            <button type="button" class="btn btn-secondary" onclick="window.print()">
+              <i class="fa-solid fa-print"></i> พิมพ์ / PDF
+            </button>
+            <button type="submit" class="btn" id="submitBtn">
+              <i class="fa-solid fa-paper-plane"></i> ส่งรายงานผลการทดลอง
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status Modals -->
+  <div class="modal-overlay" id="statusModal">
+    <div class="modal-content">
+      <span class="modal-icon" id="modalIcon"></span>
+      <h3 class="modal-title" id="modalTitle">กำลังดำเนินการ</h3>
+      <p class="modal-text" id="modalText">กรุณารอสักครู่ ระบบกำลังอัปโหลดไฟล์และส่งบันทึกผลการเรียนรู้...</p>
+      <button class="modal-close-btn" onclick="closeModal()">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+
+  <script>
+    // Local Storage persistence keys
+    const LS_NAME = 'student_name';
+    const LS_ID = 'student_id';
+    const LS_GROUP = 'student_group';
+
+    // File base64 buffers
+    let screenshotBase64 = null;
+    let screenshotName = null;
+    let screenshotType = null;
+
+    let codeBase64 = null;
+    let codeFileName = null;
+    let codeFileType = null;
+
+    // Load persisted metadata
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('studentName').value = localStorage.getItem(LS_NAME) || '';
+      document.getElementById('studentId').value = localStorage.getItem(LS_ID) || '';
+      document.getElementById('studentGroup').value = localStorage.getItem(LS_GROUP) || '';
+      
+      // Auto-set current date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('labDate').value = today;
+
+      setupDragAndDrop();
+    });
+
+    // Save student metadata to localStorage on change
+    document.getElementById('studentName').addEventListener('input', e => localStorage.setItem(LS_NAME, e.target.value));
+    document.getElementById('studentId').addEventListener('input', e => localStorage.setItem(LS_ID, e.target.value));
+    document.getElementById('studentGroup').addEventListener('input', e => localStorage.setItem(LS_GROUP, e.target.value));
+
+    // Drag and Drop implementation
+    function setupDragAndDrop() {
+      const dropAreas = [
+        { id: 'screenshotArea', type: 'screenshot' },
+        { id: 'codeArea', type: 'code' }
+      ];
+
+      dropAreas.forEach(area => {
+        const element = document.getElementById(area.id);
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+          element.addEventListener(eventName, e => {
+            e.preventDefault();
+            element.classList.add('dragover');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          element.addEventListener(eventName, e => {
+            e.preventDefault();
+            element.classList.remove('dragover');
+          }, false);
+        });
+
+        element.addEventListener('drop', e => {
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            const fileInput = element.querySelector('.file-input');
+            fileInput.files = files;
+            handleFileSelect(fileInput, area.type);
+          }
+        }, false);
+      });
+    }
+
+    // Convert file to base64
+    function handleFileSelect(input, type) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (type === 'screenshot') {
+          screenshotBase64 = e.target.result;
+          screenshotName = file.name;
+          screenshotType = file.type;
+          
+          document.getElementById('screenshotName').textContent = file.name;
+          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('screenshotThumb').src = e.target.result;
+          document.getElementById('screenshotPreview').style.display = 'flex';
+          document.getElementById('screenshotArea').style.display = 'none';
+        } else {
+          codeBase64 = e.target.result;
+          codeFileName = file.name;
+          codeFileType = file.type;
+          
+          document.getElementById('codeFileName').textContent = file.name;
+          document.getElementById('codeFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('codePreview').style.display = 'flex';
+          document.getElementById('codeArea').style.display = 'none';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Remove selected file
+    function removeFile(type) {
+      if (type === 'screenshot') {
+        screenshotBase64 = null;
+        screenshotName = null;
+        screenshotType = null;
+        document.getElementById('screenshotInput').value = '';
+        document.getElementById('screenshotPreview').style.display = 'none';
+        document.getElementById('screenshotArea').style.display = 'block';
+      } else {
+        codeBase64 = null;
+        codeFileName = null;
+        codeFileType = null;
+        document.getElementById('codeFileInput').value = '';
+        document.getElementById('codePreview').style.display = 'none';
+        document.getElementById('codeArea').style.display = 'block';
+      }
+    }
+
+    // Handle Form Submit
+    function handleSubmit(event) {
+      event.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      
+      showModal('info', 'กำลังดำเนินการ', 'กำลังแปลงไฟล์และอัปโหลดส่งรายงานผล... <br><i class="fa-solid fa-spinner loading-spinner" style="margin-top:1rem; font-size:1.5rem"></i>', false);
+
+      const payload = {
+        challengeCode: document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '',
+        studentName: document.getElementById('studentName').value,
+        studentId: document.getElementById('studentId').value,
+        studentGroup: document.getElementById('studentGroup').value,
+        labDate: document.getElementById('labDate').value,
+        codeBlank1: document.getElementById('codeBlank1').value,
+        question1: document.getElementById('question1').value,
+        question2: document.getElementById('question2').value,
+        conclusion: document.getElementById('conclusion').value,
+        screenshotBase64: screenshotBase64,
+        screenshotName: screenshotName,
+        screenshotType: screenshotType,
+        codeBase64: codeBase64,
+        codeFileName: codeFileName,
+        codeFileType: codeFileType
+      };
+
+      // Check if running in GAS Environment or standalone
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .submitLabData(payload);
+      } else {
+        // Simulation Mode (Local Testing)
+        console.log('Form Payload:', payload);
+        setTimeout(() => {
+          onSuccess({
+            status: 'success',
+            message: 'โหมดทดสอบในเครื่อง: บันทึกข้อมูลสำเร็จ! หากติดตั้งบน Google Sheets สคริปต์จะบันทึกเข้าตารางผลการเรียนและไดรฟ์โดยตรง'
+          });
+        }, 1500);
+      }
+    }
+
+    function onSuccess(response) {
+      document.getElementById('submitBtn').disabled = false;
+      if (response.status === 'success') {
+              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+        showModal('success', 'ส่งรายงานสำเร็จ', response.message, true);
+        // Reset inputs that are not student details
+        document.getElementById('codeBlank1').value = '';
+        document.getElementById('question1').value = '';
+        document.getElementById('question2').value = '';
+        document.getElementById('conclusion').value = '';
+        removeFile('screenshot');
+        removeFile('code');
+      } else {
+        showModal('error', 'เกิดข้อผิดพลาด', response.message, true);
+      }
+    }
+
+    function onFailure(error) {
+      document.getElementById('submitBtn').disabled = false;
+      showModal('error', 'เกิดข้อผิดพลาดรุนแรง', error.toString(), true);
+    }
+
+    // Modal Control Utility
+    function showModal(type, title, text, showButton) {
+      const modal = document.getElementById('statusModal');
+      const icon = document.getElementById('modalIcon');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalText = document.getElementById('modalText');
+      const closeBtn = modal.querySelector('.modal-close-btn');
+
+      modalTitle.textContent = title;
+      modalText.innerHTML = text;
+
+      icon.className = 'modal-icon';
+      if (type === 'success') {
+        icon.classList.add('success');
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else if (type === 'error') {
+        icon.classList.add('error');
+        icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+      } else {
+        icon.innerHTML = '';
+      }
+
+      closeBtn.style.display = showButton ? 'inline-block' : 'none';
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('statusModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

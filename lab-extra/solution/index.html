@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Climate Dashboard - Lab Extra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/6c2cf6a18d.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 1. ส่วนหัวเว็บ (Header) -->
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-server header-logo"></i>
+                <h1 id="txt-title">ระบบควบคุมภูมิอากาศ IoT</h1>
+            </div>
+            
+            <div class="header-controls">
+                <!-- Language Switcher Button (TH/EN Challenge) -->
+                <button type="button" class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">
+                    <i class="fa-solid fa-language"></i> <span id="txt-lang-btn">EN</span>
+                </button>
+                
+                <div class="status-indicator">
+                    <span class="status-dot" id="conn-dot"></span>
+                    <span id="conn-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. ส่วนแสดงผลการวัด (Metrics Grid) -->
+        <main class="metrics-grid">
+            <!-- Temp Card (Toggled with .warning-blink class when temp > 35.0 C) -->
+            <div class="card temp-card" id="temp-card">
+                <div class="card-icon"><i class="fa-solid fa-temperature-half"></i></div>
+                <h3 id="txt-temp-title">อุณหภูมิห้อง</h3>
+                <p class="metric-value"><span id="temp-val">--</span> <span class="unit">°C</span></p>
+                <div class="card-footer" id="txt-temp-footer">อัปเดตแบบเรียลไทม์</div>
+            </div>
+            
+            <!-- Humidity Card -->
+            <div class="card hum-card" id="hum-card">
+                <div class="card-icon"><i class="fa-solid fa-droplet"></i></div>
+                <h3 id="txt-hum-title">ความชื้นอากาศ</h3>
+                <p class="metric-value"><span id="hum-val">--</span> <span class="unit">%</span></p>
+                <div class="card-footer" id="txt-hum-footer">ความชื้นสัมพัทธ์อากาศ</div>
+            </div>
+            
+            <!-- Soil Moisture Card -->
+            <div class="card analog-card" id="analog-card">
+                <div class="card-icon"><i class="fa-solid fa-seedling"></i></div>
+                <h3 id="txt-soil-title">เซ็นเซอร์วัดค่าดิน</h3>
+                <p class="metric-value"><span id="analog-val">--</span> <span class="unit">%</span></p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="analog-bar" style="width: 0%"></div>
+                </div>
+                <div class="card-footer" id="txt-soil-footer">ระดับความชื้นสะสมในดิน</div>
+            </div>
+        </main>
+
+        <!-- 3. ส่วนสวิตช์ควบคุมระบบ -->
+        <section class="controls-section">
+            <div class="card control-card">
+                <h3 id="txt-control-title">ควบคุมอุปกรณ์เอาต์พุต</h3>
+                
+                <div class="control-row">
+                    <div class="control-details">
+                        <span id="txt-fan-label" style="font-weight: 500;">เปิดพัดลมระบายอากาศ (GPIO 13)</span>
+                        <span id="txt-fan-desc" class="control-desc">สั่งทำงานตัวพัดลมระบายความร้อนตัวหลัก</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="fan-btn" onchange="onToggleFan(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Simulation Control Bar (Allows testing temp threshold and values directly in browser) -->
+        <section class="simulation-section">
+            <div class="card sim-card">
+                <h3><i class="fa-solid fa-vial"></i> IoT Simulator Control Panel (ทดสอบการทำงาน)</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">เลื่อนสไลเดอร์เพื่อทดสอบการทำเงื่อนไขเตือนภัย > 35.0 °C ใน JavaScript</p>
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">ปรับอุณหภูมิอ้างอิง: <span id="sim-temp-val" style="color: #6366f1; font-weight: bold;">28.5</span>°C</label>
+                        <input type="range" min="20" max="45" step="0.5" value="28.5" style="width: 100%; margin-top: 0.5rem;" oninput="simulateTemp(this.value)">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">ปรับความชื้นดิน: <span id="sim-soil-val" style="color: #10b981; font-weight: bold;">45</span>%</label>
+                        <input type="range" min="0" max="100" step="1" value="45" style="width: 100%; margin-top: 0.5rem;" oninput="simulateSoil(this.value)">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

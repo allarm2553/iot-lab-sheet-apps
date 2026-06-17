@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Real-Time Control Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="logo-text">
+                <h1>ESP32 <span class="accent">WebSockets</span> Control Panel</h1>
+                <p>Real-time sensor monitoring &amp; relay control via WebSocket</p>
+            </div>
+            <div class="header-status">
+                <span class="status-dot" id="conn-dot"></span>
+                <span id="conn-text">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- Sensor Metrics Card -->
+        <div class="metrics-grid">
+
+            <!-- Temperature Card -->
+            <div class="card">
+                <h2>อุณหภูมิห้อง</h2>
+                <div class="metric-value-row">
+                    <span class="metric-num highlight-blue" id="temp-val">--</span>
+                    <span class="metric-unit">°C</span>
+                </div>
+                <div class="progress-wrapper">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="temp-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Humidity Card -->
+            <div class="card">
+                <h2>ความชื้นอากาศ</h2>
+                <div class="metric-value-row">
+                    <span class="metric-num highlight-orange" id="hum-val">--</span>
+                    <span class="metric-unit">%</span>
+                </div>
+                <div class="progress-wrapper">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="hum-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Control Panel Card -->
+        <div class="card">
+            <h2>แผงควบคุม (Control Panel)</h2>
+
+            <!-- Threshold Slider -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">เกณฑ์อุณหภูมิควบคุมพัดลม (Threshold)</span>
+                    <span class="control-desc">ลากสไลเดอร์เพื่อปรับค่าส่งไปยังบอร์ด ESP32</span>
+                </div>
+                <span style="color: var(--ha-blue); font-weight: 700; font-size: 1rem; white-space: nowrap;">
+                    <span id="threshold-val">30.0</span>°C
+                </span>
+            </div>
+            <input type="range" id="temp-slider" min="25.0" max="35.0" step="0.5" value="30.0"
+                   oninput="onThresholdChange(this.value)"
+                   style="-webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+                          background: rgba(255,255,255,0.1); border-radius: 5px; outline: none;
+                          cursor: pointer; accent-color: var(--ha-blue);">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                <span>25.0°C</span>
+                <span>35.0°C</span>
+            </div>
+
+            <!-- Fan Toggle -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">ควบคุมพัดลม (GPIO 13)</span>
+                    <span class="control-desc">สั่งเปิด/ปิดพัดลมแบบแมนนวล</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge state-off" id="fan-badge">OFF</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fan-switch" onchange="onToggleFan(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-bar">
+            ESP32 WebSocket Dashboard &mdash; อัปเดตอัตโนมัติแบบ Real-time
+        </div>
+
+    </div>
+
+    <script>
+        let socket;
+
+        function connectWebSocket() {
+            // ดึงไอพีโฮสต์ปัจจุบัน และเชื่อมโยงไปที่พอร์ต 81 สำหรับ WebSocket
+            const host = window.location.hostname || "192.168.1.100"; // Fallback IP สำหรับเครื่องจำลอง
+            const wsUri = `ws://${host}:81/`;
+
+            socket = new WebSocket(wsUri);
+
+            socket.onopen = function() {
+                document.getElementById('conn-dot').classList.add('active');
+                document.getElementById('conn-text').textContent = 'Connected';
+                console.log("WebSocket connected.");
+            };
+
+            socket.onclose = function() {
+                document.getElementById('conn-dot').classList.remove('active');
+                document.getElementById('conn-text').textContent = 'Disconnected';
+                console.log("WebSocket disconnected. Retrying in 3 seconds...");
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            socket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    // อัปเดตค่าอุณหภูมิและความชื้น
+                    if (data.temp !== undefined) {
+                        document.getElementById('temp-val').textContent = data.temp.toFixed(1);
+                        // อัปเดต progress bar อุณหภูมิ (range 0–50°C)
+                        const tempPct = Math.min(100, Math.max(0, (data.temp / 50) * 100));
+                        document.getElementById('temp-bar').style.width = tempPct + '%';
+                    }
+                    if (data.humidity !== undefined) {
+                        document.getElementById('hum-val').textContent = data.humidity.toFixed(1);
+                        // อัปเดต progress bar ความชื้น (range 0–100%)
+                        const humPct = Math.min(100, Math.max(0, data.humidity));
+                        document.getElementById('hum-bar').style.width = humPct + '%';
+                    }
+
+                    // อัปเดตสถานะปุ่มสวิตช์ควบคุมพัดลม
+                    if (data.fan !== undefined) {
+                        document.getElementById('fan-switch').checked = data.fan;
+                        updateFanBadge(data.fan);
+                    }
+
+                    // อัปเดตค่าเกณฑ์อุณหภูมิที่ดึงมาจากบอร์ดจริง
+                    if (data.threshold !== undefined) {
+                        document.getElementById('threshold-val').textContent = data.threshold.toFixed(1);
+                        document.getElementById('temp-slider').value = data.threshold;
+                    }
+                } catch(e) {
+                    console.error("Error parsing socket JSON data", e);
+                }
+            };
+
+            socket.onerror = function(error) {
+                console.error("WebSocket error", error);
+            };
+        }
+
+        // เมื่อผู้ใช้ลากสไลเดอร์ ให้ส่งค่าความท้าทายกลับไปยังบอร์ด
+        function onThresholdChange(val) {
+            document.getElementById('threshold-val').textContent = parseFloat(val).toFixed(1);
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const payload = {
+                    threshold: parseFloat(val)
+                };
+                socket.send(JSON.stringify(payload));
+            }
+        }
+
+        // เมื่อผู้ใช้กดปุ่มเปิด-ปิด พัดลมแบบแมนนวล
+        function onToggleFan(state) {
+            updateFanBadge(state);
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const payload = {
+                    action: "toggle_fan",
+                    value: state
+                };
+                socket.send(JSON.stringify(payload));
+            }
+        }
+
+        // อัปเดต badge แสดงสถานะพัดลม ON/OFF
+        function updateFanBadge(state) {
+            const badge = document.getElementById('fan-badge');
+            if (state) {
+                badge.textContent = 'ON';
+                badge.className = 'status-badge state-on';
+            } else {
+                badge.textContent = 'OFF';
+                badge.className = 'status-badge state-off';
+            }
+        }
+
+        // เริ่มต้นการเชื่อมต่อ
+        window.addEventListener('DOMContentLoaded', connectWebSocket);
+    </script>
+</body>
+</html>
