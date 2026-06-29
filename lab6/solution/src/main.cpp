@@ -50,6 +50,8 @@ const char* password = "iot123456";
 // ─────────────────────────────────────────────
 const char* mqttServer = "broker.emqx.io";
 const int   mqttPort   = 1883;
+const char* mqttUser   = "elec";
+const char* mqttPassword = "elec1234";
 
 // MQTT Topic prefix (ตรงกับ Topic Map ใน dashboard)
 const char* TOPIC_PREFIX = "esp32-climate-node";
@@ -266,7 +268,7 @@ void reconnectMqttNonBlocking() {
       Serial.print("[MQTT] Connecting (non-blocking)...");
 
       String clientId = "ESP-Resilient-" + String(random(0xffff), HEX);
-      if (mqttClient.connect(clientId.c_str())) {
+      if (mqttClient.connect(clientId.c_str(), mqttUser, mqttPassword)) {
         Serial.println(" Connected.");
 
         // Subscribe ทุก command topic

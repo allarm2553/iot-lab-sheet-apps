@@ -16,7 +16,7 @@ function doGet(e) {
 // Auto-grading logic for lab6
 function gradeSubmission(data) {
   var blankKeywords = [];
-  var challengeKeywords = ["WiFi", "connect|reconnect", "non-blocking|millis|nonblocking", "webSocket|client"];
+  var challengeKeywords = ["WiFi", "connect|reconnect", "non-blocking|millis|nonblocking", "webSocket|client", "elec|elec1234"];
   var q1Keywords = ["non-blocking","ไม่บล็อก","หลุด","ค้าง","ทำงานต่อ","loop"];
   var q2Keywords = ["LAN","ออฟไลน์","เน็ตหลุด","เสถียร","โรงงาน","ปลอดภัย"];
   

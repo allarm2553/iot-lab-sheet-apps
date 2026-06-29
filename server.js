@@ -115,7 +115,7 @@ const gradingRules = {
     q2Keywords: ['หลุด', 'disconnect', 'เตะ', 'ชน', 'ซ้ำ', 'reconnect']
   },
   'lab6': {
-    challengeKeywords: ['WiFi', 'connect|reconnect', 'non-blocking|millis|nonblocking', 'webSocket|client'],
+    challengeKeywords: ['WiFi', 'connect|reconnect', 'non-blocking|millis|nonblocking', 'webSocket|client', 'elec|elec1234'],
     q1Keywords: ['non-blocking', 'ไม่บล็อก', 'หลุด', 'ค้าง', 'ทำงานต่อ', 'loop'],
     q2Keywords: ['LAN', 'ออฟไลน์', 'เน็ตหลุด', 'เสถียร', 'โรงงาน', 'ปลอดภัย']
   },
