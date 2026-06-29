@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = 4000;
 
 // Enable CORS and body size configuration (50mb for base64 files)
 app.use(cors());
