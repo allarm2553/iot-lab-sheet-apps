@@ -988,26 +988,25 @@
         <div class="info-frame">
           <h3><i class="fa-solid fa-circle-info"></i> วัตถุประสงค์</h3>
           <ol>
-            <li>เพื่อเรียนรู้และติดตั้งโปรแกรม Arduino IDE และไดรเวอร์ USB-to-UART สำหรับบอร์ด ESP32 / ESP8266</li>
-            <li>เพื่อเข้าใจคุณลักษณะด้านฮาร์ดแวร์ (Specifications) ของบอร์ด ESP32</li>
-            <li>เพื่อเรียนรู้การกำหนดค่าขาและตำแหน่งพินใช้งาน (Pinout & GPIO) ของ ESP32</li>
+            <li>เพื่อเรียนรู้และติดตั้งโปรแกรม Arduino IDE และไดรเวอร์ USB-to-UART สำหรับบอร์ด IPST-WiFi (ESP32) และ AX-WiFi (ESP8266)</li>
+            <li>เพื่อเข้าใจคุณลักษณะด้านฮาร์ดแวร์ (Specifications) ของบอร์ด IPST-WiFi และ AX-WiFi</li>
+            <li>เพื่อเรียนรู้การกำหนดค่าขาและตำแหน่งพินใช้งาน (Pinout & GPIO) ของทั้งสองบอร์ด</li>
           </ol>
         </div>
 
         <h2>1. การดาวน์โหลดและติดตั้ง Arduino IDE</h2>
-        <p>การเขียนโปรแกรมลงบอร์ด ESP32 หรือ ESP8266 จำเป็นต้องมีสภาพแวดล้อมในการเขียนโปรแกรม (IDE) และไดรเวอร์ติดต่อสื่อสารกับคอมพิวเตอร์ ดังนี้:</p>
+        <p>การเขียนโปรแกรมลงบอร์ด IPST-WiFi (ESP32) หรือ AX-WiFi (ESP8266) จำเป็นต้องมีสภาพแวดล้อมในการเขียนโปรแกรม (IDE) และไดรเวอร์ติดต่อสื่อสารกับคอมพิวเตอร์ ดังนี้:</p>
         <ol>
           <li>ดาวน์โหลดและติดตั้ง <strong>Arduino IDE 2.x</strong> จากหน้าเว็บทางการ <a href="https://www.arduino.cc/en/software" target="_blank" style="color: #818cf8; text-decoration: underline;">arduino.cc</a></li>
           <li>ติดตั้งไดรเวอร์เชื่อมต่อ USB-to-UART ขึ้นอยู่กับชิปควบคุมบนบอร์ดของคุณ:
             <ul>
-              <li>ชิป <strong>CP2102 / CP2104</strong>: ติดตั้ง <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" style="color: #818cf8; text-decoration: underline;">Silicon Labs VCP Driver</a></li>
-              <li>ชิป <strong>CH340 / CH341</strong>: ติดตั้งไดรเวอร์ CH340 จากผู้ผลิต</li>
+              <li>ชิป <strong>CP2102 / CP2104 / CH340</strong>: บอร์ด IPST-WiFi และ AX-WiFi มีชิปสื่อสารติดตั้งมาแล้ว ให้ติดตั้งไดรเวอร์ที่ตรงกันเพื่อให้ระบบสืบค้น COM Port พบ</li>
             </ul>
           </li>
           <li>เปิดโปรแกรม Arduino IDE ไปที่เมนู <strong>File &rarr; Preferences</strong></li>
           <li>ในช่อง <strong>Additional boards manager URLs</strong> ให้คัดลอก URL ของบอร์ดที่ใช้ไปวาง (หากมีหลาย URL ให้คั่นด้วยเครื่องหมายจุลภาค `,`):
             <div class="url-copy-box">
-              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP32 Board Manager URL</div>
+              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP32 Board Manager URL (สำหรับ IPST-WiFi)</div>
               <div class="url-input-group">
                 <input type="text" readonly value="https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json" id="esp32Url">
                 <button type="button" class="copy-url-btn" onclick="copyToClipboard('esp32Url', this)">
@@ -1016,7 +1015,7 @@
               </div>
             </div>
             <div class="url-copy-box">
-              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP8266 Board Manager URL</div>
+              <div class="url-title"><i class="fa-solid fa-microchip"></i> ESP8266 Board Manager URL (สำหรับ AX-WiFi)</div>
               <div class="url-input-group">
                 <input type="text" readonly value="https://arduino.esp8266.com/stable/package_esp8266com_index.json" id="esp8266Url">
                 <button type="button" class="copy-url-btn" onclick="copyToClipboard('esp8266Url', this)">
@@ -1028,15 +1027,15 @@
           <li>ไปที่เมนูเครื่องมือด้านซ้าย เลือก <strong>Boards Manager</strong> ค้นหาคำว่า <code>esp32</code> (โดย Espressif Systems) หรือ <code>esp8266</code> (โดย ESP8266 Community) แล้วกดปุ่ม <strong>Install</strong></li>
         </ol>
 
-                <h2>2. คุณลักษณะทางเทคนิคของ ESP32 และ ESP8266 (Specifications)</h2>
+                <h2>2. คุณลักษณะทางเทคนิคของ IPST-WiFi และ AX-WiFi (Specifications)</h2>
         <p>บอร์ดไมโครคอนโทรลเลอร์ทั้งสองตัวมีสเปคทางเทคนิคและขีดความสามารถที่แตกต่างกันเพื่อตอบสนองการเลือกใช้งานตามความเหมาะสม:</p>
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th style="width: 30%;">คุณสมบัติ (Specification)</th>
-                <th style="width: 35%;">ESP32</th>
-                <th style="width: 35%;">ESP8266</th>
+                <th style="width: 35%;">IPST-WiFi (ESP32)</th>
+                <th style="width: 35%;">AX-WiFi (ESP8266)</th>
               </tr>
             </thead>
             <tbody>
@@ -1047,8 +1046,8 @@
               </tr>
               <tr>
                 <td><strong>Memory</strong></td>
-                <td>ROM 448 KB, SRAM 520 KB, Flash 4MB / 8MB / 16MB</td>
-                <td>SRAM 160 KB (ใช้งานทั่วไป ~80 KB), Flash 1MB / 4MB</td>
+                <td>ROM 448 KB, SRAM 520 KB + 4MB PSRAM, Flash 4MB</td>
+                <td>SRAM 160 KB, Flash 4MB (บนโมดูล NodeMCU-12E)</td>
               </tr>
               <tr>
                 <td><strong>Wireless Connectivity</strong></td>
@@ -1057,25 +1056,25 @@
               </tr>
               <tr>
                 <td><strong>Internal Peripherals</strong></td>
-                <td>12-bit ADC, 8-bit DAC, UART, SPI, I2C, PWM, Touch Sensor</td>
-                <td>10-bit ADC (1 ช่อง A0), UART, SPI, Software I2C, PWM</td>
+                <td>12-bit ADC (ต่อพอร์ต 32-35, VP=36), DAC, I2C, SPI, PWM, UART</td>
+                <td>10-bit ADC (1 ช่อง A0 ต่อ VR/AD), I2C, SPI, Software Serial, PWM</td>
               </tr>
               <tr>
-                <td><strong>Operating Voltage</strong></td>
-                <td>3.3V (แรงดันจ่ายเข้าบอร์ดผ่านช่อง USB: 5V)</td>
-                <td>3.3V (แรงดันจ่ายเข้าบอร์ดผ่านช่อง USB: 5V)</td>
+                <td><strong>Onboard Devices</strong></td>
+                <td>OLED 0.96", LED (GPIO18), SW1 (GPIO0), RGB Neopixel x3 (GPIO12), Piezo (GPIO25)</td>
+                <td>OLED 0.96", RGB WS2812B x2 (GPIO14), SW FLASH (GPIO0), Piezo (GPIO15)</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <h2>3. การใช้งานพินและการจัดสรรขา (ESP32 Pinout Diagram & ESP8266 Note)</h2>
+        <h2>3. การใช้งานพินและการจัดสรรขา (IPST-WiFi Pinout Diagram & AX-WiFi Note)</h2>
         <p>การเชื่อมต่อเซ็นเซอร์และอุปกรณ์เอาต์พุตจำเป็นต้องรู้หน้าที่ของพินแต่ละพิน <strong>คลิกเลือกพินบนรูปบอร์ดเพื่อดูรายละเอียด หรือสลับบอร์ดด้านล่าง:</strong></p>
 
         <!-- Interactive Pinout Tabs -->
         <div class="pinout-tabs">
-          <button type="button" class="pinout-tab-btn active" onclick="switchPinoutTab('esp32', this)">ESP32 NodeMCU-32S</button>
-          <button type="button" class="pinout-tab-btn" onclick="switchPinoutTab('esp8266', this)">ESP8266 NodeMCU V2</button>
+          <button type="button" class="pinout-tab-btn active" onclick="switchPinoutTab('esp32', this)">IPST-WiFi (ESP32)</button>
+          <button type="button" class="pinout-tab-btn" onclick="switchPinoutTab('esp8266', this)">AX-WiFi (ESP8266)</button>
         </div>
 
         <div class="pinout-wrapper">

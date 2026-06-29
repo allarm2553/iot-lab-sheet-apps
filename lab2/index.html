@@ -739,7 +739,12 @@
         <h2>การเชื่อมต่อวงจร (Wiring)</h2>
         <ul>
           <li>เชื่อมต่อระบบเซ็นเซอร์และรีเลย์จากใบงานที่ 1 ไว้ตามเดิม</li>
-          <li><strong>SSD1306 OLED Display:</strong> VCC &rarr; 3.3V, GND &rarr; GND, SDA &rarr; <code>GPIO 21 (หรือ D2/GPIO 4 สำหรับ ESP8266)</code>, SCL &rarr; <code>GPIO 22 (หรือ D1/GPIO 5 สำหรับ ESP8266)</code></li>
+          <li><strong>SSD1306 OLED Display:</strong> จอ OLED มีการเชื่อมต่อแบบ On-board อยู่ในตัวบอร์ดแล้ว ไม่ต้องใช้สายจัมเปอร์เชื่อมต่อภายนอก:
+            <ul>
+              <li><strong>IPST-WiFi (ESP32):</strong> เชื่อมต่อกับบัส I2C ที่ขา <code>SDA = 21, SCL = 22</code></li>
+              <li><strong>AX-WiFi (ESP8266):</strong> เชื่อมต่อกับบัส I2C ที่ขา <code>SDA = D2 (GPIO 4), SCL = D1 (GPIO 5)</code></li>
+            </ul>
+          </li>
         </ul>
 
         <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
@@ -799,7 +804,7 @@ void loop() {
 
         <div class="challenge-frame">
           <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> ให้นักเรียนนำสถานะการเปิด-ปิดของรีเลย์ในใบงานที่ 1 (Fan และ Mist) มาแสดงผลที่แถวพิกเซลด้านล่างสุดของจอภาพ โดยให้แสดงข้อความตามจริง เช่น <code>Fan: ON</code> หรือ <code>Fan: OFF</code></p>
+          <p><strong>โจทย์:</strong> ให้นักเรียนนำค่าเซ็นเซอร์ทั้งหมดจากใบงานที่ 1 (อุณหภูมิ, ความชื้น และค่าเปอร์เซ็นต์แอนะล็อก) ร่วมกับสัญญานอินพุตปุ่มกดและสถานะการทำงานของรีเลย์จากใบงานที่ 1.1 (เช่น แสดงค่าอุณหภูมิ ความชื้น แอนะล็อก และแสดงสถานะ Relay: ON/OFF พร้อมจำนวนครั้งที่กดปุ่ม Toggle ในบรรทัดล่างสุด) มาแสดงผลบนหน้าจอ OLED ร่วมกันอย่างถูกต้องและสวยงาม</p>
         </div>
       </div>
 
@@ -932,7 +937,7 @@ void loop() {
 
             <!-- Code file upload -->
             <div class="form-group">
-              <label>2. ไฟล์โค้ดจริง (.ino หรือ .zip จากโจทย์ท้าทายที่นำสถานะรีเลย์มาแสดงผล)</label>
+              <label>2. ไฟล์โค้ดจริง (.ino หรือ .zip จากโจทย์ท้าทายที่นำข้อมูลเซ็นเซอร์และสถานะรีเลย์ปุ่มกดมาแสดงผล)</label>
               <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
                 <i class="fa-regular fa-file-code upload-icon"></i>
                 <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
@@ -958,7 +963,7 @@ void loop() {
             </div>
             <div class="form-group">
               <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
-              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์และผลลัพธ์ของโจทย์ท้าทายที่แสดงสถานะรีเลย์ Fan: ON/OFF บนหน้าจอ OLED..."></textarea>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์และผลลัพธ์ของโจทย์ท้าทายที่แสดงอุณหภูมิ ความชื้น แอนะล็อก และสถานะรีเลย์สวิตช์ปุ่มกดบนหน้าจอ OLED..."></textarea>
             </div>
           </div>
 

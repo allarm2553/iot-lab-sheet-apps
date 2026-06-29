@@ -15,8 +15,8 @@ function doGet(e) {
 // Auto-grading logic for lab2
 // Auto-grading logic for lab2
 function gradeSubmission(data) {
-  var blankKeywords = ["MONITORING", "drawLine", "printf", "analogPercent", "display"];
-  var challengeKeywords = ["display", "drawLine", "printf", "fanState|fan_relay_pin|fan", "mistState|mist_relay_pin|mist"];
+  var blankKeywords = ["SSD1306_WHITE|white|1", "display"];
+  var challengeKeywords = ["display", "temperature|temp|dht", "analogRead|analogPercent|knob|rawAnalog", "relayState|ledState|relay_pin|RELAY_PIN", "toggleCount|count|press"];
   var q1Keywords = ["SDA", "SCL", "ข้อมูล", "clock", "data", "อนุกรม", "จังหวะ"];
   var q2Keywords = ["buffer", "บัฟเฟอร์", "หน่วยความจำ", "แสดงผล", "จอ"];
   

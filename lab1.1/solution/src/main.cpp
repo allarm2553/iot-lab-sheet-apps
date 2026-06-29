@@ -12,13 +12,13 @@
 #include <Arduino.h>
 
 #if defined(ESP8266)
-#define BUTTON_PIN 12      // D6/GPIO 12 สำหรับ ESP8266
-#define FAN_RELAY_PIN 13   // D7/GPIO 13
-#define MIST_RELAY_PIN 14  // D5/GPIO 14
+#define BUTTON_PIN 0       // D3/GPIO 0 (ปุ่ม FLASH บนบอร์ด AX-WiFi)
+#define FAN_RELAY_PIN 13   // D7/GPIO 13 สำหรับ AX-WiFi
+#define MIST_RELAY_PIN 16  // D0/GPIO 16 สำหรับ AX-WiFi
 #elif defined(ESP32)
-#define BUTTON_PIN 12      // GPIO 12 สำหรับ ESP32
-#define FAN_RELAY_PIN 13   // GPIO 13
-#define MIST_RELAY_PIN 14  // GPIO 14
+#define BUTTON_PIN 0       // GPIO 0 (ปุ่ม SW1 บนบอร์ด IPST-WiFi)
+#define FAN_RELAY_PIN 5    // พอร์ต 5 สำหรับ IPST-WiFi
+#define MIST_RELAY_PIN 23   // พอร์ต 23 สำหรับ IPST-WiFi
 #endif
 
 // Button Debounce & State Variables

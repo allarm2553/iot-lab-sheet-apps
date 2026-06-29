@@ -848,9 +848,18 @@
 
         <h2>การเชื่อมต่อวงจร (Wiring)</h2>
         <ul>
-          <li><strong>Switch Button:</strong> ขาข้างหนึ่งต่อ GND, ขาอีกข้างต่อ <code>GPIO 12</code> (เปิดใช้งาน Internal Pull-up)</li>
-          <li><strong>Relay 1 (พัดลม):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 13</code></li>
-          <li><strong>Relay 2 (ปั๊มน้ำ):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 14</code></li>
+          <li><strong>Switch Button:</strong> 
+            <ul>
+              <li><strong>IPST-WiFi:</strong> ใช้ปุ่มกด <code>SW1</code> บนบอร์ด (ต่อกับพอร์ต <code>GPIO 0</code> ในตัว มี Pull-up ในตัว)</li>
+              <li><strong>AX-WiFi:</strong> ใช้ปุ่มกด <code>FLASH</code> (สวิตช์ D3) บนบอร์ด (ต่อกับพอร์ต <code>GPIO 0</code> ในตัว มี Pull-up ในตัว)</li>
+            </ul>
+          </li>
+          <li><strong>LED / Relay Output:</strong> 
+            <ul>
+              <li><strong>IPST-WiFi:</strong> ใช้ไฟ <code>LED</code> สีแดงบนบอร์ด (ต่อกับพอร์ต <code>GPIO 18</code> ในตัว) หรือต่อผ่านพอร์ตภายนอก เช่น พอร์ต 5 / GPIO 5</li>
+              <li><strong>AX-WiFi:</strong> ใช้ไฟ <code>SLED</code> บนบอร์ด (ต่อกับพอร์ต <code>GPIO 14 / D5</code> ในตัว) หรือต่อผ่านพอร์ตภายนอก เช่น พอร์ต D7 / GPIO 13</li>
+            </ul>
+          </li>
         </ul>
 
         <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
@@ -863,8 +872,8 @@
           </div>
 <pre><code>#include &lt;Arduino.h&gt;
 
-#define BUTTON_PIN 12
-#define RELAY_PIN 13
+#define BUTTON_PIN 0  // (GPIO 0: SW1 บน IPST-WiFi หรือ D3/FLASH บน AX-WiFi)
+#define RELAY_PIN 18  // (GPIO 18 บน IPST-WiFi หรือ D5/GPIO 14 บน AX-WiFi)
 
 bool lastButtonState = HIGH;
 bool currentButtonState = HIGH;

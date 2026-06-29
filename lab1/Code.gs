@@ -16,8 +16,8 @@ function doGet(e) {
 // Auto-grading logic for lab1
 function gradeSubmission(data) {
   var blankKeywords = ["OUTPUT", "OUTPUT", "4095|1023", "HIGH", "LOW"];
-  var challengeKeywords = ["temperature", "30", "29.5", "digitalWrite", "FAN_RELAY_PIN|fanState"];
-  var q1Keywords = ["12-bit|10-bit|12บิต|10บิต", "4095|1023", "ความละเอียด"];
+  var challengeKeywords = ["temperature", "30|29.5", "digitalWrite", "FAN_RELAY_PIN|fanState|MIST_RELAY_PIN|mistState", "5|13|d7|fan", "23|14|16|d0|d5|mist"];
+  var q1Keywords = ["12-bit|10-bit|12บิต|10บิต", "4095|1023", "ความละเอียด|ละเอียด|resolution"];
   var q2Keywords = ["ทรานซิสเตอร์|transistor", "3.3V|3.3", "5V|5", "กระแส|ขับ", "relay|รีเลย์"];
   
   var challengeScore = 0.0;

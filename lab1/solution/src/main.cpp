@@ -13,16 +13,16 @@
 #include <DHT.h>
 
 #if defined(ESP8266)
-#define DHTPIN 0            // D3/GPIO 0
-#define ANALOG_PIN A0       // A0
-#define FAN_RELAY_PIN 13    // D7/GPIO 13
-#define MIST_RELAY_PIN 14   // D5/GPIO 14
+#define DHTPIN 0            // D3/GPIO 0 สำหรับ AX-WiFi
+#define ANALOG_PIN A0       // A0 (ตัวต้านทานปรับค่าได้ VR สำหรับ AX-WiFi)
+#define FAN_RELAY_PIN 13    // D7/GPIO 13สำหรับ AX-WiFi
+#define MIST_RELAY_PIN 16   // D0/GPIO 16 สำหรับ AX-WiFi
 #define ADC_RESOLUTION 1023.0
 #elif defined(ESP32)
-#define DHTPIN 33
-#define ANALOG_PIN 34
-#define FAN_RELAY_PIN 13
-#define MIST_RELAY_PIN 14
+#define DHTPIN 33           // พอร์ต 33 สำหรับ IPST-WiFi
+#define ANALOG_PIN 36       // GPIO 36 / KNOB-S สำหรับ IPST-WiFi
+#define FAN_RELAY_PIN 5     // พอร์ต 5 สำหรับ IPST-WiFi
+#define MIST_RELAY_PIN 23    // พอร์ต 23 สำหรับ IPST-WiFi
 #define ADC_RESOLUTION 4095.0
 #endif
 #define DHTTYPE DHT11

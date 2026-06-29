@@ -74,25 +74,25 @@ const polyfillScript = `
 const gradingRules = {
   'lab-basic': {
     blankKeywords: ['OUTPUT', 'digitalWrite', 'HIGH', 'LOW', 'delay'],
-    challengeKeywords: ['pinMode', 'digitalWrite', 'delay', 'HIGH', 'LOW', '2|led|led_builtin'],
+    challengeKeywords: ['pinMode', 'digitalWrite', 'delay', 'HIGH', 'LOW', '2|led|led_builtin|d5|18|14|gpio14|gpio18'],
     q1Keywords: ['input only|input|อินพุต', '34|35|36|39|a0|gpio16', 'pull-up|pullup', 'pull-down|pulldown'],
-    q2Keywords: ['strapping|boot|บูต', '0', '12|15|2|d3|d4|d8', 'ดึงกระแส|แรงดัน|ดึง']
+    q2Keywords: ['strapping|boot|บูต', '0', '12|15|2|d3|d4|d8|gpio0|gpio12|gpio15|gpio2', 'ดึงกระแส|แรงดัน|ดึง']
   },
   'lab1': {
     blankKeywords: ['OUTPUT', 'OUTPUT', '4095|1023', 'HIGH', 'LOW'],
-    challengeKeywords: ['temperature', '30', '29.5', 'digitalWrite', 'FAN_RELAY_PIN|fanState'],
+    challengeKeywords: ['temperature', '30|29.5', 'digitalWrite', 'FAN_RELAY_PIN|fanState|MIST_RELAY_PIN|mistState', '5|13|d7|fan', '23|14|16|d0|d5|mist'],
     q1Keywords: ['12-bit|10-bit|12บิต|10บิต', '4095|1023', 'ความละเอียด|ละเอียด|resolution'],
     q2Keywords: ['ทรานซิสเตอร์|transistor', '3.3V|3.3', '5V|5', 'กระแส|ขับ', 'relay|รีเลย์']
   },
   'lab1.1': {
-    blankKeywords: ['INPUT_PULLUP', 'OUTPUT', 'LOW', '!relayState|!fanState', 'LOW|LOW'],
-    challengeKeywords: ['12|BUTTON_PIN', '13|FAN_RELAY_PIN', '14|MIST_RELAY_PIN', 'count|toggleCount', '3', 'longPressTriggered', 'digitalWrite', 'millis'],
+    blankKeywords: ['INPUT_PULLUP', 'OUTPUT', 'LOW', '!relayState|!fanState|!ledState', 'LOW|LOW'],
+    challengeKeywords: ['0|d3|12|BUTTON_PIN', '18|d5|13|d7|RELAY_PIN|FAN_RELAY_PIN', '14|23|16|d0|MIST_RELAY_PIN', 'count|toggleCount', '3', 'longPressTriggered', 'digitalWrite', 'millis'],
     q1Keywords: ['3.3v|3.3', 'gnd|0v|0', 'high', 'low', 'ลอย|float'],
     q2Keywords: ['สั่น|bounce', 'debounce', 'millis', 'หน่วง|delay', 'สัมผัส|contact']
   },
   'lab2': {
-    blankKeywords: ['MONITORING', 'drawLine', 'printf', 'analogPercent', 'display'],
-    challengeKeywords: ['display', 'drawLine', 'printf', 'fanState|fan_relay_pin|fan', 'mistState|mist_relay_pin|mist'],
+    blankKeywords: ['SSD1306_WHITE|white|1', 'display'],
+    challengeKeywords: ['display', 'temperature|temp|dht', 'analogRead|analogPercent|knob|rawAnalog', 'relayState|ledState|relay_pin|RELAY_PIN', 'toggleCount|count|press'],
     q1Keywords: ['SDA', 'SCL', 'ข้อมูล', 'clock', 'data', 'อนุกรม', 'จังหวะ'],
     q2Keywords: ['buffer', 'บัฟเฟอร์', 'หน่วยความจำ', 'แสดงผล', 'จอ']
   },

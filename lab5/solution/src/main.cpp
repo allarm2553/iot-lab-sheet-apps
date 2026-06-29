@@ -31,11 +31,11 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
 #if defined(ESP8266)
-#define DHTPIN 0            // D3/GPIO 0
-#define FAN_RELAY_PIN 13    // D7/GPIO 13
+#define DHTPIN 0            // D3/GPIO 0 สำหรับ AX-WiFi
+#define FAN_RELAY_PIN 13    // D7/GPIO 13 สำหรับ AX-WiFi
 #elif defined(ESP32)
-#define DHTPIN 33
-#define FAN_RELAY_PIN 13
+#define DHTPIN 33           // พอร์ต 33 สำหรับ IPST-WiFi
+#define FAN_RELAY_PIN 5     // พอร์ต 5 สำหรับ IPST-WiFi
 #endif
 #define DHTTYPE DHT11
 

@@ -16,9 +16,9 @@ function doGet(e) {
 // Auto-grading logic for lab-basic
 function gradeSubmission(data) {
   var blankKeywords = ["OUTPUT", "digitalWrite", "HIGH", "LOW", "delay"];
-  var challengeKeywords = ["pinMode", "digitalWrite", "delay", "HIGH", "LOW", "2|led|led_builtin"];
+  var challengeKeywords = ["pinMode", "digitalWrite", "delay", "HIGH", "LOW", "2|led|led_builtin|d5|18|14|gpio14|gpio18"];
   var q1Keywords = ["input only|input|อินพุต", "34|35|36|39|a0|gpio16", "pull-up|pullup", "pull-down|pulldown"];
-  var q2Keywords = ["strapping|boot|บูต", "0", "12|15|2|d3|d4|d8", "ดึงกระแส|แรงดัน|ดึง"];
+  var q2Keywords = ["strapping|boot|บูต", "0", "12|15|2|d3|d4|d8|gpio0|gpio12|gpio15|gpio2", "ดึงกระแส|แรงดัน|ดึง"];
   
   var challengeScore = 0.0;
   var q1Score = 0.0;

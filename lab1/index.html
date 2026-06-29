@@ -862,10 +862,15 @@
 
         <h2>การเชื่อมต่อวงจร (Wiring)</h2>
         <ul>
-          <li><strong>DHT11 Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, DATA &rarr; <code>GPIO 33 (หรือ D3/GPIO 0 สำหรับ ESP8266)</code></li>
-          <li><strong>Analog Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, Out &rarr; <code>GPIO 34 (หรือ A0 สำหรับ ESP8266)</code></li>
-          <li><strong>Relay 1 (พัดลม):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 13 (หรือ D7/GPIO 13 สำหรับ ESP8266)</code></li>
-          <li><strong>Relay 2 (ปั๊มน้ำ):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 14 (หรือ D5/GPIO 14 สำหรับ ESP8266)</code></li>
+          <li><strong>DHT11 Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, DATA &rarr; <code>GPIO 33 (หรือ D3/GPIO 0 สำหรับบอร์ด AX-WiFi)</code></li>
+          <li><strong>Analog Input (Potentiometer / KNOB):</strong> 
+            <ul>
+              <li><strong>IPST-WiFi:</strong> ใช้ตัวต้านทานปรับค่าได้ <code>KNOB-S</code> บนบอร์ด (ต่อกับพอร์ต <code>GPIO 36</code> ในตัว)</li>
+              <li><strong>AX-WiFi:</strong> ปรับจัมเปอร์เลือกอินพุตแอนะล็อกไปที่ VR เพื่ออ่านค่าจากตัวต้านทานปรับค่าได้บนบอร์ด (ต่อกับพอร์ต <code>A0</code>)</li>
+            </ul>
+          </li>
+          <li><strong>Relay 1 (พัดลม):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 5 / พอร์ต 5 (หรือ D7/GPIO 13 สำหรับบอร์ด AX-WiFi)</code></li>
+          <li><strong>Relay 2 (ปั๊มน้ำ/เครื่องพ่นหมอก):</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; <code>GPIO 23 / พอร์ต 23 (หรือ D0/GPIO 16 สำหรับบอร์ด AX-WiFi)</code></li>
         </ul>
 
         <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
@@ -879,11 +884,11 @@
 <pre><code>#include &lt;Arduino.h&gt;
 #include &lt;DHT.h&gt;
 
-#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับ ESP8266)
+#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับบอร์ด AX-WiFi)
 #define DHTTYPE DHT11
-#define ANALOG_PIN 34 // (หรือ A0 สำหรับ ESP8266)
-#define FAN_RELAY_PIN 13 // (หรือ D7/GPIO 13 สำหรับ ESP8266)
-#define MIST_RELAY_PIN 14 // (หรือ D5/GPIO 14 สำหรับ ESP8266)
+#define ANALOG_PIN 36 // (GPIO 36/KNOB-S สำหรับ IPST-WiFi, หรือ A0 สำหรับบอร์ด AX-WiFi)
+#define FAN_RELAY_PIN 5 // (หรือ D7/GPIO 13 สำหรับบอร์ด AX-WiFi)
+#define MIST_RELAY_PIN 23 // (หรือ D0/GPIO 16 สำหรับบอร์ด AX-WiFi)
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -1172,11 +1177,11 @@ void loop() {
 #include <Arduino.h>
 #include <DHT.h>
 
-#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับ ESP8266)
+#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับบอร์ด AX-WiFi)
 #define DHTTYPE DHT11
-#define ANALOG_PIN 34 // (หรือ A0 สำหรับ ESP8266)
-#define FAN_RELAY_PIN 13 // (หรือ D7/GPIO 13 สำหรับ ESP8266)
-#define MIST_RELAY_PIN 14 // (หรือ D5/GPIO 14 สำหรับ ESP8266)
+#define ANALOG_PIN 36 // (GPIO 36/KNOB-S สำหรับ IPST-WiFi, หรือ A0 สำหรับบอร์ด AX-WiFi)
+#define FAN_RELAY_PIN 5 // (หรือ D7/GPIO 13 สำหรับบอร์ด AX-WiFi)
+#define MIST_RELAY_PIN 23 // (หรือ D0/GPIO 16 สำหรับบอร์ด AX-WiFi)
 
 DHT dht(DHTPIN, DHTTYPE);
 

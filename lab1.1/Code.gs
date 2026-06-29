@@ -15,8 +15,8 @@ function doGet(e) {
  * Auto-grading logic for Lab 1.1
  */
 function gradeSubmission(data) {
-  var blankKeywords = ["INPUT_PULLUP", "OUTPUT", "LOW", "!relayState|!fanState", "LOW|LOW"];
-  var challengeKeywords = ["12|BUTTON_PIN", "13|FAN_RELAY_PIN", "14|MIST_RELAY_PIN", "count|toggleCount", "3", "longPressTriggered", "digitalWrite", "millis"];
+  var blankKeywords = ["INPUT_PULLUP", "OUTPUT", "LOW", "!relayState|!fanState|!ledState", "LOW|LOW"];
+  var challengeKeywords = ["0|d3|12|BUTTON_PIN", "18|d5|13|d7|RELAY_PIN|FAN_RELAY_PIN", "14|23|16|d0|MIST_RELAY_PIN", "count|toggleCount", "3", "longPressTriggered", "digitalWrite", "millis"];
   var q1Keywords = ["3.3v|3.3", "gnd|0v|0", "high", "low", "ลอย|float"];
   var q2Keywords = ["สั่น|bounce", "debounce", "millis", "หน่วง|delay", "สัมผัส|contact"];
   
