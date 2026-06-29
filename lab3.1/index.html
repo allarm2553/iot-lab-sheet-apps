@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 3.1: การเชื่อมต่อ WiFi เบื้องต้นด้วย ESP32 / ESP8266</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* =============================================
+       CSS Variables & Design System
+    ============================================= */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(6, 182, 212, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #06b6d4;       /* cyan – WiFi theme */
+      --accent-alt: #0ea5e9;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info-frame-bg: rgba(6, 182, 212, 0.08);
+      --info-frame-border: #06b6d4;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
+      --exp-frame-bg: rgba(16, 185, 129, 0.08);
+      --exp-frame-border: #10b981;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       Header
+    ============================================= */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #94d8e4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 750px;
+      margin: 0.5rem auto 0;
+    }
+
+    .course-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      background: rgba(6, 182, 212, 0.1);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+    /* WiFi signal animation in header */
+    .wifi-anim {
+      display: inline-flex;
+      gap: 3px;
+      align-items: flex-end;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .wifi-bar {
+      width: 4px;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: wifiBar 1.4s ease-in-out infinite;
+      opacity: 0.5;
+    }
+
+    .wifi-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
+    .wifi-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+    .wifi-bar:nth-child(3) { height: 20px; animation-delay: 0.4s; }
+    .wifi-bar:nth-child(4) { height: 26px; animation-delay: 0.6s; }
+
+    @keyframes wifiBar {
+      0%, 100% { opacity: 0.2; }
+      50%       { opacity: 1; }
+    }
+
+    /* =============================================
+       Grid Layout
+    ============================================= */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* =============================================
+       Glass Cards
+    ============================================= */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .glass-card:hover {
+      border-color: var(--card-hover-border);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: linear-gradient(90deg, #06b6d4, #0ea5e9, #38bdf8);
+      opacity: 0.9;
+    }
+
+    .card-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i { color: var(--accent); }
+
+    /* =============================================
+       Content Frames
+    ============================================= */
+    .info-frame {
+      background: var(--info-frame-bg);
+      border-left: 4px solid var(--info-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-frame h3 {
+      font-family: var(--heading-font);
+      color: #67e8f9;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .exp-frame {
+      background: var(--exp-frame-bg);
+      border-left: 4px solid var(--exp-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(16, 185, 129, 0.12);
+      border-left-width: 4px;
+    }
+
+    .exp-frame h3 {
+      font-family: var(--heading-font);
+      color: #6ee7b7;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.12);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+      color: #f1f5f9;
+    }
+
+    h2:first-child { margin-top: 0; }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li { margin-bottom: 0.35rem; }
+
+    /* =============================================
+       Section tabs for experiments
+    ============================================= */
+    .exp-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding-bottom: 0.5rem;
+    }
+
+    .exp-tab {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-family: var(--heading-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .exp-tab.active {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.35);
+      color: #67e8f9;
+    }
+
+    .exp-tab:hover:not(.active) {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-main);
+    }
+
+    .exp-panel { display: none; }
+    .exp-panel.active { display: block; }
+
+    /* =============================================
+       Code Blocks
+    ============================================= */
+    .code-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code-header {
+      background: rgba(15, 23, 42, 0.85);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .code-lang-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      background: rgba(6, 182, 212, 0.15);
+      color: #67e8f9;
+      border-radius: 4px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover { color: var(--accent); }
+
+    pre {
+      background: rgba(10, 18, 38, 0.7);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.83rem;
+      line-height: 1.7;
+      color: #7dd3fc;
+    }
+
+    /* Highlighted blanks in code */
+    .blank {
+      display: inline-block;
+      background: rgba(6, 182, 212, 0.18);
+      border: 1px dashed rgba(6, 182, 212, 0.5);
+      border-radius: 4px;
+      padding: 0.05rem 0.4rem;
+      color: #fde68a;
+      font-weight: 600;
+      font-family: var(--mono-font);
+    }
+
+    /* =============================================
+       Equipment Table
+    ============================================= */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(15, 23, 42, 0.35);
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.7);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      color: #e2e8f0;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(6, 182, 212, 0.04); }
+
+    /* =============================================
+       WiFi Scan Result Table (interactive demo)
+    ============================================= */
+    .scan-result-table th { color: #67e8f9; }
+
+    .signal-bar-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .signal-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 16px;
+    }
+
+    .signal-bars span {
+      display: block;
+      width: 4px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    /* =============================================
+       Form Styling
+    ============================================= */
+    .form-section { margin-bottom: 1.5rem; }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper { position: relative; display: flex; }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea { padding-left: 1rem; resize: vertical; }
+    select { padding-left: 1rem; cursor: pointer; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* =============================================
+       Skeleton Code Blanks
+    ============================================= */
+    .blank-input-group {
+      background: rgba(15, 23, 42, 0.35);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      margin-bottom: 1.25rem;
+    }
+
+    .blank-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .blank-row:last-child { margin-bottom: 0; }
+
+    .blank-label {
+      font-family: var(--mono-font);
+      font-size: 0.82rem;
+      color: #67e8f9;
+      width: 90px;
+      flex-shrink: 0;
+    }
+
+    .blank-input { flex-grow: 1; }
+
+    .blank-input input {
+      padding-left: 1rem;
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+    }
+
+    /* =============================================
+       Result Entry (Scan table fill-in)
+    ============================================= */
+    .scan-entry-group {
+      background: rgba(6, 182, 212, 0.04);
+      border: 1px solid rgba(6, 182, 212, 0.12);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .scan-entry-title {
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+      color: #67e8f9;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .scan-entry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .scan-entry-grid { grid-template-columns: 1fr; }
+    }
+
+    .scan-entry-grid .form-group { margin-bottom: 0; }
+
+    /* =============================================
+       File Upload
+    ============================================= */
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(6, 182, 212, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text { font-size: 0.85rem; color: #cbd5e1; }
+    .upload-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .file-input { display: none; }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .preview-thumbnail {
+      width: 50px; height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-details { flex-grow: 1; min-width: 0; }
+
+    .preview-name {
+      font-size: 0.8rem; color: #f1f5f9;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .preview-size { font-size: 0.7rem; color: var(--text-muted); }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: opacity 0.2s;
+    }
+
+    .remove-file-btn:hover { opacity: 0.8; }
+
+    /* =============================================
+       Buttons
+    ============================================= */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+    }
+
+    /* =============================================
+       Modal
+    ============================================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalScale {
+      0%   { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    .modal-icon { font-size: 3.5rem; margin-bottom: 1.25rem; display: inline-block; }
+    .modal-icon.success { color: var(--success); animation: bounce 1s; }
+    .modal-icon.error   { color: var(--danger);  animation: shake 0.5s; }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* =============================================
+       Animations
+    ============================================= */
+    @keyframes pulse {
+      0%   { transform: scale(1);    filter: drop-shadow(0 0 2px var(--accent-glow)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 10px var(--accent)); }
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-7px); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .loading-spinner { animation: spin 1s linear infinite; margin-right: 0.5rem; }
+
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* =============================================
+       Serial Monitor Display (decorative)
+    ============================================= */
+    .serial-monitor {
+      background: #0a0f1e;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+      line-height: 1.8;
+      color: #22d3ee;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .serial-monitor::before {
+      content: '● Serial Monitor  115200 baud';
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .serial-line { margin: 0; }
+    .serial-line.dim { color: #475569; }
+    .serial-line.bright { color: #67e8f9; font-weight: 600; }
+    .serial-line.ok { color: #34d399; }
+    .serial-line.warn { color: #fbbf24; }
+
+    /* =============================================
+       Print Styles
+    ============================================= */
+    @media print {
+      body { background: white !important; color: black !important; padding: 0 !important; }
+      body::before { display: none !important; }
+      .container { max-width: 100% !important; margin: 0 !important; }
+      header, .course-badge, .logo-container, .btn, .upload-area,
+      .remove-file-btn, .modal-overlay, .copy-btn, .code-header,
+      .exp-tabs, .wifi-anim { display: none !important; }
+      .dashboard-grid { display: block !important; }
+      .exp-panel { display: block !important; }
+      .glass-card {
+        background: transparent !important; border: none !important;
+        box-shadow: none !important; padding: 0 !important;
+        margin-bottom: 2rem !important; backdrop-filter: none !important;
+      }
+      .glass-card::before { display: none !important; }
+      .card-title {
+        border-bottom: 2px solid #000 !important; color: #000 !important;
+        margin-bottom: 1rem !important; font-weight: bold !important;
+      }
+      .card-title i { display: none !important; }
+      .info-frame, .exp-frame, .challenge-frame {
+        background: #f8fafc !important; border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #06b6d4 !important; color: #000 !important;
+      }
+      .challenge-frame { border-left-color: #f59e0b !important; }
+      .exp-frame { border-left-color: #10b981 !important; }
+      .info-frame h3, .exp-frame h3, .challenge-frame h3 { color: #000 !important; }
+      p, li, td, th, label { color: #000 !important; }
+      table { border: 1px solid #cbd5e1 !important; }
+      th, td { border-bottom: 1px solid #cbd5e1 !important; background: transparent !important; }
+      pre { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important;
+            color: #000 !important; white-space: pre-wrap !important; word-break: break-all !important; }
+      code { color: #1e3a5f !important; }
+      .serial-monitor { background: #f8fafc !important; border: 1px solid #cbd5e1 !important;
+                        color: #000 !important; }
+      .serial-monitor::before { color: #000 !important; }
+      .serial-line { color: #000 !important; }
+      input[type="text"], input[type="date"], textarea, select {
+        background: transparent !important; border: none !important;
+        border-bottom: 1px dotted #000 !important; border-radius: 0 !important;
+        color: #000 !important; padding: 0 0 2px 0 !important; box-shadow: none !important;
+      }
+      .input-wrapper i { display: none !important; }
+      input[type="text"], input[type="date"], textarea, select { padding-left: 0 !important; }
+      .blank-input-group { background: transparent !important; border: none !important; padding: 0 !important; }
+      .blank-row { margin-bottom: 0.5rem !important; }
+      .blank-label { color: #000 !important; }
+      .scan-entry-group { background: transparent !important; border: 1px solid #cbd5e1 !important; }
+      .scan-entry-title { color: #000 !important; }
+      .form-section-title { color: #000 !important; padding-bottom: 0.25rem !important; }
+      .form-section-title i { display: none !important; }
+      .file-preview { display: flex !important; background: transparent !important;
+                      border: 1px solid #cbd5e1 !important; }
+      .preview-name, .preview-size { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-wifi logo-icon"></i>
+        <h1>ใบงานที่ 3.1: การเชื่อมต่อ WiFi เบื้องต้น
+          <span class="wifi-anim">
+            <span class="wifi-bar"></span>
+            <span class="wifi-bar"></span>
+            <span class="wifi-bar"></span>
+            <span class="wifi-bar"></span>
+          </span>
+        </h1>
+      </div>
+      <p class="subtitle">(WiFi Scan & Station Mode) — หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+
+      <!-- ============================================================
+           LEFT COLUMN: Lab Manual
+      ============================================================ -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-book-open"></i>
+          <span>คู่มือใบงานการทดลอง</span>
+        </div>
+
+        <!-- Objectives -->
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</h3>
+          <ol>
+            <li>เพื่อเรียนรู้การใช้งาน WiFi Library บน ESP32 / ESP8266 สำหรับสแกนหาเครือข่ายไร้สายในบริเวณใกล้เคียง</li>
+            <li>เพื่อเข้าใจกระบวนการเชื่อมต่อ WiFi ในโหมด Station (STA) และตรวจสอบสถานะการเชื่อมต่อ</li>
+            <li>เพื่อสามารถอ่านค่า IP Address ที่ได้รับจาก DHCP Server และแสดงผลผ่าน Serial Monitor</li>
+          </ol>
+        </div>
+
+        <!-- Equipment Table -->
+        <h2>อุปกรณ์ที่ต้องใช้</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>รายการอุปกรณ์</th>
+                <th>รายละเอียด</th>
+                <th style="text-align: center;">จำนวน</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>บอร์ดไมโครคอนโทรลเลอร์</td>
+                <td>ESP32 DevKitC หรือ ESP8266 NodeMCU / IPST-WiFi / AX-WiFi</td>
+                <td style="text-align: center;">1 บอร์ด</td>
+              </tr>
+              <tr>
+                <td>สาย USB</td>
+                <td>USB-to-Serial (Micro-USB หรือ USB-C ตามรุ่นบอร์ด)</td>
+                <td style="text-align: center;">1 เส้น</td>
+              </tr>
+              <tr>
+                <td>คอมพิวเตอร์ + Arduino IDE</td>
+                <td>ติดตั้ง ESP32 / ESP8266 Board Package เรียบร้อยแล้ว</td>
+                <td style="text-align: center;">1 ชุด</td>
+              </tr>
+              <tr>
+                <td>เครือข่าย WiFi</td>
+                <td>Access Point ที่รู้จัก SSID และ Password เพื่อใช้เชื่อมต่อ</td>
+                <td style="text-align: center;">1 เครือข่าย</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Experiment Tabs -->
+        <h2>การทดลอง</h2>
+        <div class="exp-tabs">
+          <button class="exp-tab active" onclick="showExpPanel('exp1', this)" id="tab-exp1">
+            <i class="fa-solid fa-magnifying-glass"></i> ทดลองที่ 1: WiFi Scan
+          </button>
+          <button class="exp-tab" onclick="showExpPanel('exp2', this)" id="tab-exp2">
+            <i class="fa-solid fa-plug"></i> ทดลองที่ 2: WiFi Connect
+          </button>
+        </div>
+
+        <!-- ============================================================
+             EXPERIMENT 1: WiFi Scan
+        ============================================================ -->
+        <div class="exp-panel active" id="exp1">
+          <div class="exp-frame">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> ทดลองที่ 1 — สแกนหาเครือข่าย WiFi</h3>
+            <p>ในการทดลองนี้ บอร์ดจะทำการสแกนหาเครือข่าย WiFi ทั้งหมดที่อยู่ในบริเวณใกล้เคียง แล้วแสดงรายการ SSID, ช่องสัญญาณ (Channel) และความแรงของสัญญาณ (RSSI) ผ่าน Serial Monitor</p>
+          </div>
+
+          <h2 style="margin-top: 0;">โค้ดโครงร่าง (Skeleton Code) — WiFi Scan</h2>
+          <p>ศึกษาโค้ดต่อไปนี้แล้วค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือ:</p>
+
+          <div class="code-container">
+            <div class="code-header">
+              <span>wifi_scan.ino</span>
+              <div style="display:flex;gap:0.75rem;align-items:center;">
+                <span class="code-lang-badge">Arduino C++</span>
+                <button type="button" class="copy-btn" onclick="copyCode('scanCode')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+            </div>
+<pre id="scanCode"><code>#if defined(ESP8266)
+  #include &lt;ESP8266WiFi.h&gt;
+#elif defined(ESP32)
+  #include &lt;WiFi.h&gt;
+#endif
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("\n=== WiFi Scanner ===");
+
+  // 1. ตั้งค่าโหมด WiFi เป็น Station (STA) Mode
+  WiFi.mode( <span class="blank">[ ช่องที่ 1 ]</span> );
+
+  Serial.println("กำลังสแกนหาเครือข่าย...");
+}
+
+void loop() {
+  // 2. เริ่มสแกนเครือข่าย และรับจำนวนเครือข่ายที่พบ
+  int n = WiFi.scanNetworks();
+
+  if (n == 0) {
+    Serial.println("ไม่พบเครือข่าย WiFi");
+  } else {
+    Serial.printf("\nพบเครือข่ายทั้งหมด: %d เครือข่าย\n", n);
+    Serial.println("-----------------------------------------------");
+    Serial.printf("%-4s %-30s %-8s %-6s %s\n",
+                  "#", "SSID", "CH", "RSSI", "Security");
+    Serial.println("-----------------------------------------------");
+
+    for (int i = 0; i &lt; n; i++) {
+      // 3. อ่านชื่อ SSID ของเครือข่ายลำดับที่ i
+      String ssid = WiFi.<span class="blank">[ ช่องที่ 2 ]</span>(i);
+
+      // 4. อ่านความแรงสัญญาณ RSSI (dBm)
+      int rssi = WiFi.<span class="blank">[ ช่องที่ 3 ]</span>(i);
+
+      // 5. อ่านหมายเลขช่องสัญญาณ (Channel)
+      int ch = WiFi.<span class="blank">[ ช่องที่ 4 ]</span>(i);
+
+      // 6. ตรวจสอบประเภทความปลอดภัย (ถ้า OPEN ให้แสดง "OPEN" ไม่งั้นแสดง "WPA/WPA2")
+      String security = (WiFi.encryptionType(i) == <span class="blank">[ ช่องที่ 5 ]</span>) ? "OPEN" : "WPA/WPA2";
+
+      Serial.printf("%-4d %-30s %-8d %-6d %s\n",
+                    i + 1, ssid.c_str(), ch, rssi, security.c_str());
+    }
+    Serial.println("-----------------------------------------------");
+  }
+
+  // ล้างผลการสแกนและรอ 10 วินาทีก่อนสแกนใหม่
+  WiFi.scanDelete();
+  delay(10000);
+}</code></pre>
+          </div>
+
+          <!-- Serial Monitor Expected Output -->
+          <p><strong>ตัวอย่าง Serial Monitor Output ที่ควรได้รับ:</strong></p>
+          <div class="serial-monitor">
+            <p class="serial-line bright">=== WiFi Scanner ===</p>
+            <p class="serial-line dim">กำลังสแกนหาเครือข่าย...</p>
+            <p class="serial-line"> </p>
+            <p class="serial-line ok">พบเครือข่ายทั้งหมด: 5 เครือข่าย</p>
+            <p class="serial-line dim">-----------------------------------------------</p>
+            <p class="serial-line">#    SSID                           CH       RSSI   Security</p>
+            <p class="serial-line dim">-----------------------------------------------</p>
+            <p class="serial-line">1    iot_512                        6        -45    WPA/WPA2</p>
+            <p class="serial-line">2    TRUE_HOME_5G                   1        -62    WPA/WPA2</p>
+            <p class="serial-line">3    FreeWiFi_Airport               11       -71    OPEN</p>
+            <p class="serial-line">4    DTAC_5G_Office                 36       -78    WPA/WPA2</p>
+            <p class="serial-line">5    AndroidAP_TOM                  6        -85    WPA/WPA2</p>
+            <p class="serial-line dim">-----------------------------------------------</p>
+          </div>
+
+          <!-- EncryptionType note -->
+          <div class="info-frame" style="margin-top:0.5rem;">
+            <h3><i class="fa-solid fa-circle-info"></i> หมายเหตุเรื่อง encryptionType</h3>
+            <p>ค่าคงที่ที่ใช้ตรวจสอบประเภทการเข้ารหัส WiFi แตกต่างกันระหว่างชิป:</p>
+            <ul>
+              <li><strong>ESP32:</strong> ใช้ <code>WIFI_AUTH_OPEN</code> เพื่อตรวจสอบเครือข่ายแบบเปิด</li>
+              <li><strong>ESP8266:</strong> ใช้ <code>ENC_TYPE_NONE</code> เพื่อตรวจสอบเครือข่ายแบบเปิด</li>
+            </ul>
+            <p>โดยในโค้ดนี้ช่องที่ 5 คือชื่อค่าคงที่ที่ถูกต้องสำหรับแพลตฟอร์มที่ใช้งาน</p>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             EXPERIMENT 2: WiFi Connect
+        ============================================================ -->
+        <div class="exp-panel" id="exp2">
+          <div class="exp-frame">
+            <h3><i class="fa-solid fa-plug"></i> ทดลองที่ 2 — เชื่อมต่อ WiFi (Station Mode)</h3>
+            <p>ในการทดลองนี้ บอร์ดจะเชื่อมต่อ WiFi ในโหมด Station (STA) โดยระบุ SSID และ Password ของ Access Point ที่ต้องการ จากนั้นรอจนกว่าการเชื่อมต่อสำเร็จ และแสดง IP Address ที่ได้รับ</p>
+          </div>
+
+          <h2 style="margin-top: 0;">โค้ดโครงร่าง (Skeleton Code) — WiFi Connect</h2>
+          <p>ศึกษาโค้ดต่อไปนี้แล้วค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือ:</p>
+
+          <div class="code-container">
+            <div class="code-header">
+              <span>wifi_connect.ino</span>
+              <div style="display:flex;gap:0.75rem;align-items:center;">
+                <span class="code-lang-badge">Arduino C++</span>
+                <button type="button" class="copy-btn" onclick="copyCode('connectCode')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+            </div>
+<pre id="connectCode"><code>#if defined(ESP8266)
+  #include &lt;ESP8266WiFi.h&gt;
+#elif defined(ESP32)
+  #include &lt;WiFi.h&gt;
+#endif
+
+// กำหนด SSID และ Password ของ Access Point ที่ต้องการเชื่อมต่อ
+const char* ssid     = "iot_512";
+const char* password = "iot123456";
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("\n=== WiFi Station Mode ===");
+
+  // 1. เริ่มต้นการเชื่อมต่อ WiFi ด้วย SSID และ Password
+  WiFi.<span class="blank">[ ช่องที่ 6 ]</span>(ssid, password);
+  Serial.print("กำลังเชื่อมต่อกับ ");
+  Serial.print(ssid);
+
+  // 2. รอจนกว่าสถานะ WiFi จะเท่ากับ WL_CONNECTED (เชื่อมต่อสำเร็จ)
+  while (WiFi.status() != <span class="blank">[ ช่องที่ 7 ]</span>) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\n✓ เชื่อมต่อ WiFi สำเร็จ!");
+  Serial.print("SSID     : ");
+  Serial.println(WiFi.SSID());
+
+  // 3. แสดง IP Address ที่ได้รับจาก DHCP Server
+  Serial.print("IP Address : ");
+  Serial.println(WiFi.<span class="blank">[ ช่องที่ 8 ]</span>());
+
+  // 4. แสดงความแรงของสัญญาณ RSSI (dBm)
+  Serial.print("RSSI     : ");
+  Serial.print(WiFi.<span class="blank">[ ช่องที่ 9 ]</span>());
+  Serial.println(" dBm");
+
+  // 5. แสดง MAC Address ของบอร์ด
+  Serial.print("MAC Addr : ");
+  Serial.println(WiFi.<span class="blank">[ ช่องที่ 10 ]</span>());
+}
+
+void loop() {
+  // ตรวจสอบสถานะการเชื่อมต่อทุก 5 วินาที
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: " + WiFi.localIP().toString());
+  } else {
+    Serial.println("[!!] WiFi หลุดการเชื่อมต่อ! กำลังพยายามเชื่อมต่อใหม่...");
+    WiFi.reconnect();
+  }
+  delay(5000);
+}</code></pre>
+          </div>
+
+          <!-- Serial Monitor Expected Output -->
+          <p><strong>ตัวอย่าง Serial Monitor Output ที่ควรได้รับ:</strong></p>
+          <div class="serial-monitor">
+            <p class="serial-line bright">=== WiFi Station Mode ===</p>
+            <p class="serial-line">กำลังเชื่อมต่อกับ iot_512<span style="color:#94a3b8">........</span></p>
+            <p class="serial-line ok">✓ เชื่อมต่อ WiFi สำเร็จ!</p>
+            <p class="serial-line">SSID     : iot_512</p>
+            <p class="serial-line bright">IP Address : 192.168.1.105</p>
+            <p class="serial-line">RSSI     : -48 dBm</p>
+            <p class="serial-line">MAC Addr : 24:6F:28:AB:CD:EF</p>
+            <p class="serial-line dim">---</p>
+            <p class="serial-line ok">[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: 192.168.1.105</p>
+            <p class="serial-line ok">[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: 192.168.1.105</p>
+          </div>
+        </div>
+
+        <!-- Challenge -->
+        <div class="challenge-frame" style="margin-top: 1.5rem;">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
+          <p><strong>โจทย์:</strong> ปรับปรุงโค้ดให้รวม Scan + Connect ไว้ในโปรแกรมเดียว โดยหลังจาก Scan เสร็จ ให้บอร์ดค้นหาเครือข่าย <code>"iot_512"</code> จากรายการที่สแกนได้ ถ้าพบให้แสดง RSSI ของเครือข่ายนั้น จากนั้นเชื่อมต่อโดยอัตโนมัติ และเมื่อเชื่อมต่อสำเร็จให้ LED สีแดงบนบอร์ดกะพริบ 3 ครั้ง (GPIO 2 บน ESP32 หรือ GPIO 2 บน ESP8266)</p>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+           RIGHT COLUMN: Submission Form
+      ============================================================ -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>ฟอร์มบันทึกและส่งรายงานผล</span>
+        </div>
+
+        <form id="labForm" onsubmit="handleFormSubmit(event)">
+
+          <!-- 1. Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งรายงาน
+            </div>
+
+            <div class="form-group">
+              <label for="studentName">ชื่อ-นามสกุล</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="studentName" required placeholder="นาย/นางสาว สมชาย ดีใจ">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="studentId">รหัสนักศึกษา</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-id-card input-icon"></i>
+                  <input type="text" id="studentId" required placeholder="เช่น 64010512">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="studentGroup">กลุ่ม / ห้องเรียน</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-users input-icon"></i>
+                  <input type="text" id="studentGroup" required placeholder="เช่น 4/1">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="labDate">วันที่ทำการทดลอง</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-calendar input-icon"></i>
+                <input type="date" id="labDate" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Skeleton Code Blanks - Experiment 1 -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-magnifying-glass"></i> ทดลองที่ 1: เติมคำตอบโค้ด WiFi Scan
+            </div>
+
+            <div class="blank-input-group">
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 1:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank1" required placeholder="โหมด WiFi สำหรับ Station เช่น WIFI_STA">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 2:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank2" required placeholder="ฟังก์ชันอ่านชื่อ SSID เช่น SSID(i)">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 3:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank3" required placeholder="ฟังก์ชันอ่าน RSSI เช่น RSSI(i)">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 4:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank4" required placeholder="ฟังก์ชันอ่านหมายเลข Channel เช่น channel(i)">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 5:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank5" required placeholder="ค่าคงที่ OPEN เช่น WIFI_AUTH_OPEN">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Skeleton Code Blanks - Experiment 2 -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-plug"></i> ทดลองที่ 2: เติมคำตอบโค้ด WiFi Connect
+            </div>
+
+            <div class="blank-input-group">
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 6:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank6" required placeholder="ฟังก์ชันเริ่มเชื่อมต่อ WiFi เช่น begin(ssid, password)">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 7:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank7" required placeholder="สถานะที่แสดงว่าเชื่อมต่อสำเร็จ เช่น WL_CONNECTED">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 8:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank8" required placeholder="ฟังก์ชันอ่าน IP Address เช่น localIP()">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 9:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank9" required placeholder="ฟังก์ชันอ่าน RSSI เช่น RSSI()">
+                </div>
+              </div>
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 10:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank10" required placeholder="ฟังก์ชันอ่าน MAC Address เช่น macAddress()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Scan Result Table Entry -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-table"></i> บันทึกผลการสแกน WiFi (อย่างน้อย 3 เครือข่าย)
+            </div>
+
+            <!-- Network 1 -->
+            <div class="scan-entry-group">
+              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 1</div>
+              <div class="scan-entry-grid">
+                <div class="form-group">
+                  <label for="scan1ssid">SSID</label>
+                  <input type="text" id="scan1ssid" placeholder="ชื่อเครือข่าย">
+                </div>
+                <div class="form-group">
+                  <label for="scan1rssi">RSSI (dBm)</label>
+                  <input type="text" id="scan1rssi" placeholder="เช่น -45">
+                </div>
+                <div class="form-group">
+                  <label for="scan1sec">ความปลอดภัย</label>
+                  <input type="text" id="scan1sec" placeholder="เช่น WPA2 / OPEN">
+                </div>
+              </div>
+            </div>
+
+            <!-- Network 2 -->
+            <div class="scan-entry-group">
+              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 2</div>
+              <div class="scan-entry-grid">
+                <div class="form-group">
+                  <label for="scan2ssid">SSID</label>
+                  <input type="text" id="scan2ssid" placeholder="ชื่อเครือข่าย">
+                </div>
+                <div class="form-group">
+                  <label for="scan2rssi">RSSI (dBm)</label>
+                  <input type="text" id="scan2rssi" placeholder="เช่น -62">
+                </div>
+                <div class="form-group">
+                  <label for="scan2sec">ความปลอดภัย</label>
+                  <input type="text" id="scan2sec" placeholder="เช่น WPA2 / OPEN">
+                </div>
+              </div>
+            </div>
+
+            <!-- Network 3 -->
+            <div class="scan-entry-group">
+              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 3</div>
+              <div class="scan-entry-grid">
+                <div class="form-group">
+                  <label for="scan3ssid">SSID</label>
+                  <input type="text" id="scan3ssid" placeholder="ชื่อเครือข่าย">
+                </div>
+                <div class="form-group">
+                  <label for="scan3rssi">RSSI (dBm)</label>
+                  <input type="text" id="scan3rssi" placeholder="เช่น -71">
+                </div>
+                <div class="form-group">
+                  <label for="scan3sec">ความปลอดภัย</label>
+                  <input type="text" id="scan3sec" placeholder="เช่น WPA2 / OPEN">
+                </div>
+              </div>
+            </div>
+
+            <!-- IP / MAC Result -->
+            <div class="form-row" style="margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="connIP">IP Address ที่ได้รับจากการเชื่อมต่อ</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-network-wired input-icon"></i>
+                  <input type="text" id="connIP" placeholder="เช่น 192.168.1.105">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="connMAC">MAC Address ของบอร์ด</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-microchip input-icon"></i>
+                  <input type="text" id="connMAC" placeholder="เช่น 24:6F:28:AB:CD:EF">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Challenge Code -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">เขียนโค้ดภาษา C++ รวม Scan + Connect + LED Blink ตามโจทย์ท้าทาย:</label>
+              <textarea id="challengeCode" rows="8" placeholder="แปะโค้ด Arduino C++ ของโจทย์ท้าทายที่นี่..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="challengeLogic">อธิบายตรรกะที่ใช้ค้นหาเครือข่ายเป้าหมายจากรายการ Scan และการกะพริบ LED:</label>
+              <textarea id="challengeLogic" rows="3" placeholder="เช่น วนลูปดูชื่อ SSID ที่สแกนได้ทีละตัว ถ้าตรงกันให้บันทึก RSSI และเรียก begin() เชื่อมต่อ..."></textarea>
+            </div>
+          </div>
+
+          <!-- 6. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. RSSI ย่อมาจากอะไร และค่า RSSI ที่ดีกว่า (แรงกว่า) ควรมีค่าเป็นบวกหรือลบ เพราะเหตุใด?</label>
+              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. ความแตกต่างระหว่าง WiFi Mode: WIFI_STA, WIFI_AP และ WIFI_AP_STA คืออะไร และแต่ละโหมดเหมาะกับการใช้งานประเภทใด?</label>
+              <textarea id="question2" rows="4" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            </div>
+          </div>
+
+          <!-- 7. File Attachments -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพหลักฐานผล Serial Monitor (ผล Scan + ผล Connect)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดการทดลอง (.ino หรือ .zip รวม Scan + Connect + Challenge)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการทั้ง 2 การทดลอง</label>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลการทดลอง Scan WiFi, ผลการเชื่อมต่อ, ค่า RSSI ที่ได้, และผลลัพธ์ของโจทย์ท้าทาย..."></textarea>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn" id="submitBtn" style="flex: 1;">
+              <i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="modal-overlay" id="alertModal">
+    <div class="modal-content">
+      <div class="modal-icon success" id="modalIcon"><i class="fa-regular fa-circle-check"></i></div>
+      <div class="modal-title" id="modalTitle">ส่งใบงานสำเร็จ</div>
+      <div class="modal-text" id="modalText">รายละเอียดของข้อความระบบจะแสดงตรงนี้</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    // =============================================
+    //  State
+    // =============================================
+    let uploadedScreenshotBase64 = null;
+    let uploadedScreenshotName   = null;
+    let uploadedScreenshotType   = null;
+    let uploadedCodeBase64       = null;
+    let uploadedCodeFileName     = null;
+    let uploadedCodeFileType     = null;
+
+    // =============================================
+    //  Init
+    // =============================================
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('labDate').value = new Date().toISOString().split('T')[0];
+
+      ['studentName', 'studentId', 'studentGroup'].forEach(key => {
+        const val = localStorage.getItem(key);
+        if (val) document.getElementById(key).value = val;
+      });
+
+      initDragAndDrop();
+    });
+
+    // =============================================
+    //  Experiment Tabs
+    // =============================================
+    function showExpPanel(panelId, btn) {
+      document.querySelectorAll('.exp-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.exp-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // =============================================
+    //  Copy Code
+    // =============================================
+    function copyCode(preId) {
+      const el = document.getElementById(preId);
+      // Strip HTML tags to get plain text
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btns = document.querySelectorAll('.copy-btn');
+        btns.forEach(b => {
+          b.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+          setTimeout(() => {
+            b.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+          }, 2000);
+        });
+      });
+    }
+
+    // =============================================
+    //  Drag & Drop
+    // =============================================
+    function initDragAndDrop() {
+      const dropAreas = [
+        { id: 'screenshotArea', type: 'screenshot', inputId: 'screenshotInput' },
+        { id: 'codeArea',       type: 'code',       inputId: 'codeInput' }
+      ];
+      dropAreas.forEach(area => {
+        const element = document.getElementById(area.id);
+        const input   = document.getElementById(area.inputId);
+
+        ['dragenter', 'dragover'].forEach(evt => {
+          element.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); element.classList.add('dragover'); }, false);
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+          element.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); element.classList.remove('dragover'); }, false);
+        });
+        element.addEventListener('drop', e => {
+          const files = e.dataTransfer.files;
+          if (files.length > 0) { input.files = files; handleFileSelect(input, area.type); }
+        }, false);
+      });
+    }
+
+    // =============================================
+    //  File Select
+    // =============================================
+    function handleFileSelect(input, type) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showModal('ขนาดไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB', false);
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      if (type === 'screenshot') {
+        reader.onload = e => {
+          uploadedScreenshotBase64 = e.target.result;
+          uploadedScreenshotName   = file.name;
+          uploadedScreenshotType   = file.type;
+          document.getElementById('screenshotImg').src          = e.target.result;
+          document.getElementById('screenshotName').textContent = file.name;
+          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('screenshotArea').style.display    = 'none';
+          document.getElementById('screenshotPreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        reader.onload = e => {
+          uploadedCodeBase64    = e.target.result;
+          uploadedCodeFileName  = file.name;
+          uploadedCodeFileType  = file.type || 'application/octet-stream';
+          document.getElementById('codeName').textContent = file.name;
+          document.getElementById('codeSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('codeArea').style.display    = 'none';
+          document.getElementById('codePreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeFile(type) {
+      if (type === 'screenshot') {
+        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        document.getElementById('screenshotInput').value = '';
+        document.getElementById('screenshotArea').style.display    = 'block';
+        document.getElementById('screenshotPreview').style.display = 'none';
+      } else {
+        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        document.getElementById('codeInput').value = '';
+        document.getElementById('codeArea').style.display    = 'block';
+        document.getElementById('codePreview').style.display = 'none';
+      }
+    }
+
+    // =============================================
+    //  Form Submit
+    // =============================================
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+
+      const get = id => document.getElementById(id).value.trim();
+
+      const studentName  = get('studentName');
+      const studentId    = get('studentId');
+      const studentGroup = get('studentGroup');
+      const labDate      = get('labDate');
+
+      // Cache student metadata
+      localStorage.setItem('studentName',  studentName);
+      localStorage.setItem('studentId',    studentId);
+      localStorage.setItem('studentGroup', studentGroup);
+
+      const payload = {
+        studentName, studentId, studentGroup, labDate,
+        codeBlank1:  get('codeBlank1'),
+        codeBlank2:  get('codeBlank2'),
+        codeBlank3:  get('codeBlank3'),
+        codeBlank4:  get('codeBlank4'),
+        codeBlank5:  get('codeBlank5'),
+        codeBlank6:  get('codeBlank6'),
+        codeBlank7:  get('codeBlank7'),
+        codeBlank8:  get('codeBlank8'),
+        codeBlank9:  get('codeBlank9'),
+        codeBlank10: get('codeBlank10'),
+        scan1ssid: get('scan1ssid'), scan1rssi: get('scan1rssi'), scan1sec: get('scan1sec'),
+        scan2ssid: get('scan2ssid'), scan2rssi: get('scan2rssi'), scan2sec: get('scan2sec'),
+        scan3ssid: get('scan3ssid'), scan3rssi: get('scan3rssi'), scan3sec: get('scan3sec'),
+        connIP:  get('connIP'),
+        connMAC: get('connMAC'),
+        challengeCode:  get('challengeCode'),
+        challengeLogic: get('challengeLogic'),
+        question1:  get('question1'),
+        question2:  get('question2'),
+        conclusion: get('conclusion'),
+        screenshotBase64: uploadedScreenshotBase64,
+        screenshotName:   uploadedScreenshotName,
+        screenshotType:   uploadedScreenshotType,
+        codeBase64:    uploadedCodeBase64,
+        codeFileName:  uploadedCodeFileName,
+        codeFileType:  uploadedCodeFileType,
+      };
+
+      const resetBtn = () => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+      };
+
+      const onSuccess = response => {
+        resetBtn();
+        if (response.status === 'success') {
+          showModal('ส่งใบงานสำเร็จ', response.message, true);
+          ['challengeCode','challengeLogic','question1','question2','conclusion',
+           'scan1ssid','scan1rssi','scan1sec','scan2ssid','scan2rssi','scan2sec',
+           'scan3ssid','scan3rssi','scan3sec','connIP','connMAC'].forEach(id => {
+            document.getElementById(id).value = '';
+          });
+          removeFile('screenshot');
+          removeFile('code');
+        } else {
+          showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
+        }
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(err => { resetBtn(); showModal('เกิดข้อผิดพลาด', err.toString(), false); })
+          .submitLabData(payload);
+      } else {
+        fetch('/api/submit/lab3.1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(onSuccess)
+        .catch(err => { resetBtn(); showModal('เกิดข้อผิดพลาด (Local)', err.toString(), false); });
+      }
+    }
+
+    // =============================================
+    //  Modal helpers
+    // =============================================
+    function showModal(title, text, isSuccess) {
+      const modal = document.getElementById('alertModal');
+      const icon  = document.getElementById('modalIcon');
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalText').textContent  = text;
+      if (isSuccess) {
+        icon.className = 'modal-icon success';
+        icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+      } else {
+        icon.className = 'modal-icon error';
+        icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('alertModal').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>

@@ -102,6 +102,16 @@ const gradingRules = {
     q1Keywords: ['LittleFS', 'SPIFFS', 'ความเร็ว', 'เสถียร', 'directory', 'ย่อย'],
     q2Keywords: ['streamFile', 'send', 'RAM', 'หน่วยความจำ', 'สตรีม', 'ขนาดใหญ่']
   },
+  'lab3.1': {
+    blankKeywords: [
+      'WIFI_STA|WIFI_MODE_STA', 'SSID', 'RSSI', 'channel',
+      'WIFI_AUTH_OPEN|ENC_TYPE_NONE|AUTH_OPEN',
+      'begin', 'WL_CONNECTED', 'localIP', 'RSSI', 'macAddress'
+    ],
+    challengeKeywords: ['scanNetworks', 'begin', 'WL_CONNECTED', 'digitalWrite|ledcWrite|blink'],
+    q1Keywords: ['RSSI|Received Signal Strength', 'ลบ|negative', 'dBm', 'แรง|strength|สัญญาณ'],
+    q2Keywords: ['STA|Station|สถานีลูกข่าย', 'AP|Access Point|จุดเชื่อมต่อ', 'WIFI_AP_STA|AP_STA|ทั้งสอง', 'เชื่อมต่อ|กระจาย|ให้บริการ']
+  },
   'lab4': {
     blankKeywords: ['broadcastTXT', 'toggle_fan', 'toggle_mist', 'WStype_TEXT', 'handleClient'],
     challengeKeywords: ['webSocket', 'tempThreshold|threshold|30', 'broadcastSensorData|broadcast|send', 'containsKey|haskey'],
@@ -305,7 +315,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Routing for lab index pages
-const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab4', 'lab5', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9'];
+const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9'];
 validLabs.forEach(lab => {
   app.get(`/${lab}`, (req, res) => {
     serveInjectedHtml(lab, res);
