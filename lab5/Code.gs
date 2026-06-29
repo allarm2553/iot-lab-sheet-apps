@@ -16,7 +16,7 @@ function doGet(e) {
 // Auto-grading logic for lab5
 function gradeSubmission(data) {
   var blankKeywords = ["mqttClient","publish","subscribe","callback","loop"];
-  var challengeKeywords = ["mqttClient|mqtt|client", "publish", "subscribe", "callback"];
+  var challengeKeywords = ["mqttClient|mqtt|client", "publish", "subscribe", "callback", "elec|elec1234"];
   var q1Keywords = ["broker","ผู้รับ","ผู้ส่ง","publish","subscribe","ตัวกลาง"];
   var q2Keywords = ["หลุด","disconnect","เตะ","ชน","ซ้ำ","reconnect"];
   

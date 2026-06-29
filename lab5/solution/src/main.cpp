@@ -26,6 +26,8 @@ const char* mqttServer = "broker.emqx.io";
 const int mqttPort = 1883;
 const char* subTopic = "esp32-node/fan/cmd";
 const char* pubTopic = "esp32-node/temp/state";
+const char* mqttUser = "elec";
+const char* mqttPassword = "elec1234";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -75,7 +77,7 @@ void reconnectMqtt() {
     // Generate random Client ID to avoid duplication conflicts on public broker
     String clientId = "ESPClient-" + String(random(0xffff), HEX);
     
-    if (mqttClient.connect(clientId.c_str())) {
+    if (mqttClient.connect(clientId.c_str(), mqttUser, mqttPassword)) {
       Serial.println("connected");
       
       // 1. สมัครรับข้อมูลคำสั่งควบคุมพัดลม (Subscribe) จากคลาวด์ภายนอก

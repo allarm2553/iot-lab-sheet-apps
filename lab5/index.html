@@ -738,7 +738,7 @@
         <h2>การเชื่อมต่อเครือข่ายอินเทอร์เน็ต</h2>
         <p>ในการทดลองนี้ จะใช้บริการคลาวด์สาธารณะฟรีผ่านพอร์ตปกติที่ไม่ได้เข้าเข้ารหัส:</p>
         <ul>
-          <li><strong>MQTT Broker Public Address:</strong> <code>broker.emqx.io</code> (Port: <code>1883</code>)</li>
+          <li><strong>MQTT Broker Public Address:</strong> <code>broker.emqx.io</code> (Port: <code>1883</code>), Username: <code>elec</code>, Password: <code>elec1234</code></li>
         </ul>
 
         <h2>โค้ดโครงร่าง (ESP32 / ESP8266 PubSubClient Publisher)</h2>
@@ -757,7 +757,7 @@ PubSubClient mqttClient(espClient);
 void reconnectMqtt() {
   while (!mqttClient.connected()) {
     Serial.print("Connecting to MQTT...");
-    if (mqttClient.connect("ESP-Client")) {
+    if (mqttClient.connect("ESP-Client", "elec", "elec1234")) {
       Serial.println("connected");
       // 1. สมัครรับข้อมูลคำสั่งควบคุมพัดลม (Subscribe) จากคลาวด์ภายนอก
       mqttClient.subscribe( [ ช่องที่ 1 ] );
@@ -1011,7 +1011,7 @@ PubSubClient mqttClient(espClient);
 void reconnectMqtt() {
   while (!mqttClient.connected()) {
     Serial.print("Connecting to MQTT...");
-    if (mqttClient.connect("ESP-Client")) {
+    if (mqttClient.connect("ESP-Client", "elec", "elec1234")) {
       Serial.println("connected");
       mqttClient.subscribe("esp-node/fan/cmd");
     } else {

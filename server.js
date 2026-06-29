@@ -110,7 +110,7 @@ const gradingRules = {
   },
   'lab5': {
     blankKeywords: ['mqttClient', 'publish', 'subscribe', 'callback', 'loop'],
-    challengeKeywords: ['mqttClient|mqtt|client', 'publish', 'subscribe', 'callback'],
+    challengeKeywords: ['mqttClient|mqtt|client', 'publish', 'subscribe', 'callback', 'elec|elec1234'],
     q1Keywords: ['broker', 'ผู้รับ', 'ผู้ส่ง', 'publish', 'subscribe', 'ตัวกลาง'],
     q2Keywords: ['หลุด', 'disconnect', 'เตะ', 'ชน', 'ซ้ำ', 'reconnect']
   },
