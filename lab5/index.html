@@ -749,7 +749,15 @@
             <span>esp_mqtt.ino</span>
             <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
           </div>
-<pre><code>#include &lt;PubSubClient.h&gt;
+<pre><code>#if defined(ESP8266)
+#include &lt;ESP8266WiFi.h&gt;
+#else
+#include &lt;WiFi.h&gt;
+#endif
+#include &lt;PubSubClient.h&gt;
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -768,7 +776,16 @@ void reconnectMqtt() {
 }
 
 void setup() {
-  // ... เชื่อมต่อ Wi-Fi ...
+  Serial.begin(115200);
+  
+  // เชื่อมต่อ Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected.");
+
   mqttClient.setServer("broker.emqx.io", 1883);
 }
 
@@ -1003,7 +1020,15 @@ void loop() {
 
     function copyCode() {
       const codeText = `// PubSubClient MQTT skeleton code
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
+#endif
 #include <PubSubClient.h>
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -1021,6 +1046,16 @@ void reconnectMqtt() {
 }
 
 void setup() {
+  Serial.begin(115200);
+  
+  // เชื่อมต่อ Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWiFi Connected.");
+
   mqttClient.setServer("broker.emqx.io", 1883);
 }
 
