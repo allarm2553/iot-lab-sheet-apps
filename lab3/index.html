@@ -787,7 +787,11 @@ void setup() {
   Serial.println(WiFi.localIP());
   
   // 2. เริ่มต้นเมานต์ระบบไฟล์ LittleFS
+  #if defined(ESP8266)
+  if(!LittleFS.begin()){
+  #else
   if(!LittleFS.begin(true)){
+  #endif
      Serial.println("LittleFS Mount Failed");
      return;
   }
@@ -795,6 +799,7 @@ void setup() {
   // 3. ตั้งเส้นทางเซิร์ฟเวอร์ให้ส่งไฟล์แบบ Dynamic เมื่อมีการเรียกหน้านอกเหนือจากที่ระบุ
   server.onNotFound( [ ช่องที่ 1 ] );
   server.begin();
+  Serial.println("HTTP Web Server started.");
 }
 
 void loop() {
@@ -1019,14 +1024,19 @@ void loop() {
 
     function copyCode() {
       const codeText = `// Skeleton Code for Lab 3
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+ESP8266WebServer server(80);
+#elif defined(ESP32)
 #include <WiFi.h>
 #include <WebServer.h>
+WebServer server(80);
+#endif
 #include <LittleFS.h>
 
 const char* ssid = "iot_512";
 const char* password = "iot123456";
-
-WebServer server(80);
 
 void handleFileRequest() {
   String path = server.uri();
@@ -1054,12 +1064,17 @@ void setup() {
   }
   Serial.println(WiFi.localIP());
   
+  #if defined(ESP8266)
+  if(!LittleFS.begin()){
+  #else
   if(!LittleFS.begin(true)){
+  #endif
      Serial.println("LittleFS Mount Failed");
      return;
   }
   server.onNotFound(handleFileRequest);
   server.begin();
+  Serial.println("HTTP Web Server started.");
 }
 
 void loop() {
