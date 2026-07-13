@@ -742,10 +742,43 @@
             <span>esp_websocket.ino</span>
             <button type="button" class="copy-btn" onclick="copyCode1()"><i class="fa-regular fa-copy"></i> Copy</button>
           </div>
-<pre><code>#include &lt;WebSocketsServer.h&gt;
+<pre><code>#if defined(ESP8266)
+#include &lt;ESP8266WiFi.h&gt;
+#include &lt;ESP8266WebServer.h&gt;
+#elif defined(ESP32)
+#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+#endif
+#include &lt;WebSocketsServer.h&gt;
 #include &lt;ArduinoJson.h&gt;
+#include &lt;LittleFS.h&gt;
 
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+
+#if defined(ESP8266)
+ESP8266WebServer server(80);
+#else
+WebServer server(80);
+#endif
 WebSocketsServer webSocket = WebSocketsServer(81);
+
+void handleFileRequest() {
+  String path = server.uri();
+  if (path.endsWith("/")) path += "index.html";
+  String dataType = "text/plain";
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js")) dataType = "application/javascript";
+  
+  if (LittleFS.exists(path)) {
+    File file = LittleFS.open(path, "r");
+    server.streamFile(file, dataType);
+    file.close();
+  } else {
+    server.send(404, "text/plain", "File Not Found");
+  }
+}
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   if (type == WStype_TEXT) {
@@ -773,6 +806,43 @@ void broadcastSensorData(float temp, float hum) {
   
   // 2. ส่งข้อมูลกระจายไปยังหน้าเว็บทุกหน้าจอที่มีการเชื่อมต่อท่อ Socket อยู่
   webSocket. [ ช่องที่ 1 ] (output);
+}
+
+void setup() {
+  Serial.begin(115200);
+  
+  // เชื่อมต่อ Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected.");
+  
+  // เริ่มต้นเมานต์ระบบไฟล์ LittleFS
+  #if defined(ESP8266)
+  if(!LittleFS.begin()){
+  #else
+  if(!LittleFS.begin(true)){
+  #endif
+     Serial.println("LittleFS Mount Failed");
+     return;
+  }
+  
+  // ตั้งค่าเซิร์ฟเวอร์
+  server.onNotFound(handleFileRequest);
+  server.begin();
+  Serial.println("HTTP Web Server started.");
+  
+  // ตั้งค่า WebSocket
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  Serial.println("WebSocket Server started.");
+}
+
+void loop() {
+  server.handleClient();
+  webSocket.loop();
 }</code></pre>
         </div>
 
@@ -1019,10 +1089,43 @@ function toggleFan(state) {
 
     function copyCode1() {
       const codeText = `// ESP32 / ESP8266 WebSocket Server skeleton code
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WebServer.h>
+#endif
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
 
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+
+#if defined(ESP8266)
+ESP8266WebServer server(80);
+#else
+WebServer server(80);
+#endif
 WebSocketsServer webSocket = WebSocketsServer(81);
+
+void handleFileRequest() {
+  String path = server.uri();
+  if (path.endsWith("/")) path += "index.html";
+  String dataType = "text/plain";
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js")) dataType = "application/javascript";
+  
+  if (LittleFS.exists(path)) {
+    File file = LittleFS.open(path, "r");
+    server.streamFile(file, dataType);
+    file.close();
+  } else {
+    server.send(404, "text/plain", "File Not Found");
+  }
+}
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   if (type == WStype_TEXT) {
@@ -1045,6 +1148,43 @@ void broadcastSensorData(float temp, float hum) {
   String output;
   serializeJson(doc, output);
   webSocket.broadcastTXT(output);
+}
+
+void setup() {
+  Serial.begin(115200);
+  
+  // เชื่อมต่อ Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWiFi Connected.");
+  
+  // เริ่มต้นเมานต์ระบบไฟล์ LittleFS
+  #if defined(ESP8266)
+  if(!LittleFS.begin()){
+  #else
+  if(!LittleFS.begin(true)){
+  #endif
+     Serial.println("LittleFS Mount Failed");
+     return;
+  }
+  
+  // ตั้งค่าเซิร์ฟเวอร์
+  server.onNotFound(handleFileRequest);
+  server.begin();
+  Serial.println("HTTP Web Server started.");
+  
+  // ตั้งค่า WebSocket
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  Serial.println("WebSocket Server started.");
+}
+
+void loop() {
+  server.handleClient();
+  webSocket.loop();
 }`;
       navigator.clipboard.writeText(codeText).then(() => {
         const copyBtn = document.querySelector('.copy-btn');
