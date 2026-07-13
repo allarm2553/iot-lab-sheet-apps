@@ -765,7 +765,15 @@ PubSubClient mqttClient(espClient);
 void reconnectMqtt() {
   while (!mqttClient.connected()) {
     Serial.print("Connecting to MQTT...");
-    if (mqttClient.connect("ESP-Client", "elec", "elec1234")) {
+    
+    // สร้าง Client ID เฉพาะตัวจาก Chip ID ป้องกันชนกันบน Public Broker
+    #if defined(ESP8266)
+    String clientId = "ESP8266-" + String(ESP.getChipId(), HEX);
+    #elif defined(ESP32)
+    String clientId = "ESP32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    #endif
+
+    if (mqttClient.connect(clientId.c_str(), "elec", "elec1234")) {
       Serial.println("connected");
       // 1. สมัครรับข้อมูลคำสั่งควบคุมพัดลม (Subscribe) จากคลาวด์ภายนอก
       mqttClient.subscribe( [ ช่องที่ 1 ] );
@@ -1036,7 +1044,14 @@ PubSubClient mqttClient(espClient);
 void reconnectMqtt() {
   while (!mqttClient.connected()) {
     Serial.print("Connecting to MQTT...");
-    if (mqttClient.connect("ESP-Client", "elec", "elec1234")) {
+    
+    #if defined(ESP8266)
+    String clientId = "ESP8266-" + String(ESP.getChipId(), HEX);
+    #elif defined(ESP32)
+    String clientId = "ESP32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    #endif
+
+    if (mqttClient.connect(clientId.c_str(), "elec", "elec1234")) {
       Serial.println("connected");
       mqttClient.subscribe("esp-node/fan/cmd");
     } else {
