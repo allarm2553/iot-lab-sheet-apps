@@ -1239,6 +1239,46 @@ function toggleFan(state) {
     function closeModal() {
       document.getElementById('alertModal').style.display = 'none';
     }
-  </script>
+  
+    // --- TEXTAREA AUTO-RESIZE & PRINT BUGFIX ---
+    function initTextareaAutoResize() {
+      // Inject print styles dynamically to hide scrollbars and prevent manual resize
+      if (!document.getElementById('textarea-print-style')) {
+        const style = document.createElement('style');
+        style.id = 'textarea-print-style';
+        style.textContent = `
+          @media print {
+            textarea {
+              overflow: hidden !important;
+              overflow-y: hidden !important;
+              resize: none !important;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      const textareas = document.querySelectorAll('textarea');
+      textareas.forEach(textarea => {
+        const resize = () => {
+          textarea.style.height = 'auto';
+          textarea.style.height = (textarea.scrollHeight + 4) + 'px';
+        };
+        textarea.addEventListener('input', resize);
+        if (!textarea.classList.contains('auto-resize-initialized')) {
+          textarea.classList.add('auto-resize-initialized');
+          setTimeout(resize, 100);
+          window.addEventListener('beforeprint', resize);
+        }
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTextareaAutoResize);
+    } else {
+      initTextareaAutoResize();
+    }
+    window.addEventListener('load', initTextareaAutoResize);
+    // -----------------------------------
+</script>
 </body>
 </html>
