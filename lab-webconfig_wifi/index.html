@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานเสริม: การตั้งค่า Wi-Fi ผ่านหน้าเว็บ Web Configuration</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 1300px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    h1 { font-family: var(--heading-font); font-size: 2.25rem; font-weight: 700; color: #f8fafc; }
+    .subtitle { color: var(--text-muted); margin-top: 0.5rem; }
+
+    .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2rem; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7); opacity: 0.8;
+    }
+    
+    .card-title { font-family: var(--heading-font); font-size: 1.35rem; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .card-title i { color: var(--accent); }
+
+    .input-group { margin-bottom: 1.25rem; }
+    label { display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .form-control {
+      width: 100%; padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main);
+      font-family: inherit; font-size: 0.95rem; transition: all 0.3s;
+    }
+    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .code-editor {
+      background: #090d16; font-family: var(--mono-font); font-size: 0.9rem; padding: 1.5rem;
+      border-radius: 12px; border: 1px solid var(--card-border); overflow-x: auto; color: #38bdf8;
+      line-height: 1.5; margin-bottom: 1rem;
+    }
+    .code-blank {
+      background: rgba(99, 102, 241, 0.15); border: 1px dashed var(--accent); border-radius: 4px;
+      padding: 0.25rem 0.5rem; color: #a5b4fc; font-family: var(--mono-font); font-size: 0.9rem;
+      width: 250px; outline: none; display: inline-block; vertical-align: middle;
+    }
+    .code-blank:focus { border-style: solid; border-color: var(--accent); background: rgba(99, 102, 241, 0.3); }
+
+    .info-box {
+      background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;
+      border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem; font-size: 0.9rem;
+    }
+    .challenge-box {
+      background: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b;
+      border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; border-radius: 8px;
+      border: none; cursor: pointer; transition: all 0.3s; width: 100%;
+    }
+    .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 14px var(--accent-glow); }
+    .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+    
+    .file-input-wrapper { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; }
+    .file-preview {
+      width: 60px; height: 60px; border-radius: 8px; border: 1px dashed var(--card-border);
+      display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4);
+      font-size: 1.5rem; color: var(--text-muted); overflow: hidden;
+    }
+    .file-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Modal dialogs */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-content {
+      background: #1e293b; border: 1px solid var(--card-border); border-radius: 16px;
+      padding: 2rem; max-width: 500px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .score-badge {
+      width: 90px; height: 90px; border-radius: 50%; background: rgba(16, 185, 129, 0.1);
+      border: 3px solid var(--success); color: var(--success); display: inline-flex;
+      align-items: center; justify-content: center; font-size: 2.25rem; font-weight: bold;
+      font-family: var(--heading-font); margin-bottom: 1.25rem;
+    }
+    .feedback-text { text-align: left; background: rgba(15, 23, 42, 0.4); padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin: 1rem 0; overflow-y: auto; max-height: 150px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-icon"><i class="fa-solid fa-wifi"></i></div>
+      <h1>ใบงานเสริม: การตั้งค่า Wi-Fi ผ่านหน้าเว็บ Web Configuration</h1>
+      <p class="subtitle">เรียนรู้วิธีการทำงานของ Captive Portal การเขียนโปรแกรมทำหน้าเว็บต้อนรับของอุปกรณ์ IoT และการบันทึกข้อมูลแบบถาวรในระบบไฟล์ LittleFS</p>
+    </header>
+
+    <form id="labForm" onsubmit="handleFormSubmit(event)">
+      <div class="grid">
+        <!-- ฝั่งซ้าย: ใบงานและการป้อนคำตอบ -->
+        <div class="left-col">
+          <div class="glass-card">
+            <div class="card-title"><i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งการทดลอง</div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="input-group">
+                <label>ชื่อ-นามสกุล</label>
+                <input type="text" name="studentName" required class="form-control" placeholder="เช่น นายสมชาย วิทยานนท์">
+              </div>
+              <div class="input-group">
+                <label>รหัสนักศึกษา</label>
+                <input type="text" name="studentId" required class="form-control" placeholder="เช่น 65010999">
+              </div>
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="input-group">
+                <label>กลุ่ม/ห้องเรียน</label>
+                <input type="text" name="studentGroup" required class="form-control" placeholder="เช่น SEC 1 / CPE65">
+              </div>
+              <div class="input-group">
+                <label>วันที่ทำการทดลอง</label>
+                <input type="date" name="labDate" required class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title"><i class="fa-solid fa-code"></i> โครงร่างโค้ดโปรแกรมหลัก (Fill in the Blanks)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              จงเติมคำสั่งในช่องว่างให้สมบูรณ์ เพื่อให้ DNS Server ชี้ปลายทางมายังอุปกรณ์ได้ถูกต้อง และเปิดเขียนไฟล์ตั้งค่า Wi-Fi ลงใน LittleFS ได้อย่างถูกต้อง
+            </p>
+
+            <div class="code-editor">
+              <span style="color: #6a737d;">// ในส่วนฟังก์ชัน loop() สำหรับรัน DNS Captive Portal</span><br>
+              void loop() {<br>
+              &nbsp;&nbsp;if (apMode) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="blank1" required class="code-blank" placeholder="เติมคำสั่งประมวลผล DNS ที่นี่">;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;server.handleClient();<br>
+              &nbsp;&nbsp;}<br>
+              }<br><br>
+              <span style="color: #6a737d;">// ในส่วนฟังก์ชันบันทึกการตั้งค่า WiFi ลงไฟล์ JSON</span><br>
+              void saveWifiConfig(String ssid, String pass) {<br>
+              &nbsp;&nbsp;File file = <input type="text" id="blank2" required class="code-blank" placeholder="เติมคำสั่งเปิดไฟล์เขียนข้อมูลที่นี่">;<br>
+              &nbsp;&nbsp;if (file) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;JsonDocument doc;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;doc["ssid"] = ssid;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;doc["pass"] = pass;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;serializeJson(doc, file);<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;file.close();<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title"><i class="fa-solid fa-circle-question"></i> คำถามท้ายบทปฏิบัติการ</div>
+            
+            <div class="input-group">
+              <label>1. กลไกการทำงานของ Captive Portal และ DNS Server ร่วมกันเป็นอย่างไรในการชี้ทางให้อุปกรณ์เด้งหน้าเว็บตั้งค่าอัตโนมัติ?</label>
+              <textarea name="question1" required class="form-control" rows="4" placeholder="อธิบายการทำงานของการรีไดเร็กต์ DNS พอร์ต 53 เด้งมายังไอพี 192.168.4.1..."></textarea>
+            </div>
+
+            <div class="input-group" style="margin-top: 1.5rem;">
+              <label>2. การนำระบบจัดเก็บไฟล์ LittleFS มาบันทึกค่าชื่อ Wi-Fi มีความเหมาะสมและแตกต่างจากการฮาร์ดโค้ด SSID/Password ไว้ในโปรแกรมอย่างไร?</label>
+              <textarea name="question2" required class="form-control" rows="4" placeholder="อธิบายข้อดีในเรื่องการเปลี่ยนสถานที่ตั้งจุดใช้งานโดยไม่ต้องแก้ไขซอร์สโค้ดและเบิร์นใหม่..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ฝั่งขวา: โจทย์ท้าทาย ไฟล์แนบ และการส่ง -->
+        <div class="right-col">
+          <div class="glass-card challenge-box">
+            <div class="card-title" style="color: var(--warning);"><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายพิเศษ (Challenge Task)</div>
+            <div class="info-box">
+              <strong>โจทย์ท้าทาย:</strong> ให้นักเรียนพัฒนาระบบ Wi-Fi Web Configurator เพิ่มเติม โดยให้มีปุ่มบนหน้าเว็บ AP Config เพื่อทำการ <strong>"Scan Wi-Fi Networks"</strong> ที่มีอยู่รอบๆ บอร์ดมาแสดงผลเป็นรายการตัวเลือก (Dropdown/Select) ให้สามารถคลิกเลือกเพื่อเชื่อมต่อได้สะดวกโดยไม่ต้องพิมพ์ SSID เอง!
+            </div>
+            
+            <div class="input-group">
+              <label>วางซอร์สโค้ดฟังก์ชัน Scan Wi-Fi ค้นหารอบข้าง หรือโค้ดท้าทายที่พัฒนาขึ้นที่นี่:</label>
+              <textarea name="challengeCode" required class="form-control" rows="10" style="font-family: var(--mono-font); font-size: 0.85rem;" placeholder="วางโค้ดที่เรียกใช้งาน WiFi.scanNetworks() และส่งกลับออกมาเป็น JSON..."></textarea>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title"><i class="fa-solid fa-paperclip"></i> แนบไฟล์หลักฐานประกอบผลการทดลอง</div>
+            
+            <div class="input-group">
+              <label>1. รูปภาพหน้าจอแดชบอร์ดตั้งค่าการเชื่อมต่อ Wi-Fi ที่พัฒนาสำเร็จ (Capture ภาพจากมือถือหรือเบราว์เซอร์)</label>
+              <div class="file-input-wrapper">
+                <div class="file-preview" id="imgPreview"><i class="fa-regular fa-image"></i></div>
+                <input type="file" id="screenshotFile" accept="image/*" required onchange="previewFile('screenshotFile', 'imgPreview', 'image')">
+              </div>
+            </div>
+
+            <div class="input-group" style="margin-top: 1.5rem;">
+              <label>2. ไฟล์ซอร์สโค้ดโปรแกรมเฉลยที่สมบูรณ์ (.ino / .zip / .cpp)</label>
+              <div class="file-input-wrapper">
+                <div class="file-preview" id="codeFilePreview"><i class="fa-solid fa-file-code"></i></div>
+                <input type="file" id="codeFile" accept=".ino,.zip,.cpp,.c" required onchange="previewFile('codeFile', 'codeFilePreview', 'file')">
+              </div>
+            </div>
+
+            <div class="input-group" style="margin-top: 1.5rem;">
+              <label>สรุปผลและอภิปรายผลการทดลอง</label>
+              <textarea name="conclusion" required class="form-control" rows="4" placeholder="เขียนสรุปประโยชน์ของการประยุกต์ใช้งานในการติดตั้งระบบ IoT จริง..."></textarea>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              <i class="fa-solid fa-paper-plane"></i> ส่งผลการทดลองและประเมินคะแนน
+            </button>
+            <div id="statusMessage" style="text-align: center; margin-top: 10px; font-size: 0.9rem;"></div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal แสดงผลคะแนนและข้อเสนอแนะ -->
+  <div class="modal-overlay" id="scoreModal">
+    <div class="modal-content">
+      <div class="score-badge" id="scoreVal">--</div>
+      <h3 id="modalTitle">ประเมินคะแนนสำเร็จ!</h3>
+      <p id="modalStudent" style="color: var(--text-muted); margin-top: 5px;"></p>
+      <div class="feedback-text" id="feedbackVal"></div>
+      <button class="btn btn-primary" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    // กำหนดค่าตัวแปรเก็บไฟล์ base64
+    let screenshotBase64 = '';
+    let screenshotName = '';
+    let screenshotType = '';
+    
+    let codeBase64 = '';
+    let codeFileName = '';
+    let codeFileType = '';
+
+    // ตั้งค่าปุ่มและฟิลด์วันที่เริ่มต้นเป็นวันนี้
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementsByName("labDate")[0].value = today;
+    });
+
+    // แสดงตัวอย่างไฟล์ที่เลือก
+    function previewFile(inputId, previewId, type) {
+      const file = document.getElementById(inputId).files[0];
+      const preview = document.getElementById(previewId);
+      const reader = new FileReader();
+
+      reader.onloadend = function() {
+        if (type === 'image') {
+          preview.innerHTML = `<img src="${reader.result}">`;
+          screenshotBase64 = reader.result;
+          screenshotName = file.name;
+          screenshotType = file.type;
+        } else {
+          preview.innerHTML = `<i class="fa-solid fa-file-shield" style="color: var(--success);"></i>`;
+          codeBase64 = reader.result;
+          codeFileName = file.name;
+          codeFileType = file.type;
+        }
+      }
+
+      if (file) {
+        if (type === 'image') {
+          reader.readAsDataURL(file);
+        } else {
+          reader.readAsDataURL(file); // ส่งเป็น data URL เพื่อความปลอดภัยและง่ายต่อการส่ง base64 ใน JSON
+        }
+      }
+    }
+
+    // จัดการการส่งฟอร์มตรวจคะแนน
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      const submitBtn = document.getElementById("submitBtn");
+      const statusMsg = document.getElementById("statusMessage");
+      
+      submitBtn.disabled = true;
+      statusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจคะแนนและบันทึกผลการทดลอง...';
+
+      const formData = new FormData(event.target);
+      const dataPayload = {
+        studentName: formData.get("studentName"),
+        studentId: formData.get("studentId"),
+        studentGroup: formData.get("studentGroup"),
+        labDate: formData.get("labDate"),
+        codeBlank1: document.getElementById("blank1").value,
+        codeBlank2: document.getElementById("blank2").value,
+        question1: formData.get("question1"),
+        question2: formData.get("question2"),
+        challengeCode: formData.get("challengeCode"),
+        conclusion: formData.get("conclusion"),
+        screenshotBase64: screenshotBase64,
+        screenshotName: screenshotName,
+        screenshotType: screenshotType,
+        codeBase64: codeBase64,
+        codeFileName: codeFileName,
+        codeFileType: codeFileType
+      };
+
+      // 1. ตรวจสอบว่าเปิดผ่าน Server ท้องถิ่น หรือเปิดผ่าน Google Apps Script
+      const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.port !== "";
+      
+      if (!isLocalHost) {
+        // ส่งผ่าน Google Apps Script
+        google.script.run
+          .withSuccessHandler((response) => {
+            submitBtn.disabled = false;
+            if (response.success) {
+              statusMsg.innerHTML = '<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> บันทึกข้อมูลสำเร็จ!</span>';
+              showModal(response.score, response.feedback, dataPayload.studentName);
+            } else {
+              statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> เกิดข้อผิดพลาด: ' + response.error + '</span>';
+            }
+          })
+          .withFailureHandler((err) => {
+            submitBtn.disabled = false;
+            statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> ไม่สามารถส่งข้อมูลผ่าน Google Apps: ' + err.toString() + '</span>';
+          })
+          .submitLabData(dataPayload);
+      } else {
+        // ส่งผ่าน Node.js Local Server
+        try {
+          const response = await fetch("/grade/lab-webconfig_wifi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dataPayload)
+          });
+          const result = await response.json();
+          submitBtn.disabled = false;
+          
+          if (result.success) {
+            statusMsg.innerHTML = '<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> บันทึกข้อมูลสำเร็จ!</span>';
+            showModal(result.score, result.feedback, dataPayload.studentName);
+          } else {
+            statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> ตรวจคะแนนไม่สำเร็จ: ' + result.error + '</span>';
+          }
+        } catch (err) {
+          submitBtn.disabled = false;
+          statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์โลคอลได้</span>';
+        }
+      }
+    }
+
+    // แสดงหน้าจอ Modal ประเมินผล
+    function showModal(score, feedback, name) {
+      document.getElementById("scoreVal").textContent = score;
+      document.getElementById("modalStudent").textContent = "ผู้ส่ง: " + name;
+      document.getElementById("feedbackVal").innerText = feedback;
+      document.getElementById("scoreModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("scoreModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>

@@ -151,6 +151,12 @@ const gradingRules = {
     challengeKeywords: ['from', 'bucket', 'range', 'mean', 'aggregateWindow', '30%|30'],
     q1Keywords: ['ควบคุม', 'เรียลไทม์', 'ย้อนหลัง', 'วิเคราะห์', 'ระยะยาว', 'วิศวกร'],
     q2Keywords: ['aggregateWindow', 'windowPeriod', 'ลดขนาด', 'กลุ่ม', 'เฉลี่ย']
+  },
+  'lab-webconfig_wifi': {
+    blankKeywords: ['processNextRequest', 'config.json'],
+    challengeKeywords: ['DNSServer|dnsServer', 'WebServer|server', 'LittleFS|LITTLEFS', 'ArduinoJson|JsonDocument', 'WiFi.softAP|softAP'],
+    q1Keywords: ['DNS', 'redirect|ชี้', '192.168.4.1', 'AP|Access Point', 'เบราว์เซอร์'],
+    q2Keywords: ['ถาวร', 'LittleFS', 'SSID', 'Password', 'แก้โค้ด|เบิร์นโค้ด']
   }
 };
 
@@ -315,7 +321,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Routing for lab index pages
-const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9'];
+const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
 validLabs.forEach(lab => {
   app.get(`/${lab}`, (req, res) => {
     serveInjectedHtml(lab, res);
