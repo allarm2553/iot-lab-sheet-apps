@@ -814,7 +814,7 @@ void loop() {
 
         <div class="challenge-frame">
           <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> ให้นักเรียนติดตั้งซอฟต์แวร์จำลองสัญญาณคลาวด์ เช่น <strong>MQTT Explorer</strong> (สำหรับเครื่อง PC) หรือติดตั้งแอปพลิเคชันมือถือ <strong>MQTTool</strong> (สำหรับ iOS/Android) เชื่อมเข้าไปยัง Broker ตัวเดียวกัน จากนั้นสมัครสมาชิกหัวข้อ (Subscribe Topic) <code>esp-node/temp/state</code> เพื่อเฝ้าดูความถูกต้องของตัวแปรอุณหภูมิ และทดลองส่งข้อมูลข้อความ (Publish Payload) คำสั่งคำว่า <code>ON</code> หรือ <code>OFF</code> ไปที่หัวข้อ <code>esp-node/fan/cmd</code> เพื่อสั่งเปิด-ปิดพัดลมจำลองบนอุปกรณ์จริง</p>
+          <p><strong>โจทย์:</strong> ปรับปรุงโค้ดบอร์ด ESP32/ESP8266 ให้ส่งรายงานข้อมูลและควบคุมผ่านระบบคลาวด์โดยต่อยอดจากโจทย์ท้าทายใน Lab 4 ให้ส่งข้อมูลรายงานค่าในรูปแบบข้อความโครงสร้าง JSON (ใช้ไลบรารี ArduinoJson) ไปยัง MQTT Broker หัวข้อ (Topic) <code>esp-node/state</code> ทุกๆ 5 วินาที ประกอบด้วย อุณหภูมิ (temp), ความชื้น (humidity), เปอร์เซ็นต์เซ็นเซอร์แอนะล็อก (soil), สถานะการทำงานของรีเลย์พัดลม (fan), และจำนวนครั้งการกดปุ่มกดทางกายภาพ (press) พร้อมทั้งปรับปรุงฟังก์ชัน Callback เพื่อรับคำสั่งควบคุมแบบ JSON จากหัวข้อ <code>esp-node/control/cmd</code> (เช่น <code>{"action":"toggle_fan","value":true}</code>) เพื่อสั่งเปิด-ปิดพัดลมจริงบนบอร์ด</p>
         </div>
       </div>
 

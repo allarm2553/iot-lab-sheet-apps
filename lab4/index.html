@@ -875,7 +875,7 @@ function toggleFan(state) {
 
         <div class="challenge-frame">
           <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> ปรับแก้หน้าเว็บ HTML ให้มี สไลเดอร์ (Slider Range) สำหรับเลือกค่าเกณฑ์จำกัดอุณหภูมิ (Temperature Threshold) แล้วเขียนโค้ด JS คอยดักจับอีเวนต์เมื่อมีการสไลด์ เพื่อส่งข้อมูลตัวเลขเป้าหมายนั้นกลับไปอัปเดตตัวแปร Threshold ที่ใช้ตัดสินใจเปิดพัดลมบนบอร์ด ESP32 แบบเรียลไทม์</p>
+          <p><strong>โจทย์:</strong> ปรับแก้หน้าเว็บ HTML และโค้ดบอร์ด ESP32/ESP8266 ให้แสดงผลข้อมูลเรียลไทม์สอดคล้องกับ Lab 2 โดยให้ Dashboard แสดงค่า อุณหภูมิ (Temperature), ความชื้น (Humidity), ค่าเซ็นเซอร์แอนะล็อก (Analog Sensor เปอร์เซ็นต์) และสถานะการทำงานของรีเลย์ (Relay Status) ทั้งการเปิด-ปิด และจำนวนครั้งการกดสวิตช์ปุ่มกดทางกายภาพ (Button Press Count) แบบเรียลไทม์</p>
         </div>
       </div>
 
@@ -1008,7 +1008,7 @@ function toggleFan(state) {
 
             <!-- Code file upload -->
             <div class="form-group">
-              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือ .zip ที่เขียนระบบสไลเดอร์ Threshold สำเร็จ)</label>
+              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือ .zip ที่เขียนระบบส่งค่าแอนะล็อกและสถานะรีเลย์ผ่าน WebSockets สำเร็จ)</label>
               <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
                 <i class="fa-regular fa-file-code upload-icon"></i>
                 <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
@@ -1034,7 +1034,7 @@ function toggleFan(state) {
             </div>
             <div class="form-group">
               <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
-              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลลัพธ์ของระบบการควบคุมและเฝ้ามองข้อมูลสองทางแบบเรียลไทม์ รวมถึงการอัปเดต Threshold ด้วย Slider..."></textarea>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลลัพธ์ของระบบการควบคุมและเฝ้ามองข้อมูลสองทางแบบเรียลไทม์ รวมถึงการส่งข้อมูลเซ็นเซอร์แอนะล็อกและสถานะรีเลย์ปุ่มกดจาก Lab 2 ผ่าน WebSockets..."></textarea>
             </div>
           </div>
 

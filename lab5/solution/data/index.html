@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud MQTT Real-time Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- MQTT.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.2.2/mqtt.min.js" type="text/javascript"></script>
+
+  <style>
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Connection Status Card */
+    .status-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+      transition: all 0.3s ease;
+    }
+
+    .status-indicator.connected {
+      background-color: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .status-indicator.disconnected {
+      background-color: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
+
+    .status-text {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .broker-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Dashboard Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--card-hover-border);
+      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.15);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      opacity: 0.7;
+    }
+
+    .card.temperature::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+    .card.humidity::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .card.soil::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .card.control::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .card.temperature .card-icon { color: #f43f5e; background: rgba(244, 63, 94, 0.1); }
+    .card.humidity .card-icon { color: #0ea5e9; background: rgba(14, 165, 233, 0.1); }
+    .card.soil .card-icon { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    .card.control .card-icon { color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+
+    .card-value {
+      font-size: 3rem;
+      font-family: var(--heading-font);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+    }
+
+    .card-unit {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .card-footer {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* Switch Control */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .switch-label {
+      font-weight: 500;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 30px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #cbd5e1;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+      background-color: var(--text-main);
+    }
+
+    /* Fan Animation */
+    .fan-icon {
+      font-size: 1.75rem;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    .fan-icon.active {
+      color: #a855f7;
+      animation: spin 1.5s linear infinite;
+    }
+
+    /* Press count badge */
+    .press-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.4rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .press-badge strong {
+      color: var(--text-main);
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-cloud-arrow-up logo-icon"></i>
+        <h1>แผงควบคุมคลาวด์ IoT MQTT</h1>
+      </div>
+      <p class="subtitle">Cloud MQTT Client Dashboard (ต่อยอดร่วมกับใบงานที่ 4 และ 5)</p>
+    </header>
+
+    <!-- Connection Status Bar -->
+    <div class="status-card">
+      <div class="status-info">
+        <div id="connectionIndicator" class="status-indicator"></div>
+        <span id="connectionText" class="status-text">กำลังเชื่อมต่อ...</span>
+      </div>
+      <div class="broker-info">
+        Broker: broker.emqx.io:8084 (SSL/WebSockets)
+      </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="grid">
+      <!-- Temperature -->
+      <div class="card temperature">
+        <div class="card-header">
+          <span>อุณหภูมิ (Temperature)</span>
+          <div class="card-icon"><i class="fa-solid fa-temperature-half"></i></div>
+        </div>
+        <div class="card-value">
+          <span id="tempVal">--</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div class="card-footer">
+          <i class="fa-regular fa-clock"></i> อัปเดตข้อมูลอัตโนมัติทุกๆ 5 วินาที
+        </div>
+      </div>
+
+      <!-- Humidity -->
+      <div class="card humidity">
+        <div class="card-header">
+          <span>ความชื้นอากาศ (Humidity)</span>
+          <div class="card-icon"><i class="fa-solid fa-droplet"></i></div>
+        </div>
+        <div class="card-value">
+          <span id="humVal">--</span>
+          <span class="card-unit">% RH</span>
+        </div>
+        <div class="card-footer">
+          <i class="fa-regular fa-clock"></i> ได้รับผ่านคลาวด์ MQTT จากบอร์ดจริง
+        </div>
+      </div>
+
+      <!-- Soil Moisture -->
+      <div class="card soil">
+        <div class="card-header">
+          <span>ความชื้นดิน/แอนะล็อก (Soil/Analog)</span>
+          <div class="card-icon"><i class="fa-solid fa-seedling"></i></div>
+        </div>
+        <div class="card-value">
+          <span id="soilVal">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div class="card-footer">
+          <i class="fa-regular fa-clock"></i> แปลงค่าจากพอร์ต ADC ปรับค่าได้
+        </div>
+      </div>
+
+      <!-- Fan Control & Status -->
+      <div class="card control">
+        <div class="card-header">
+          <span>ควบคุมและสถานะรีเลย์ (Control & Status)</span>
+          <div class="card-icon"><i id="fanIcon" class="fa-solid fa-fan fan-icon"></i></div>
+        </div>
+        
+        <div class="switch-container">
+          <span class="switch-label">รีเลย์พัดลม (Fan Relay)</span>
+          <label class="switch">
+            <input type="checkbox" id="fanSwitch" onchange="sendToggleCommand(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">จำนวนครั้งกดปุ่มทางกายภาพ:</span>
+          <div class="press-badge">
+            <i class="fa-solid fa-fingerprint"></i>
+            <span id="pressVal"><strong>0</strong> ครั้ง</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <i class="fa-solid fa-toggle-on"></i> ควบคุมสถานะรีเลย์แบบสองทาง (บอร์ด/เว็บ)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MQTT Settings
+    const brokerUrl = "wss://broker.emqx.io:8084/mqtt";
+    const subTopic = "esp-node/state";
+    const pubTopic = "esp-node/control/cmd";
+    
+    // Generate unique Client ID
+    const clientId = "WebClient-" + Math.floor(Math.random() * 1000000);
+    
+    // Connect to Broker
+    console.log("Connecting to broker: " + brokerUrl);
+    const client = mqtt.connect(brokerUrl, {
+      clientId: clientId,
+      clean: true,
+      connectTimeout: 5000,
+      reconnectPeriod: 2000
+    });
+
+    client.on('connect', () => {
+      console.log("Connected successfully!");
+      
+      const indicator = document.getElementById("connectionIndicator");
+      const statusText = document.getElementById("connectionText");
+      
+      indicator.className = "status-indicator connected";
+      statusText.textContent = "เชื่อมต่อคลาวด์สำเร็จ";
+      
+      // Subscribe to telemetry topic
+      client.subscribe(subTopic);
+      console.log("Subscribed to topic: " + subTopic);
+    });
+
+    client.on('reconnect', () => {
+      console.log("Reconnecting...");
+      const indicator = document.getElementById("connectionIndicator");
+      const statusText = document.getElementById("connectionText");
+      
+      indicator.className = "status-indicator";
+      statusText.textContent = "กำลังเชื่อมต่อใหม่...";
+    });
+
+    client.on('error', (err) => {
+      console.error("Connection error: ", err);
+      const indicator = document.getElementById("connectionIndicator");
+      const statusText = document.getElementById("connectionText");
+      
+      indicator.className = "status-indicator disconnected";
+      statusText.textContent = "เชื่อมต่อผิดพลาด: " + err.message;
+    });
+
+    client.on('close', () => {
+      console.log("Connection closed");
+      const indicator = document.getElementById("connectionIndicator");
+      const statusText = document.getElementById("connectionText");
+      
+      indicator.className = "status-indicator disconnected";
+      statusText.textContent = "ปิดการเชื่อมต่อ";
+    });
+
+    client.on('message', (topic, payload) => {
+      const messageString = payload.toString();
+      console.log("Received message: " + messageString + " on topic " + topic);
+      
+      if (topic === subTopic) {
+        try {
+          const data = JSON.parse(messageString);
+          
+          // Update UI
+          if (data.temp !== undefined) {
+            document.getElementById("tempVal").textContent = Number(data.temp).toFixed(1);
+          }
+          if (data.humidity !== undefined) {
+            document.getElementById("humVal").textContent = Number(data.humidity).toFixed(0);
+          }
+          if (data.soil !== undefined) {
+            document.getElementById("soilVal").textContent = Number(data.soil).toFixed(0);
+          }
+          if (data.press !== undefined) {
+            document.getElementById("pressVal").innerHTML = `<strong>${data.press}</strong> ครั้ง`;
+          }
+          if (data.fan !== undefined) {
+            const fanSwitch = document.getElementById("fanSwitch");
+            const fanIcon = document.getElementById("fanIcon");
+            
+            // Set switch state locally
+            fanSwitch.checked = data.fan;
+            
+            // Toggle fan spin animation
+            if (data.fan) {
+              fanIcon.classList.add("active");
+            } else {
+              fanIcon.classList.remove("active");
+            }
+          }
+        } catch (e) {
+          console.error("JSON parsing error: ", e);
+        }
+      }
+    });
+
+    // Publish control command to topic esp-node/control/cmd
+    function sendToggleCommand(state) {
+      if (client.connected) {
+        const payload = {
+          action: "toggle_fan",
+          value: state
+        };
+        
+        const messageString = JSON.stringify(payload);
+        client.publish(pubTopic, messageString, { qos: 0 });
+        console.log("Published: " + messageString + " to " + pubTopic);
+        
+        // Optimistically animate fan icon locally
+        const fanIcon = document.getElementById("fanIcon");
+        if (state) {
+          fanIcon.classList.add("active");
+        } else {
+          fanIcon.classList.remove("active");
+        }
+      } else {
+        alert("ไม่สามารถสั่งการได้ เนื่องจากหน้าเว็บไม่ได้เชื่อมต่ออยู่กับ MQTT Broker");
+        document.getElementById("fanSwitch").checked = !state;
+      }
+    }
+  </script>
+</body>
+</html>

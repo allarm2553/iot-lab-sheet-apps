@@ -15,7 +15,7 @@ function doGet(e) {
 // Auto-grading logic for lab3
 // Auto-grading logic for lab3
 function gradeSubmission(data) {
-  var blankKeywords = ["WiFi|ESP8266WiFi", "LittleFS", "onNotFound", "handleClient", "streamFile"];
+  var blankKeywords = ["handleFileRequest", "handleClient"];
   var challengeKeywords = ["LittleFS", "exists", "open", "streamFile"];
   var q1Keywords = ["LittleFS", "SPIFFS", "ความเร็ว", "เสถียร", "directory", "ย่อย"];
   var q2Keywords = ["streamFile", "send", "RAM", "หน่วยความจำ", "สตรีม", "ขนาดใหญ่"];

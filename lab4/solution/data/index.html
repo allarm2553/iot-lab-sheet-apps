@@ -56,6 +56,34 @@
                 </div>
             </div>
 
+            <!-- Analog Sensor Card -->
+            <div class="card">
+                <h2>เซ็นเซอร์แอนะล็อก (KNOB)</h2>
+                <div class="metric-value-row">
+                    <span class="metric-num highlight-green" id="analog-val">--</span>
+                    <span class="metric-unit">%</span>
+                </div>
+                <div class="progress-wrapper">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="analog-bar" style="width: 0%; background: linear-gradient(90deg, var(--esphome-green), var(--ha-blue));"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relay Status Card -->
+            <div class="card">
+                <h2>สถานะรีเลย์ &amp; ปุ่มกด</h2>
+                <div class="metric-value-row">
+                    <span class="metric-num" id="relay-val" style="color: var(--danger-red); text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">OFF</span>
+                    <span class="metric-unit" id="press-val">กด: 0 ครั้ง</span>
+                </div>
+                <div class="progress-wrapper">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="relay-bar" style="width: 0%; background: var(--danger-red);"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Control Panel Card -->
@@ -80,6 +108,21 @@
             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
                 <span>25.0°C</span>
                 <span>35.0°C</span>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">โหมดควบคุมพัดลม (Auto / Manual)</span>
+                    <span class="control-desc">สั่งทำงานอัตโนมัติด้วยเซ็นเซอร์ หรือสั่งการด้วยมือ</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge state-on" id="mode-badge" style="background: rgba(3, 169, 244, 0.15); color: var(--ha-blue); border: 1px solid rgba(3, 169, 244, 0.3);">AUTO</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mode-switch" checked onchange="onToggleMode(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
 
             <!-- Fan Toggle -->
@@ -147,10 +190,44 @@
                         document.getElementById('hum-bar').style.width = humPct + '%';
                     }
 
-                    // อัปเดตสถานะปุ่มสวิตช์ควบคุมพัดลม
+                    // อัปเดตเซ็นเซอร์แอนะล็อก
+                    if (data.soil !== undefined) {
+                        document.getElementById('analog-val').textContent = data.soil.toFixed(1);
+                        const analogPct = Math.min(100, Math.max(0, data.soil));
+                        document.getElementById('analog-bar').style.width = analogPct + '%';
+                    }
+
+                    // อัปเดตสถานะปุ่มสวิตช์ควบคุมพัดลม (รีเลย์)
                     if (data.fan !== undefined) {
                         document.getElementById('fan-switch').checked = data.fan;
                         updateFanBadge(data.fan);
+                        
+                        const relayVal = document.getElementById('relay-val');
+                        const relayBar = document.getElementById('relay-bar');
+                        if (data.fan) {
+                            relayVal.textContent = 'ON';
+                            relayVal.style.color = 'var(--esphome-green)';
+                            relayVal.style.textShadow = '0 0 10px rgba(60, 195, 85, 0.2)';
+                            relayBar.style.width = '100%';
+                            relayBar.style.background = 'var(--esphome-green)';
+                        } else {
+                            relayVal.textContent = 'OFF';
+                            relayVal.style.color = 'var(--danger-red)';
+                            relayVal.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.2)';
+                            relayBar.style.width = '0%';
+                            relayBar.style.background = 'var(--danger-red)';
+                        }
+                    }
+
+                    // อัปเดตจำนวนครั้งการกดปุ่มทางกายภาพ
+                    if (data.press !== undefined) {
+                        document.getElementById('press-val').textContent = `กด: ${data.press} ครั้ง`;
+                    }
+
+                    // อัปเดตสถานะโหมดควบคุม Auto/Manual
+                    if (data.mode !== undefined) {
+                        document.getElementById('mode-switch').checked = data.mode;
+                        updateModeBadge(data.mode);
                     }
 
                     // อัปเดตค่าเกณฑ์อุณหภูมิที่ดึงมาจากบอร์ดจริง
@@ -200,6 +277,34 @@
             } else {
                 badge.textContent = 'OFF';
                 badge.className = 'status-badge state-off';
+            }
+        // เมื่อผู้ใช้เปลี่ยนโหมด Auto/Manual
+        function onToggleMode(state) {
+            updateModeBadge(state);
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const payload = {
+                    action: "toggle_mode",
+                    value: state
+                };
+                socket.send(JSON.stringify(payload));
+            }
+        }
+
+        // อัปเดต badge แสดงสถานะโหมด AUTO/MANUAL
+        function updateModeBadge(state) {
+            const badge = document.getElementById('mode-badge');
+            if (state) {
+                badge.textContent = 'AUTO';
+                badge.className = 'status-badge state-on';
+                badge.style.background = 'rgba(3, 169, 244, 0.15)';
+                badge.style.color = 'var(--ha-blue)';
+                badge.style.border = '1px solid rgba(3, 169, 244, 0.3)';
+            } else {
+                badge.textContent = 'MANUAL';
+                badge.className = 'status-badge state-off';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = 'var(--accent-orange)';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
             }
         }
 

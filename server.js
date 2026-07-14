@@ -97,7 +97,7 @@ const gradingRules = {
     q2Keywords: ['buffer', 'บัฟเฟอร์', 'หน่วยความจำ', 'แสดงผล', 'จอ']
   },
   'lab3': {
-    blankKeywords: ['WiFi|ESP8266WiFi', 'LittleFS', 'onNotFound', 'handleClient', 'streamFile'],
+    blankKeywords: ['handleFileRequest', 'handleClient'],
     challengeKeywords: ['LittleFS', 'exists', 'open', 'streamFile'],
     q1Keywords: ['LittleFS', 'SPIFFS', 'ความเร็ว', 'เสถียร', 'directory', 'ย่อย'],
     q2Keywords: ['streamFile', 'send', 'RAM', 'หน่วยความจำ', 'สตรีม', 'ขนาดใหญ่']
@@ -113,14 +113,14 @@ const gradingRules = {
     q2Keywords: ['STA|Station|สถานีลูกข่าย', 'AP|Access Point|จุดเชื่อมต่อ', 'WIFI_AP_STA|AP_STA|ทั้งสอง', 'เชื่อมต่อ|กระจาย|ให้บริการ']
   },
   'lab4': {
-    blankKeywords: ['broadcastTXT', 'toggle_fan', 'toggle_mist', 'WStype_TEXT', 'handleClient'],
-    challengeKeywords: ['webSocket', 'tempThreshold|threshold|30', 'broadcastSensorData|broadcast|send', 'containsKey|haskey'],
+    blankKeywords: ['broadcastTXT', 'msg'],
+    challengeKeywords: ['webSocket', 'tempThreshold|threshold|30|analog|potentiometer|soil', 'broadcastSensorData|broadcast|send', 'containsKey|haskey|digitalRead|BUTTON_PIN|debounce|toggleCount'],
     q1Keywords: ['real-time', 'polling', 'ดึงข้อมูล', 'ทราฟฟิก', 'แบนด์วิธ', 'รวดเร็ว'],
     q2Keywords: ['โครงสร้าง', 'key', 'value', 'อ่านง่าย', 'parse', 'หลายค่า']
   },
   'lab5': {
-    blankKeywords: ['mqttClient', 'publish', 'subscribe', 'callback', 'loop'],
-    challengeKeywords: ['mqttClient|mqtt|client', 'publish', 'subscribe', 'callback', 'elec|elec1234'],
+    blankKeywords: ['fanTopic|esp-node/fan/cmd', 'tempTopic|esp-node/temp/state'],
+    challengeKeywords: ['mqttClient|mqtt|client', 'publish|subscribe', 'ArduinoJson|JsonDocument|serializeJson|deserializeJson', 'temp|humidity|soil|fan|press|toggleCount'],
     q1Keywords: ['broker', 'ผู้รับ', 'ผู้ส่ง', 'publish', 'subscribe', 'ตัวกลาง'],
     q2Keywords: ['หลุด', 'disconnect', 'เตะ', 'ชน', 'ซ้ำ', 'reconnect']
   },

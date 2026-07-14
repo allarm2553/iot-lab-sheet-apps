@@ -15,8 +15,8 @@ function doGet(e) {
 // Auto-grading logic for lab4
 // Auto-grading logic for lab4
 function gradeSubmission(data) {
-  var blankKeywords = ["broadcastTXT","toggle_fan","toggle_mist","WStype_TEXT","handleClient"];
-  var challengeKeywords = ["webSocket", "tempThreshold|threshold|30", "broadcastSensorData|broadcast|send", "containsKey|haskey"];
+  var blankKeywords = ["broadcastTXT", "msg"];
+  var challengeKeywords = ["webSocket", "tempThreshold|threshold|30|analog|potentiometer|soil", "broadcastSensorData|broadcast|send", "containsKey|haskey|digitalRead|BUTTON_PIN|debounce|toggleCount"];
   var q1Keywords = ["real-time","polling","ดึงข้อมูล","ทราฟฟิก","แบนด์วิธ","รวดเร็ว"];
   var q2Keywords = ["โครงสร้าง","key","value","อ่านง่าย","parse","หลายค่า"];
   
