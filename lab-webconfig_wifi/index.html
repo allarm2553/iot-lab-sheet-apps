@@ -185,25 +185,106 @@
               จงเติมคำสั่งในช่องว่างให้สมบูรณ์ เพื่อให้ DNS Server ชี้ปลายทางมายังอุปกรณ์ได้ถูกต้อง และเปิดเขียนไฟล์ตั้งค่า Wi-Fi ลงใน LittleFS ได้อย่างถูกต้อง
             </p>
 
-            <div class="code-editor">
-              <span style="color: #6a737d;">// ในส่วนฟังก์ชัน loop() สำหรับรัน DNS Captive Portal</span><br>
-              void loop() {<br>
-              &nbsp;&nbsp;if (apMode) {<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="blank1" required class="code-blank" placeholder="เติมคำสั่งประมวลผล DNS ที่นี่">;<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;server.handleClient();<br>
-              &nbsp;&nbsp;}<br>
-              }<br><br>
-              <span style="color: #6a737d;">// ในส่วนฟังก์ชันบันทึกการตั้งค่า WiFi ลงไฟล์ JSON</span><br>
-              void saveWifiConfig(String ssid, String pass) {<br>
-              &nbsp;&nbsp;File file = <input type="text" id="blank2" required class="code-blank" placeholder="เติมคำสั่งเปิดไฟล์เขียนข้อมูลที่นี่">;<br>
-              &nbsp;&nbsp;if (file) {<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;JsonDocument doc;<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;doc["ssid"] = ssid;<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;doc["pass"] = pass;<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;serializeJson(doc, file);<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;file.close();<br>
-              &nbsp;&nbsp;}<br>
-              }
+            <div class="code-editor" style="text-align: left; max-height: 480px; overflow-y: auto;">
+<pre><code style="font-family: var(--mono-font); color: #38bdf8;">#include &lt;Arduino.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;LittleFS.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;DNSServer.h&gt;
+
+#if defined(ESP8266)
+#include &lt;ESP8266WiFi.h&gt;
+#include &lt;ESP8266WebServer.h&gt;
+#else
+#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+#endif
+
+#define BUTTON_PIN 0
+
+const char* apSSID = "ESP-Config-AP";
+const byte DNS_PORT = 53;
+IPAddress apIP(192, 168, 4, 1);
+
+DNSServer dnsServer;
+#if defined(ESP8266)
+ESP8266WebServer server(80);
+#else
+WebServer server(80);
+#endif
+
+bool apMode = false;
+String wifiSSID = "";
+String wifiPassword = "";
+
+bool loadWifiConfig() {
+  if (!LittleFS.exists("/config.json")) return false;
+  File file = LittleFS.open("/config.json", "r");
+  if (!file) return false;
+  JsonDocument doc;
+  deserializeJson(doc, file);
+  file.close();
+  wifiSSID = doc["ssid"].as&lt;String&gt;();
+  wifiPassword = doc["pass"].as&lt;String&gt;();
+  return true;
+}
+
+void saveWifiConfig(String ssid, String pass) {
+  // เติมคำสั่งเปิดไฟล์เพื่อเขียนข้อมูลตั้งค่าเครือข่าย Wi-Fi
+  File file = <input type="text" id="blank2" required class="code-blank" placeholder=" เช่น LittleFS.open(...) " style="width: 260px;">;
+  
+  if (file) {
+    JsonDocument doc;
+    doc["ssid"] = ssid;
+    doc["pass"] = pass;
+    serializeJson(doc, file);
+    file.close();
+    Serial.println("Config saved successfully.");
+  }
+}
+
+void handlePortal() {
+  if (LittleFS.exists("/index.html")) {
+    File file = LittleFS.open("/index.html", "r");
+    server.streamFile(file, "text/html");
+    file.close();
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  LittleFS.begin();
+  
+  if (loadWifiConfig()) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
+    int retries = 0;
+    while (WiFi.status() != WL_CONNECTED && retries &lt; 30) {
+      delay(500);
+      retries++;
+    }
+    if (WiFi.status() == WL_CONNECTED) return;
+  }
+  
+  // Launch Captive Portal if connection failed
+  apMode = true;
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(apSSID);
+  dnsServer.start(DNS_PORT, "*", apIP);
+  server.on("/", HTTP_GET, handlePortal);
+  server.begin();
+}
+
+void loop() {
+  if (apMode) {
+    // เติมคำสั่งประมวลผล DNS เพื่อดักจับทุกคำขอชี้ทางมายังอุปกรณ์
+    <input type="text" id="blank1" required class="code-blank" placeholder=" เช่น dnsServer.processNextRequest() " style="width: 280px;">;
+    
+    server.handleClient();
+  }
+  delay(1);
+}</code></pre>
             </div>
           </div>
 
