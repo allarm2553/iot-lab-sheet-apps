@@ -22,6 +22,13 @@
 #include <WebServer.h>
 #endif
 
+// Hardware Pins
+#if defined(ESP8266)
+#define BUTTON_PIN 0        // D3/GPIO 0 (ปุ่ม FLASH บนบอร์ด AX-WiFi)
+#else
+#define BUTTON_PIN 0        // GPIO 0 (ปุ่ม SW1 บนบอร์ด IPST-WiFi)
+#endif
+
 // Access Point Settings
 const char* apSSID = "ESP-Config-AP";
 const byte DNS_PORT = 53;
@@ -173,6 +180,9 @@ void startConfigPortal() {
 void setup() {
   Serial.begin(115200);
   delay(1000);
+  
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  
   Serial.println("\nInitializing LittleFS...");
   
   if (!LittleFS.begin()) {
@@ -221,6 +231,29 @@ void setup() {
 }
 
 void loop() {
+  // Check if button (GPIO0) is held down for 3 seconds (3000ms) to trigger config mode
+  int buttonVal = digitalRead(BUTTON_PIN);
+  static unsigned long buttonPressTime = 0;
+  static bool buttonPressed = false;
+  
+  if (buttonVal == LOW) {
+    if (!buttonPressed) {
+      buttonPressTime = millis();
+      buttonPressed = true;
+    } else {
+      if (millis() - buttonPressTime >= 3000) {
+        Serial.println("\nButton held for 3 seconds! Entering Config Portal...");
+        buttonPressed = false; // Reset state
+        if (!apMode) {
+          WiFi.disconnect();
+          startConfigPortal();
+        }
+      }
+    }
+  } else {
+    buttonPressed = false;
+  }
+
   if (apMode) {
     // BLANK 1: dnsServer.processNextRequest()
     dnsServer.processNextRequest();
