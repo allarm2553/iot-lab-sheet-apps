@@ -30,3 +30,8 @@ build/
 # Logs
 logs/
 *.log
+
+# Electron builds
+*win32-x64/
+*darwin-x64/
+*linux-x64/

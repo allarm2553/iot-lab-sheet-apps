@@ -1,0 +1,3 @@
+dnsServer.processNextRequest();
+
+LittleFS.open("/config.json", "w");

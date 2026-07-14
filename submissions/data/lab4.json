@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2026-07-14T00:45:10.707Z",
+    "studentName": "ทดสอบ สมมุติ",
+    "studentId": "99999999",
+    "studentGroup": "4/1",
+    "labDate": "2026-07-14",
+    "codeBlank1": "broadcastTXT",
+    "codeBlank2": "msg",
+    "codeBlank3": "",
+    "codeBlank4": "",
+    "codeBlank5": "",
+    "challengeCode": "\n      webSocket.broadcastTXT(output);\n      if (doc.containsKey(\"threshold\")) {\n        tempThreshold = doc[\"threshold\"];\n      }\n    ",
+    "controlLogic": "",
+    "challengeLogic": "",
+    "question1": "เรียลไทม์ และ ดึงข้อมูล ด้วยความเร็วสูง ลด ทราฟฟิก",
+    "question2": "ส่งเป็น โครงสร้าง key value ที่อ่านง่ายและ parse หลายค่า",
+    "screenshotUrl": "ไม่ได้แนบไฟล์",
+    "codeFileUrl": "ไม่ได้แนบไฟล์",
+    "conclusion": "ผลทดสอบการส่งค่าแอนะล็อกและสถานะรีเลย์ปุ่มกดจาก Lab 2 ผ่าน WebSockets ประสบความสำเร็จ",
+    "score": 5.5,
+    "maxScore": 10,
+    "gradingBreakdown": {
+      "challenge": 2.8,
+      "q1": 0.7,
+      "q2": 2,
+      "attachments": 0
+    },
+    "feedback": "- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น 1/5 ส่วนหลัก (+0.3/1.5 คะแนน)\n- โจทย์ท้าทาย (Challenge Code): ตรวจพบความสอดคล้องของตรรกะ 4/4 จุด (+2.5/2.5 คะแนน)\n- คำถามข้อที่ 1: ตรวจพบคำอธิบายตรงประเด็น 2/6 จุดหลัก (+0.7/2.0 คะแนน)\n- คำถามข้อที่ 2: ตรวจพบคำอธิบายตรงประเด็น 6/6 จุดหลัก (+2.0/2.0 คะแนน)\n- แนบหลักฐาน: แนบรูปผลลัพธ์ ไม่พบ (+0.0), แนบไฟล์โค้ด ไม่พบ (+0.0) (+0.0/2.0 คะแนน)",
+    "isManuallyGraded": false
+  }
+]
