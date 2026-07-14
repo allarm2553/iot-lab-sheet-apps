@@ -1,25 +1,26 @@
 /**
- * Lab WebConfig Wi-Fi: Web Wi-Fi Configurator (Asynchronous Version)
+ * Lab WebConfig Wi-Fi: Web Wi-Fi Configurator (Solution Code)
  * Features:
- *  - Uses ESPAsyncWebServer for non-blocking asynchronous request handling.
- *  - Stores SSID and Password in separate text files (/ssid.txt, /pass.txt) in LittleFS.
- *  - Spawns DNS Captive Portal on port 53 (redirecting to 192.168.4.1).
- *  - Supports 3-second BUTTON_PIN (GPIO0) hold to enter AP Config Mode dynamically.
+ *  - Initializes LittleFS to load/save JSON-based Wi-Fi config.
+ *  - If no credentials exist or connection fails, starts an Access Point (SSID: ESP-Config-AP).
+ *  - Spawns a DNS Server (Port 53) to redirect all traffic to 192.168.4.1 (Captive Portal).
+ *  - Spawns a Web Server (Port 80) serving a beautiful glassmorphism configuration form.
+ *  - Saves submitted SSID/Password into /config.json and restarts.
  */
 
 #include <Arduino.h>
 #include <Wire.h>
 #include <LittleFS.h>
+#include <ArduinoJson.h>
 #include <DNSServer.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
+#include <ESP8266WebServer.h>
 #else
 #include <WiFi.h>
-#include <AsyncTCP.h>
+#include <WebServer.h>
 #endif
-#include <ESPAsyncWebServer.h>
 
 // Hardware Pins
 #if defined(ESP8266)
@@ -34,40 +35,57 @@ const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 4, 1);
 
 DNSServer dnsServer;
-AsyncWebServer server(80);
+#if defined(ESP8266)
+ESP8266WebServer server(80);
+#else
+WebServer server(80);
+#endif
 
 bool apMode = false;
 String wifiSSID = "";
 String wifiPassword = "";
 
-// File paths to save input values permanently
-const char* ssidPath = "/ssid.txt";
-const char* passPath = "/pass.txt";
-
-// Helper to read file from LittleFS
-String readFile(fs::FS &fs, const char * path) {
-  File file = fs.open(path, "r");
-  if(!file || file.isDirectory()) {
-    return String();
+// Load config from LittleFS JSON file
+bool loadWifiConfig() {
+  if (!LittleFS.exists("/config.json")) {
+    Serial.println("Config file /config.json not found.");
+    return false;
   }
-  String fileContent;
-  while(file.available()) {
-    fileContent = file.readStringUntil('\n');
-    break;     
+  
+  File file = LittleFS.open("/config.json", "r");
+  if (!file) {
+    Serial.println("Failed to open /config.json");
+    return false;
   }
-  fileContent.trim();
-  return fileContent;
+  
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, file);
+  file.close();
+  
+  if (error) {
+    Serial.println("Failed to parse config JSON");
+    return false;
+  }
+  
+  wifiSSID = doc["ssid"].as<String>();
+  wifiPassword = doc["pass"].as<String>();
+  return true;
 }
 
-// Helper to write file to LittleFS
-void writeFile(fs::FS &fs, const char * path, const char * message) {
-  File file = fs.open(path, "w");
-  if(!file) {
-    Serial.println("Failed to open file for writing.");
-    return;
+// Save config to LittleFS JSON file
+void saveWifiConfig(String ssid, String pass) {
+  // BLANK 2: LittleFS.open("/config.json", "w")
+  File file = LittleFS.open("/config.json", "w");
+  if (file) {
+    JsonDocument doc;
+    doc["ssid"] = ssid;
+    doc["pass"] = pass;
+    serializeJson(doc, file);
+    file.close();
+    Serial.println("Config saved successfully.");
+  } else {
+    Serial.println("Failed to open config file for writing.");
   }
-  file.print(message);
-  file.close();
 }
 
 // Check if string is an IP address
@@ -81,7 +99,62 @@ bool isIpAddress(String src) {
   return true;
 }
 
-// Start Access Point & Captive Portal
+// Captive Portal Redirect
+bool redirectToConfig() {
+  if (!isIpAddress(server.hostHeader()) && server.hostHeader() != "192.168.4.1") {
+    Serial.println("Redirecting to captive portal");
+    server.sendHeader("Location", "http://192.168.4.1/", true);
+    server.send(302, "text/plain", "");
+    return true;
+  }
+  return false;
+}
+
+// Handle GET /
+void handlePortal() {
+  if (redirectToConfig()) {
+    return;
+  }
+  
+  // Serve the configuration index.html from LittleFS
+  if (LittleFS.exists("/index.html")) {
+    File file = LittleFS.open("/index.html", "r");
+    server.streamFile(file, "text/html");
+    file.close();
+  } else {
+    server.send(404, "text/plain", "HTML Portal File Not Found. Please upload files to LittleFS.");
+  }
+}
+
+// Handle POST /save
+void handleSave() {
+  if (server.hasArg("ssid") && server.hasArg("password")) {
+    String newSSID = server.arg("ssid");
+    String newPass = server.arg("password");
+    
+    Serial.printf("SSID Received: %s\n", newSSID.c_str());
+    
+    // Save to LittleFS
+    saveWifiConfig(newSSID, newPass);
+    
+    // Respond with a success page
+    String html = "<!DOCTYPE html><html lang='th'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>บันทึกสำเร็จ</title>";
+    html += "<style>body{background:#0f172a;color:#f8fafc;font-family:sans-serif;text-align:center;padding-top:10%;}div{background:rgba(30,41,59,0.7);padding:2rem;border-radius:12px;display:inline-block;border:1px solid rgba(255,255,255,0.1);}</style></head>";
+    html += "<body><div><h2>บันทึกข้อมูลเรียบร้อยแล้ว!</h2><p>บอร์ดจะทำการรีบูตภายใน 3 วินาทีเพื่อทำการเชื่อมต่อกับ Wi-Fi ใหม่...</p></div></body></html>";
+    server.send(200, "text/html", html);
+    
+    delay(2000);
+    #if defined(ESP8266)
+    ESP.reset();
+    #else
+    ESP.restart();
+    #endif
+  } else {
+    server.send(400, "text/plain", "Bad Request: SSID and Password are required.");
+  }
+}
+
+// Setup Access Point for Captive Portal Config Mode
 void startConfigPortal() {
   apMode = true;
   Serial.println("Starting Access Point Mode for Wi-Fi configuration...");
@@ -90,40 +163,18 @@ void startConfigPortal() {
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID);
   
-  // Start DNS Server
+  // Start DNS server redirecting all requests to apIP
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
   
+  // Set up endpoints
+  server.on("/", HTTP_GET, handlePortal);
+  server.on("/save", HTTP_POST, handleSave);
+  server.onNotFound(handlePortal); // Catch-all for Captive Portal redirects
+  server.begin();
+  
   Serial.printf("AP Started! SSID: %s\n", apSSID);
   Serial.printf("Config Portal URL: http://%s/\n", apIP.toString().c_str());
-}
-
-// Initialize Wi-Fi
-bool initWiFi() {
-  if(wifiSSID == "") {
-    Serial.println("SSID is empty. Cannot connect.");
-    return false;
-  }
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
-  Serial.println("Connecting to WiFi...");
-
-  unsigned long startMillis = millis();
-  while(WiFi.status() != WL_CONNECTED && millis() - startMillis < 15000) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  if(WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConnected successfully!");
-    Serial.print("Local IP Address: ");
-    Serial.println(WiFi.localIP());
-    return true;
-  } else {
-    Serial.println("\nConnection timed out.");
-    return false;
-  }
 }
 
 void setup() {
@@ -133,91 +184,54 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   
   Serial.println("\nInitializing LittleFS...");
+  
   if (!LittleFS.begin()) {
     Serial.println("LittleFS mount failed. Formatting...");
     #if defined(ESP8266)
     LittleFS.format();
     #endif
+    // Retry
     if (!LittleFS.begin()) {
       Serial.println("LittleFS hard error! Halt.");
       while (true) delay(1000);
     }
   }
-
-  // Load values saved in LittleFS
-  wifiSSID = readFile(LittleFS, ssidPath);
-  wifiPassword = readFile(LittleFS, passPath);
   
-  Serial.print("SSID loaded: "); Serial.println(wifiSSID);
-
-  // Set up AsyncWebServer Routes
-  
-  // GET / -> Serves the portal index.html if in AP Mode
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    if (apMode) {
-      request->send(LittleFS, "/index.html", "text/html");
+  // 1. Try loading Wi-Fi credentials from LittleFS
+  if (loadWifiConfig()) {
+    Serial.printf("Wi-Fi credentials loaded. SSID: %s\n", wifiSSID.c_str());
+    Serial.println("Connecting to Wi-Fi...");
+    
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
+    
+    // Wait for connection (15 seconds timeout)
+    int retries = 0;
+    while (WiFi.status() != WL_CONNECTED && retries < 30) {
+      delay(500);
+      Serial.print(".");
+      retries++;
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("\nConnected successfully!");
+      Serial.print("Local IP Address: ");
+      Serial.println(WiFi.localIP());
+      // Normal application running in station mode can start here.
+      return;
     } else {
-      request->send(200, "text/plain", "Welcome to IoT Device Home Page!");
+      Serial.println("\nConnection timed out. Launching Config Portal...");
     }
-  });
-
-  // Serve static resources from LittleFS
-  server.serveStatic("/", LittleFS, "/");
-
-  // POST /save -> Handles Wi-Fi setup submission
-  server.on("/save", HTTP_POST, [](AsyncWebServerRequest *request) {
-    String newSSID = "";
-    String newPass = "";
-
-    if (request->hasParam("ssid", true)) {
-      newSSID = request->getParam("ssid", true)->value();
-      writeFile(LittleFS, ssidPath, newSSID.c_str());
-    }
-    if (request->hasParam("password", true)) {
-      newPass = request->getParam("password", true)->value();
-      writeFile(LittleFS, passPath, newPass.c_str());
-    }
-
-    Serial.printf("SSID Configured: %s\n", newSSID.c_str());
-
-    String html = "<!DOCTYPE html><html lang='th'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>บันทึกสำเร็จ</title>";
-    html += "<style>body{background:#0f172a;color:#f8fafc;font-family:sans-serif;text-align:center;padding-top:10%;}div{background:rgba(30,41,59,0.7);padding:2rem;border-radius:12px;display:inline-block;border:1px solid rgba(255,255,255,0.1);}</style></head>";
-    html += "<body><div><h2>บันทึกข้อมูล (Async) เรียบร้อยแล้ว!</h2><p>บอร์ดจะทำการรีบูตเพื่อเชื่อมต่อกับ Wi-Fi ใหม่...</p></div></body></html>";
-    request->send(200, "text/html", html);
-
-    // Reboot after 2 seconds
-    // Since we are inside async handler, we shouldn't block the thread too long.
-    // ESP8266 or ESP32 will restart.
-    delay(2000);
-    #if defined(ESP8266)
-    ESP.reset();
-    #else
-    ESP.restart();
-    #endif
-  });
-
-  // Captive Portal Redirect for not found requests
-  server.onNotFound([](AsyncWebServerRequest *request) {
-    if (apMode && !isIpAddress(request->host()) && request->host() != "192.168.4.1") {
-      request->redirect("http://192.168.4.1/");
-    } else {
-      request->send(404, "text/plain", "Not Found");
-    }
-  });
-
-  server.begin();
-
-  if (initWiFi()) {
-    // Normal operation running in STA mode starts here.
-    return;
   } else {
-    // Connection failed -> Start AP portal
-    startConfigPortal();
+    Serial.println("No saved Wi-Fi credentials found.");
   }
+  
+  // 2. Launch Captive Portal if connection failed or no configuration was found
+  startConfigPortal();
 }
 
 void loop() {
-  // Check if button (GPIO0) is held down for 3 seconds to trigger config mode
+  // Check if button (GPIO0) is held down for 3 seconds (3000ms) to trigger config mode
   int buttonVal = digitalRead(BUTTON_PIN);
   static unsigned long buttonPressTime = 0;
   static bool buttonPressed = false;
@@ -229,7 +243,7 @@ void loop() {
     } else {
       if (millis() - buttonPressTime >= 3000) {
         Serial.println("\nButton held for 3 seconds! Entering Config Portal...");
-        buttonPressed = false;
+        buttonPressed = false; // Reset state
         if (!apMode) {
           WiFi.disconnect();
           startConfigPortal();
@@ -241,10 +255,11 @@ void loop() {
   }
 
   if (apMode) {
-    // DNSServer needs to process requests synchronously
+    // BLANK 1: dnsServer.processNextRequest()
     dnsServer.processNextRequest();
+    server.handleClient();
   } else {
-    // Normal operation STA loop
+    // Normal operation loop
     static unsigned long lastLog = 0;
     if (millis() - lastLog > 5000) {
       lastLog = millis();
