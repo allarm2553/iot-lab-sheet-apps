@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi Web Configurator (Challenge Scan)</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a, #020617);
+      color: #f8fafc;
+      font-family: sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 1rem;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    h2 { margin-bottom: 0.5rem; font-size: 1.5rem; color: #f8fafc; }
+    p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .form-group { text-align: left; margin-bottom: 1.25rem; }
+    label { display: block; color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.5rem; }
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #f8fafc;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      outline: none;
+      margin-bottom: 0.5rem;
+    }
+    input:focus, select:focus { border-color: #6366f1; }
+    select option { background: #1e293b; color: #f8fafc; }
+    
+    .row { display: flex; gap: 0.5rem; }
+    
+    .btn {
+      padding: 0.75rem 1rem;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover { background: #4f46e5; }
+    .btn-submit { width: 100%; margin-top: 0.5rem; }
+    .btn-scan { white-space: nowrap; height: 46px; }
+    
+    #status { margin-top: 1rem; font-size: 0.9rem; color: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Wi-Fi Config (Scan Mode)</h2>
+    <p>สแกนหาจุดเชื่อมต่อสัญญาณ Wi-Fi รอบข้างเพื่อทำการเชื่อมต่อ</p>
+    
+    <form action="/save" method="POST" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label>SSID (ชื่อ Wi-Fi)</label>
+        <div class="row">
+          <input type="text" name="ssid" id="ssid" placeholder="พิมพ์ชื่อ Wi-Fi หรือเลือกจากการสแกน" required>
+          <button type="button" id="scanBtn" class="btn btn-scan" onclick="scanNetworks()">สแกน</button>
+        </div>
+        <select id="networkSelect" onchange="selectNetwork(this.value)" style="display: none;">
+          <option value="">-- เลือก Wi-Fi ที่ค้นพบ --</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Password (รหัสผ่าน Wi-Fi)</label>
+        <input type="password" name="password" id="password" placeholder="ระบุรหัสผ่านเครือข่าย" required>
+      </div>
+      
+      <button type="submit" class="btn btn-submit">บันทึกและเชื่อมต่อ</button>
+    </form>
+    
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function scanNetworks() {
+      const scanBtn = document.getElementById("scanBtn");
+      const netSelect = document.getElementById("networkSelect");
+      const statusDiv = document.getElementById("status");
+      
+      scanBtn.disabled = true;
+      scanBtn.textContent = "สแกน...";
+      statusDiv.textContent = "กำลังค้นหาเครือข่าย Wi-Fi รอบข้าง...";
+      
+      try {
+        const response = await fetch("/scan");
+        const networks = await response.json();
+        
+        netSelect.innerHTML = '<option value="">-- เลือก Wi-Fi ที่ค้นพบ --</option>';
+        if (networks.length === 0) {
+          statusDiv.textContent = "ไม่พบเครือข่าย Wi-Fi ที่เปิดอยู่";
+        } else {
+          networks.forEach(net => {
+            const option = document.createElement("option");
+            option.value = net.ssid;
+            option.textContent = `${net.ssid} (${net.rssi} dBm) ${net.secure ? '🔒' : '🔓'}`;
+            netSelect.appendChild(option);
+          });
+          netSelect.style.display = "block";
+          statusDiv.textContent = `สแกนเสร็จสิ้น! ค้นพบทั้งหมด ${networks.length} เครือข่าย`;
+        }
+      } catch (err) {
+        statusDiv.textContent = "เกิดข้อผิดพลาดในการสแกน คอนเนกชันล้มเหลว";
+        console.error(err);
+      } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = "สแกน";
+      }
+    }
+
+    function selectNetwork(ssidVal) {
+      if (ssidVal) {
+        document.getElementById("ssid").value = ssidVal;
+      }
+    }
+
+    function handleSubmit(e) {
+      document.getElementById("status").textContent = "กำลังส่งข้อมูลตั้งค่าการเชื่อมต่อและรีบูตบอร์ด...";
+    }
+  </script>
+</body>
+</html>
