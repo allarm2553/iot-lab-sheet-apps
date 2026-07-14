@@ -34,20 +34,25 @@ flowchart LR
 ## ขั้นตอนที่ 1: การเขียนโค้ดฝั่งบอร์ดไมโครคอนโทรลเลอร์ (C++ / PlatformIO)
 
 ### 1.1 ติดตั้งไลบรารีในโปรเจกต์
-เปิดไฟล์ `platformio.ini` และระบุไลบรารีที่จำเป็นต่อการพัฒนา:
+เปิดไฟล์ `platformio.ini` และระบุไลบรารีที่จำเป็นต่อการพัฒนา (เพิ่ม GFX และ SSD1306 สำหรับจอ OLED):
 ```ini
 lib_deps =
     adafruit/DHT sensor library @ ^1.4.6
     adafruit/Adafruit Unified Sensor @ ^1.1.14
     knolleary/PubSubClient @ ^2.8
     bblanchon/ArduinoJson @ ^7.0.4
+    adafruit/Adafruit GFX Library @ ^1.11.9
+    adafruit/Adafruit SSD1306 @ ^2.5.9
 ```
 
 ### 1.2 โค้ดโปรแกรมฝั่งบอร์ด (`src/main.cpp`)
-โค้ดโปรแกรมด้านล่างรองรับทั้งบอร์ด **ESP32 (IPST-WiFi)** และ **ESP8266 (AX-WiFi)**:
+โค้ดโปรแกรมด้านล่างรองรับการแสดงสถานะและการเชื่อมต่อสัญญาณออกทางจอภาพ OLED SSD1306 และใช้ได้ทั้งบอร์ด **ESP32 (IPST-WiFi)** และ **ESP8266 (AX-WiFi)**:
 
 ```cpp
 #include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #else
@@ -70,6 +75,11 @@ const char* mqttPassword = "elec1234";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // กำหนดขาพินสำหรับแต่ละสถาปัตยกรรมบอร์ด
 #if defined(ESP8266)
@@ -95,6 +105,49 @@ float analogPercent = 0;
 bool fanState = false;
 int toggleCount = 0;
 
+// ฟังก์ชันวาดค่าสถานะลงจอภาพ OLED
+void updateOledDisplay(const char* statusMsg = "") {
+  display.clearDisplay();
+  
+  // 1. เขียนข้อความพาดหัว
+  display.setCursor(15, 0);
+  display.print("CLOUD MQTT NODE");
+  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
+  
+  // 2. แสดงค่าเซ็นเซอร์ที่อ่านได้
+  display.setCursor(0, 14);
+  if (isnan(temperature)) {
+    display.print("Temp: -- C");
+  } else {
+    display.printf("Temp: %.1f C", temperature);
+  }
+  
+  display.setCursor(0, 24);
+  if (isnan(humidity)) {
+    display.print("Humid: -- %%");
+  } else {
+    display.printf("Humid: %.1f %%", humidity);
+  }
+  
+  display.setCursor(0, 34);
+  display.printf("Analog: %.1f %%", analogPercent);
+  
+  // 3. แสดงสถานะเน็ตเวิร์ก
+  display.setCursor(0, 44);
+  if (statusMsg && strlen(statusMsg) > 0) {
+    display.print(statusMsg);
+  } else {
+    display.printf("MQTT: %s", mqttClient.connected() ? "Connected" : "Offline");
+  }
+  
+  // 4. แสดงสถานะรีเลย์และตัวนับการกดปุ่ม
+  display.drawLine(0, 53, 128, 53, SSD1306_WHITE);
+  display.setCursor(0, 56);
+  display.printf("Fan:%s | Press:%d", fanState ? "ON" : "OFF", toggleCount);
+  
+  display.display();
+}
+
 // ฟังก์ชันรับส่งข้อมูลคำสั่งผ่าน MQTT (Callback)
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   JsonDocument doc;
@@ -108,6 +161,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         fanState = doc["value"];
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
         Serial.printf("MQTT Control: Fan toggled to %s\n", fanState ? "ON" : "OFF");
+        updateOledDisplay("Command Recv!");
       }
     }
   }
@@ -117,10 +171,27 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void reconnectMqtt() {
   while (!mqttClient.connected()) {
     Serial.print("Connecting to MQTT...");
-    String clientId = "ESPClient-" + String(random(0xffff), HEX);
+    display.clearDisplay();
+    display.setCursor(10, 10);
+    display.print("MQTT Connecting...");
+    display.display();
+    
+    #if defined(ESP8266)
+    String clientId = "ESP8266-" + String(ESP.getChipId(), HEX);
+    #elif defined(ESP32)
+    String clientId = "ESP32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    #endif
+    
     if (mqttClient.connect(clientId.c_str(), mqttUser, mqttPassword)) {
       Serial.println("connected");
+      display.clearDisplay();
+      display.setCursor(10, 10);
+      display.print("MQTT Connected!");
+      display.display();
+      delay(1000);
+      
       mqttClient.subscribe(subTopic);
+      updateOledDisplay("Broker Connected");
     } else {
       delay(5000);
     }
@@ -137,11 +208,42 @@ void setup() {
   #if defined(ESP32)
   analogSetPinAttenuation(ANALOG_PIN, ADC_11db);
   #endif
+
+  // เริ่มต้นจอภาพ OLED
+  #if defined(ESP8266)
+  Wire.begin(4, 5); // SDA = GPIO 4 (D2), SCL = GPIO 5 (D1)
+  #else
+  Wire.begin(21, 22); // SDA = GPIO 21, SCL = GPIO 22
+  #endif
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+  } else {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(10, 20);
+    display.print("System Booting...");
+    display.display();
+    delay(1500);
+  }
   
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
+    display.clearDisplay();
+    display.setCursor(10, 10);
+    display.print("WiFi Connecting...");
+    display.display();
     delay(500);
   }
+  
+  display.clearDisplay();
+  display.setCursor(10, 10);
+  display.print("WiFi Connected!");
+  display.setCursor(10, 25);
+  display.print(WiFi.localIP().toString());
+  display.display();
+  delay(1500);
+  
   mqttClient.setServer(mqttServer, mqttPort);
   mqttClient.setCallback(mqttCallback);
 }
@@ -152,7 +254,6 @@ void loop() {
   }
   mqttClient.loop();
   
-  // จัดการการกดสวิตช์ปุ่มทางกายภาพแบบ Debounce
   int reading = digitalRead(BUTTON_PIN);
   static bool lastButtonState = HIGH;
   static bool currentButtonState = HIGH;
@@ -168,8 +269,8 @@ void loop() {
         fanState = !fanState;
         toggleCount++;
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+        updateOledDisplay("Button Pressed!");
         
-        // ส่งข้อความรายงานสถานะทันทีที่มีการกดปุ่ม
         JsonDocument doc;
         doc["temp"] = temperature;
         doc["humidity"] = humidity;
@@ -184,7 +285,6 @@ void loop() {
   }
   lastButtonState = reading;
   
-  // ส่งข้อมูลรายงานเซ็นเซอร์แบบลูปความถี่ทุกๆ 5 วินาที
   static unsigned long lastUpdate = 0;
   if (millis() - lastUpdate > 5000) {
     lastUpdate = millis();
@@ -194,6 +294,8 @@ void loop() {
     analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
     
     if (!isnan(temperature) && !isnan(humidity)) {
+      updateOledDisplay();
+      
       JsonDocument doc;
       doc["temp"] = temperature;
       doc["humidity"] = humidity;
