@@ -35,7 +35,7 @@ WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 #if defined(ESP8266)
-#define DHTPIN 0            // D3/GPIO 0 สำหรับ AX-WiFi
+#define DHTPIN 2            // D3/GPIO 0 สำหรับ AX-WiFi
 #define ANALOG_PIN A0       // A0 (ตัวต้านทานปรับค่าได้ VR สำหรับ AX-WiFi)
 #define FAN_RELAY_PIN 13    // D7/GPIO 13 สำหรับ AX-WiFi
 #define MIST_RELAY_PIN 16   // D0/GPIO 16 สำหรับ AX-WiFi
