@@ -892,10 +892,10 @@
   </div>
 
   <script>
-    // Configuration details for Labs
     const labMetadata = {
       'lab-basic': { title: 'ใบงาน Basic', name: 'การติดตั้ง Arduino IDE & Spec ESP32', codeLabel: 'โค้ดไฟกะพริบ (Blink Code)', q1: '1. อธิบายความแตกต่างระหว่างขา GPIO ทั่วไป กับขา GPIO ที่มีคุณสมบัติ Input-Only', q2: '2. เพราะเหตุใดในการใช้งานขาบางขา เช่น GPIO 0 หรือ GPIO 12 จึงต้องระมัดระวัง?' },
       'lab1': { title: 'ใบงานที่ 1', name: 'การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายความเข้าใจเรื่องความละเอียด (Resolution) ของพินรับสัญญาณ Analog (ADC)', q2: '2. เหตุใดในการสั่งงานรีเลย์ขนาด 5V จากขาของ ESP32 (3.3V) จึงต้องใช้ทรานซิสเตอร์?' },
+      'lab1.1': { title: 'ใบงานที่ 1.1', name: 'การควบคุมเอาต์พุตด้วยอินพุตสวิตช์ปุ่มกด', codeLabel: 'โค้ดโจทย์ท้าทาย (C++)', q1: '1. วงจร Pull-up แบบภายใน (Internal Pull-up) และ Pull-down แบบภายนอก มีความแตกต่างกันอย่างไรในแง่ของระดับแรงดันเมื่อสวิตช์ไม่ได้ถูกกด?', q2: '2. ปัญหา Switch Bouncing (การสั่นของหน้าสัมผัสสวิตช์) เกิดจากอะไร และวิธีการแก้ปัญหาด้วยซอฟต์แวร์ (Debounce) ในโค้ดทำงานอย่างไร?' },
       'lab2': { title: 'ใบงานที่ 2', name: 'การแสดงผลผ่านจอ OLED SSD1306 (I2C)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. ขาสัญญาณหลัก I2C (SDA และ SCL) มีหน้าที่อะไรแตกต่างกันอย่างไร?', q2: '2. ในการสั่งวาดข้อมูลบนจอ เหตุใดจึงต้องสั่ง display.display() ตามหลังคำสั่งการวาด?' },
       'lab3': { title: 'ใบงานที่ 3', name: 'เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. LittleFS และ SPIFFS มีความแตกต่างกันอย่างไร และเหตุใดจึงนิยมนำมาใช้กับ ESP32?', q2: '2. ในการส่งไฟล์เว็บผ่านระบบ Network การเรียกใช้งาน streamFile ส่งผลดีกว่า send อย่างไร?' },
       'lab3.1': { title: 'ใบงานที่ 3.1', name: 'การเชื่อมต่อ WiFi เบื้องต้น (WiFi Scan & Station Mode)', codeLabel: 'โค้ดโจทย์ท้าทาย (Scan + Connect + LED Blink)', q1: '1. RSSI ย่อมาจากอะไร และค่า RSSI ที่สัญญาณแรงกว่าควรมีค่าเป็นอย่างไร?', q2: '2. ความแตกต่างระหว่าง WIFI_STA, WIFI_AP และ WIFI_AP_STA คืออะไร?' },
@@ -905,7 +905,8 @@
       'lab-extra': { title: 'ใบงานเสริม', name: 'การพัฒนา Web Dashboard ด้วย HTML, CSS & JS', codeLabel: 'อธิบายกระบวนการพัฒนา Challenge', q1: '1. คุณสมบัติ backdrop-filter: blur(8px) ส่งผลอย่างไรต่อการแสดงผลแดชบอร์ดแบบ Glassmorphism?', q2: '2. ฟังก์ชัน document.getElementById() มีหน้าที่อะไร?' },
       'lab7': { title: 'ใบงานที่ 7', name: 'การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED', codeLabel: 'โค้ด JavaScript โหนด function (ตรวจสอบความชื้น)', q1: '1. โหนด json ใน Node-RED ทำหน้าที่อะไรและเหตุใดจึงต้องใช้ต่อท้ายโหนด mqtt in?', q2: '2. โหนด change มีประโยชน์อย่างไรเมื่อต่อเชื่อมโยงกับ ui_switch ก่อนส่งออก mqtt out?' },
       'lab8': { title: 'ใบงานที่ 8', name: 'การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)', codeLabel: 'โค้ด JavaScript โหนด function (แปลงรีเลย์ ON/OFF เป็น 1/0)', q1: '1. เหตุใดการเก็บข้อมูลเซ็นเซอร์จึงนิยมเก็บลงฐานข้อมูล Time-Series มากกว่า MySQL?', q2: '2. อธิบายความหมายของโครงสร้าง Bucket, Measurement, Tags, และ Fields ใน InfluxDB' },
-      'lab9': { title: 'ใบงานที่ 9', name: 'การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana', codeLabel: 'สคริปต์ Flux Query ดึงค่าความชื้นดินเฉลี่ย 24 ชม.', q1: '1. ข้อดีของการแยกแดชบอร์ดฝั่ง Node-RED และ Grafana ออกจากกันมีประโยชน์ต่อนักพัฒนาอย่างไร?', q2: '2. อธิบายการทำงานของฟังก์ชัน aggregateWindow() และ v.windowPeriod ในภาษา Flux Query' }
+      'lab9': { title: 'ใบงานที่ 9', name: 'การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana', codeLabel: 'สคริปต์ Flux Query ดึงค่าความชื้นดินเฉลี่ย 24 ชม.', q1: '1. ข้อดีของการแยกแดชบอร์ดฝั่ง Node-RED และ Grafana ออกจากกันมีประโยชน์ต่อนักพัฒนาอย่างไร?', q2: '2. อธิบายการทำงานของฟังก์ชัน aggregateWindow() และ v.windowPeriod ในภาษา Flux Query' },
+      'lab-webconfig_wifi': { title: 'ใบงานเสริม (Wi-Fi)', name: 'การตั้งค่า Wi-Fi ผ่านหน้าเว็บ Web Configuration', codeLabel: 'โค้ดโจทย์ท้าทาย (Scan Wi-Fi)', q1: '1. กลไกการทำงานของ Captive Portal และ DNS Server ร่วมกันเป็นอย่างไรในการชี้ทางให้อุปกรณ์เด้งหน้าเว็บตั้งค่าอัตโนมัติ?', q2: '2. การนำระบบจัดเก็บไฟล์ LittleFS มาบันทึกค่าชื่อ Wi-Fi มีความเหมาะสมและแตกต่างจากการฮาร์ดโค้ด SSID/Password ไว้ในโปรแกรมอย่างไร?' }
     };
 
     // Submissions memory buffer
