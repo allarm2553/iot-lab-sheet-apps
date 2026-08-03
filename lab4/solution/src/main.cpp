@@ -95,7 +95,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     }
     
     // 1. ตรวจสอบและรับสถานะคำสั่งควบคุมรีเลย์จากปุ่มบนหน้าเว็บ
-    if(doc.containsKey("action")) {
+    if (doc["action"].is<JsonVariant>()) {
        String action = doc["action"];
        if(action == "toggle_fan") {
           fanState = doc["value"];
@@ -124,7 +124,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     }
     
     // 2. โจทย์ท้าทาย: ตรวจสอบและอัปเดตเกณฑ์อุณหภูมิ (Temperature Threshold) จากสไลเดอร์
-    if (doc.containsKey("threshold")) {
+    if (doc["threshold"].is<JsonVariant>()) {
       tempThreshold = doc["threshold"];
       autoMode = true; // Switch back to Auto mode when threshold is changed
       Serial.printf("WS: Temperature Threshold updated to %.1f C (Auto Mode)\n", tempThreshold);
