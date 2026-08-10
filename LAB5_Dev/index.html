@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 5: การสื่อสารผ่านระบบคลาวด์และแดชบอร์ดข้ามแพลตฟอร์ม (Cloud MQTT)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- MQTT.js for embedded live demo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.4/mqtt.min.js"></script>
+  
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --ha-blue: #03a9f4;
+      --esphome-green: #3cc355;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
+      --body-font: 'Sarabun', sans-serif;
+      --heading-font: 'Outfit', 'Sarabun', sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-main);
+      font-family: var(--body-font);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
+    }
+
+    h1 {
+      font-family: var(--heading-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 700px;
+      margin: 0.5rem auto 0;
+    }
+
+    .course-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #38bdf8, #a855f7);
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--ha-blue);
+    }
+
+    .info-frame {
+      background: var(--info-frame-bg);
+      border-left: 4px solid var(--info-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-frame h3 {
+      font-family: var(--heading-font);
+      color: #93c5fd;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.1);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    .code-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-header {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--ha-blue);
+    }
+
+    pre {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    /* Embedded Live Interactive MQTT Dashboard Box */
+    .embedded-dash-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .embedded-dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+      display: inline-block;
+    }
+
+    .status-dot.active {
+      background-color: var(--esphome-green);
+      box-shadow: 0 0 8px var(--esphome-green);
+      animation: pulse 2s infinite;
+    }
+
+    .dash-metrics-mini {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .dash-metrics-mini {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-mini-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .metric-mini-title {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .metric-mini-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0.2rem 0;
+    }
+
+    .dash-controls-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: rgba(30, 41, 59, 0.4);
+      padding: 0.75rem;
+      border-radius: 8px;
+    }
+
+    .control-row-mini {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 22px;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .3s;
+      border-radius: 22px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--esphome-green);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Form Styles */
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea {
+      padding-left: 1rem;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--ha-blue);
+      box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.25);
+    }
+
+    .blank-input-group {
+      background: rgba(15, 23, 42, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 1.25rem;
+    }
+
+    .blank-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .blank-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .blank-label {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .blank-input {
+      flex-grow: 1;
+    }
+
+    .blank-input input {
+      padding-left: 1rem;
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+    }
+
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--ha-blue);
+      background: rgba(3, 169, 244, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .preview-thumbnail {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-details {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .preview-name {
+      font-size: 0.8rem;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-size {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: opacity 0.2s;
+    }
+
+    .remove-file-btn:hover {
+      opacity: 0.8;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 17, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalScale {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+
+    .modal-icon.success { color: var(--success); }
+    .modal-icon.error { color: var(--danger); }
+
+    .modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px var(--accent-glow)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 8px var(--ha-blue)); }
+    }
+
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      header, .course-badge, .logo-container, .btn, .upload-area, .remove-file-btn, .modal-overlay, .copy-btn, .code-header, .embedded-dash-box {
+        display: none !important;
+      }
+      .dashboard-grid {
+        display: block !important;
+      }
+      .glass-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+        backdrop-filter: none !important;
+      }
+      .glass-card::before {
+        display: none !important;
+      }
+      .card-title {
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        font-weight: bold !important;
+      }
+      .card-title i {
+        display: none !important;
+      }
+      .info-frame, .challenge-frame {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #3b82f6 !important;
+        color: #000 !important;
+      }
+      .challenge-frame {
+        border-left-color: #f59e0b !important;
+      }
+      .info-frame h3, .challenge-frame h3 {
+        color: #000 !important;
+      }
+      p, li, td, th, label {
+        color: #000 !important;
+      }
+      pre {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+      }
+      code {
+        color: #000 !important;
+      }
+      input[type="text"], input[type="date"], select, textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        border-radius: 0 !important;
+        color: #000 !important;
+        padding: 0 0 2px 0 !important;
+        box-shadow: none !important;
+      }
+      .input-wrapper i {
+        display: none !important;
+      }
+      input[type="text"], input[type="date"], textarea {
+        padding-left: 0 !important;
+      }
+      .blank-input-group {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .blank-row {
+        margin-bottom: 0.5rem !important;
+      }
+      .blank-label {
+        color: #000 !important;
+      }
+      .file-preview {
+        display: flex !important;
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem !important;
+        color: #000 !important;
+      }
+      .preview-name, .preview-size {
+        color: #000 !important;
+      }
+      .preview-thumbnail {
+        border: 1px solid #cbd5e1 !important;
+      }
+      .form-section-title {
+        color: #000 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 0.25rem !important;
+      }
+      .form-section-title i {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-cloud-bolt logo-icon"></i>
+        <h1>ใบงานที่ 5: การสื่อสารผ่านระบบคลาวด์และแดชบอร์ดข้ามแพลตฟอร์ม</h1>
+      </div>
+      <p class="subtitle">(Cloud MQTT &amp; Cross-Platform Dashboard) - หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์ (Auto-Grading)
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Lab Sheet Manual & Live Dashboard -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-book-open"></i>
+          <span>คู่มือใบงานการทดลอง (Lab Manual)</span>
+        </div>
+
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</h3>
+          <ol>
+            <li>เพื่อทำความเข้าใจสถาปัตยกรรม <strong>Cloud MQTT (Publish / Subscribe)</strong> และการทำงานร่วมกับตัวกลาง MQTT Broker (พอร์ต 1883 / 8084)</li>
+            <li>เพื่อเรียนรู้วิธีรับส่งข้อมูลโครงสร้าง JSON ข้ามเครือข่ายอินเทอร์เน็ต และพัฒนาแดชบอร์ดเว็บที่เชื่อมต่อด้วย MQTT.js</li>
+            <li>เพื่อต่อยอดระบบควบคุมอุณหภูมิอัตโนมัติ (Hysteresis Logic) และสวิตช์รีเลย์จาก Lab 4 สู่ระบบ IoT ระดับสากล</li>
+          </ol>
+        </div>
+
+        <!-- Embedded Live MQTT Dashboard Sandbox -->
+        <div class="embedded-dash-box">
+          <div class="embedded-dash-header">
+            <span style="font-weight: 600; font-size: 0.95rem; color: #38bdf8;">
+              <i class="fa-solid fa-satellite-dish"></i> ตัวอย่างแดชบอร์ดจำลอง (Live MQTT Sandbox)
+            </span>
+            <span style="font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+              <span class="status-dot" id="live-conn-dot"></span>
+              <span id="live-conn-text" style="color: var(--text-muted);">MQTT: Connecting...</span>
+            </span>
+          </div>
+
+          <div class="dash-metrics-mini">
+            <div class="metric-mini-card">
+              <div class="metric-mini-title">อุณหภูมิ</div>
+              <div class="metric-mini-val" style="color: var(--ha-blue);" id="live-temp">-- °C</div>
+            </div>
+            <div class="metric-mini-card">
+              <div class="metric-mini-title">ความชื้น</div>
+              <div class="metric-mini-val" style="color: var(--warning);" id="live-hum">-- %</div>
+            </div>
+            <div class="metric-mini-card">
+              <div class="metric-mini-title">KNOB (%)</div>
+              <div class="metric-mini-val" style="color: var(--esphome-green);" id="live-knob">-- %</div>
+            </div>
+            <div class="metric-mini-card">
+              <div class="metric-mini-title">พัดลม / กด</div>
+              <div class="metric-mini-val" style="color: var(--danger);" id="live-fan">OFF</div>
+            </div>
+          </div>
+
+          <div class="dash-controls-mini">
+            <div class="control-row-mini">
+              <span>เกณฑ์ควบคุมอุณหภูมิ (Threshold): <strong id="live-th-val" style="color: var(--ha-blue);">30.0°C</strong></span>
+              <input type="range" min="25" max="35" step="0.5" value="30" oninput="document.getElementById('live-th-val').textContent = this.value + '°C'" onchange="sendLiveMqttCmd({threshold: parseFloat(this.value), action: 'set_threshold', value: parseFloat(this.value)})" style="width: 140px; accent-color: var(--ha-blue);">
+            </div>
+            <div class="control-row-mini">
+              <span>ควบคุมพัดลมแมนนวล (Fan Relay):</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="live-fan-toggle" onchange="sendLiveMqttCmd({action: 'toggle_fan', value: this.checked})">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <h2>โค้ดโครงร่างฝั่งบอร์ด (ESP32 / ESP8266 Cloud MQTT Node)</h2>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <span>esp_mqtt.ino</span>
+            <button type="button" class="copy-btn" onclick="copyCode1()"><i class="fa-regular fa-copy"></i> Copy</button>
+          </div>
+<pre><code>#include &lt;Arduino.h&gt;
+#if defined(ESP8266)
+#include &lt;ESP8266WiFi.h&gt;
+#elif defined(ESP32)
+#include &lt;WiFi.h&gt;
+#endif
+#include &lt;PubSubClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;DHT.h&gt;
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+const char* mqttServer = "broker.emqx.io";
+const int mqttPort = 1883;
+const char* subTopic = "esp-node/control/cmd";
+const char* pubTopic = "esp-node/state";
+
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+#if defined(ESP8266)
+#define DHTPIN 2
+#define ANALOG_PIN A0
+#define FAN_RELAY_PIN 13
+#define BUTTON_PIN 0
+#define ADC_RESOLUTION 1023.0
+#elif defined(ESP32)
+#define DHTPIN 33
+#define ANALOG_PIN 36
+#define FAN_RELAY_PIN 5
+#define BUTTON_PIN 0
+#define ADC_RESOLUTION 4095.0
+#endif
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+float temperature = 0;
+float humidity = 0;
+float analogPercent = 0;
+bool fanState = false;
+
+void publishSensorData(float temp, float hum, float soil, bool fan) {
+  JsonDocument doc;
+  doc["temp"] = temp;
+  doc["humidity"] = hum;
+  doc["soil"] = soil;
+  doc["fan"] = fan;
+  
+  String output;
+  serializeJson(doc, output);
+  
+  // 1. ส่งกระจายข้อความสถานะขึ้นไปยังหัวข้อ MQTT Topic (Publish)
+  mqttClient. [ ช่องที่ 1 ] (pubTopic, output.c_str());
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, payload, length);
+  if (!error) {
+    if (doc.containsKey("action")) {
+      String action = doc["action"];
+      if (action == "toggle_fan") {
+        fanState = doc["value"];
+        digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+        publishSensorData(temperature, humidity, analogPercent, fanState);
+      }
+    }
+  }
+}
+
+void reconnect() {
+  while (!mqttClient.connected()) {
+    Serial.print("Connecting to MQTT Broker...");
+    String clientId = "ESPNode-" + String(random(0xffff), HEX);
+    if (mqttClient.connect(clientId.c_str())) {
+      Serial.println("connected!");
+      // 2. ลงทะเบียนรับข้อสั่งการจากหัวข้อควบคุม (Subscribe)
+      mqttClient. [ ช่องที่ 2 ] (subTopic);
+      publishSensorData(temperature, humidity, analogPercent, fanState);
+    } else {
+      Serial.printf("failed, rc=%d. Try again in 5s\n", mqttClient.state());
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  digitalWrite(FAN_RELAY_PIN, LOW);
+  
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi Connected!");
+  
+  mqttClient.setServer(mqttServer, mqttPort);
+  mqttClient.setCallback(mqttCallback);
+  mqttClient.setBufferSize(512);
+}
+
+void loop() {
+  if (!mqttClient.connected()) {
+    reconnect();
+  }
+  mqttClient.loop();
+  
+  static unsigned long lastUpdate = 0;
+  if (millis() - lastUpdate > 3000) {
+    lastUpdate = millis();
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
+    int rawAnalog = analogRead(ANALOG_PIN);
+    analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
+    
+    if (!isnan(temperature) && !isnan(humidity)) {
+      publishSensorData(temperature, humidity, analogPercent, fanState);
+    }
+  }
+}</code></pre>
+        </div>
+
+        <h2>โค้ดโครงร่างฝั่งแดชบอร์ดเว็บ (JavaScript / MQTT.js Client)</h2>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <span>mqtt_dashboard.js</span>
+            <button type="button" class="copy-btn" onclick="copyCode2()"><i class="fa-regular fa-copy"></i> Copy</button>
+          </div>
+<pre><code>// เชื่อมต่อ Broker ผ่าน WebSockets Secure (WSS Port 8084)
+const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+
+client.on('connect', () => {
+    console.log('Connected to MQTT Broker!');
+    client.subscribe('esp-node/state');
+});
+
+client.on('message', (topic, message) => {
+    const data = JSON.parse(message.toString());
+    document.getElementById('temp-val').textContent = data.temp + ' °C';
+    document.getElementById('hum-val').textContent = data.humidity + ' %';
+});
+
+function toggleFan(state) {
+    const cmd = { action: "toggle_fan", value: state };
+    client.publish('esp-node/control/cmd', JSON.stringify(cmd));
+}</code></pre>
+        </div>
+
+        <div class="challenge-frame">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
+          <p><strong>โจทย์:</strong> พัฒนาระบบ Cloud MQTT ที่สมบูรณ์แบบต่อเนื่องจาก Lab 4 โดยให้บอร์ดไมโครคอนโทรลเลอร์ส่งข้อมูล JSON ประกอบด้วย <code>temp</code>, <code>humidity</code>, <code>soil</code> (Analog KNOB %), <code>fan</code>, <code>threshold</code>, <code>press</code> (จำนวนครั้งกดปุ่ม) และ <code>mode</code> (Auto/Manual) ไปยัง Topic <code>esp-node/state</code> และสร้างแดชบอร์ดหน้าเว็บที่สามารถปรับค่าสไลเดอร์ Threshold และควบคุมเปิด-ปิดพัดลมได้แบบสองทาง</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Submission Form -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>ฟอร์มบันทึกและส่งรายงานผล</span>
+        </div>
+
+        <form id="labForm" onsubmit="handleFormSubmit(event)">
+          
+          <!-- 1. Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งรายงาน
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName">ชื่อ-นามสกุล</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="studentName" required placeholder="นาย/นางสาว สมชาย ดีใจ">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="studentId">รหัสนักศึกษา</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-id-card input-icon"></i>
+                  <input type="text" id="studentId" required placeholder="เช่น 64010512">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="studentGroup">กลุ่ม / ห้องเรียน</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-users input-icon"></i>
+                  <input type="text" id="studentGroup" required placeholder="เช่น 4/1">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="labDate">วันที่ทำการทดลอง</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-calendar input-icon"></i>
+                <input type="date" id="labDate" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Code Fill-in-the-blanks -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-code"></i> เติมคำตอบในช่องว่างของโค้ด (Skeleton Code)
+            </div>
+            
+            <div class="blank-input-group">
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 1:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank1" required placeholder="คำสั่งส่งข้อมูล MQTT เช่น publish">
+                </div>
+              </div>
+              
+              <div class="blank-row">
+                <span class="blank-label">ช่องที่ 2:</span>
+                <div class="blank-input">
+                  <input type="text" id="codeBlank2" required placeholder="คำสั่งลงทะเบียนรับข้อมูล เช่น subscribe">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. การสื่อสารผ่าน Cloud MQTT Broker แตกต่างจากการสื่อสารผ่าน Local WebSockets โดยตรงอย่างไร และมีข้อดีอย่างไรในการนำไปใช้งานจริง?</label>
+              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่ เช่น ความสามารถในการทะลุ NAT/Firewall, การตัดภาระของบอร์ดด้วยตัวกลาง Broker, การกระจายข้อมูลให้ผู้รับหลายคน..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. อธิบายความหมายของระดับคุณภาพการส่งข้อมูล (QoS: Quality of Service 0, 1, 2) ในโปรโตคอล MQTT และยกตัวอย่างว่างานแบบใดควรใช้ระดับใด?</label>
+              <textarea id="question2" rows="3" required placeholder="เขียนคำตอบที่นี่ เช่น QoS 0 ส่งครั้งเดียวไม่รอตอบรับ, QoS 1 รับประกันว่าถึงอย่างน้อยหนึ่งครั้ง, QoS 2 รับประกันว่าถึงแน่นอนครั้งเดียว..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Result File Uploads -->
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ด C++/Arduino หรือ JavaScript ที่เขียนระบบ MQTT เชื่อมต่อบอร์ดและแดชบอร์ดสมบูรณ์..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพหน้าจอแดชบอร์ดควบคุมระบบ Cloud MQTT ที่แสดงค่าเซ็นเซอร์แบบ Real-time</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดโปรเจกต์ (.ino, .cpp หรือ .zip ที่เขียนระบบ Cloud MQTT สำเร็จ)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .html, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.html,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--ha-blue);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลลัพธ์ของการสื่อสารผ่าน Cloud MQTT Broker ความแม่นยำของการควบคุมรีเลย์แบบ Hysteresis และการใช้งานแดชบอร์ดข้ามเครือข่าย..."></textarea>
+            </div>
+          </div>
+
+          <!-- Submit & Print Button Group -->
+          <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn" id="submitBtn" style="flex: 1;">
+              <i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.1);">
+              <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="modal-overlay" id="alertModal">
+    <div class="modal-content">
+      <div class="modal-icon success" id="modalIcon"><i class="fa-regular fa-circle-check"></i></div>
+      <div class="modal-title" id="modalTitle">ส่งใบงานสำเร็จ</div>
+      <div class="modal-text" id="modalText">รายละเอียดของข้อความระบบจะแสดงตรงนี้</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    let uploadedScreenshotBase64 = null;
+    let uploadedScreenshotName = null;
+    let uploadedScreenshotType = null;
+    let uploadedCodeBase64 = null;
+    let uploadedCodeFileName = null;
+    let uploadedCodeFileType = null;
+
+    // Embedded live MQTT sandbox connection
+    let liveMqttClient = null;
+    const LIVE_SUB_TOPIC = 'esp-node/state';
+    const LIVE_PUB_TOPIC = 'esp-node/control/cmd';
+
+    function initLiveSandboxMQTT() {
+      const dot = document.getElementById('live-conn-dot');
+      const text = document.getElementById('live-conn-text');
+
+      try {
+        liveMqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+          clientId: 'Lab5Sheet-' + Math.random().toString(16).substring(2, 8),
+          clean: true,
+          reconnectPeriod: 4000
+        });
+
+        liveMqttClient.on('connect', () => {
+          dot.className = 'status-dot active';
+          text.textContent = 'MQTT: Connected';
+          liveMqttClient.subscribe(LIVE_SUB_TOPIC);
+        });
+
+        liveMqttClient.on('message', (topic, payload) => {
+          if (topic === LIVE_SUB_TOPIC) {
+            try {
+              const data = JSON.parse(payload.toString());
+              if (data.temp !== undefined) {
+                const t = typeof data.temp === 'string' ? parseFloat(data.temp) : data.temp;
+                document.getElementById('live-temp').textContent = t.toFixed(1) + ' °C';
+              }
+              if (data.humidity !== undefined) {
+                const h = typeof data.humidity === 'string' ? parseFloat(data.humidity) : data.humidity;
+                document.getElementById('live-hum').textContent = h.toFixed(1) + ' %';
+              }
+              if (data.soil !== undefined) {
+                const s = typeof data.soil === 'string' ? parseFloat(data.soil) : data.soil;
+                document.getElementById('live-knob').textContent = s.toFixed(1) + ' %';
+              }
+              if (data.fan !== undefined) {
+                document.getElementById('live-fan').textContent = data.fan ? 'ON' : 'OFF';
+                document.getElementById('live-fan').style.color = data.fan ? 'var(--esphome-green)' : 'var(--danger)';
+                document.getElementById('live-fan-toggle').checked = data.fan;
+              }
+              if (data.threshold !== undefined) {
+                const th = typeof data.threshold === 'string' ? parseFloat(data.threshold) : data.threshold;
+                document.getElementById('live-th-val').textContent = th.toFixed(1) + '°C';
+              }
+            } catch(e) {
+              console.error(e);
+            }
+          }
+        });
+
+        liveMqttClient.on('close', () => {
+          dot.className = 'status-dot';
+          text.textContent = 'MQTT: Disconnected';
+        });
+      } catch(e) {
+        console.warn('Live MQTT sandbox error:', e);
+      }
+    }
+
+    function sendLiveMqttCmd(cmdObj) {
+      if (liveMqttClient && liveMqttClient.connected) {
+        liveMqttClient.publish(LIVE_PUB_TOPIC, JSON.stringify(cmdObj));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('labDate').value = today;
+
+      if (localStorage.getItem('studentName')) {
+        document.getElementById('studentName').value = localStorage.getItem('studentName');
+      }
+      if (localStorage.getItem('studentId')) {
+        document.getElementById('studentId').value = localStorage.getItem('studentId');
+      }
+      if (localStorage.getItem('studentGroup')) {
+        document.getElementById('studentGroup').value = localStorage.getItem('studentGroup');
+      }
+      
+      initDragAndDrop();
+      initLiveSandboxMQTT();
+    });
+
+    function copyCode1() {
+      const codeText = `#include <Arduino.h>
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#endif
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <DHT.h>
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+const char* mqttServer = "broker.emqx.io";
+const int mqttPort = 1883;
+const char* subTopic = "esp-node/control/cmd";
+const char* pubTopic = "esp-node/state";
+
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+#if defined(ESP8266)
+#define DHTPIN 2
+#define ANALOG_PIN A0
+#define FAN_RELAY_PIN 13
+#define BUTTON_PIN 0
+#define ADC_RESOLUTION 1023.0
+#elif defined(ESP32)
+#define DHTPIN 33
+#define ANALOG_PIN 36
+#define FAN_RELAY_PIN 5
+#define BUTTON_PIN 0
+#define ADC_RESOLUTION 4095.0
+#endif
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+float temperature = 0;
+float humidity = 0;
+float analogPercent = 0;
+bool fanState = false;
+
+void publishSensorData(float temp, float hum, float soil, bool fan) {
+  JsonDocument doc;
+  doc["temp"] = temp;
+  doc["humidity"] = hum;
+  doc["soil"] = soil;
+  doc["fan"] = fan;
+  
+  String output;
+  serializeJson(doc, output);
+  
+  mqttClient.publish(pubTopic, output.c_str());
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, payload, length);
+  if (!error) {
+    if (doc.containsKey("action")) {
+      String action = doc["action"];
+      if (action == "toggle_fan") {
+        fanState = doc["value"];
+        digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+        publishSensorData(temperature, humidity, analogPercent, fanState);
+      }
+    }
+  }
+}
+
+void reconnect() {
+  while (!mqttClient.connected()) {
+    Serial.print("Connecting to MQTT Broker...");
+    String clientId = "ESPNode-" + String(random(0xffff), HEX);
+    if (mqttClient.connect(clientId.c_str())) {
+      Serial.println("connected!");
+      mqttClient.subscribe(subTopic);
+      publishSensorData(temperature, humidity, analogPercent, fanState);
+    } else {
+      Serial.printf("failed, rc=%d. Try again in 5s\n", mqttClient.state());
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  digitalWrite(FAN_RELAY_PIN, LOW);
+  
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWi-Fi Connected!");
+  
+  mqttClient.setServer(mqttServer, mqttPort);
+  mqttClient.setCallback(mqttCallback);
+  mqttClient.setBufferSize(512);
+}
+
+void loop() {
+  if (!mqttClient.connected()) {
+    reconnect();
+  }
+  mqttClient.loop();
+  
+  static unsigned long lastUpdate = 0;
+  if (millis() - lastUpdate > 3000) {
+    lastUpdate = millis();
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
+    int rawAnalog = analogRead(ANALOG_PIN);
+    analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
+    
+    if (!isnan(temperature) && !isnan(humidity)) {
+      publishSensorData(temperature, humidity, analogPercent, fanState);
+    }
+  }
+}`;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const copyBtn = document.querySelector('.copy-btn');
+        copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+        setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+      });
+    }
+
+    function copyCode2() {
+      const codeText = `// JavaScript MQTT.js Client
+const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+
+client.on('connect', () => {
+    console.log('Connected to MQTT Broker!');
+    client.subscribe('esp-node/state');
+});
+
+client.on('message', (topic, message) => {
+    const data = JSON.parse(message.toString());
+    document.getElementById('temp-val').textContent = data.temp + ' °C';
+    document.getElementById('hum-val').textContent = data.humidity + ' %';
+});
+
+function toggleFan(state) {
+    const cmd = { action: "toggle_fan", value: state };
+    client.publish('esp-node/control/cmd', JSON.stringify(cmd));
+}`;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const copyBtns = document.querySelectorAll('.copy-btn');
+        if (copyBtns.length > 1) {
+          copyBtns[1].innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+          setTimeout(() => { copyBtns[1].innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+        }
+      });
+    }
+
+    function initDragAndDrop() {
+      const dropAreas = [
+        { id: 'screenshotArea', type: 'screenshot', inputId: 'screenshotInput' },
+        { id: 'codeArea', type: 'code', inputId: 'codeInput' }
+      ];
+      dropAreas.forEach(area => {
+        const element = document.getElementById(area.id);
+        const input = document.getElementById(area.inputId);
+        ['dragenter', 'dragover'].forEach(eventName => {
+          element.addEventListener(eventName, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            element.classList.add('dragover');
+          }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+          element.addEventListener(eventName, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            element.classList.remove('dragover');
+          }, false);
+        });
+        element.addEventListener('drop', (e) => {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          if (files.length > 0) {
+            input.files = files;
+            handleFileSelect(input, area.type);
+          }
+        }, false);
+      });
+    }
+
+    function handleFileSelect(input, type) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showModal('ขนาดไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB', false);
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      if (type === 'screenshot') {
+        reader.onload = function(e) {
+          uploadedScreenshotBase64 = e.target.result;
+          uploadedScreenshotName = file.name;
+          uploadedScreenshotType = file.type;
+          document.getElementById('screenshotImg').src = e.target.result;
+          document.getElementById('screenshotName').textContent = file.name;
+          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('screenshotArea').style.display = 'none';
+          document.getElementById('screenshotPreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        reader.onload = function(e) {
+          uploadedCodeBase64 = e.target.result;
+          uploadedCodeFileName = file.name;
+          uploadedCodeFileType = file.type || "application/octet-stream";
+          document.getElementById('codeName').textContent = file.name;
+          document.getElementById('codeSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+          document.getElementById('codeArea').style.display = 'none';
+          document.getElementById('codePreview').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeFile(type) {
+      if (type === 'screenshot') {
+        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        document.getElementById('screenshotInput').value = '';
+        document.getElementById('screenshotArea').style.display = 'block';
+        document.getElementById('screenshotPreview').style.display = 'none';
+      } else {
+        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        document.getElementById('codeInput').value = '';
+        document.getElementById('codeArea').style.display = 'block';
+        document.getElementById('codePreview').style.display = 'none';
+      }
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+
+      const studentName = document.getElementById('studentName').value.trim();
+      const studentId = document.getElementById('studentId').value.trim();
+      const studentGroup = document.getElementById('studentGroup').value.trim();
+      const labDate = document.getElementById('labDate').value;
+      const codeBlank1 = document.getElementById('codeBlank1').value.trim();
+      const codeBlank2 = document.getElementById('codeBlank2').value.trim();
+      const question1 = document.getElementById('question1').value.trim();
+      const question2 = document.getElementById('question2').value.trim();
+      const conclusion = document.getElementById('conclusion').value.trim();
+
+      localStorage.setItem('studentName', studentName);
+      localStorage.setItem('studentId', studentId);
+      localStorage.setItem('studentGroup', studentGroup);
+
+      const payload = {
+        challengeCode: document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '',
+        studentName, studentId, studentGroup, labDate,
+        codeBlank1, codeBlank2,
+        question1, question2,
+        screenshotBase64: uploadedScreenshotBase64,
+        screenshotName: uploadedScreenshotName,
+        screenshotType: uploadedScreenshotType,
+        codeBase64: uploadedCodeBase64,
+        codeFileName: uploadedCodeFileName,
+        codeFileType: uploadedCodeFileType,
+        conclusion
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((response) => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            if (response.status === 'success') {
+              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+              showModal('ส่งใบงานสำเร็จ', response.message, true);
+              removeFile('screenshot'); removeFile('code');
+              document.getElementById('codeBlank1').value = '';
+              document.getElementById('codeBlank2').value = '';
+              document.getElementById('question1').value = '';
+              document.getElementById('question2').value = '';
+              document.getElementById('conclusion').value = '';
+            } else {
+              showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
+            }
+          })
+          .withFailureHandler((error) => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            showModal('เกิดข้อผิดพลาด', error.toString(), false);
+          })
+          .submitLabData(payload);
+      } else {
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+          showModal('โหมดจำลอง (Local Preview)', 'ฟังก์ชันส่งใบงานทำงานสำเร็จแล้วในโหมด Local Preview!', true);
+        }, 1500);
+      }
+    }
+
+    function showModal(title, text, isSuccess) {
+      const modal = document.getElementById('alertModal');
+      const icon = document.getElementById('modalIcon');
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalText').textContent = text;
+      if (isSuccess) {
+        icon.className = 'modal-icon success';
+        icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+      } else {
+        icon.className = 'modal-icon error';
+        icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('alertModal').style.display = 'none';
+    }
+  
+    // Auto-resize textarea logic
+    function initTextareaAutoResize() {
+      if (!document.getElementById('textarea-print-style')) {
+        const style = document.createElement('style');
+        style.id = 'textarea-print-style';
+        style.textContent = `
+          @media print {
+            textarea {
+              overflow: hidden !important;
+              overflow-y: hidden !important;
+              resize: none !important;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      const textareas = document.querySelectorAll('textarea');
+      textareas.forEach(textarea => {
+        const resize = () => {
+          textarea.style.height = 'auto';
+          textarea.style.height = (textarea.scrollHeight + 4) + 'px';
+        };
+        textarea.addEventListener('input', resize);
+        if (!textarea.classList.contains('auto-resize-initialized')) {
+          textarea.classList.add('auto-resize-initialized');
+          setTimeout(resize, 100);
+          window.addEventListener('beforeprint', resize);
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTextareaAutoResize);
+    } else {
+      initTextareaAutoResize();
+    }
+    window.addEventListener('load', initTextareaAutoResize);
+  </script>
+</body>
+</html>

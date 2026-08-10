@@ -35,3 +35,11 @@ logs/
 *win32-x64/
 *darwin-x64/
 *linux-x64/
+
+# PlatformIO & Submissions
+.pio/
+*/.pio/
+*/*/.pio/
+submissions/
+
+

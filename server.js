@@ -124,6 +124,12 @@ const gradingRules = {
     q1Keywords: ['broker', 'ผู้รับ', 'ผู้ส่ง', 'publish', 'subscribe', 'ตัวกลาง'],
     q2Keywords: ['หลุด', 'disconnect', 'เตะ', 'ชน', 'ซ้ำ', 'reconnect']
   },
+  'LAB5_Dev': {
+    blankKeywords: ['publish|mqttClient.publish', 'subscribe|mqttClient.subscribe'],
+    challengeKeywords: ['PubSubClient|mqttClient|mqtt', 'tempThreshold|threshold|30|analog|potentiometer|soil|knob', 'publish|esp-node/state|pubTopic', 'subscribe|callback|esp-node/control/cmd|debounce|toggleCount'],
+    q1Keywords: ['broker|ตัวกลาง', 'publish|subscribe|กระจาย', 'ข้ามเครือข่าย|อินเทอร์เน็ต|nat|firewall', 'หลายเครื่อง|decouple|เบา'],
+    q2Keywords: ['qos|quality of service', 'retained|บันทึกล่าสุด', 'last will|lwt|พินัยกรรม', 'keep-alive|ping']
+  },
   'lab6': {
     challengeKeywords: ['WiFi', 'connect|reconnect', 'non-blocking|millis|nonblocking', 'webSocket|client', 'elec|elec1234'],
     q1Keywords: ['non-blocking', 'ไม่บล็อก', 'หลุด', 'ค้าง', 'ทำงานต่อ', 'loop'],
@@ -321,12 +327,17 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Routing for lab index pages
-const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
+const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'LAB5_Dev', 'lab5_dev', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
 validLabs.forEach(lab => {
   app.get(`/${lab}`, (req, res) => {
     serveInjectedHtml(lab, res);
   });
 });
+
+// Serve solution data folders for dashboards
+app.use('/LAB5_Dev/solution/data', express.static(path.join(__dirname, 'LAB5_Dev', 'solution', 'data')));
+app.use('/lab4/solution/data', express.static(path.join(__dirname, 'lab4', 'solution', 'data')));
+app.use('/lab5/solution/data', express.static(path.join(__dirname, 'lab5', 'solution', 'data')));
 
 // Submissions API POST: Handles file uploads, auto-grading, and logging
 app.post('/api/submit', (req, res) => {
