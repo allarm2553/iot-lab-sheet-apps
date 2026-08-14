@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 6: การประยุกต์ใช้การสื่อสารแบบผสมผสาน (Hybrid Dual-Protocol: WS + MQTT)</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b132b;
+      --card-bg: rgba(28, 37, 65, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --primary: #48cae4;
+      --secondary: #5390d9;
+      --accent-pink: #f72585;
+      --success: #4ea8de;
+      --success-green: #2ec4b6;
+      --danger: #e63946;
+      --warning: #ffb703;
+      --text-main: #edf2f4;
+      --text-muted: #8d99ae;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Kanit', 'Outfit', sans-serif;
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(72, 202, 228, 0.12) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(83, 144, 217, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header-banner {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-banner h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #48cae4, #5390d9, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header-banner p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Cards */
+    .section-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 10px;
+    }
+
+    /* Form Inputs */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-input {
+      padding: 12px 16px;
+      background: rgba(11, 19, 43, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 12px rgba(72, 202, 228, 0.3);
+    }
+
+    /* Code Box */
+    .code-block {
+      background: #050a17;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      color: #7209b7;
+    }
+
+    .code-comment { color: #6c757d; font-style: italic; }
+    .code-keyword { color: #f72585; font-weight: bold; }
+    .code-type { color: #48cae4; }
+    .code-string { color: #4ea8de; }
+
+    .blank-input {
+      background: #1c2541;
+      border: 1px dashed var(--primary);
+      border-radius: 6px;
+      color: #fff;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      min-width: 180px;
+    }
+
+    .blank-input:focus {
+      outline: none;
+      border-style: solid;
+      background: #0b132b;
+    }
+
+    /* Buttons */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 8px 25px rgba(72, 202, 228, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(72, 202, 228, 0.4);
+    }
+
+    /* Score Result Modal */
+    .result-box {
+      display: none;
+      background: rgba(11, 19, 43, 0.95);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      margin-top: 25px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .score-badge {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .details-text {
+      white-space: pre-line;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Print Styles for PDF Export */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .header-banner {
+        background: #f8fafc !important;
+        border: 2px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+      }
+      .header-banner h1 {
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
+        color: #0f172a !important;
+      }
+      .section-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
+      }
+      .section-title {
+        color: #0f172a !important;
+        border-bottom: 2px solid #0f172a !important;
+      }
+      .form-input, textarea, .blank-input {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #94a3b8 !important;
+      }
+      .code-block {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+      .code-comment { color: #475569 !important; }
+      .code-keyword { color: #b91c1c !important; }
+      .code-type { color: #0369a1 !important; }
+      .code-string { color: #047857 !important; }
+      .btn-submit, .btn-print, .no-print {
+        display: none !important;
+      }
+      .result-box {
+        background: #ffffff !important;
+        border: 2px solid #0f172a !important;
+        color: #000000 !important;
+      }
+      .score-badge {
+        color: #0284c7 !important;
+      }
+      .details-text {
+        background: #f8fafc !important;
+        color: #000000 !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-print {
+      flex: 1;
+      padding: 16px;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      background: rgba(72, 202, 228, 0.15);
+      color: var(--primary);
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-print:hover {
+      background: var(--primary);
+      color: #0b132b;
+      box-shadow: 0 8px 20px rgba(72, 202, 228, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header-banner">
+      <h1>ใบงานที่ 6: การสื่อสารผสมผสานสองโหมด (Hybrid Dual-Protocol: WS + MQTT)</h1>
+      <p>สาขาวิชาวิศวกรรมอิเล็กทรอนิกส์และคอมพิวเตอร์ | ระบบควบคุม IoT และการประมวลผลคลาวด์</p>
+    </div>
+
+    <!-- Student Profile Form -->
+    <div class="section-card">
+      <div class="section-title">👤 ข้อมูลผู้จัดทำใบงาน</div>
+      <div class="form-grid">
+        <div class="input-group">
+          <label for="studentId">รหัสนักศึกษา:</label>
+          <input type="text" id="studentId" class="form-input" placeholder="เช่น 65012345" required>
+        </div>
+        <div class="input-group">
+          <label for="studentName">ชื่อ-นามสกุล:</label>
+          <input type="text" id="studentName" class="form-input" placeholder="เช่น นายสมชาย ใจดี" required>
+        </div>
+        <div class="input-group">
+          <label for="section">กลุ่มเรียน (Section):</label>
+          <input type="text" id="section" class="form-input" placeholder="เช่น 4/1" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Objectives Section Card -->
+    <div class="section-card">
+      <div class="section-title">🎯 วัตถุประสงค์การเรียนรู้ (Learning Objectives)</div>
+      <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-main);">
+        <li><strong>1. เข้าใจสถาปัตยกรรม Hybrid Dual-Protocol</strong>: สามารถอธิบายหลักการทำงานคู่ขนานระหว่าง Local WebSockets (Port 81) และ Cloud MQTT Broker (`broker.emqx.io`:1883) ในโหนดเดียวกันได้</li>
+        <li><strong>2. พัฒนาโปรแกรมสื่อสารสองทางบน ESP32/ESP8266</strong>: สามารถเขียนโค้ด C++ (PlatformIO) จัดการ `WebSocketsServer` และ `PubSubClient` พร้อมจอ OLED SSD1306 แบบ Non-blocking</li>
+        <li><strong>3. ออกแบบระบบซิงโครไนซ์สถานะสองทิศทาง (State Synchronization)</strong>: สามารถส่งและรับคำสั่ง JSON เพื่อกระจายสถานะ (Broadcast & Publish) ไปยังทุกช่องทางเมื่อสถานะอุปกรณ์เปลี่ยนแปลง</li>
+        <li><strong>4. พัฒนา Web Dashboard สลับโหมดการเชื่อมต่อ</strong>: สามารถใช้งาน Web Interface ที่เลือกสลับการเชื่อมต่อระหว่าง Local WS และ Cloud MQTT ได้ตามสภาพแวดล้อมเครือข่าย</li>
+        <li><strong>5. วิเคราะห์ความหน่วงและประยุกต์ใช้ระบบสำรอง (Redundancy & Fallback)</strong>: สามารถเปรียบเทียบข้อดี-ข้อเสียด้าน Latency/Bandwidth และประยุกต์ใช้เป็นกลไกสำรองเมื่ออินเทอร์เน็ตขัดข้อง</li>
+      </ul>
+    </div>
+
+    <!-- Part 1: Code Skeleton Fill-in-the-blanks -->
+    <div class="section-card">
+      <div class="section-title">💻 ตอนที่ 1: การเติมคำตอบในโครงร่างโค้ด Dual-Protocol (1.5 คะแนน)</div>
+      <p style="margin-bottom: 15px; color: var(--text-muted);">คำชี้แจง: จงเติมโค้ดภาษา C++ ให้สมบูรณ์ เพื่อรองรับการทำงานร่วมกันระหว่าง WebSocketsServer (Port 81) และ PubSubClient (MQTT: Port 1883)</p>
+      
+      <div class="code-block">
+        <span class="code-comment">// 1. การสร้างอินสแตนซ์ของโปรโตคอลคู่ (WebSockets และ MQTT)</span><br>
+        WebSocketsServer webSocket = <span class="code-type">WebSocketsServer</span>(81);<br>
+        WiFiClient espClient;<br>
+        <span class="code-type">PubSubClient</span> mqttClient(espClient);<br><br>
+
+        <span class="code-comment">// 2. ฟังก์ชันกระจายและเผยแพร่ข้อมูลสถานะไปยังทั้งสองช่องทางพร้อมกัน</span><br>
+        <span class="code-keyword">void</span> broadcastAndPublishState() {<br>
+        &nbsp;&nbsp;JsonDocument doc;<br>
+        &nbsp;&nbsp;doc[<span class="code-string">"temp"</span>] = temperature;<br>
+        &nbsp;&nbsp;doc[<span class="code-string">"fan"</span>] = fanState;<br>
+        &nbsp;&nbsp;String output;<br>
+        &nbsp;&nbsp;serializeJson(doc, output);<br><br>
+
+        &nbsp;&nbsp;<span class="code-comment">// กระจายไปยัง Local WebSockets Clients</span><br>
+        &nbsp;&nbsp;<input type="text" id="codeBlank1" class="blank-input" placeholder="เติมคำสั่งกระจายข้อมูล WS"><br><br>
+
+        &nbsp;&nbsp;<span class="code-comment">// เผยแพร่ขึ้น Cloud MQTT Broker</span><br>
+        &nbsp;&nbsp;<span class="code-keyword">if</span> (mqttClient.connected()) {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="codeBlank2" class="blank-input" placeholder="เติมคำสั่ง publish ขึ้น MQTT"><br>
+        &nbsp;&nbsp;}<br>
+        }<br><br>
+
+        <span class="code-comment">// 3. การประมวลผลคำสั่งควบคุมจากทั้งสองช่องทาง</span><br>
+        <span class="code-keyword">void</span> handleIncomingCommand(JsonDocument& doc) {<br>
+        &nbsp;&nbsp;<input type="text" id="codeBlank3" class="blank-input" placeholder="เติมเงื่อนไขตรวจเช็ค action"><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;fanState = doc[<span class="code-string">"value"</span>];<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="codeBlank4" class="blank-input" placeholder="เติมฟังก์ชันเรียกกระจายสถานะใหม่"><br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+    </div>
+
+    <!-- Part 2: Source Code & GitHub Link -->
+    <div class="section-card">
+      <div class="section-title">📂 ตอนที่ 2: แนบซอร์สโค้ดฉบับสมบูรณ์ หรือ ลิงก์ GitHub (2.5 คะแนน)</div>
+      <div class="input-group" style="margin-bottom: 15px;">
+        <label for="githubUrl">URL ของ GitHub Repository (ถ้ามี):</label>
+        <input type="url" id="githubUrl" class="form-input" placeholder="https://github.com/username/iot-lab6">
+      </div>
+      <div class="input-group">
+        <label for="codeContent">หรือ วางซอร์สโค้ด C++ (main.cpp):</label>
+        <textarea id="codeContent" class="form-input" rows="8" placeholder="วางโค้ด main.cpp ของคุณที่นี่..."></textarea>
+      </div>
+    </div>
+
+    <!-- Part 3: Theory Analytical Questions -->
+    <div class="section-card">
+      <div class="section-title">🧠 ตอนที่ 3: คำถามเชิงวิเคราะห์และทฤษฎี (4.0 คะแนน)</div>
+      
+      <div class="input-group" style="margin-bottom: 20px;">
+        <label for="ans1"><strong>ข้อที่ 1 (2.0 คะแนน):</strong> จงเปรียบเทียบข้อดีและข้อเสียของการใช้ Local WebSockets กับ Cloud MQTT ในระบบ IoT และอธิบายเหตุผลว่าทำไมสถาปัตยกรรมแบบ Hybrid จึงมีประโยชน์ในงานจริง</label>
+        <textarea id="ans1" class="form-input" rows="4" placeholder="พิมพ์คำตอบของคุณที่นี่..." required></textarea>
+      </div>
+
+      <div class="input-group">
+        <label for="ans2"><strong>ข้อที่ 2 (2.0 คะแนน):</strong> ในสถาปัตยกรรม Hybrid Dual-Protocol หากมีคำสั่งสั่งงานพัดลมส่งเข้ามาจากทั้ง WebSocket และ MQTT พร้อมกันในเวลาไล่เลี่ยกัน ระบบควรมีกลไก Synchronization และจัดการ Race Condition อย่างไร?</label>
+        <textarea id="ans2" class="form-input" rows="4" placeholder="พิมพ์คำตอบของคุณที่นี่..." required></textarea>
+      </div>
+    </div>
+
+    <!-- Part 4: File Upload Attachment -->
+    <div class="section-card">
+      <div class="section-title">📷 ตอนที่ 4: หลักฐานการทดลองบนบอร์ดจริง (2.0 คะแนน)</div>
+      <div class="input-group">
+        <label for="proofFile">แนบภาพถ่ายบอร์ด ESP32/ESP8266 ขณะทำงานร่วมกับ OLED หรือแคปหน้าจอแดชบอร์ด:</label>
+        <input type="file" id="proofFile" class="form-input" accept="image/*">
+      </div>
+    </div>
+
+    <!-- Part 5: Experiment Conclusion & Discussion -->
+    <div class="section-card">
+      <div class="section-title">📝 ตอนที่ 5: สรุปผลการทดลองและการวิเคราะห์เชิงอภิปราย (Conclusion & Discussion)</div>
+      <div class="input-group">
+        <label for="conclusion">สรุปผลการทดสอบการทำงานของสถาปัตยกรรม Hybrid Dual-Protocol (WS + MQTT), การควบคุมรีเลย์, การแสดงผล OLED และข้อสังเกตเพิ่มเติม:</label>
+        <textarea id="conclusion" class="form-input" rows="5" placeholder="อธิบายวิเคราะห์สรุปผลลัพธ์จากการทดลอง ความเร็วการรับส่งข้อมูลระหว่าง Local WS กับ Cloud MQTT การทำงานของสวิตช์ Auto Mode/Manual และข้อเสนอแนะในการปรับปรุงระบบ..." required></textarea>
+      </div>
+    </div>
+
+    <!-- Action Buttons Group (Submit & Print PDF) -->
+    <div class="btn-group">
+      <button class="btn-submit" style="flex: 2;" onclick="submitWorksheet()">🚀 ส่งใบงานและประเมินคะแนนอัตโนมัติ</button>
+      <button class="btn-print" onclick="window.print()">📄 พิมพ์ / บันทึกเป็น PDF</button>
+    </div>
+
+    <!-- Score Result Container -->
+    <div id="resultBox" class="result-box">
+      <h2 style="text-align: center; color: var(--primary);">ผลการประเมินคะแนนใบงานที่ 6</h2>
+      <div class="score-badge"><span id="totalScore">0.0</span> / 10</div>
+      <div id="detailsText" class="details-text"></div>
+      <div class="no-print" style="margin-top: 20px; text-align: center;">
+        <button class="btn-print" style="max-width: 300px; margin: 0 auto;" onclick="window.print()">📄 พิมพ์ใบคะแนนและรายงานเป็น PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function submitWorksheet() {
+      const studentId = document.getElementById('studentId').value.trim();
+      const studentName = document.getElementById('studentName').value.trim();
+      const section = document.getElementById('section').value.trim();
+      const conclusion = document.getElementById('conclusion').value.trim();
+
+      if (!studentId || !studentName || !section) {
+        alert("กรุณากรอกข้อมูลนักศึกษา (รหัส, ชื่อ-นามสกุล, กลุ่มเรียน) ให้ครบถ้วน");
+        return;
+      }
+
+      if (!conclusion) {
+        alert("กรุณากรอกสรุปผลการทดลอง (ตอนที่ 5) ก่อนทำการส่งใบงาน");
+        return;
+      }
+
+      const fileInput = document.getElementById('proofFile');
+      let fileData = null;
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          fileData = {
+            name: file.name,
+            mimeType: file.type,
+            contents: e.target.result
+          };
+          sendPayload(fileData);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        sendPayload(null);
+      }
+    }
+
+    function sendPayload(fileData) {
+      const payload = {
+        studentId: document.getElementById('studentId').value.trim(),
+        studentName: document.getElementById('studentName').value.trim(),
+        section: document.getElementById('section').value.trim(),
+        codeBlank1: document.getElementById('codeBlank1').value.trim(),
+        codeBlank2: document.getElementById('codeBlank2').value.trim(),
+        codeBlank3: document.getElementById('codeBlank3').value.trim(),
+        codeBlank4: document.getElementById('codeBlank4').value.trim(),
+        githubUrl: document.getElementById('githubUrl').value.trim(),
+        codeContent: document.getElementById('codeContent').value.trim(),
+        ans1: document.getElementById('ans1').value.trim(),
+        ans2: document.getElementById('ans2').value.trim(),
+        conclusion: document.getElementById('conclusion').value.trim(),
+        fileData: fileData
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(showResult).gradeSubmission(payload);
+      } else {
+        // Local simulation test mode
+        console.log("Simulating grading local submission...", payload);
+        setTimeout(() => {
+          showResult({
+            studentId: payload.studentId,
+            studentName: payload.studentName,
+            totalScore: 9.5,
+            details: "- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น (+1.5/1.5 คะแนน)\n- ซอร์สโค้ดโซลูชัน: ตรวจพบองค์ประกอบสมบูรณ์ (+2.5/2.5 คะแนน)\n- ตอบคำถามทฤษฎีข้อที่ 1: ถูกต้องครอบคลุม (+2.0/2.0 คะแนน)\n- ตอบคำถามทฤษฎีข้อที่ 2: ถูกต้องครอบคลุม (+1.5/2.0 คะแนน)\n- หลักฐานภาพถ่ายการทดลอง: แนบไฟล์สมบูรณ์ (+2.0/2.0 คะแนน)"
+          });
+        }, 1000);
+      }
+    }
+
+    function showResult(res) {
+      document.getElementById('resultBox').style.display = 'block';
+      document.getElementById('totalScore').innerText = res.totalScore;
+      document.getElementById('detailsText').innerText = res.details;
+      document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

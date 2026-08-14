@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAB 6: Hybrid Dual-Protocol IoT Dashboard (WS + MQTT)</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- MQTT.js CDN -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>⚡ LAB 6: Hybrid Dual-Protocol Dashboard</h1>
+        <p>การสื่อสารคู่ขนานสองทิศทาง (Local WebSockets & Cloud MQTT)</p>
+      </div>
+      <div class="protocol-badges">
+        <div class="badge">
+          <span id="wsDot" class="status-dot"></span>
+          <span>WebSockets: <strong id="wsStatus">Disconnected</strong></span>
+        </div>
+        <div class="badge">
+          <span id="mqttDot" class="status-dot"></span>
+          <span>Cloud MQTT: <strong id="mqttStatus">Disconnected</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mode Selector & Settings Bar -->
+    <div class="mode-selector-bar">
+      <div class="segmented-control">
+        <button id="btnModeAuto" class="segmented-btn active" onclick="setConnectionPreference('auto')">🔄 Hybrid Dual Mode</button>
+        <button id="btnModeWS" class="segmented-btn" onclick="setConnectionPreference('ws')">🔌 Local WebSockets</button>
+        <button id="btnModeMQTT" class="segmented-btn" onclick="setConnectionPreference('mqtt')">☁️ Cloud MQTT</button>
+      </div>
+      <button class="settings-btn" onclick="openSettingsModal()">⚙️ ตั้งค่าการเชื่อมต่อ</button>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid">
+      <!-- Temperature Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>อุณหภูมิ (DHT11)</span>
+          <span>🌡️</span>
+        </div>
+        <div class="card-value">
+          <span id="valTemp">--</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          สถานะ: <span id="tempStatus">ปกติ</span>
+        </div>
+      </div>
+
+      <!-- Humidity Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ความชื้นสัมพัทธ์</span>
+          <span>💧</span>
+        </div>
+        <div class="card-value">
+          <span id="valHum">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          เซ็นเซอร์: DHT11 Sensor
+        </div>
+      </div>
+
+      <!-- Soil Moisture / KNOB Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ความชื้นดิน / KNOB</span>
+          <span>🌱</span>
+        </div>
+        <div class="card-value">
+          <span id="valSoil">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          แอนะล็อกอินพุต (ADC)
+        </div>
+      </div>
+
+      <!-- Threshold Slider Control Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ตั้งเกณฑ์อุณหภูมิพัดลม</span>
+          <span>🎯</span>
+        </div>
+        <div class="card-value">
+          <span id="valThreshold">30.0</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>10°C</span>
+            <span>50°C</span>
+          </div>
+          <input type="range" id="sliderThreshold" min="10" max="50" step="0.5" value="30" onchange="sendThreshold(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Relay Controls Card Grid -->
+    <div class="grid">
+      <!-- Actuators Control Card -->
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-title">
+          <span>ควบคุมอุปกรณ์เอาต์พุต (Actuators & Relays)</span>
+          <span>🎛️</span>
+        </div>
+        
+        <div class="switch-row">
+          <div>
+            <strong>พัดลมระบายอากาศ (Fan Relay)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">ควบคุมตามเกณฑ์อุณหภูมิ Hysteresis หรือสั่งงานด้วยตนเอง</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchFan" onchange="toggleFan(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>ปั๊มพ่นหมอก (Mist Relay)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด-ปิดระบบพ่นหมอกความชื้น</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchMist" onchange="toggleMist(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>โหมดการทำงานอัตโนมัติ (Auto Mode)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด: ทำงานตามเกณฑ์อุณหภูมิ | ปิด: สั่งงานผ่านแดชบอร์ด</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchAuto" onchange="toggleAutoMode(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Telemetry Info Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ข้อมูลเทเลเมทรีระบบ</span>
+          <span>📊</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">จำนวนกดปุ่ม (SW1):</span>
+            <strong id="valPress">0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">WebSocket Clients:</span>
+            <strong id="valWsClients">0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">การเชื่อมต่อที่ใช้งานอยู่:</span>
+            <strong id="valActiveChannel" style="color: var(--primary);">Auto (Hybrid)</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">เวลาอัปเดตล่าสุด:</span>
+            <strong id="valLastUpdate">--:--:--</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">⚙️ ตั้งค่าการเชื่อมต่อ WebSocket & MQTT</div>
+      
+      <div class="form-group">
+        <label>WebSocket Server Host IP (Port 81):</label>
+        <input type="text" id="cfgWsHost" class="form-control" placeholder="192.168.1.xxx">
+      </div>
+
+      <div class="form-group">
+        <label>MQTT Broker WSS URL (Port 8084):</label>
+        <input type="text" id="cfgMqttUrl" class="form-control" value="wss://broker.emqx.io:8084/mqtt">
+      </div>
+
+      <div class="form-group">
+        <label>MQTT Control Command Topic (Subscribe/Publish):</label>
+        <input type="text" id="cfgCmdTopic" class="form-control" value="esp-node/control/cmd">
+      </div>
+
+      <div class="form-group">
+        <label>MQTT State Topic (Publish/Subscribe):</label>
+        <input type="text" id="cfgStateTopic" class="form-control" value="esp-node/state">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveSettings()">บันทึกและเชื่อมต่อใหม่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic for Hybrid WS + MQTT -->
+  <script>
+    let ws = null;
+    let mqttClient = null;
+    let preferredMode = 'auto'; // 'auto', 'ws', 'mqtt'
+
+    // Configuration Defaults
+    let config = {
+      wsHost: window.location.hostname || '192.168.1.100',
+      wsPort: '81',
+      mqttUrl: 'wss://broker.emqx.io:8084/mqtt',
+      subTopic: 'esp-node/state',
+      pubTopic: 'esp-node/control/cmd'
+    };
+
+    // Load saved settings
+    if (localStorage.getItem('lab6_cfg')) {
+      try {
+        config = JSON.parse(localStorage.getItem('lab6_cfg'));
+      } catch(e){}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initWebSocket();
+      initMQTT();
+      updateConfigForm();
+    });
+
+    // --- WebSocket Logic ---
+    function initWebSocket() {
+      if (ws) {
+        ws.close();
+      }
+
+      const wsUri = `ws://${config.wsHost}:${config.wsPort}`;
+      console.log(`Connecting WebSockets to ${wsUri}`);
+      
+      try {
+        ws = new WebSocket(wsUri);
+
+        ws.onopen = () => {
+          console.log("WebSocket Connected!");
+          document.getElementById('wsDot').classList.add('connected');
+          document.getElementById('wsStatus').innerText = "Connected";
+        };
+
+        ws.onmessage = (evt) => {
+          if (preferredMode === 'mqtt') return; // Ignore if user explicitly forced MQTT
+          try {
+            const data = JSON.parse(evt.data);
+            updateDashboard(data, 'WebSockets');
+          } catch(e) {
+            console.error("WS JSON Parse Error:", e);
+          }
+        };
+
+        ws.onclose = () => {
+          document.getElementById('wsDot').classList.remove('connected');
+          document.getElementById('wsStatus').innerText = "Disconnected";
+          setTimeout(initWebSocket, 3000); // Retry reconnect
+        };
+
+        ws.onerror = (err) => {
+          console.error("WS Error:", err);
+        };
+      } catch (e) {
+        console.error("WebSocket init failed:", e);
+      }
+    }
+
+    // --- MQTT Logic ---
+    function initMQTT() {
+      if (mqttClient) {
+        mqttClient.end();
+      }
+
+      console.log(`Connecting MQTT to ${config.mqttUrl}`);
+      const clientId = 'web_dashboard_' + Math.random().toString(16).substr(2, 8);
+
+      try {
+        mqttClient = mqtt.connect(config.mqttUrl, {
+          clientId: clientId,
+          clean: true,
+          connectTimeout: 4000,
+          reconnectPeriod: 3000
+        });
+
+        mqttClient.on('connect', () => {
+          console.log("Cloud MQTT Connected!");
+          document.getElementById('mqttDot').classList.add('connected');
+          document.getElementById('mqttStatus').innerText = "Connected";
+          mqttClient.subscribe(config.subTopic);
+        });
+
+        mqttClient.on('message', (topic, message) => {
+          if (preferredMode === 'ws') return; // Ignore if user explicitly forced WS
+          try {
+            const data = JSON.parse(message.toString());
+            updateDashboard(data, 'Cloud MQTT');
+          } catch (e) {
+            console.error("MQTT JSON Parse Error:", e);
+          }
+        });
+
+        mqttClient.on('offline', () => {
+          document.getElementById('mqttDot').classList.remove('connected');
+          document.getElementById('mqttStatus').innerText = "Disconnected";
+        });
+
+        mqttClient.on('error', (err) => {
+          console.error("MQTT Error:", err);
+        });
+      } catch(e) {
+        console.error("MQTT Init failed:", e);
+      }
+    }
+
+    // --- Synchronized Dashboard UI Updater ---
+    function updateDashboard(data, source) {
+      if (data.temp !== undefined) document.getElementById('valTemp').innerText = data.temp.toFixed(1);
+      if (data.humidity !== undefined) document.getElementById('valHum').innerText = data.humidity.toFixed(1);
+      if (data.soil !== undefined) document.getElementById('valSoil').innerText = data.soil.toFixed(1);
+      if (data.press !== undefined) document.getElementById('valPress').innerText = data.press;
+      if (data.ws_clients !== undefined) document.getElementById('valWsClients').innerText = data.ws_clients;
+
+      if (data.threshold !== undefined) {
+        document.getElementById('valThreshold').innerText = data.threshold.toFixed(1);
+        document.getElementById('sliderThreshold').value = data.threshold;
+      }
+
+      if (data.fan !== undefined) document.getElementById('switchFan').checked = data.fan;
+      if (data.mist !== undefined) document.getElementById('switchMist').checked = data.mist;
+      if (data.mode !== undefined) document.getElementById('switchAuto').checked = data.mode;
+
+      const now = new Date();
+      document.getElementById('valLastUpdate').innerText = `${now.toLocaleTimeString()} (${source})`;
+    }
+
+    // --- Control Commands Dispatcher ---
+    function sendCommand(payload) {
+      const jsonStr = JSON.stringify(payload);
+      
+      // Dispatch based on active mode preference & connection availability
+      let sent = false;
+
+      if ((preferredMode === 'auto' || preferredMode === 'ws') && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(jsonStr);
+        sent = true;
+      }
+
+      if ((preferredMode === 'auto' || preferredMode === 'mqtt') && mqttClient && mqttClient.connected) {
+        mqttClient.publish(config.pubTopic, jsonStr);
+        sent = true;
+      }
+
+      if (!sent) {
+        console.warn("No active connection available to send command!");
+      }
+    }
+
+    function toggleFan(val) {
+      sendCommand({ action: "toggle_fan", value: val });
+    }
+
+    function toggleMist(val) {
+      sendCommand({ action: "toggle_mist", value: val });
+    }
+
+    function toggleAutoMode(val) {
+      sendCommand({ action: "toggle_mode", value: val });
+    }
+
+    function sendThreshold(val) {
+      const numVal = parseFloat(val);
+      document.getElementById('valThreshold').innerText = numVal.toFixed(1);
+      sendCommand({ action: "set_threshold", value: numVal });
+    }
+
+    // --- Preference Mode Switcher ---
+    function setConnectionPreference(mode) {
+      preferredMode = mode;
+      document.getElementById('btnModeAuto').classList.remove('active');
+      document.getElementById('btnModeWS').classList.remove('active');
+      document.getElementById('btnModeMQTT').classList.remove('active');
+
+      if (mode === 'auto') {
+        document.getElementById('btnModeAuto').classList.add('active');
+        document.getElementById('valActiveChannel').innerText = "Auto (Hybrid)";
+      } else if (mode === 'ws') {
+        document.getElementById('btnModeWS').classList.add('active');
+        document.getElementById('valActiveChannel').innerText = "Local WebSockets";
+      } else if (mode === 'mqtt') {
+        document.getElementById('btnModeMQTT').classList.add('active');
+        document.getElementById('valActiveChannel').innerText = "Cloud MQTT";
+      }
+    }
+
+    // --- Settings Modal Handlers ---
+    function openSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function updateConfigForm() {
+      document.getElementById('cfgWsHost').value = config.wsHost;
+      document.getElementById('cfgMqttUrl').value = config.mqttUrl;
+      document.getElementById('cfgCmdTopic').value = config.pubTopic;
+      document.getElementById('cfgStateTopic').value = config.subTopic;
+    }
+
+    function saveSettings() {
+      config.wsHost = document.getElementById('cfgWsHost').value.trim();
+      config.mqttUrl = document.getElementById('cfgMqttUrl').value.trim();
+      config.pubTopic = document.getElementById('cfgCmdTopic').value.trim();
+      config.subTopic = document.getElementById('cfgStateTopic').value.trim();
+
+      localStorage.setItem('lab6_cfg', JSON.stringify(config));
+      closeSettingsModal();
+      initWebSocket();
+      initMQTT();
+    }
+  </script>
+</body>
+</html>
