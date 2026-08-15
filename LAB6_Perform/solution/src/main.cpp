@@ -47,6 +47,7 @@ struct DeviceConfig {
   int mqttPort = 1883;
   String mqttUser = "elec";
   String mqttPassword = "elec1234";
+  String topicPrefix = "allarm-iot"; // Namespace prefix for MQTT isolation
   int dhtType = 11;       // 11 = DHT11, 22 = DHT22
 #if defined(ESP8266)
   int dhtPin = 2;         // GPIO 2 (D4)
@@ -152,6 +153,7 @@ void loadConfiguration() {
         if (doc.containsKey("mqttPort")) config.mqttPort = doc["mqttPort"].as<int>();
         if (doc.containsKey("mqttUser")) config.mqttUser = doc["mqttUser"].as<String>();
         if (doc.containsKey("mqttPassword")) config.mqttPassword = doc["mqttPassword"].as<String>();
+        if (doc.containsKey("topicPrefix")) config.topicPrefix = doc["topicPrefix"].as<String>();
         if (doc.containsKey("dhtType")) config.dhtType = doc["dhtType"].as<int>();
         if (doc.containsKey("dhtPin")) config.dhtPin = doc["dhtPin"].as<int>();
         if (doc.containsKey("analogPin")) config.analogPin = doc["analogPin"].as<int>();
@@ -178,6 +180,7 @@ void saveConfiguration() {
     doc["mqttPort"] = config.mqttPort;
     doc["mqttUser"] = config.mqttUser;
     doc["mqttPassword"] = config.mqttPassword;
+    doc["topicPrefix"] = config.topicPrefix;
     doc["dhtType"] = config.dhtType;
     doc["dhtPin"] = config.dhtPin;
     doc["analogPin"] = config.analogPin;
@@ -258,6 +261,7 @@ void setupWebServer() {
     doc["mqttServer"] = config.mqttServer;
     doc["mqttPort"] = config.mqttPort;
     doc["mqttUser"] = config.mqttUser;
+    doc["topicPrefix"] = config.topicPrefix;
     doc["dhtType"] = config.dhtType;
     doc["dhtPin"] = config.dhtPin;
     doc["analogPin"] = config.analogPin;
@@ -291,6 +295,7 @@ void setupWebServer() {
       if (doc["mqttPort"].is<int>()) config.mqttPort = doc["mqttPort"].as<int>();
       if (doc["mqttUser"].is<String>()) config.mqttUser = doc["mqttUser"].as<String>();
       if (doc["mqttPassword"].is<String>() && doc["mqttPassword"].as<String>().length() > 0) config.mqttPassword = doc["mqttPassword"].as<String>();
+      if (doc["topicPrefix"].is<String>()) config.topicPrefix = doc["topicPrefix"].as<String>();
       if (doc["dhtType"].is<int>()) config.dhtType = doc["dhtType"].as<int>();
       if (doc["dhtPin"].is<int>()) config.dhtPin = doc["dhtPin"].as<int>();
       if (doc["analogPin"].is<int>()) config.analogPin = doc["analogPin"].as<int>();
@@ -307,6 +312,7 @@ void setupWebServer() {
       if (server.hasArg("mqttPort")) config.mqttPort = server.arg("mqttPort").toInt();
       if (server.hasArg("mqttUser")) config.mqttUser = server.arg("mqttUser");
       if (server.hasArg("mqttPassword") && server.arg("mqttPassword").length() > 0) config.mqttPassword = server.arg("mqttPassword");
+      if (server.hasArg("topicPrefix")) config.topicPrefix = server.arg("topicPrefix");
       if (server.hasArg("dhtType")) config.dhtType = server.arg("dhtType").toInt();
       if (server.hasArg("dhtPin")) config.dhtPin = server.arg("dhtPin").toInt();
       if (server.hasArg("analogPin")) config.analogPin = server.arg("analogPin").toInt();
@@ -630,8 +636,14 @@ void setup() {
   cleanMac = deviceMac;
   cleanMac.replace(":", "");
   cleanMac.toUpperCase();
-  subTopic = "esp-node/" + cleanMac + "/control/cmd";
-  pubTopic = "esp-node/" + cleanMac + "/state";
+
+  String pfx = config.topicPrefix;
+  pfx.trim();
+  while (pfx.endsWith("/")) pfx = pfx.substring(0, pfx.length() - 1);
+  if (pfx.length() > 0) pfx += "/";
+
+  subTopic = pfx + "esp-node/" + cleanMac + "/control/cmd";
+  pubTopic = pfx + "esp-node/" + cleanMac + "/state";
 #if defined(ESP8266)
   clientId = "ESP8266_" + cleanMac;
 #else
@@ -641,6 +653,7 @@ void setup() {
   Serial.println("--------------------------------------------------");
   Serial.printf("  Device MAC:        %s\n", deviceMac.c_str());
   Serial.printf("  Unique Clean ID:   %s\n", cleanMac.c_str());
+  Serial.printf("  Topic Prefix:      %s\n", config.topicPrefix.c_str());
   Serial.printf("  MQTT Sub Topic:    %s\n", subTopic.c_str());
   Serial.printf("  MQTT Pub Topic:    %s\n", pubTopic.c_str());
   Serial.println("--------------------------------------------------");

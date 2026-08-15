@@ -58,6 +58,11 @@
             <label for="mqttPassword">MQTT Password:</label>
             <input type="password" id="mqttPassword" name="mqttPassword" class="form-control" placeholder="เช่น elec1234">
           </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="topicPrefix">ขอบเขตกลุ่ม / โดเมนเฉพาะ (Topic Prefix):</label>
+            <input type="text" id="topicPrefix" name="topicPrefix" class="form-control" value="allarm-iot" placeholder="เช่น allarm-iot, myfarm-zone1" oninput="updateTopicPreview()">
+            <small style="color: var(--text-muted); font-size: 0.78rem;">💡 ใช้แยกกลุ่มอุปกรณ์ของคุณบน Public Broker เพื่อป้องกันข้อมูลปนกับอุปกรณ์ของผู้อื่น</small>
+          </div>
         </div>
 
         <!-- Dynamic MAC & Generated Topics Preview -->
@@ -68,14 +73,14 @@
           </div>
           <div class="topic-row">
             <span><strong>Subscribe Topic (รับคำสั่ง):</strong></span>
-            <span id="txtSubTopic" class="topic-badge">esp-node/--/control/cmd</span>
+            <span id="txtSubTopic" class="topic-badge">allarm-iot/esp-node/--/control/cmd</span>
           </div>
           <div class="topic-row">
             <span><strong>Publish Topic (ส่งสถานะ):</strong></span>
-            <span id="txtPubTopic" class="topic-badge">esp-node/--/state</span>
+            <span id="txtPubTopic" class="topic-badge">allarm-iot/esp-node/--/state</span>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
-            💡 <em>ระบบจะสร้าง Topic โดยนำ Clean MAC Address มาต่อท้ายอัตโนมัติ เพื่อป้องกันปัญหา Topic ชนกันในระบบ Cloud Broker</em>
+            💡 <em>ระบบจะสร้าง Topic โดยนำ Topic Prefix และ Clean MAC Address มาประกอบอัตโนมัติ เพื่อแยกเครือข่ายให้ปลอดภัย 100%</em>
           </p>
         </div>
       </section>
@@ -150,6 +155,7 @@
           document.getElementById('mqttServer').value = currentConfig.mqttServer || 'broker.emqx.io';
           document.getElementById('mqttPort').value = currentConfig.mqttPort || 1883;
           document.getElementById('mqttUser').value = currentConfig.mqttUser || '';
+          document.getElementById('topicPrefix').value = currentConfig.topicPrefix || 'allarm-iot';
           document.getElementById('dhtType').value = currentConfig.dhtType || 11;
           document.getElementById('dhtPin').value = currentConfig.dhtPin || 33;
           document.getElementById('analogPin').value = currentConfig.analogPin || 36;
@@ -160,15 +166,23 @@
           document.getElementById('resetButtonPin').value = currentConfig.resetButtonPin !== undefined ? currentConfig.resetButtonPin : 0;
 
           document.getElementById('txtMac').innerText = currentConfig.mac + ' (' + currentConfig.cleanMac + ')';
-          document.getElementById('txtSubTopic').innerText = currentConfig.subTopic;
-          document.getElementById('txtPubTopic').innerText = currentConfig.pubTopic;
+          updateTopicPreview();
         }
       } catch (e) {
         console.warn('Cannot fetch /api/config (Offline demo mode)');
         document.getElementById('txtMac').innerText = '24:6F:28:AB:CD:EF';
-        document.getElementById('txtSubTopic').innerText = 'esp-node/246F28ABCDEF/control/cmd';
-        document.getElementById('txtPubTopic').innerText = 'esp-node/246F28ABCDEF/state';
+        updateTopicPreview();
       }
+    }
+
+    function updateTopicPreview() {
+      let pfx = document.getElementById('topicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+
+      const cleanMac = currentConfig.cleanMac || '246F28ABCDEF';
+      document.getElementById('txtSubTopic').innerText = `${pfx}esp-node/${cleanMac}/control/cmd`;
+      document.getElementById('txtPubTopic').innerText = `${pfx}esp-node/${cleanMac}/state`;
     }
 
     // Save configuration via POST /api/config
@@ -178,6 +192,9 @@
       btn.disabled = true;
       btn.innerText = '⏳ กำลังบันทึกข้อมูล...';
 
+      let pfx = document.getElementById('topicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+
       const payload = {
         ssid: document.getElementById('ssid').value.trim(),
         password: document.getElementById('password').value,
@@ -185,6 +202,7 @@
         mqttPort: parseInt(document.getElementById('mqttPort').value),
         mqttUser: document.getElementById('mqttUser').value.trim(),
         mqttPassword: document.getElementById('mqttPassword').value,
+        topicPrefix: pfx,
         dhtType: parseInt(document.getElementById('dhtType').value),
         dhtPin: parseInt(document.getElementById('dhtPin').value),
         analogPin: parseInt(document.getElementById('analogPin').value),

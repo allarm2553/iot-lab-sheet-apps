@@ -275,8 +275,14 @@
         </div>
 
         <div class="form-group">
+          <label for="cfgTopicPrefix">ขอบเขตกลุ่ม / โดเมนเฉพาะ (Topic Prefix):</label>
+          <input type="text" id="cfgTopicPrefix" class="form-control" value="allarm-iot" placeholder="เช่น allarm-iot, myfarm-zone1" oninput="updateFleetSubWildcardPreview()">
+          <small style="color: var(--text-muted); font-size: 0.78rem;">💡 ใช้แยกเครือข่ายอุปกรณ์เฉพาะกลุ่มของคุณบน Public Broker เพื่อป้องกันข้อมูลปนกัน</small>
+        </div>
+
+        <div class="form-group">
           <label for="cfgSubWildcard">Wildcard State Sub Topic:</label>
-          <input type="text" id="cfgSubWildcard" class="form-control" value="esp-node/+/state" required>
+          <input type="text" id="cfgSubWildcard" class="form-control" value="allarm-iot/esp-node/+/state" required>
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
@@ -303,8 +309,16 @@
       mqttPort: 8084,
       mqttUser: '',
       mqttPass: '',
-      subWildcard: 'esp-node/+/state'
+      topicPrefix: 'allarm-iot',
+      subWildcard: 'allarm-iot/esp-node/+/state'
     };
+
+    function updateFleetSubWildcardPreview() {
+      let pfx = document.getElementById('cfgTopicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+      document.getElementById('cfgSubWildcard').value = `${pfx}esp-node/+/state`;
+    }
 
     // 1. Initial Startup Routine
     function initFleet() {
@@ -630,7 +644,12 @@
         log('✕ Cannot send command: MQTT Disconnected');
         return;
       }
-      const targetTopic = `esp-node/${mac}/control/cmd`;
+      let pfx = fleetConfig.topicPrefix || 'allarm-iot';
+      pfx = pfx.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+
+      const targetTopic = `${pfx}esp-node/${mac}/control/cmd`;
       const jsonStr = JSON.stringify(payload);
       mqttClient.publish(targetTopic, jsonStr);
       log(`📤 Published to [${targetTopic}]: ${payload.command}`);
@@ -751,6 +770,7 @@
       document.getElementById('cfgMqttPort').value = fleetConfig.mqttPort;
       document.getElementById('cfgMqttUser').value = fleetConfig.mqttUser;
       document.getElementById('cfgMqttPass').value = fleetConfig.mqttPass;
+      document.getElementById('cfgTopicPrefix').value = fleetConfig.topicPrefix || 'allarm-iot';
       document.getElementById('cfgSubWildcard').value = fleetConfig.subWildcard;
       document.getElementById('modalSettings').classList.add('open');
     }
@@ -761,6 +781,7 @@
       fleetConfig.mqttPort = parseInt(document.getElementById('cfgMqttPort').value);
       fleetConfig.mqttUser = document.getElementById('cfgMqttUser').value.trim();
       fleetConfig.mqttPass = document.getElementById('cfgMqttPass').value;
+      fleetConfig.topicPrefix = document.getElementById('cfgTopicPrefix').value.trim() || 'allarm-iot';
       fleetConfig.subWildcard = document.getElementById('cfgSubWildcard').value.trim();
 
       localStorage.setItem('fleet_mqtt_config', JSON.stringify(fleetConfig));
@@ -803,6 +824,11 @@
         log('🧪 Started Virtual Test Nodes Simulator (3 Virtual ESP Nodes).');
 
         virtualSimInterval = setInterval(() => {
+          let pfx = fleetConfig.topicPrefix || 'allarm-iot';
+          pfx = pfx.trim();
+          while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+          if (pfx.length > 0) pfx += '/';
+
           virtualMacs.forEach((mac, i) => {
             if (!nodeAliases[mac]) {
               nodeAliases[mac] = virtualNames[i];
@@ -826,7 +852,7 @@
               source: 'virtual-sim'
             };
 
-            handleNodeTelemetry(`esp-node/${mac}/state`, simPacket);
+            handleNodeTelemetry(`${pfx}esp-node/${mac}/state`, simPacket);
           });
         }, 2500);
       } else {

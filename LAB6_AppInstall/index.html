@@ -259,8 +259,13 @@
 
       <!-- Section 3: Topic Configuration & MAC Helper -->
       <div>
-        <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px;">📡 3. Topics & MAC Address Preset</h3>
+        <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px;">📡 3. Topics & Namespace Preset</h3>
         <div class="form-grid">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="cfgTopicPrefix">ขอบเขตกลุ่ม / โดเมนเฉพาะ (Topic Prefix):</label>
+            <input type="text" id="cfgTopicPrefix" class="form-control" value="allarm-iot" placeholder="เช่น allarm-iot, myfarm-zone1" oninput="applyPrefixToTopics()">
+            <small style="color: var(--text-muted); font-size: 0.78rem;">💡 ใช้แยกเครือข่ายอุปกรณ์ของคุณให้เป็นส่วนตัวบน Public Broker</small>
+          </div>
           <div class="form-group" style="grid-column: 1 / -1;">
             <label for="cfgMacHelper">สร้าง Topic จาก MAC Address อัตโนมัติ (ใส่ MAC บอร์ด):</label>
             <div style="display: flex; gap: 8px;">
@@ -270,11 +275,11 @@
           </div>
           <div class="form-group">
             <label for="cfgSubTopic">Subscribe Topic (ส่งคำสั่งไปบอร์ด):</label>
-            <input type="text" id="cfgSubTopic" class="form-control" value="esp-node/+/control/cmd">
+            <input type="text" id="cfgSubTopic" class="form-control" value="allarm-iot/esp-node/+/control/cmd">
           </div>
           <div class="form-group">
             <label for="cfgPubTopic">Publish Topic (รับค่าเซ็นเซอร์จากบอร์ด):</label>
-            <input type="text" id="cfgPubTopic" class="form-control" value="esp-node/+/state">
+            <input type="text" id="cfgPubTopic" class="form-control" value="allarm-iot/esp-node/+/state">
           </div>
         </div>
       </div>
@@ -296,8 +301,9 @@
       mqttPort: 8084,
       mqttUser: 'elec',
       mqttPassword: 'elec1234',
-      subTopic: 'esp-node/+/control/cmd',
-      pubTopic: 'esp-node/+/state',
+      topicPrefix: 'allarm-iot',
+      subTopic: 'allarm-iot/esp-node/+/control/cmd',
+      pubTopic: 'allarm-iot/esp-node/+/state',
       prefMode: 'auto'
     };
 
@@ -311,8 +317,20 @@
       const time = new Date().toLocaleTimeString();
       const div = document.createElement('div');
       div.innerHTML = `<span style="color: #64748b;">[${time}]</span> <strong style="color: ${source === 'WebSocket' ? '#38bdf8' : source === 'MQTT' ? '#a78bfa' : '#34d399'};">[${source}]</strong> ${msg}`;
-      logArea.appendChild(div);
-      logArea.scrollTop = logArea.scrollHeight;
+    function applyPrefixToTopics() {
+      let pfx = document.getElementById('cfgTopicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+
+      let mac = document.getElementById('cfgMacHelper').value.replace(/[:-]/g, '').toUpperCase().trim();
+      if (!mac) mac = '+';
+
+      document.getElementById('cfgSubTopic').value = `${pfx}esp-node/${mac}/control/cmd`;
+      document.getElementById('cfgPubTopic').value = `${pfx}esp-node/${mac}/state`;
+    }
+
+    function applyMacToTopics() {
+      applyPrefixToTopics();
     }
 
     // 1. Load configuration from localStorage
@@ -339,6 +357,7 @@
       document.getElementById('cfgMqttPort').value = appConfig.mqttPort;
       document.getElementById('cfgMqttUser').value = appConfig.mqttUser;
       document.getElementById('cfgMqttPassword').value = appConfig.mqttPassword;
+      document.getElementById('cfgTopicPrefix').value = appConfig.topicPrefix || 'allarm-iot';
       document.getElementById('cfgSubTopic').value = appConfig.subTopic;
       document.getElementById('cfgPubTopic').value = appConfig.pubTopic;
 
@@ -346,17 +365,6 @@
       document.getElementById('lblTargetIp').innerText = `${appConfig.wsIp}:${appConfig.wsPort}`;
       document.getElementById('lblSub').innerText = appConfig.subTopic;
       document.getElementById('lblPub').innerText = appConfig.pubTopic;
-    }
-
-    function applyMacToTopics() {
-      let mac = document.getElementById('cfgMacHelper').value.trim();
-      if (!mac) {
-        alert('กรุณากรอก MAC Address ของบอร์ด เช่น 24:6F:28:AB:CD:EF');
-        return;
-      }
-      mac = mac.replace(/[:-]/g, '').toUpperCase();
-      document.getElementById('cfgSubTopic').value = `esp-node/${mac}/control/cmd`;
-      document.getElementById('cfgPubTopic').value = `esp-node/${mac}/state`;
     }
 
     // 2. Save settings and trigger Reconnection
@@ -367,14 +375,14 @@
       appConfig.mqttPort = parseInt(document.getElementById('cfgMqttPort').value) || 8084;
       appConfig.mqttUser = document.getElementById('cfgMqttUser').value.trim();
       appConfig.mqttPassword = document.getElementById('cfgMqttPassword').value;
-      appConfig.subTopic = document.getElementById('cfgSubTopic').value.trim() || 'esp-node/+/control/cmd';
-      appConfig.pubTopic = document.getElementById('cfgPubTopic').value.trim() || 'esp-node/+/state';
+      appConfig.topicPrefix = document.getElementById('cfgTopicPrefix').value.trim() || 'allarm-iot';
+      appConfig.subTopic = document.getElementById('cfgSubTopic').value.trim() || 'allarm-iot/esp-node/+/control/cmd';
+      appConfig.pubTopic = document.getElementById('cfgPubTopic').value.trim() || 'allarm-iot/esp-node/+/state';
 
       localStorage.setItem('iot_app_install_config', JSON.stringify(appConfig));
       updateUIConfigElements();
       closeSettingsModal();
-
-      log('Configuration saved. Re-establishing connections...', 'App');
+      log('Settings saved. Reconnecting all channels...');
       connectAll();
     }
 
