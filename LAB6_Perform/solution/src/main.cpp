@@ -22,8 +22,16 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <WiFi.h>
-#include <WebServer.h>
+
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+  #include <ESP8266WebServer.h>
+  #define WebServer ESP8266WebServer
+#elif defined(ESP32)
+  #include <WiFi.h>
+  #include <WebServer.h>
+#endif
+
 #include <DNSServer.h>
 #include <WebSocketsServer.h>
 #include <PubSubClient.h>
@@ -40,6 +48,15 @@ struct DeviceConfig {
   String mqttUser = "elec";
   String mqttPassword = "elec1234";
   int dhtType = 11;       // 11 = DHT11, 22 = DHT22
+#if defined(ESP8266)
+  int dhtPin = 2;         // GPIO 2 (D4)
+  int analogPin = 0;      // A0
+  int fanRelayPin = 14;   // GPIO 14 (D5)
+  int mistRelayPin = 12;  // GPIO 12 (D6)
+  int fanButtonPin = 13;  // GPIO 13 (D7)
+  int mistButtonPin = 15; // GPIO 15 (D8)
+  int resetButtonPin = 0; // GPIO 0 (Flash button / D3)
+#else
   int dhtPin = 33;        // Default ESP32 IPST-WiFi
   int analogPin = 36;     // ADC1_CH0 (VP)
   int fanRelayPin = 5;    // GPIO 5
@@ -47,6 +64,7 @@ struct DeviceConfig {
   int fanButtonPin = 18;  // GPIO 18 (Dedicated Fan Button)
   int mistButtonPin = 19; // GPIO 19 (Dedicated Mist Button)
   int resetButtonPin = 0; // GPIO 0 (Long-press >= 3s for Factory Reset ONLY)
+#endif
 } config;
 
 // Dynamic System Variables
@@ -589,11 +607,19 @@ void setup() {
   Serial.println("==================================================");
 
   // 1. Initialize LittleFS
+#if defined(ESP8266)
+  if (!LittleFS.begin()) {
+    Serial.println("✕ LittleFS mount failed! Formatting...");
+    LittleFS.format();
+    LittleFS.begin();
+  }
+#else
   if (!LittleFS.begin(true)) {
     Serial.println("✕ LittleFS mount failed! Formatting...");
     LittleFS.format();
     LittleFS.begin(true);
   }
+#endif
   Serial.println("✓ LittleFS Mounted Successfully");
 
   // 2. Load Configuration
@@ -606,7 +632,11 @@ void setup() {
   cleanMac.toUpperCase();
   subTopic = "esp-node/" + cleanMac + "/control/cmd";
   pubTopic = "esp-node/" + cleanMac + "/state";
+#if defined(ESP8266)
+  clientId = "ESP8266_" + cleanMac;
+#else
   clientId = "ESP32_" + cleanMac;
+#endif
 
   Serial.println("--------------------------------------------------");
   Serial.printf("  Device MAC:        %s\n", deviceMac.c_str());
@@ -616,7 +646,11 @@ void setup() {
   Serial.println("--------------------------------------------------");
 
   // 4. Initialize OLED I2C Display
+#if defined(ESP8266)
+  Wire.begin(4, 5); // SDA=GPIO4 (D2), SCL=GPIO5 (D1)
+#else
   Wire.begin(21, 22);
+#endif
   if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     oledAvailable = true;
     display.clearDisplay();
@@ -721,8 +755,13 @@ void loop() {
     }
 
     // Read Analog Potentiometer
+#if defined(ESP8266)
+    int rawAnalog = analogRead(A0);
+    analogPercent = (rawAnalog / 1023.0) * 100.0;
+#else
     int rawAnalog = analogRead(config.analogPin);
     analogPercent = (rawAnalog / 4095.0) * 100.0;
+#endif
 
     // Auto Fan & Mist Control with Hysteresis
     if (autoMode) {
