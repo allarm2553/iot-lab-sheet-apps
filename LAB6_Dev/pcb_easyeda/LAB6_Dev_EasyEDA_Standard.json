@@ -1,0 +1,49 @@
+{
+  "head": {
+    "docType": "1",
+    "editorVersion": "6.5.40",
+    "newUID": "lab6_dev_schematic_easyeda",
+    "c_para": {
+      "title": "LAB6_Dev Dual-Mode IoT Controller",
+      "company": "IoT Lab Sheet Apps",
+      "author": "Antigravity AI",
+      "date": "2026-08-15"
+    }
+  },
+  "canvas": "CA~1250~650~#FFFFFF~yes~#CCCCCC~10~10~line~10~mm~1~none~0~#000000~none~0.5~0~0~0~0~0~0~0~0",
+  "shape": [
+    "T~100~50~0~#003366~LAB6_Dev Dual-Mode IoT Controller (ESP32)~sans-serif~18~bold~left~bottom~0~0~0",
+    "T~100~80~0~#555555~Dual Protocol (WebSockets + Cloud MQTT) with Relays, OLED, DHT & VR~sans-serif~12~normal~left~bottom~0~0~0",
+    "R~80~120~320~180~#0066CC~1~solid~none~0~0~0",
+    "T~90~140~0~#0066CC~[1] POWER SUPPLY (Type-C 5V -> 3.3V AMS1117)~sans-serif~12~bold~left~bottom~0~0~0",
+    "T~100~170~0~#333333~J1: USB Type-C (5V Input)\nD3: SS34 Schottky Diode\nU2: AMS1117-3.3V LDO\nC1,C2: 100uF / C3,C4: 0.1uF\nLED1: 3.3V Power Indicator (Red)~sans-serif~11~normal~left~bottom~0~0~0",
+    "N~380~170~0~#CC0000~VCC_5V~left~top~0~0~0",
+    "N~380~220~0~#FF6600~VCC_3V3~left~top~0~0~0",
+    "N~380~270~0~#000000~GND~left~top~0~0~0",
+    "R~430~120~340~420~#009966~1~solid~none~0~0~0",
+    "T~440~140~0~#009966~[2] ESP32 MICROCONTROLLER (NodeMCU-32S 30P)~sans-serif~12~bold~left~bottom~0~0~0",
+    "N~450~180~0~#CC0000~VCC_5V~right~top~0~0~0",
+    "N~450~210~0~#FF6600~VCC_3V3~right~top~0~0~0",
+    "N~450~240~0~#000000~GND~right~top~0~0~0",
+    "N~750~180~0~#006600~GPIO5_FAN~left~top~0~0~0",
+    "N~750~220~0~#006600~GPIO23_MIST~left~top~0~0~0",
+    "N~750~260~0~#0000CC~GPIO21_SDA~left~top~0~0~0",
+    "N~750~300~0~#0000CC~GPIO22_SCL~left~top~0~0~0",
+    "N~750~340~0~#990099~GPIO33_DHT~left~top~0~0~0",
+    "N~750~380~0~#990099~GPIO36_ADC~left~top~0~0~0",
+    "N~750~420~0~#333333~GPIO0_SW1~left~top~0~0~0",
+    "R~80~330~320~210~#990099~1~solid~none~0~0~0",
+    "T~90~350~0~#990099~[3] SENSORS & OLED INTERFACE~sans-serif~12~bold~left~bottom~0~0~0",
+    "T~100~380~0~#333333~J_OLED: 4-Pin Header (GND, 3V3, SCL, SDA) + 4.7k R1/R2\nJ_DHT: 3-Pin Header (3V3, DATA, GND) + 10k R3\nJ_VR: 3-Pin Header (3V3, OUT, GND) + 100nF C6\nSW1: Tactile Button (GPIO0) + 10k R4 + 100nF C7~sans-serif~11~normal~left~bottom~0~0~0",
+    "N~380~380~0~#0000CC~GPIO21_SDA~left~top~0~0~0",
+    "N~380~410~0~#0000CC~GPIO22_SCL~left~top~0~0~0",
+    "N~380~440~0~#990099~GPIO33_DHT~left~top~0~0~0",
+    "N~380~470~0~#990099~GPIO36_ADC~left~top~0~0~0",
+    "N~380~500~0~#333333~GPIO0_SW1~left~top~0~0~0",
+    "R~800~120~360~420~#CC0000~1~solid~none~0~0~0",
+    "T~810~140~0~#CC0000~[4] OPTO-ISOLATED RELAY DRIVERS (2-CH)~sans-serif~12~bold~left~bottom~0~0~0",
+    "T~820~180~0~#333333~Relay 1 (FAN - GPIO5):\n - U3: PC817 Optocoupler + R6 1k\n - Q1: SS8050 NPN + K1 Songle 5V Relay\n - D1: 1N4007 Flyback + LED2 (Green)\n - TB1: 3-Pin Terminal Block (NO/COM/NC)\n\nRelay 2 (MIST - GPIO23):\n - U4: PC817 Optocoupler + R7 1k\n - Q2: SS8050 NPN + K2 Songle 5V Relay\n - D2: 1N4007 Flyback + LED3 (Blue)\n - TB2: 3-Pin Terminal Block (NO/COM/NC)~sans-serif~11~normal~left~bottom~0~0~0",
+    "N~810~220~0~#006600~GPIO5_FAN~right~top~0~0~0",
+    "N~810~360~0~#006600~GPIO23_MIST~right~top~0~0~0"
+  ]
+}
