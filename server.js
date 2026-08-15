@@ -348,6 +348,7 @@ validLabs.forEach(lab => {
 });
 
 // Serve solution data folders for dashboards
+app.use('/LAB6_AppInstall', express.static(path.join(__dirname, 'LAB6_AppInstall')));
 app.use('/LAB6_Perform/solution/data', express.static(path.join(__dirname, 'LAB6_Perform', 'solution', 'data')));
 app.use('/LAB6_Dev/solution/data', express.static(path.join(__dirname, 'LAB6_Dev', 'solution', 'data')));
 app.use('/LAB5_Dev/solution/data', express.static(path.join(__dirname, 'LAB5_Dev', 'solution', 'data')));

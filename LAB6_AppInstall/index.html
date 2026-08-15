@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>IoT Controller App (Hybrid WS & MQTT)</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Local Offline MQTT.js bundle with CDN fallback -->
+  <script src="mqtt.min.js"></script>
+  <script>
+    if (typeof mqtt === 'undefined') {
+      document.write('<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>📱 IoT Controller App</h1>
+        <p>แอปพลิเคชันควบคุมอุปกรณ์ IoT (Local WebSocket & Cloud MQTT)</p>
+      </div>
+      <div class="protocol-badges">
+        <div class="badge">
+          <span id="wsDot" class="status-dot"></span>
+          <span>WS (<span id="txtDisplayIp">--</span>): <strong id="wsStatus">Off</strong></span>
+        </div>
+        <div class="badge">
+          <span id="mqttDot" class="status-dot"></span>
+          <span>Cloud MQTT: <strong id="mqttStatus">Off</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation & Connection Control Bar -->
+    <div class="nav-bar">
+      <div class="segmented-control">
+        <button id="btnModeAuto" class="segmented-btn active" onclick="setConnectionPreference('auto')">🔄 Hybrid Dual</button>
+        <button id="btnModeWS" class="segmented-btn" onclick="setConnectionPreference('ws')">🔌 Local WS</button>
+        <button id="btnModeMQTT" class="segmented-btn" onclick="setConnectionPreference('mqtt')">☁️ Cloud MQTT</button>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" onclick="openSettingsModal()">⚙️ ตั้งค่าการเชื่อมต่อ (Settings)</button>
+      </div>
+    </div>
+
+    <!-- Active Connection Info Bar -->
+    <div class="info-bar">
+      <div>📍 <strong>Target WS IP:</strong> <span id="lblTargetIp" class="topic-badge">192.168.4.1:81</span></div>
+      <div>📡 <strong>Sub Topic:</strong> <span id="lblSub" class="topic-badge">esp-node/+/control/cmd</span></div>
+      <div>📤 <strong>Pub Topic:</strong> <span id="lblPub" class="topic-badge">esp-node/+/state</span></div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid">
+      <!-- Temperature Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>อุณหภูมิ (Temperature)</span>
+          <span>🌡️</span>
+        </div>
+        <div class="card-value">
+          <span id="valTemp">--</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+          สถานะ: <span id="tempStatus" style="color: var(--accent-green);">ปกติ (Normal)</span>
+        </div>
+      </div>
+
+      <!-- Humidity Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ความชื้นสัมพัทธ์ (Humidity)</span>
+          <span>💧</span>
+        </div>
+        <div class="card-value">
+          <span id="valHum">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+          เซ็นเซอร์: DHT Sensor
+        </div>
+      </div>
+
+      <!-- Analog / Potentiometer Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>แอนะล็อก / ลูกบิด VR (ADC)</span>
+          <span>🌱</span>
+        </div>
+        <div class="card-value">
+          <span id="valSoil">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+          ช่วงสัญญาณ: 0 - 100%
+        </div>
+      </div>
+
+      <!-- Threshold Slider Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>เกณฑ์อุณหภูมิพัดลม (Threshold)</span>
+          <span>🎯</span>
+        </div>
+        <div class="card-value">
+          <span id="valThreshold">30.0</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <input type="range" id="sliderThreshold" min="15" max="45" step="0.5" value="30.0" style="width: 100%; accent-color: var(--accent-cyan);" oninput="onThresholdChange(this.value)">
+        </div>
+      </div>
+
+      <!-- Fan Relay Control Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>พัดลมระบายอากาศ (Fan Relay)</span>
+          <span>🌀</span>
+        </div>
+        <div class="switch-wrapper">
+          <span id="txtFanStatus" style="font-size: 1.1rem; font-weight: 600;">ปิด (OFF)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchFan" onchange="sendFanCommand(this.checked)">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>โหมดควบคุม:</span>
+          <span id="txtModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
+        </div>
+      </div>
+
+      <!-- Mist Relay Control Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>หัวพ่นหมอก (Mist Relay)</span>
+          <span>🌫️</span>
+        </div>
+        <div class="switch-wrapper">
+          <span id="txtMistStatus" style="font-size: 1.1rem; font-weight: 600;">ปิด (OFF)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchMist" onchange="sendMistCommand(this.checked)">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>สวิตช์กดปุ่ม SW1:</span>
+          <span id="txtBtnCount">0 ครั้ง</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Protocol Logs -->
+    <div class="card" style="padding: 16px;">
+      <div class="card-title" style="margin-bottom: 8px;">
+        <span>📜 ประวัติการสื่อสาร Real-time (App Protocol Logs)</span>
+        <button class="btn-secondary" onclick="document.getElementById('logArea').innerHTML=''" style="padding: 3px 8px; font-size: 0.75rem;">ล้าง Log</button>
+      </div>
+      <div id="logArea" class="log-box">
+        <div>[App] Ready. Open settings to configure target IP and MQTT parameters.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Settings Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ ตั้งค่าการเชื่อมต่อแอป (App Connection Settings)</h2>
+        <button onclick="closeSettingsModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Section 1: Local WebSocket Settings -->
+      <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px;">🔌 1. Local WebSockets (LAN / Direct AP)</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="cfgWsIp">IP Address ของบอร์ด MCU:</label>
+            <input type="text" id="cfgWsIp" class="form-control" placeholder="เช่น 192.168.1.50 หรือ 192.168.4.1" value="192.168.4.1">
+          </div>
+          <div class="form-group">
+            <label for="cfgWsPort">WebSocket Port:</label>
+            <input type="number" id="cfgWsPort" class="form-control" placeholder="81" value="81">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Cloud MQTT Settings -->
+      <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px;">☁️ 2. Cloud MQTT Broker (Internet)</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="cfgMqttServer">MQTT Broker (URL / Host):</label>
+            <input type="text" id="cfgMqttServer" class="form-control" value="broker.emqx.io">
+          </div>
+          <div class="form-group">
+            <label for="cfgMqttPort">WSS Port (SSL 8084 / WS 8083):</label>
+            <input type="number" id="cfgMqttPort" class="form-control" value="8084">
+          </div>
+          <div class="form-group">
+            <label for="cfgMqttUser">MQTT Username:</label>
+            <input type="text" id="cfgMqttUser" class="form-control" value="elec">
+          </div>
+          <div class="form-group">
+            <label for="cfgMqttPassword">MQTT Password:</label>
+            <input type="password" id="cfgMqttPassword" class="form-control" value="elec1234">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Topic Configuration & MAC Helper -->
+      <div>
+        <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px;">📡 3. Topics & MAC Address Preset</h3>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="cfgMacHelper">สร้าง Topic จาก MAC Address อัตโนมัติ (ใส่ MAC บอร์ด):</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="cfgMacHelper" class="form-control" placeholder="เช่น 24:6F:28:AB:CD:EF หรือ 246F28ABCDEF">
+              <button type="button" class="btn-secondary" onclick="applyMacToTopics()" style="white-space: nowrap;">⚡ สร้าง Topic</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cfgSubTopic">Subscribe Topic (ส่งคำสั่งไปบอร์ด):</label>
+            <input type="text" id="cfgSubTopic" class="form-control" value="esp-node/+/control/cmd">
+          </div>
+          <div class="form-group">
+            <label for="cfgPubTopic">Publish Topic (รับค่าเซ็นเซอร์จากบอร์ด):</label>
+            <input type="text" id="cfgPubTopic" class="form-control" value="esp-node/+/state">
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn-secondary" onclick="closeSettingsModal()">ยกเลิก</button>
+        <button type="button" class="btn-primary" onclick="saveAndApplySettings()">💾 บันทึกและเชื่อมต่อทันที</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration Object
+    let appConfig = {
+      wsIp: '192.168.4.1',
+      wsPort: 81,
+      mqttServer: 'broker.emqx.io',
+      mqttPort: 8084,
+      mqttUser: 'elec',
+      mqttPassword: 'elec1234',
+      subTopic: 'esp-node/+/control/cmd',
+      pubTopic: 'esp-node/+/state',
+      prefMode: 'auto'
+    };
+
+    let ws = null;
+    let mqttClient = null;
+    let preferredMode = 'auto';
+
+    // Logging Utility
+    function log(msg, source = 'App') {
+      const logArea = document.getElementById('logArea');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.innerHTML = `<span style="color: #64748b;">[${time}]</span> <strong style="color: ${source === 'WebSocket' ? '#38bdf8' : source === 'MQTT' ? '#a78bfa' : '#34d399'};">[${source}]</strong> ${msg}`;
+      logArea.appendChild(div);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    // 1. Load configuration from localStorage
+    function loadSavedConfig() {
+      const saved = localStorage.getItem('iot_app_install_config');
+      if (saved) {
+        try {
+          appConfig = Object.assign(appConfig, JSON.parse(saved));
+        } catch (e) {}
+      }
+
+      // If opened directly from ESP32 WebServer, default WS IP to current hostname
+      if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !saved) {
+        appConfig.wsIp = window.location.hostname;
+      }
+
+      updateUIConfigElements();
+    }
+
+    function updateUIConfigElements() {
+      document.getElementById('cfgWsIp').value = appConfig.wsIp;
+      document.getElementById('cfgWsPort').value = appConfig.wsPort;
+      document.getElementById('cfgMqttServer').value = appConfig.mqttServer;
+      document.getElementById('cfgMqttPort').value = appConfig.mqttPort;
+      document.getElementById('cfgMqttUser').value = appConfig.mqttUser;
+      document.getElementById('cfgMqttPassword').value = appConfig.mqttPassword;
+      document.getElementById('cfgSubTopic').value = appConfig.subTopic;
+      document.getElementById('cfgPubTopic').value = appConfig.pubTopic;
+
+      document.getElementById('txtDisplayIp').innerText = appConfig.wsIp;
+      document.getElementById('lblTargetIp').innerText = `${appConfig.wsIp}:${appConfig.wsPort}`;
+      document.getElementById('lblSub').innerText = appConfig.subTopic;
+      document.getElementById('lblPub').innerText = appConfig.pubTopic;
+    }
+
+    function applyMacToTopics() {
+      let mac = document.getElementById('cfgMacHelper').value.trim();
+      if (!mac) {
+        alert('กรุณากรอก MAC Address ของบอร์ด เช่น 24:6F:28:AB:CD:EF');
+        return;
+      }
+      mac = mac.replace(/[:-]/g, '').toUpperCase();
+      document.getElementById('cfgSubTopic').value = `esp-node/${mac}/control/cmd`;
+      document.getElementById('cfgPubTopic').value = `esp-node/${mac}/state`;
+    }
+
+    // 2. Save settings and trigger Reconnection
+    function saveAndApplySettings() {
+      appConfig.wsIp = document.getElementById('cfgWsIp').value.trim() || '192.168.4.1';
+      appConfig.wsPort = parseInt(document.getElementById('cfgWsPort').value) || 81;
+      appConfig.mqttServer = document.getElementById('cfgMqttServer').value.trim() || 'broker.emqx.io';
+      appConfig.mqttPort = parseInt(document.getElementById('cfgMqttPort').value) || 8084;
+      appConfig.mqttUser = document.getElementById('cfgMqttUser').value.trim();
+      appConfig.mqttPassword = document.getElementById('cfgMqttPassword').value;
+      appConfig.subTopic = document.getElementById('cfgSubTopic').value.trim() || 'esp-node/+/control/cmd';
+      appConfig.pubTopic = document.getElementById('cfgPubTopic').value.trim() || 'esp-node/+/state';
+
+      localStorage.setItem('iot_app_install_config', JSON.stringify(appConfig));
+      updateUIConfigElements();
+      closeSettingsModal();
+
+      log('Configuration saved. Re-establishing connections...', 'App');
+      connectAll();
+    }
+
+    // 3. Connect Local WebSocket
+    function connectWebSocket() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+
+      const wsUrl = `ws://${appConfig.wsIp}:${appConfig.wsPort}/`;
+      log(`Connecting WebSocket to: ${wsUrl}`, 'WebSocket');
+
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+          document.getElementById('wsDot').classList.add('connected');
+          document.getElementById('wsStatus').innerText = 'Connected';
+          log(`Connected to WebSocket on ${appConfig.wsIp}`, 'WebSocket');
+        };
+        ws.onclose = () => {
+          document.getElementById('wsDot').classList.remove('connected');
+          document.getElementById('wsStatus').innerText = 'Off';
+        };
+        ws.onerror = () => {
+          document.getElementById('wsDot').classList.remove('connected');
+          document.getElementById('wsStatus').innerText = 'Err';
+        };
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleIncomingTelemetry(data, 'WebSocket');
+          } catch (e) {}
+        };
+      } catch (err) {
+        log(`WebSocket error: ${err.message}`, 'WebSocket');
+      }
+    }
+
+    // 4. Connect Cloud MQTT (WSS / WS)
+    function connectMQTT() {
+      if (mqttClient) {
+        mqttClient.end(true);
+        mqttClient.removeAllListeners();
+        mqttClient = null;
+      }
+
+      const proto = appConfig.mqttPort === 8084 ? 'wss' : 'ws';
+      const brokerUrl = `${proto}://${appConfig.mqttServer}:${appConfig.mqttPort}/mqtt`;
+      log(`Connecting MQTT to: ${brokerUrl}`, 'MQTT');
+
+      const clientId = 'app_client_' + Math.random().toString(16).substring(2, 8);
+
+      try {
+        mqttClient = mqtt.connect(brokerUrl, {
+          clientId: clientId,
+          username: appConfig.mqttUser || undefined,
+          password: appConfig.mqttPassword || undefined,
+          clean: true,
+          connectTimeout: 6000,
+          reconnectPeriod: 4000
+        });
+
+        mqttClient.on('connect', () => {
+          document.getElementById('mqttDot').classList.add('connected');
+          document.getElementById('mqttStatus').innerText = 'Connected';
+          log(`MQTT Connected! Subscribing to: ${appConfig.pubTopic}`, 'MQTT');
+          mqttClient.subscribe(appConfig.pubTopic);
+        });
+
+        mqttClient.on('close', () => {
+          document.getElementById('mqttDot').classList.remove('connected');
+          document.getElementById('mqttStatus').innerText = 'Off';
+        });
+
+        mqttClient.on('error', (err) => {
+          document.getElementById('mqttDot').classList.remove('connected');
+          document.getElementById('mqttStatus').innerText = 'Err';
+        });
+
+        mqttClient.on('message', (topic, payload) => {
+          try {
+            const data = JSON.parse(payload.toString());
+            handleIncomingTelemetry(data, 'MQTT');
+          } catch (e) {}
+        });
+      } catch (err) {
+        log(`MQTT exception: ${err.message}`, 'MQTT');
+      }
+    }
+
+    function connectAll() {
+      connectWebSocket();
+      connectMQTT();
+    }
+
+    // 5. Telemetry Processing & UI Updates
+    function handleIncomingTelemetry(data, source) {
+      if (data.temperature !== undefined) {
+        document.getElementById('valTemp').innerText = parseFloat(data.temperature).toFixed(1);
+      }
+      if (data.humidity !== undefined) {
+        document.getElementById('valHum').innerText = parseFloat(data.humidity).toFixed(1);
+      }
+      if (data.analogPercent !== undefined) {
+        document.getElementById('valSoil').innerText = parseFloat(data.analogPercent).toFixed(1);
+      }
+      if (data.tempThreshold !== undefined) {
+        document.getElementById('valThreshold').innerText = parseFloat(data.tempThreshold).toFixed(1);
+        document.getElementById('sliderThreshold').value = parseFloat(data.tempThreshold);
+      }
+      if (data.fanState !== undefined) {
+        document.getElementById('switchFan').checked = data.fanState;
+        document.getElementById('txtFanStatus').innerText = data.fanState ? 'เปิด (ON)' : 'ปิด (OFF)';
+      }
+      if (data.mistState !== undefined) {
+        document.getElementById('switchMist').checked = data.mistState;
+        document.getElementById('txtMistStatus').innerText = data.mistState ? 'เปิด (ON)' : 'ปิด (OFF)';
+      }
+      if (data.autoMode !== undefined) {
+        document.getElementById('txtModeStatus').innerText = data.autoMode ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
+      }
+      if (data.toggleCount !== undefined) {
+        document.getElementById('txtBtnCount').innerText = data.toggleCount + ' ครั้ง';
+      }
+
+      log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'})`, source);
+    }
+
+    // 6. Outgoing Command Dispatch
+    function sendCommand(cmdPayload) {
+      const jsonStr = JSON.stringify(cmdPayload);
+
+      // WebSockets Dispatch
+      if ((preferredMode === 'auto' || preferredMode === 'ws') && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(jsonStr);
+        log(`Sent [${cmdPayload.command}] via WebSocket`, 'WebSocket');
+      }
+
+      // MQTT Dispatch (Resolves subTopic: replaces wildcard '+' with actual device ID if known)
+      if ((preferredMode === 'auto' || preferredMode === 'mqtt') && mqttClient && mqttClient.connected) {
+        let targetSub = appConfig.subTopic;
+        if (targetSub.includes('+')) {
+          targetSub = targetSub.replace('+', 'esp-node');
+        }
+        mqttClient.publish(targetSub, jsonStr);
+        log(`Published [${cmdPayload.command}] to MQTT: ${targetSub}`, 'MQTT');
+      }
+    }
+
+    function sendFanCommand(state) {
+      sendCommand({ command: 'set_fan', state: state });
+    }
+
+    function sendMistCommand(state) {
+      sendCommand({ command: 'set_mist', state: state });
+    }
+
+    let thresholdTimer = null;
+    function onThresholdChange(val) {
+      document.getElementById('valThreshold').innerText = parseFloat(val).toFixed(1);
+      clearTimeout(thresholdTimer);
+      thresholdTimer = setTimeout(() => {
+        sendCommand({ command: 'set_threshold', threshold: parseFloat(val) });
+      }, 300);
+    }
+
+    function setConnectionPreference(mode) {
+      preferredMode = mode;
+      document.querySelectorAll('.segmented-btn').forEach(b => b.classList.remove('active'));
+      if (mode === 'auto') document.getElementById('btnModeAuto').classList.add('active');
+      else if (mode === 'ws') document.getElementById('btnModeWS').classList.add('active');
+      else if (mode === 'mqtt') document.getElementById('btnModeMQTT').classList.add('active');
+      log(`Switched connection mode to: ${mode.toUpperCase()}`);
+    }
+
+    // Modal Handlers
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.add('open');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('open');
+    }
+
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('PWA Service Worker Registered');
+      }).catch(err => console.log('SW registration error:', err));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedConfig();
+      connectAll();
+    });
+  </script>
+</body>
+</html>
