@@ -113,8 +113,18 @@
           </div>
 
           <div class="form-group">
-            <label for="buttonPin">ขาสวิตช์ปุ่มกด (BUTTON_PIN):</label>
-            <input type="number" id="buttonPin" name="buttonPin" class="form-control" value="0" required>
+            <label for="fanButtonPin">ขาสวิตช์กดพัดลม (SW_FAN_PIN):</label>
+            <input type="number" id="fanButtonPin" name="fanButtonPin" class="form-control" value="18" required>
+          </div>
+
+          <div class="form-group">
+            <label for="mistButtonPin">ขาสวิตช์กดพ่นหมอก (SW_MIST_PIN):</label>
+            <input type="number" id="mistButtonPin" name="mistButtonPin" class="form-control" value="19" required>
+          </div>
+
+          <div class="form-group">
+            <label for="resetButtonPin">ขาสวิตช์ Reset ค่าโรงงาน (RESET_PIN [กดค้าง 3 วิ]):</label>
+            <input type="number" id="resetButtonPin" name="resetButtonPin" class="form-control" value="0" required>
           </div>
         </div>
       </section>
@@ -145,7 +155,9 @@
           document.getElementById('analogPin').value = currentConfig.analogPin || 36;
           document.getElementById('fanRelayPin').value = currentConfig.fanRelayPin || 5;
           document.getElementById('mistRelayPin').value = currentConfig.mistRelayPin || 23;
-          document.getElementById('buttonPin').value = currentConfig.buttonPin || 0;
+          document.getElementById('fanButtonPin').value = currentConfig.fanButtonPin !== undefined ? currentConfig.fanButtonPin : 18;
+          document.getElementById('mistButtonPin').value = currentConfig.mistButtonPin !== undefined ? currentConfig.mistButtonPin : 19;
+          document.getElementById('resetButtonPin').value = currentConfig.resetButtonPin !== undefined ? currentConfig.resetButtonPin : 0;
 
           document.getElementById('txtMac').innerText = currentConfig.mac + ' (' + currentConfig.cleanMac + ')';
           document.getElementById('txtSubTopic').innerText = currentConfig.subTopic;
@@ -178,7 +190,9 @@
         analogPin: parseInt(document.getElementById('analogPin').value),
         fanRelayPin: parseInt(document.getElementById('fanRelayPin').value),
         mistRelayPin: parseInt(document.getElementById('mistRelayPin').value),
-        buttonPin: parseInt(document.getElementById('buttonPin').value)
+        fanButtonPin: parseInt(document.getElementById('fanButtonPin').value),
+        mistButtonPin: parseInt(document.getElementById('mistButtonPin').value),
+        resetButtonPin: parseInt(document.getElementById('resetButtonPin').value)
       };
 
       try {

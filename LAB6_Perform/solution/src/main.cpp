@@ -44,7 +44,9 @@ struct DeviceConfig {
   int analogPin = 36;     // ADC1_CH0 (VP)
   int fanRelayPin = 5;    // GPIO 5
   int mistRelayPin = 23;  // GPIO 23
-  int buttonPin = 0;      // GPIO 0 (SW1)
+  int fanButtonPin = 18;  // GPIO 18 (Dedicated Fan Button)
+  int mistButtonPin = 19; // GPIO 19 (Dedicated Mist Button)
+  int resetButtonPin = 0; // GPIO 0 (Long-press >= 3s for Factory Reset ONLY)
 } config;
 
 // Dynamic System Variables
@@ -77,6 +79,8 @@ float tempThreshold = 30.0;
 float mistThreshold = 60.0;
 bool fanState = false;
 bool mistState = false;
+int fanBtnCount = 0;
+int mistBtnCount = 0;
 int toggleCount = 0;
 bool autoMode = true;
 
@@ -88,11 +92,21 @@ unsigned long lastReadTime = 0;
 unsigned long lastMqttRetry = 0;
 int wsClientCount = 0;
 
-// Button Debounce
-bool lastButtonReading = HIGH;
-bool currentButtonState = HIGH;
-unsigned long lastDebounceTime = 0;
+// Button Debounce & Timing
+bool lastFanBtnReading = HIGH;
+bool currentFanBtnState = HIGH;
+unsigned long lastFanDebounceTime = 0;
+
+bool lastMistBtnReading = HIGH;
+bool currentMistBtnState = HIGH;
+unsigned long lastMistDebounceTime = 0;
+
 const unsigned long debounceDelay = 50;
+
+// Long-press detection for Reset Button (GPIO 0)
+unsigned long resetPressStartTime = 0;
+bool resetHolding = false;
+bool resetExecuted = false;
 
 // Forward Declarations
 void loadConfiguration();
@@ -125,7 +139,9 @@ void loadConfiguration() {
         if (doc.containsKey("analogPin")) config.analogPin = doc["analogPin"].as<int>();
         if (doc.containsKey("fanRelayPin")) config.fanRelayPin = doc["fanRelayPin"].as<int>();
         if (doc.containsKey("mistRelayPin")) config.mistRelayPin = doc["mistRelayPin"].as<int>();
-        if (doc.containsKey("buttonPin")) config.buttonPin = doc["buttonPin"].as<int>();
+        if (doc.containsKey("fanButtonPin")) config.fanButtonPin = doc["fanButtonPin"].as<int>();
+        if (doc.containsKey("mistButtonPin")) config.mistButtonPin = doc["mistButtonPin"].as<int>();
+        if (doc.containsKey("resetButtonPin")) config.resetButtonPin = doc["resetButtonPin"].as<int>();
         Serial.println("✓ Custom configuration loaded from /config.json");
         return;
       }
@@ -149,7 +165,9 @@ void saveConfiguration() {
     doc["analogPin"] = config.analogPin;
     doc["fanRelayPin"] = config.fanRelayPin;
     doc["mistRelayPin"] = config.mistRelayPin;
-    doc["buttonPin"] = config.buttonPin;
+    doc["fanButtonPin"] = config.fanButtonPin;
+    doc["mistButtonPin"] = config.mistButtonPin;
+    doc["resetButtonPin"] = config.resetButtonPin;
     serializeJson(doc, file);
     file.close();
     Serial.println("✓ Configuration successfully saved to /config.json");
@@ -162,7 +180,9 @@ void saveConfiguration() {
 void initHardware() {
   pinMode(config.fanRelayPin, OUTPUT);
   pinMode(config.mistRelayPin, OUTPUT);
-  pinMode(config.buttonPin, INPUT_PULLUP);
+  pinMode(config.fanButtonPin, INPUT_PULLUP);
+  pinMode(config.mistButtonPin, INPUT_PULLUP);
+  pinMode(config.resetButtonPin, INPUT_PULLUP);
 
   digitalWrite(config.fanRelayPin, LOW);
   digitalWrite(config.mistRelayPin, LOW);
@@ -225,7 +245,9 @@ void setupWebServer() {
     doc["analogPin"] = config.analogPin;
     doc["fanRelayPin"] = config.fanRelayPin;
     doc["mistRelayPin"] = config.mistRelayPin;
-    doc["buttonPin"] = config.buttonPin;
+    doc["fanButtonPin"] = config.fanButtonPin;
+    doc["mistButtonPin"] = config.mistButtonPin;
+    doc["resetButtonPin"] = config.resetButtonPin;
     doc["isAPMode"] = isAPMode;
     
     String response;
@@ -245,18 +267,20 @@ void setupWebServer() {
     }
 
     if (!err) {
-      if (doc.containsKey("ssid")) config.ssid = doc["ssid"].as<String>();
-      if (doc.containsKey("password") && doc["password"].as<String>().length() > 0) config.password = doc["password"].as<String>();
-      if (doc.containsKey("mqttServer")) config.mqttServer = doc["mqttServer"].as<String>();
-      if (doc.containsKey("mqttPort")) config.mqttPort = doc["mqttPort"].as<int>();
-      if (doc.containsKey("mqttUser")) config.mqttUser = doc["mqttUser"].as<String>();
-      if (doc.containsKey("mqttPassword") && doc["mqttPassword"].as<String>().length() > 0) config.mqttPassword = doc["mqttPassword"].as<String>();
-      if (doc.containsKey("dhtType")) config.dhtType = doc["dhtType"].as<int>();
-      if (doc.containsKey("dhtPin")) config.dhtPin = doc["dhtPin"].as<int>();
-      if (doc.containsKey("analogPin")) config.analogPin = doc["analogPin"].as<int>();
-      if (doc.containsKey("fanRelayPin")) config.fanRelayPin = doc["fanRelayPin"].as<int>();
-      if (doc.containsKey("mistRelayPin")) config.mistRelayPin = doc["mistRelayPin"].as<int>();
-      if (doc.containsKey("buttonPin")) config.buttonPin = doc["buttonPin"].as<int>();
+      if (doc["ssid"].is<String>()) config.ssid = doc["ssid"].as<String>();
+      if (doc["password"].is<String>() && doc["password"].as<String>().length() > 0) config.password = doc["password"].as<String>();
+      if (doc["mqttServer"].is<String>()) config.mqttServer = doc["mqttServer"].as<String>();
+      if (doc["mqttPort"].is<int>()) config.mqttPort = doc["mqttPort"].as<int>();
+      if (doc["mqttUser"].is<String>()) config.mqttUser = doc["mqttUser"].as<String>();
+      if (doc["mqttPassword"].is<String>() && doc["mqttPassword"].as<String>().length() > 0) config.mqttPassword = doc["mqttPassword"].as<String>();
+      if (doc["dhtType"].is<int>()) config.dhtType = doc["dhtType"].as<int>();
+      if (doc["dhtPin"].is<int>()) config.dhtPin = doc["dhtPin"].as<int>();
+      if (doc["analogPin"].is<int>()) config.analogPin = doc["analogPin"].as<int>();
+      if (doc["fanRelayPin"].is<int>()) config.fanRelayPin = doc["fanRelayPin"].as<int>();
+      if (doc["mistRelayPin"].is<int>()) config.mistRelayPin = doc["mistRelayPin"].as<int>();
+      if (doc["fanButtonPin"].is<int>()) config.fanButtonPin = doc["fanButtonPin"].as<int>();
+      if (doc["mistButtonPin"].is<int>()) config.mistButtonPin = doc["mistButtonPin"].as<int>();
+      if (doc["resetButtonPin"].is<int>()) config.resetButtonPin = doc["resetButtonPin"].as<int>();
     } else {
       // Fallback form post
       if (server.hasArg("ssid")) config.ssid = server.arg("ssid");
@@ -270,7 +294,9 @@ void setupWebServer() {
       if (server.hasArg("analogPin")) config.analogPin = server.arg("analogPin").toInt();
       if (server.hasArg("fanRelayPin")) config.fanRelayPin = server.arg("fanRelayPin").toInt();
       if (server.hasArg("mistRelayPin")) config.mistRelayPin = server.arg("mistRelayPin").toInt();
-      if (server.hasArg("buttonPin")) config.buttonPin = server.arg("buttonPin").toInt();
+      if (server.hasArg("fanButtonPin")) config.fanButtonPin = server.arg("fanButtonPin").toInt();
+      if (server.hasArg("mistButtonPin")) config.mistButtonPin = server.arg("mistButtonPin").toInt();
+      if (server.hasArg("resetButtonPin")) config.resetButtonPin = server.arg("resetButtonPin").toInt();
     }
 
     saveConfiguration();
@@ -378,6 +404,8 @@ void broadcastAndPublishState() {
   doc["tempThreshold"] = serialized(String(tempThreshold, 1));
   doc["mistThreshold"] = serialized(String(mistThreshold, 1));
   doc["autoMode"] = autoMode;
+  doc["fanBtnCount"] = fanBtnCount;
+  doc["mistBtnCount"] = mistBtnCount;
   doc["toggleCount"] = toggleCount;
   doc["wsClients"] = wsClientCount;
   doc["mqttConnected"] = mqttClient.connected();
@@ -725,24 +753,54 @@ void loop() {
     broadcastAndPublishState();
   }
 
-  // Physical Button Debounce Handling (GPIO 0 / SW1)
-  int reading = digitalRead(config.buttonPin);
-  if (reading != lastButtonReading) {
-    lastDebounceTime = millis();
+  // 1. Factory Reset Button Handling (Long-press >= 3s on resetButtonPin)
+  int resetReading = digitalRead(config.resetButtonPin);
+  if (resetReading == LOW) {
+    if (!resetHolding) {
+      resetHolding = true;
+      resetPressStartTime = millis();
+      resetExecuted = false;
+    } else if (millis() - resetPressStartTime >= 3000 && !resetExecuted) {
+      resetExecuted = true;
+      Serial.println("\n[RESET] Factory Reset hold detected. Clearing LittleFS...");
+      LittleFS.remove("/config.json");
+      ESP.restart();
+    }
+  } else {
+    resetHolding = false;
   }
 
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (reading != currentButtonState) {
-      currentButtonState = reading;
-      if (currentButtonState == LOW) { // Button Pressed
-        toggleCount++;
+  // 2. Physical Fan Toggle Button Debounce
+  int fanBtnReading = digitalRead(config.fanButtonPin);
+  if (fanBtnReading != lastFanBtnReading) lastFanDebounceTime = millis();
+  if ((millis() - lastFanDebounceTime) > debounceDelay) {
+    if (fanBtnReading != currentFanBtnState) {
+      currentFanBtnState = fanBtnReading;
+      if (currentFanBtnState == LOW) {
+        fanBtnCount++; toggleCount++;
         fanState = !fanState;
         digitalWrite(config.fanRelayPin, fanState ? HIGH : LOW);
         autoMode = false;
-        Serial.printf("[BUTTON] Pressed! Count: %d, Fan toggled to %s\n", toggleCount, fanState ? "ON" : "OFF");
         broadcastAndPublishState();
       }
     }
   }
-  lastButtonReading = reading;
+  lastFanBtnReading = fanBtnReading;
+
+  // 3. Physical Mist Toggle Button Debounce
+  int mistBtnReading = digitalRead(config.mistButtonPin);
+  if (mistBtnReading != lastMistBtnReading) lastMistDebounceTime = millis();
+  if ((millis() - lastMistDebounceTime) > debounceDelay) {
+    if (mistBtnReading != currentMistBtnState) {
+      currentMistBtnState = mistBtnReading;
+      if (currentMistBtnState == LOW) {
+        mistBtnCount++; toggleCount++;
+        mistState = !mistState;
+        digitalWrite(config.mistRelayPin, mistState ? HIGH : LOW);
+        autoMode = false;
+        broadcastAndPublishState();
+      }
+    }
+  }
+  lastMistBtnReading = mistBtnReading;
 }

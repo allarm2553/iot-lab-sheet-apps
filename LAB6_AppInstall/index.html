@@ -165,9 +165,13 @@
             <span class="slider-round"></span>
           </label>
         </div>
-        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
           <span>โหมดพัดลม:</span>
           <span id="txtModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
+        </div>
+        <div style="margin-top: 5px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>สวิตช์กด SW_FAN:</span>
+          <span id="txtFanBtnCount">0 ครั้ง</span>
         </div>
       </div>
 
@@ -184,9 +188,13 @@
             <span class="slider-round"></span>
           </label>
         </div>
-        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
           <span>โหมดพ่นหมอก:</span>
           <span id="txtMistModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
+        </div>
+        <div style="margin-top: 5px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>สวิตช์กด SW_MIST:</span>
+          <span id="txtMistBtnCount">0 ครั้ง</span>
         </div>
       </div>
     </div>
@@ -513,8 +521,11 @@
           btnManual.classList.add('active');
         }
       }
-      if (data.toggleCount !== undefined) {
-        // debug count
+      if (data.fanBtnCount !== undefined) {
+        document.getElementById('txtFanBtnCount').innerText = data.fanBtnCount + ' ครั้ง';
+      }
+      if (data.mistBtnCount !== undefined) {
+        document.getElementById('txtMistBtnCount').innerText = data.mistBtnCount + ' ครั้ง';
       }
 
       log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'}, Mist:${data.mistState ? 'ON' : 'OFF'}, Mode:${data.autoMode ? 'AUTO' : 'MANUAL'})`, source);
