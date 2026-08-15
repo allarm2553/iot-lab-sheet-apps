@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Fleet Commander - Multi-Device Management Dashboard</title>
+  
+  <!-- PWA Metadata -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Embedded CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Standalone MQTT Library Bundle (Zero CDN reliance) -->
+  <script src="mqtt.min.js"></script>
+</head>
+<body>
+
+  <!-- App Sticky Header -->
+  <header class="app-header">
+    <div class="logo-area">
+      <div class="logo-icon">🌐</div>
+      <div class="logo-text">
+        <h1>IoT Fleet Commander</h1>
+        <p>ระบบบริหารจัดการและควบคุมเครือข่ายอุปกรณ์ Multi-Node</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- MQTT Connection Pill -->
+      <div class="status-pill">
+        <span id="mqttDot" class="status-dot"></span>
+        <span id="mqttStatus">MQTT: กำลังเชื่อมต่อ...</span>
+      </div>
+
+      <!-- Virtual Nodes Demo Simulator Toggle -->
+      <button class="btn btn-secondary" onclick="toggleVirtualNodes()" id="btnVirtualNodes" title="จำลองโหนดเสมือนเพื่อทดสอบระบบ">
+        🧪 <span id="lblVirtualBtn">เปิดโหมดจำลอง (Sim Nodes)</span>
+      </button>
+
+      <!-- Settings Modal Button -->
+      <button class="btn btn-primary" onclick="openSettingsModal()">
+        ⚙️ ตั้งค่าระบบ (Settings)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- KPI Summary Cards Row -->
+    <section class="kpi-grid">
+      <!-- Total Nodes KPI -->
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color: var(--accent-cyan);">📡</div>
+        <div class="kpi-info">
+          <h4>อุปกรณ์ทั้งหมด (Total Nodes)</h4>
+          <div id="kpiTotalNodes" class="kpi-val">0</div>
+          <div class="kpi-sub"><span id="kpiOnlineNodes" style="color: var(--accent-emerald);">0 Online</span> | <span id="kpiOfflineNodes" style="color: var(--accent-rose);">0 Offline</span></div>
+        </div>
+      </div>
+
+      <!-- Farm Average Temp -->
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color: var(--accent-amber);">🌡️</div>
+        <div class="kpi-info">
+          <h4>อุณหภูมิเฉลี่ย (Avg Temp)</h4>
+          <div id="kpiAvgTemp" class="kpi-val">-- <span style="font-size: 1rem; font-weight: 500; color: var(--text-dim);">°C</span></div>
+          <div class="kpi-sub">คำนวณจากโหนดที่ออนไลน์</div>
+        </div>
+      </div>
+
+      <!-- Farm Average Humidity -->
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color: var(--accent-cyan);">💧</div>
+        <div class="kpi-info">
+          <h4>ความชื้นเฉลี่ย (Avg Humidity)</h4>
+          <div id="kpiAvgHum" class="kpi-val">-- <span style="font-size: 1rem; font-weight: 500; color: var(--text-dim);">%</span></div>
+          <div class="kpi-sub">คำนวณจากโหนดที่ออนไลน์</div>
+        </div>
+      </div>
+
+      <!-- Active Relays -->
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color: var(--accent-purple);">⚡</div>
+        <div class="kpi-info">
+          <h4>รีเลย์ทำงานอยู่ (Active Relays)</h4>
+          <div id="kpiActiveRelays" class="kpi-val">0 / 0</div>
+          <div class="kpi-sub"><span id="kpiActiveFans">🌀 พัดลม: 0</span> | <span id="kpiActiveMists">🌫️ พ่นหมอก: 0</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Master Fleet Toolbar (Search & Batch Actions) -->
+    <section class="fleet-toolbar">
+      <div class="toolbar-title">
+        <h3>🎛️ สั่งการพร้อมกันทั้งระบบ (Master Fleet Actions)</h3>
+      </div>
+
+      <div class="batch-btn-group">
+        <button class="btn btn-action auto-btn" onclick="broadcastMode(true)">🔄 สั่งทุกโหนดเป็น Auto</button>
+        <button class="btn btn-action manual-btn" onclick="broadcastMode(false)">✋ สั่งทุกโหนดเป็น Manual</button>
+        <button class="btn btn-secondary btn-action" onclick="broadcastRelay('fan', true)">🌀 เปิดพัดลมทั้งหมด</button>
+        <button class="btn btn-secondary btn-action" onclick="broadcastRelay('fan', false)">⏹️ ปิดพัดลมทั้งหมด</button>
+        <button class="btn btn-secondary btn-action" onclick="broadcastRelay('mist', true)">🌫️ เปิดพ่นหมอกทั้งหมด</button>
+        <button class="btn btn-secondary btn-action" onclick="broadcastRelay('mist', false)">⏹️ ปิดพ่นหมอกทั้งหมด</button>
+        <button class="btn btn-primary btn-action" onclick="openBatchThresholdModal()">🎯 ตั้งเกณฑ์รวม (Setpoints)</button>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="inputSearch" placeholder="ค้นหาตามชื่อ หรือ MAC Address..." oninput="filterDeviceGrid()">
+      </div>
+    </section>
+
+    <!-- Device Cards Grid -->
+    <section id="deviceGrid" class="device-grid">
+      <!-- Empty State (Shown when no devices are discovered yet) -->
+      <div id="emptyState" class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-icon">📡</div>
+        <h3>กำลังรอรับข้อมูลจากโหนด ESP32 / ESP8266...</h3>
+        <p>ระบบจะตรวจจับและเพิ่มการ์ดอุปกรณ์ให้อัตโนมัติเมื่ออุปกรณ์เริ่มส่งข้อมูล Telemetry เข้ามา</p>
+        <button class="btn btn-primary" onclick="toggleVirtualNodes()" style="margin-top: 10px;">
+          🧪 เปิดโหนดจำลองเพื่อทดสอบทันที (Spawn Sim Nodes)
+        </button>
+      </div>
+    </section>
+
+    <!-- Live Protocol Log Streamer -->
+    <section class="card" style="background: var(--bg-card); border-radius: var(--radius-md); padding: 18px; border: 1px solid var(--border-color);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+          📜 ประวัติการรับส่งข้อมูลเครือข่าย (Fleet Protocol Log Stream)
+        </h4>
+        <button class="btn btn-secondary" onclick="document.getElementById('logBox').innerHTML=''" style="padding: 4px 10px; font-size: 0.75rem;">
+          ล้าง Log
+        </button>
+      </div>
+      <div id="logBox" class="log-box">
+        <div class="log-item"><span class="log-time">[System]</span> Fleet Commander Initialized. Waiting for MQTT telemetry packets on topic 'esp-node/+/state'...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Node Detail & Direct Command Console -->
+  <div id="modalNodeDetail" class="modal-overlay" onclick="closeModalOnOutsideClick(event, 'modalNodeDetail')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalNodeTitle">📋 รายละเอียดโหนด</h3>
+        <button class="close-btn" onclick="closeModal('modalNodeDetail')">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">ชื่อเรียกอุปกรณ์ (Device Alias):</label>
+          <input type="text" id="modalInputAlias" class="form-control" style="margin-top: 4px;">
+        </div>
+
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">อุณหภูมิ</span>
+            <div class="telemetry-val"><span id="modalValTemp">--</span> <span class="telemetry-unit">°C</span></div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">ความชื้น</span>
+            <div class="telemetry-val"><span id="modalValHum">--</span> <span class="telemetry-unit">%</span></div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">แอนะล็อก VR</span>
+            <div class="telemetry-val"><span id="modalValPot">--</span> <span class="telemetry-unit">%</span></div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">ตั้งค่าเกณฑ์เฉพาะโหนดนี้ (Node Setpoints):</label>
+          
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+              <span>เกณฑ์อุณหภูมิพัดลม (Fan Temp):</span>
+              <span id="modalLblTempThresh" style="font-weight: 700; color: var(--accent-cyan);">30.0 °C</span>
+            </div>
+            <input type="range" id="modalSliderTempThresh" min="15" max="45" step="0.5" value="30" style="width: 100%; accent-color: var(--accent-cyan);" oninput="document.getElementById('modalLblTempThresh').innerText=this.value+' °C'">
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+              <span>เกณฑ์ความชื้นพ่นหมอก (Mist Hum):</span>
+              <span id="modalLblMistThresh" style="font-weight: 700; color: var(--accent-blue);">60.0 %</span>
+            </div>
+            <input type="range" id="modalSliderMistThresh" min="20" max="90" step="1.0" value="60" style="width: 100%; accent-color: var(--accent-blue);" oninput="document.getElementById('modalLblMistThresh').innerText=this.value+' %'">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button class="btn btn-secondary" onclick="closeModal('modalNodeDetail')">ยกเลิก</button>
+          <button class="btn btn-primary" onclick="saveNodeDetailChanges()">💾 บันทึกและส่งคำสั่ง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Batch Setpoints Modal -->
+  <div id="modalBatchSetpoints" class="modal-overlay" onclick="closeModalOnOutsideClick(event, 'modalBatchSetpoints')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🎯 ตั้งค่าเกณฑ์รวมทุกโหนด (Broadcast Setpoints)</h3>
+        <button class="close-btn" onclick="closeModal('modalBatchSetpoints')">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          คำสั่งนี้จะส่ง Broadcast ไปยังทุกโหนดในเครือข่าย เพื่อปรับเกณฑ์ควบคุมอุณหภูมิและความชื้นให้เท่ากันพร้อมกันทันที
+        </p>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+            <span>เกณฑ์อุณหภูมิเปิดพัดลมรวม (Global Temp Threshold):</span>
+            <span id="batchLblTemp" style="font-weight: 700; color: var(--accent-cyan);">30.0 °C</span>
+          </div>
+          <input type="range" id="batchSliderTemp" min="15" max="45" step="0.5" value="30.0" style="width: 100%; accent-color: var(--accent-cyan);" oninput="document.getElementById('batchLblTemp').innerText=this.value+' °C'">
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+            <span>เกณฑ์ความชื้นเปิดพ่นหมอกรวม (Global Mist Threshold):</span>
+            <span id="batchLblMist" style="font-weight: 700; color: var(--accent-blue);">60.0 %</span>
+          </div>
+          <input type="range" id="batchSliderMist" min="20" max="90" step="1.0" value="60.0" style="width: 100%; accent-color: var(--accent-blue);" oninput="document.getElementById('batchLblMist').innerText=this.value+' %'">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button class="btn btn-secondary" onclick="closeModal('modalBatchSetpoints')">ยกเลิก</button>
+          <button class="btn btn-primary" onclick="applyBatchSetpoints()">🚀 ส่งคำสั่งปรับทุกโหนด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: System & MQTT Settings Modal -->
+  <div id="modalSettings" class="modal-overlay" onclick="closeModalOnOutsideClick(event, 'modalSettings')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ ตั้งค่าการเชื่อมต่อ MQTT Broker</h3>
+        <button class="close-btn" onclick="closeModal('modalSettings')">&times;</button>
+      </div>
+
+      <form onsubmit="saveSettings(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label for="cfgMqttServer">MQTT Broker Server:</label>
+          <input type="text" id="cfgMqttServer" class="form-control" value="broker.emqx.io" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cfgMqttPort">WebSocket Port (WSS: 8084 / WS: 8083):</label>
+          <input type="number" id="cfgMqttPort" class="form-control" value="8084" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cfgMqttUser">MQTT Username (ถ้ามี):</label>
+          <input type="text" id="cfgMqttUser" class="form-control" placeholder="ปล่อยว่างได้">
+        </div>
+
+        <div class="form-group">
+          <label for="cfgMqttPass">MQTT Password (ถ้ามี):</label>
+          <input type="password" id="cfgMqttPass" class="form-control" placeholder="ปล่อยว่างได้">
+        </div>
+
+        <div class="form-group">
+          <label for="cfgSubWildcard">Wildcard State Sub Topic:</label>
+          <input type="text" id="cfgSubWildcard" class="form-control" value="esp-node/+/state" required>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalSettings')">ปิด</button>
+          <button type="submit" class="btn btn-primary">💾 บันทึกและเชื่อมต่อใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Global State Store
+    const nodes = new Map(); // Key: cleanMac -> Node Data Object
+    let nodeAliases = {};    // Key: cleanMac -> Custom Name String (saved in localStorage)
+    let mqttClient = null;
+    let activeDetailMac = null;
+    let virtualSimInterval = null;
+    let isVirtualActive = false;
+
+    // Default Configuration
+    let fleetConfig = {
+      mqttServer: 'broker.emqx.io',
+      mqttPort: 8084,
+      mqttUser: '',
+      mqttPass: '',
+      subWildcard: 'esp-node/+/state'
+    };
+
+    // 1. Initial Startup Routine
+    function initFleet() {
+      // Load saved settings & aliases from localStorage
+      const savedConfig = localStorage.getItem('fleet_mqtt_config');
+      if (savedConfig) {
+        try { fleetConfig = Object.assign(fleetConfig, JSON.parse(savedConfig)); } catch (e) {}
+      }
+
+      const savedAliases = localStorage.getItem('fleet_node_aliases');
+      if (savedAliases) {
+        try { nodeAliases = JSON.parse(savedAliases); } catch (e) {}
+      }
+
+      connectFleetMQTT();
+
+      // Periodic Offline Node Checker (Every 3 seconds)
+      setInterval(checkNodeHeartbeats, 3000);
+
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    }
+
+    // 2. Connect to MQTT Broker
+    function connectFleetMQTT() {
+      if (mqttClient) {
+        mqttClient.end(true);
+        mqttClient.removeAllListeners();
+        mqttClient = null;
+      }
+
+      const proto = fleetConfig.mqttPort === 8084 ? 'wss' : 'ws';
+      const brokerUrl = `${proto}://${fleetConfig.mqttServer}:${fleetConfig.mqttPort}/mqtt`;
+      log(`Connecting to MQTT Broker: ${brokerUrl}`);
+
+      const clientId = 'fleet_commander_' + Math.random().toString(16).substring(2, 8);
+
+      try {
+        mqttClient = mqtt.connect(brokerUrl, {
+          clientId: clientId,
+          username: fleetConfig.mqttUser || undefined,
+          password: fleetConfig.mqttPass || undefined,
+          clean: true,
+          connectTimeout: 8000,
+          reconnectPeriod: 4000
+        });
+
+        mqttClient.on('connect', () => {
+          document.getElementById('mqttDot').classList.add('active');
+          document.getElementById('mqttStatus').innerText = 'MQTT: เชื่อมต่อแล้ว';
+          log(`MQTT Connected! Subscribing to wildcard topic: ${fleetConfig.subWildcard}`);
+          mqttClient.subscribe(fleetConfig.subWildcard);
+        });
+
+        mqttClient.on('close', () => {
+          document.getElementById('mqttDot').classList.remove('active');
+          document.getElementById('mqttStatus').innerText = 'MQTT: ออฟไลน์';
+        });
+
+        mqttClient.on('error', (err) => {
+          document.getElementById('mqttDot').classList.remove('active');
+          document.getElementById('mqttStatus').innerText = 'MQTT: ผิดพลาด';
+          log(`MQTT Error: ${err.message}`);
+        });
+
+        mqttClient.on('message', (topic, payload) => {
+          try {
+            const data = JSON.parse(payload.toString());
+            handleNodeTelemetry(topic, data);
+          } catch (e) {
+            log(`JSON parse error on topic [${topic}]`);
+          }
+        });
+      } catch (err) {
+        log(`MQTT Exception: ${err.message}`);
+      }
+    }
+
+    // 3. Process Incoming Node Telemetry Packet
+    function handleNodeTelemetry(topic, data) {
+      // Extract clean MAC from data.mac or from topic 'esp-node/<MAC>/state'
+      let mac = data.mac;
+      if (!mac) {
+        const parts = topic.split('/');
+        mac = parts[1] || 'UNKNOWN';
+      }
+      mac = mac.replace(/:/g, '').toUpperCase();
+
+      const now = Date.now();
+      let node = nodes.get(mac);
+
+      if (!node) {
+        // Auto-Discover New Node!
+        node = {
+          mac: mac,
+          alias: nodeAliases[mac] || `โหนด ${mac.substring(mac.length - 6)}`,
+          firstSeen: now,
+          lastSeen: now,
+          isOnline: true,
+          data: {}
+        };
+        nodes.set(mac, node);
+        log(`✨ Auto-discovered new device: [${node.alias}] (MAC: ${mac})`);
+        renderDeviceCard(node);
+      }
+
+      // Update Node State
+      node.lastSeen = now;
+      node.isOnline = true;
+      node.data = Object.assign(node.data, data);
+
+      updateDeviceCard(node);
+      updateFleetKPIs();
+
+      // If active in detail modal, update modal fields too
+      if (activeDetailMac === mac) {
+        updateModalData(node);
+      }
+    }
+
+    // 4. Render & Update Device Cards in Grid
+    function renderDeviceCard(node) {
+      document.getElementById('emptyState').style.display = 'none';
+
+      let card = document.getElementById(`node-card-${node.mac}`);
+      if (!card) {
+        card = document.createElement('div');
+        card.id = `node-card-${node.mac}`;
+        card.className = 'node-card';
+        document.getElementById('deviceGrid').appendChild(card);
+      }
+
+      card.innerHTML = `
+        <div class="node-card-header">
+          <div class="node-title-box">
+            <div class="node-alias">
+              <span id="alias-text-${node.mac}">${escapeHtml(node.alias)}</span>
+              <span class="edit-pen" onclick="promptRenameNode('${node.mac}')" title="เปลี่ยนชื่อโหนด">✏️</span>
+            </div>
+            <div class="node-mac">MAC: ${node.mac}</div>
+          </div>
+          <div id="badge-status-${node.mac}" class="node-status-badge">
+            <span class="status-dot active"></span> <span>Online</span>
+          </div>
+        </div>
+
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">อุณหภูมิ</span>
+            <div class="telemetry-val"><span id="val-temp-${node.mac}">--</span> <span class="telemetry-unit">°C</span></div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">ความชื้น</span>
+            <div class="telemetry-val"><span id="val-hum-${node.mac}">--</span> <span class="telemetry-unit">%</span></div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">แอนะล็อก</span>
+            <div class="telemetry-val"><span id="val-pot-${node.mac}">--</span> <span class="telemetry-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="actuator-row">
+          <!-- Fan Control -->
+          <div class="actuator-card">
+            <div class="actuator-card-info">
+              <span class="actuator-card-title">🌀 พัดลม (Fan)</span>
+              <span id="txt-fan-${node.mac}" class="actuator-card-state off">ปิด (OFF)</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="switch-fan-${node.mac}" onchange="sendNodeCommand('${node.mac}', { command: 'set_fan', state: this.checked })">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <!-- Mist Control -->
+          <div class="actuator-card">
+            <div class="actuator-card-info">
+              <span class="actuator-card-title">🌫️ พ่นหมอก (Mist)</span>
+              <span id="txt-mist-${node.mac}" class="actuator-card-state off">ปิด (OFF)</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="switch-mist-${node.mac}" onchange="sendNodeCommand('${node.mac}', { command: 'set_mist', state: this.checked })">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 0.8rem;">
+            <span style="color: var(--text-dim);">โหมด:</span> 
+            <button id="btn-mode-${node.mac}" class="btn-action auto-btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="toggleNodeMode('${node.mac}')">
+              🔄 AUTO
+            </button>
+          </div>
+          <button class="btn btn-secondary btn-action" onclick="openNodeDetail('${node.mac}')">
+            🔍 รายละเอียด & ตั้งค่า
+          </button>
+        </div>
+
+        <div class="node-footer">
+          <span id="txt-heartbeat-${node.mac}">⏱️ เพิ่งได้รับข้อมูล</span>
+          <span id="txt-btncounts-${node.mac}">SW_F: 0 | SW_M: 0</span>
+        </div>
+      `;
+
+      updateDeviceCard(node);
+    }
+
+    function updateDeviceCard(node) {
+      const mac = node.mac;
+      const d = node.data;
+
+      const card = document.getElementById(`node-card-${mac}`);
+      if (!card) return;
+
+      if (d.temperature !== undefined) document.getElementById(`val-temp-${mac}`).innerText = parseFloat(d.temperature).toFixed(1);
+      if (d.humidity !== undefined) document.getElementById(`val-hum-${mac}`).innerText = parseFloat(d.humidity).toFixed(1);
+      if (d.analogPercent !== undefined) document.getElementById(`val-pot-${mac}`).innerText = parseFloat(d.analogPercent).toFixed(0);
+
+      // Fan Relay
+      if (d.fanState !== undefined) {
+        const swFan = document.getElementById(`switch-fan-${mac}`);
+        const txtFan = document.getElementById(`txt-fan-${mac}`);
+        swFan.checked = d.fanState;
+        txtFan.innerText = d.fanState ? 'เปิด (ON)' : 'ปิด (OFF)';
+        txtFan.className = `actuator-card-state ${d.fanState ? 'on' : 'off'}`;
+      }
+
+      // Mist Relay
+      if (d.mistState !== undefined) {
+        const swMist = document.getElementById(`switch-mist-${mac}`);
+        const txtMist = document.getElementById(`txt-mist-${mac}`);
+        swMist.checked = d.mistState;
+        txtMist.innerText = d.mistState ? 'เปิด (ON)' : 'ปิด (OFF)';
+        txtMist.className = `actuator-card-state ${d.mistState ? 'on' : 'off'}`;
+      }
+
+      // Auto / Manual Mode
+      if (d.autoMode !== undefined) {
+        const btnMode = document.getElementById(`btn-mode-${mac}`);
+        if (d.autoMode) {
+          btnMode.className = 'btn-action auto-btn';
+          btnMode.innerText = '🔄 AUTO';
+        } else {
+          btnMode.className = 'btn-action manual-btn';
+          btnMode.innerText = '✋ MANUAL';
+        }
+      }
+
+      // Button counts
+      if (d.fanBtnCount !== undefined || d.mistBtnCount !== undefined) {
+        document.getElementById(`txt-btncounts-${mac}`).innerText = `SW_F: ${d.fanBtnCount || 0} | SW_M: ${d.mistBtnCount || 0}`;
+      }
+    }
+
+    // 5. Fleet KPI Calculations
+    function updateFleetKPIs() {
+      let total = nodes.size;
+      let online = 0;
+      let offline = 0;
+      let sumTemp = 0;
+      let sumHum = 0;
+      let countTemp = 0;
+      let countHum = 0;
+      let activeFans = 0;
+      let activeMists = 0;
+
+      nodes.forEach(node => {
+        if (node.isOnline) {
+          online++;
+          if (node.data.temperature) { sumTemp += parseFloat(node.data.temperature); countTemp++; }
+          if (node.data.humidity) { sumHum += parseFloat(node.data.humidity); countHum++; }
+          if (node.data.fanState) activeFans++;
+          if (node.data.mistState) activeMists++;
+        } else {
+          offline++;
+        }
+      });
+
+      document.getElementById('kpiTotalNodes').innerText = total;
+      document.getElementById('kpiOnlineNodes').innerText = `${online} Online`;
+      document.getElementById('kpiOfflineNodes').innerText = `${offline} Offline`;
+
+      document.getElementById('kpiAvgTemp').innerHTML = countTemp > 0 ? (sumTemp / countTemp).toFixed(1) + ' <span style="font-size: 1rem; color: var(--text-dim);">°C</span>' : '--';
+      document.getElementById('kpiAvgHum').innerHTML = countHum > 0 ? (sumHum / countHum).toFixed(1) + ' <span style="font-size: 1rem; color: var(--text-dim);">%</span>' : '--';
+
+      document.getElementById('kpiActiveRelays').innerText = `${activeFans + activeMists} ทำงาน`;
+      document.getElementById('kpiActiveFans').innerText = `🌀 พัดลม: ${activeFans}`;
+      document.getElementById('kpiActiveMists').innerText = `🌫️ พ่นหมอก: ${activeMists}`;
+    }
+
+    // 6. Node Heartbeat & Status Watchdog
+    function checkNodeHeartbeats() {
+      const now = Date.now();
+      nodes.forEach(node => {
+        const diffSec = Math.round((now - node.lastSeen) / 1000);
+        const card = document.getElementById(`node-card-${node.mac}`);
+        const badge = document.getElementById(`badge-status-${node.mac}`);
+        const hbText = document.getElementById(`txt-heartbeat-${node.mac}`);
+
+        if (diffSec > 15) {
+          // Mark as Offline
+          node.isOnline = false;
+          if (card) card.classList.add('offline');
+          if (badge) badge.innerHTML = `<span class="status-dot" style="background:#ef4444;"></span> <span style="color:#fda4af;">Offline</span>`;
+          if (hbText) hbText.innerText = `⏱️ ขาดการติดต่อ ${diffSec}s ที่แล้ว`;
+        } else {
+          node.isOnline = true;
+          if (card) card.classList.remove('offline');
+          if (badge) badge.innerHTML = `<span class="status-dot active"></span> <span style="color:#6ee7b7;">Online</span>`;
+          if (hbText) hbText.innerText = `⏱️ อัปเดต ${diffSec}s ที่แล้ว`;
+        }
+      });
+
+      updateFleetKPIs();
+    }
+
+    // 7. Command Dispatching (Individual & Broadcast)
+    function sendNodeCommand(mac, payload) {
+      if (!mqttClient || !mqttClient.connected) {
+        log('✕ Cannot send command: MQTT Disconnected');
+        return;
+      }
+      const targetTopic = `esp-node/${mac}/control/cmd`;
+      const jsonStr = JSON.stringify(payload);
+      mqttClient.publish(targetTopic, jsonStr);
+      log(`📤 Published to [${targetTopic}]: ${payload.command}`);
+    }
+
+    function toggleNodeMode(mac) {
+      const node = nodes.get(mac);
+      if (!node) return;
+      const nextMode = !node.data.autoMode;
+      sendNodeCommand(mac, { command: 'set_mode', autoMode: nextMode });
+    }
+
+    // Batch Fleet Actions
+    function broadcastMode(isAuto) {
+      nodes.forEach(node => {
+        sendNodeCommand(node.mac, { command: 'set_mode', autoMode: isAuto });
+      });
+      log(`📢 Broadcasted [set_mode: ${isAuto ? 'AUTO' : 'MANUAL'}] to all ${nodes.size} nodes`);
+    }
+
+    function broadcastRelay(type, state) {
+      const cmd = type === 'fan' ? 'set_fan' : 'set_mist';
+      nodes.forEach(node => {
+        sendNodeCommand(node.mac, { command: cmd, state: state });
+      });
+      log(`📢 Broadcasted [${cmd}: ${state ? 'ON' : 'OFF'}] to all ${nodes.size} nodes`);
+    }
+
+    function applyBatchSetpoints() {
+      const t = parseFloat(document.getElementById('batchSliderTemp').value);
+      const h = parseFloat(document.getElementById('batchSliderMist').value);
+
+      nodes.forEach(node => {
+        sendNodeCommand(node.mac, {
+          command: 'set_threshold',
+          tempThreshold: t,
+          mistThreshold: h
+        });
+      });
+
+      closeModal('modalBatchSetpoints');
+      log(`🎯 Broadcasted new Setpoints (T: ${t}°C, H: ${h}%) to all ${nodes.size} nodes`);
+    }
+
+    // 8. Device Alias & Modals
+    function promptRenameNode(mac) {
+      const node = nodes.get(mac);
+      if (!node) return;
+      const newName = prompt(`กรุณาระบุชื่อใหม่สำหรับโหนด [${mac}]:`, node.alias);
+      if (newName && newName.trim().length > 0) {
+        node.alias = newName.trim();
+        nodeAliases[mac] = node.alias;
+        localStorage.setItem('fleet_node_aliases', JSON.stringify(nodeAliases));
+        document.getElementById(`alias-text-${mac}`).innerText = node.alias;
+        log(`✏️ Renamed node ${mac} -> ${node.alias}`);
+      }
+    }
+
+    function openNodeDetail(mac) {
+      const node = nodes.get(mac);
+      if (!node) return;
+      activeDetailMac = mac;
+
+      document.getElementById('modalNodeTitle').innerText = `📋 รายละเอียดโหนด: ${node.alias} (${mac})`;
+      document.getElementById('modalInputAlias').value = node.alias;
+
+      updateModalData(node);
+      document.getElementById('modalNodeDetail').classList.add('open');
+    }
+
+    function updateModalData(node) {
+      const d = node.data;
+      document.getElementById('modalValTemp').innerText = d.temperature || '--';
+      document.getElementById('modalValHum').innerText = d.humidity || '--';
+      document.getElementById('modalValPot').innerText = d.analogPercent || '--';
+
+      if (d.tempThreshold) {
+        document.getElementById('modalSliderTempThresh').value = d.tempThreshold;
+        document.getElementById('modalLblTempThresh').innerText = d.tempThreshold + ' °C';
+      }
+      if (d.mistThreshold) {
+        document.getElementById('modalSliderMistThresh').value = d.mistThreshold;
+        document.getElementById('modalLblMistThresh').innerText = d.mistThreshold + ' %';
+      }
+    }
+
+    function saveNodeDetailChanges() {
+      if (!activeDetailMac) return;
+      const node = nodes.get(activeDetailMac);
+      if (!node) return;
+
+      const newAlias = document.getElementById('modalInputAlias').value.trim();
+      if (newAlias.length > 0) {
+        node.alias = newAlias;
+        nodeAliases[activeDetailMac] = node.alias;
+        localStorage.setItem('fleet_node_aliases', JSON.stringify(nodeAliases));
+        document.getElementById(`alias-text-${activeDetailMac}`).innerText = node.alias;
+      }
+
+      const t = parseFloat(document.getElementById('modalSliderTempThresh').value);
+      const h = parseFloat(document.getElementById('modalSliderMistThresh').value);
+
+      sendNodeCommand(activeDetailMac, {
+        command: 'set_threshold',
+        tempThreshold: t,
+        mistThreshold: h
+      });
+
+      closeModal('modalNodeDetail');
+    }
+
+    function openBatchThresholdModal() {
+      document.getElementById('modalBatchSetpoints').classList.add('open');
+    }
+
+    function openSettingsModal() {
+      document.getElementById('cfgMqttServer').value = fleetConfig.mqttServer;
+      document.getElementById('cfgMqttPort').value = fleetConfig.mqttPort;
+      document.getElementById('cfgMqttUser').value = fleetConfig.mqttUser;
+      document.getElementById('cfgMqttPass').value = fleetConfig.mqttPass;
+      document.getElementById('cfgSubWildcard').value = fleetConfig.subWildcard;
+      document.getElementById('modalSettings').classList.add('open');
+    }
+
+    function saveSettings(e) {
+      e.preventDefault();
+      fleetConfig.mqttServer = document.getElementById('cfgMqttServer').value.trim();
+      fleetConfig.mqttPort = parseInt(document.getElementById('cfgMqttPort').value);
+      fleetConfig.mqttUser = document.getElementById('cfgMqttUser').value.trim();
+      fleetConfig.mqttPass = document.getElementById('cfgMqttPass').value;
+      fleetConfig.subWildcard = document.getElementById('cfgSubWildcard').value.trim();
+
+      localStorage.setItem('fleet_mqtt_config', JSON.stringify(fleetConfig));
+      closeModal('modalSettings');
+      connectFleetMQTT();
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('open');
+      if (modalId === 'modalNodeDetail') activeDetailMac = null;
+    }
+
+    function closeModalOnOutsideClick(e, modalId) {
+      if (e.target.id === modalId) closeModal(modalId);
+    }
+
+    function filterDeviceGrid() {
+      const q = document.getElementById('inputSearch').value.toLowerCase().trim();
+      nodes.forEach(node => {
+        const card = document.getElementById(`node-card-${node.mac}`);
+        if (!card) return;
+        const match = node.alias.toLowerCase().includes(q) || node.mac.toLowerCase().includes(q);
+        card.style.display = match ? 'flex' : 'none';
+      });
+    }
+
+    // 9. Virtual Node Simulator (Allows instant testing with 3 simulated ESP nodes)
+    const virtualMacs = ['246F28A10101', '246F28B20202', '246F28C30303'];
+    const virtualNames = ['โรงเรือนเมล่อน A1 (Sim)', 'แปลงผักไฮโดรโปนิกส์ B2 (Sim)', 'โซนเพาะเห็ดนางรม C3 (Sim)'];
+
+    function toggleVirtualNodes() {
+      isVirtualActive = !isVirtualActive;
+      const btn = document.getElementById('btnVirtualNodes');
+      const lbl = document.getElementById('lblVirtualBtn');
+
+      if (isVirtualActive) {
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-secondary');
+        lbl.innerText = 'ปิดโหมดจำลอง (Stop Sim)';
+        log('🧪 Started Virtual Test Nodes Simulator (3 Virtual ESP Nodes).');
+
+        virtualSimInterval = setInterval(() => {
+          virtualMacs.forEach((mac, i) => {
+            if (!nodeAliases[mac]) {
+              nodeAliases[mac] = virtualNames[i];
+            }
+            const simTemp = (27 + Math.sin(Date.now() / 10000 + i) * 5).toFixed(1);
+            const simHum = (60 + Math.cos(Date.now() / 8000 + i) * 15).toFixed(1);
+            const simPot = Math.floor(40 + Math.random() * 20);
+
+            const simPacket = {
+              mac: mac,
+              temperature: simTemp,
+              humidity: simHum,
+              analogPercent: simPot,
+              fanState: simTemp > 30.0,
+              mistState: simHum < 60.0,
+              tempThreshold: 30.0,
+              mistThreshold: 60.0,
+              autoMode: true,
+              fanBtnCount: Math.floor(Math.random() * 5),
+              mistBtnCount: Math.floor(Math.random() * 3),
+              source: 'virtual-sim'
+            };
+
+            handleNodeTelemetry(`esp-node/${mac}/state`, simPacket);
+          });
+        }, 2500);
+      } else {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-secondary');
+        lbl.innerText = 'เปิดโหมดจำลอง (Sim Nodes)';
+        clearInterval(virtualSimInterval);
+        log('🧪 Stopped Virtual Test Nodes Simulator.');
+      }
+    }
+
+    // Helper functions
+    function log(msg) {
+      const box = document.getElementById('logBox');
+      const timeStr = new Date().toLocaleTimeString();
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `<span class="log-time">[${timeStr}]</span> ${escapeHtml(msg)}`;
+      box.appendChild(item);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', initFleet);
+  </script>
+</body>
+</html>
