@@ -322,7 +322,7 @@ void updateOledDisplay(const char* statusMsg) {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  // Line 1: Header + Network Info
+  // Line 1: Network IP
   display.setCursor(0, 0);
   if (isAPMode) {
     display.print("AP: 192.168.4.1");
@@ -330,27 +330,31 @@ void updateOledDisplay(const char* statusMsg) {
     display.printf("IP: %s", WiFi.localIP().toString().c_str());
   }
 
-  // Line 2: MAC & WS/MQTT Badges
-  display.setCursor(0, 12);
-  display.printf("ID:%s W:%d M:%s", cleanMac.substring(cleanMac.length() > 6 ? cleanMac.length() - 6 : 0).c_str(), wsClientCount, mqttClient.connected() ? "ON" : "OFF");
+  // Line 2: Full Hardware MAC Address
+  display.setCursor(0, 10);
+  display.printf("MAC: %s", deviceMac.c_str());
 
-  // Line 3: Divider
-  display.drawLine(0, 22, 128, 22, SSD1306_WHITE);
+  // Line 3: Protocol Badges (WS Clients & MQTT Connection)
+  display.setCursor(0, 20);
+  display.printf("WS:%d Cli | MQTT:%s", wsClientCount, mqttClient.connected() ? "ON" : "OFF");
 
-  // Line 4: Temperature & Humidity
-  display.setCursor(0, 26);
+  // Line 4: Divider
+  display.drawLine(0, 29, 128, 29, SSD1306_WHITE);
+
+  // Line 5: Temperature & Humidity Sensors
+  display.setCursor(0, 33);
   if (isnan(temperature) || isnan(humidity)) {
     display.print("Sensor: DHT Error");
   } else {
-    display.printf("T:%.1fC H:%.1f%%", temperature, humidity);
+    display.printf("T:%.1fC  H:%.1f%%", temperature, humidity);
   }
 
-  // Line 5: Analog & Thresholds
-  display.setCursor(0, 38);
-  display.printf("Pot:%.0f%% T:%.0f H:%.0f", analogPercent, tempThreshold, mistThreshold);
+  // Line 6: Analog ADC & Thresholds
+  display.setCursor(0, 43);
+  display.printf("Pot:%.0f%% Set:%.0fC/%.0f%%", analogPercent, tempThreshold, mistThreshold);
 
-  // Line 6: Actuator States & Button Count
-  display.setCursor(0, 50);
+  // Line 7: Actuator Relays & Button Press Count
+  display.setCursor(0, 54);
   display.printf("FAN:%s MST:%s SW:%d", fanState ? "ON" : "OFF", mistState ? "ON" : "OFF", toggleCount);
 
   if (strlen(statusMsg) > 0) {
@@ -563,10 +567,11 @@ void setup() {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 10);
+    display.setCursor(0, 4);
     display.println(" LAB6_Perform IoT");
     display.println(" Starting System...");
-    display.printf(" ID: %s\n", cleanMac.c_str());
+    display.printf(" MAC: %s\n", deviceMac.c_str());
+    display.printf(" ID:  %s\n", cleanMac.c_str());
     display.display();
   }
 
