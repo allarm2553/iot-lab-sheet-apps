@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚙️ MCU Hardware & Network Configuration - LAB6_Perform</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>⚙️ MCU Hardware & Network Configuration</h1>
+        <p>ระบบกำหนดค่าเครือข่าย พินฮาร์ดแวร์ และสร้าง MQTT Topic อัตโนมัติด้วย MAC Address</p>
+      </div>
+      <div>
+        <a href="index.html" class="btn-secondary">📊 กลับหน้า Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Alert Box -->
+    <div id="alertBox" class="alert"></div>
+
+    <form id="configForm" onsubmit="saveConfig(event)">
+      <!-- 1. Network & WiFi Settings -->
+      <section class="config-section">
+        <h2>📶 1. การตั้งค่า Wi-Fi (Network Configuration)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="ssid">ชื่อสัญญาณ Wi-Fi (SSID):</label>
+            <input type="text" id="ssid" name="ssid" class="form-control" placeholder="เช่น iot_512 หรือ Home-WiFi" required>
+          </div>
+          <div class="form-group">
+            <label for="password">รหัสผ่าน Wi-Fi (Password):</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="เว้นว่างหากไม่ต้องการเปลี่ยนรหัสผ่าน">
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. MQTT Broker Settings & Auto MAC Topics -->
+      <section class="config-section">
+        <h2>☁️ 2. การตั้งค่า Cloud MQTT & หัวข้อ Topic อัตโนมัติ</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="mqttServer">MQTT Server (Broker URL / IP):</label>
+            <input type="text" id="mqttServer" name="mqttServer" class="form-control" value="broker.emqx.io" required>
+          </div>
+          <div class="form-group">
+            <label for="mqttPort">MQTT Port:</label>
+            <input type="number" id="mqttPort" name="mqttPort" class="form-control" value="1883" required>
+          </div>
+          <div class="form-group">
+            <label for="mqttUser">MQTT Username:</label>
+            <input type="text" id="mqttUser" name="mqttUser" class="form-control" placeholder="เช่น elec">
+          </div>
+          <div class="form-group">
+            <label for="mqttPassword">MQTT Password:</label>
+            <input type="password" id="mqttPassword" name="mqttPassword" class="form-control" placeholder="เช่น elec1234">
+          </div>
+        </div>
+
+        <!-- Dynamic MAC & Generated Topics Preview -->
+        <div class="topic-preview-box">
+          <div class="topic-row">
+            <span><strong>Device MAC Address:</strong></span>
+            <span id="txtMac" class="topic-badge">กำลังโหลด...</span>
+          </div>
+          <div class="topic-row">
+            <span><strong>Subscribe Topic (รับคำสั่ง):</strong></span>
+            <span id="txtSubTopic" class="topic-badge">esp-node/--/control/cmd</span>
+          </div>
+          <div class="topic-row">
+            <span><strong>Publish Topic (ส่งสถานะ):</strong></span>
+            <span id="txtPubTopic" class="topic-badge">esp-node/--/state</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+            💡 <em>ระบบจะสร้าง Topic โดยนำ Clean MAC Address มาต่อท้ายอัตโนมัติ เพื่อป้องกันปัญหา Topic ชนกันในระบบ Cloud Broker</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- 3. Hardware Pinout & Sensor Config -->
+      <section class="config-section">
+        <h2>🔌 3. การกำหนดขาพินฮาร์ดแวร์ (Hardware Pin Assignment)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dhtType">ชนิดเซ็นเซอร์ DHT (DHT Type):</label>
+            <select id="dhtType" name="dhtType" class="form-control">
+              <option value="11">DHT11 (สีฟ้า / เซ็นเซอร์พื้นฐาน)</option>
+              <option value="22">DHT22 / AM2302 (สีขาว / ความแม่นยำสูง)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dhtPin">ขาเชื่อมต่อ DHT Sensor (DHT Pin):</label>
+            <input type="number" id="dhtPin" name="dhtPin" class="form-control" value="33" required>
+          </div>
+
+          <div class="form-group">
+            <label for="analogPin">ขาแอนะล็อก ADC (ANALOG_PIN):</label>
+            <input type="number" id="analogPin" name="analogPin" class="form-control" value="36" required>
+          </div>
+
+          <div class="form-group">
+            <label for="fanRelayPin">ขารีเลย์พัดลม (FAN_RELAY_PIN):</label>
+            <input type="number" id="fanRelayPin" name="fanRelayPin" class="form-control" value="5" required>
+          </div>
+
+          <div class="form-group">
+            <label for="mistRelayPin">ขารีเลย์พ่นหมอก (MIST_RELAY_PIN):</label>
+            <input type="number" id="mistRelayPin" name="mistRelayPin" class="form-control" value="23" required>
+          </div>
+
+          <div class="form-group">
+            <label for="buttonPin">ขาสวิตช์ปุ่มกด (BUTTON_PIN):</label>
+            <input type="number" id="buttonPin" name="buttonPin" class="form-control" value="0" required>
+          </div>
+        </div>
+      </section>
+
+      <!-- Submit & Reset Actions -->
+      <div style="display: flex; gap: 16px; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" onclick="resetToFactory()" style="color: #fda4af;">🔄 คืนค่าเริ่มต้น (Factory Reset)</button>
+        <button type="submit" id="btnSubmit" class="btn-primary">💾 บันทึกและรีบูตบอร์ด (Save & Reboot)</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let currentConfig = {};
+
+    // Load initial config from ESP32 REST API
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          currentConfig = await res.json();
+          document.getElementById('ssid').value = currentConfig.ssid || '';
+          document.getElementById('mqttServer').value = currentConfig.mqttServer || 'broker.emqx.io';
+          document.getElementById('mqttPort').value = currentConfig.mqttPort || 1883;
+          document.getElementById('mqttUser').value = currentConfig.mqttUser || '';
+          document.getElementById('dhtType').value = currentConfig.dhtType || 11;
+          document.getElementById('dhtPin').value = currentConfig.dhtPin || 33;
+          document.getElementById('analogPin').value = currentConfig.analogPin || 36;
+          document.getElementById('fanRelayPin').value = currentConfig.fanRelayPin || 5;
+          document.getElementById('mistRelayPin').value = currentConfig.mistRelayPin || 23;
+          document.getElementById('buttonPin').value = currentConfig.buttonPin || 0;
+
+          document.getElementById('txtMac').innerText = currentConfig.mac + ' (' + currentConfig.cleanMac + ')';
+          document.getElementById('txtSubTopic').innerText = currentConfig.subTopic;
+          document.getElementById('txtPubTopic').innerText = currentConfig.pubTopic;
+        }
+      } catch (e) {
+        console.warn('Cannot fetch /api/config (Offline demo mode)');
+        document.getElementById('txtMac').innerText = '24:6F:28:AB:CD:EF';
+        document.getElementById('txtSubTopic').innerText = 'esp-node/246F28ABCDEF/control/cmd';
+        document.getElementById('txtPubTopic').innerText = 'esp-node/246F28ABCDEF/state';
+      }
+    }
+
+    // Save configuration via POST /api/config
+    async function saveConfig(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerText = '⏳ กำลังบันทึกข้อมูล...';
+
+      const payload = {
+        ssid: document.getElementById('ssid').value.trim(),
+        password: document.getElementById('password').value,
+        mqttServer: document.getElementById('mqttServer').value.trim(),
+        mqttPort: parseInt(document.getElementById('mqttPort').value),
+        mqttUser: document.getElementById('mqttUser').value.trim(),
+        mqttPassword: document.getElementById('mqttPassword').value,
+        dhtType: parseInt(document.getElementById('dhtType').value),
+        dhtPin: parseInt(document.getElementById('dhtPin').value),
+        analogPin: parseInt(document.getElementById('analogPin').value),
+        fanRelayPin: parseInt(document.getElementById('fanRelayPin').value),
+        mistRelayPin: parseInt(document.getElementById('mistRelayPin').value),
+        buttonPin: parseInt(document.getElementById('buttonPin').value)
+      };
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        showAlert(data.message || 'บันทึกสำเร็จ! กำลังรีบูตระบบ...', 'success');
+
+        let seconds = 8;
+        const timer = setInterval(() => {
+          showAlert(`บันทึกสำเร็จ! บอร์ดกำลังรีบูตและเชื่อมต่อ Wi-Fi ใหม่ (กำลังโหลดหน้า Dashboard ในอีก ${seconds} วินาที...)`, 'success');
+          seconds--;
+          if (seconds < 0) {
+            clearInterval(timer);
+            window.location.href = 'index.html';
+          }
+        }, 1000);
+      } catch (err) {
+        showAlert('เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง', 'danger');
+        btn.disabled = false;
+        btn.innerText = '💾 บันทึกและรีบูตบอร์ด (Save & Reboot)';
+      }
+    }
+
+    async function resetToFactory() {
+      if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการคืนค่าคอนฟิกเริ่มต้นของฮาร์ดแวร์ทั้งหมด?')) return;
+      try {
+        const res = await fetch('/api/reset', { method: 'POST' });
+        const data = await res.json();
+        showAlert(data.message || 'คืนค่าเริ่มต้นเรียบร้อย กำลังรีบูต...', 'success');
+        setTimeout(() => { window.location.href = 'config.html'; }, 3000);
+      } catch (err) {
+        showAlert('ไม่สามารถส่งคำสั่งรีเซ็ตได้', 'danger');
+      }
+    }
+
+    function showAlert(msg, type) {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = 'alert alert-' + type;
+      alertBox.innerText = msg;
+      alertBox.style.display = 'block';
+    }
+
+    window.addEventListener('DOMContentLoaded', loadConfig);
+  </script>
+</body>
+</html>

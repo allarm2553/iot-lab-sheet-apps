@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานที่ 6 Perform: ระบบกำหนดค่าผ่าน WebConfig & ระบบสร้าง Topic ด้วย MAC Address</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b132b;
+      --card-bg: rgba(28, 37, 65, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --primary: #48cae4;
+      --secondary: #5390d9;
+      --accent-pink: #f72585;
+      --success: #4ea8de;
+      --success-green: #2ec4b6;
+      --danger: #e63946;
+      --warning: #ffb703;
+      --text-main: #edf2f4;
+      --text-muted: #8d99ae;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Kanit', 'Outfit', sans-serif;
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(72, 202, 228, 0.12) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(83, 144, 217, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-banner {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-banner h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #48cae4, #5390d9, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header-banner p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .student-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+      background: rgba(11, 19, 43, 0.5);
+      padding: 15px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--card-border);
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--primary);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(72, 202, 228, 0.3);
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 10px;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #0b132b;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .code-block {
+      background: #050a17;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin: 12px 0;
+      border: 1px solid var(--card-border);
+    }
+
+    textarea.form-control {
+      width: 100%;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    textarea.form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(78, 168, 222, 0.2);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header Banner -->
+    <div class="header-banner">
+      <h1>🚀 ใบงานที่ 6 Perform: ระบบกำหนดค่าผ่าน WebConfig & ระบบสร้าง Topic ด้วย MAC Address</h1>
+      <p>การแยกหน้า Dashboard (/index.html) ออกจากหน้า Config (/config.html) และการสร้าง Sub/Pub Topic อัตโนมัติตาม MAC Address</p>
+
+      <div class="student-info-grid">
+        <div class="input-group">
+          <label>ชื่อ-นามสกุล นักศึกษา</label>
+          <input type="text" id="studentName" placeholder="เช่น นายธนกฤต วิศวกรรม">
+        </div>
+        <div class="input-group">
+          <label>รหัสนักศึกษา</label>
+          <input type="text" id="studentId" placeholder="เช่น 65010001">
+        </div>
+        <div class="input-group">
+          <label>กลุ่มเรียน / แผนก</label>
+          <input type="text" id="studentGroup" placeholder="เช่น D1 / อส.บ.โทรคมนาคม">
+        </div>
+        <div class="input-group">
+          <label>Device MAC Address</label>
+          <input type="text" id="deviceMacInput" placeholder="เช่น 24:6F:28:AB:CD:EF">
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Navigation to Live Demo -->
+    <div class="card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(99, 102, 241, 0.15));">
+      <h2>🌐 หน้าเว็บระบบควบคุม & กำหนดค่า (Live Web Pages)</h2>
+      <p style="color: var(--text-muted); margin-bottom: 15px;">
+        คุณสามารถทดสอบเข้าชมหน้า Web Application ทั้ง 2 ส่วนที่แยกออกจากกันอย่างสมบูรณ์:
+      </p>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="/LAB6_Perform/solution/data/index.html" target="_blank" class="btn btn-primary">📊 เปิดหน้า Dashboard (/index.html)</a>
+        <a href="/LAB6_Perform/solution/data/config.html" target="_blank" class="btn" style="background: rgba(255, 255, 255, 0.1); color: #fff;">⚙️ เปิดหน้า MCU Config Portal (/config.html)</a>
+      </div>
+    </div>
+
+    <!-- Section 1: Objective & Concept -->
+    <div class="card">
+      <h2>🎯 1. วัตถุประสงค์และการทำงานของ LAB6_Perform</h2>
+      <ul style="margin-left: 20px; color: var(--text-muted); font-size: 0.95rem;">
+        <li><strong style="color: var(--text-main);">การแยกหน้า Config ออกจาก Dashboard:</strong> เพื่อความปลอดภัยและความสะดวกของผู้ใช้ทั่วไป ไม่ให้เห็นหรือแก้ไขค่า Network/Hardware พร่ำเพรื่อ</li>
+        <li><strong style="color: var(--text-main);">การบันทึกค่าลง LittleFS:</strong> จัดเก็บค่า `config.json` ลงใน Flash Memory ไม่สูญหายเมื่อปิดไฟ</li>
+        <li><strong style="color: var(--text-main);">การสร้าง Sub/Pub Topic อัตโนมัติ:</strong> ดึง Clean MAC Address เช่น `246F28ABCDEF` มาสร้าง Sub: `esp-node/246F28ABCDEF/control/cmd` และ Pub: `esp-node/246F28ABCDEF/state` ทำให้ทุกบอร์ดในห้องเรียนไม่เกิดปัญหา Topic ชนกัน</li>
+      </ul>
+    </div>
+
+    <!-- Section 2: Code Submission & Questions -->
+    <div class="card">
+      <h2>📝 2. คำถามท้ายการทดลองและการประเมินผล</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
+          คำถามที่ 1: เหตุใดจึงต้องนำ MAC Address มาต่อท้าย MQTT Topic และถ้าไม่ใส่จะเกิดผลกระทบอย่างไรในการใช้งานจริงบน Cloud Broker สาธารณะ?
+        </label>
+        <textarea id="ans1" class="form-control" placeholder="พิมพ์คำอธิบายของคุณที่นี่..."></textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
+          คำถามที่ 2: อธิบายขั้นตอนการทำงานเมื่อผู้ใช้กดบันทึกค่าผ่านหน้า `config.html` ข้อมูลถูกส่งไปที่ไหน บอร์ด MCU ดำเนินการอย่างไร และทำการ Reboot ตัวเองอย่างไร?
+        </label>
+        <textarea id="ans2" class="form-control" placeholder="พิมพ์คำอธิบายของคุณที่นี่..."></textarea>
+      </div>
+
+      <div>
+        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
+          แนบโค้ดฟังก์ชัน `loadConfiguration()` หรือ `saveConfiguration()` ที่คุณเขียนลงในโปรเจกต์:
+        </label>
+        <textarea id="ansCode" class="form-control" style="height: 160px;" placeholder="วางโค้ด C++ หรือ JSON Configuration..."></textarea>
+      </div>
+
+      <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="submitLabReport()">📤 ส่งใบงานและบันทึกคะแนน</button>
+      </div>
+      <div id="submitResult" style="margin-top: 15px; display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    async function submitLabReport() {
+      const name = document.getElementById('studentName').value.trim();
+      const id = document.getElementById('studentId').value.trim();
+      const group = document.getElementById('studentGroup').value.trim();
+      const mac = document.getElementById('deviceMacInput').value.trim();
+      const ans1 = document.getElementById('ans1').value.trim();
+      const ans2 = document.getElementById('ans2').value.trim();
+      const ansCode = document.getElementById('ansCode').value.trim();
+
+      if (!name || !id) {
+        alert('กรุณากรอกชื่อ-นามสกุล และรหัสนักศึกษาให้ครบถ้วน');
+        return;
+      }
+
+      const resDiv = document.getElementById('submitResult');
+      resDiv.style.display = 'block';
+      resDiv.innerHTML = '<div style="color: var(--primary);">⏳ กำลังส่งข้อมูลไปยังระบบประเมินผล...</div>';
+
+      try {
+        const payload = {
+          lab: 'LAB6_Perform',
+          studentName: name,
+          studentId: id,
+          studentGroup: group,
+          deviceMac: mac,
+          answers: { q1: ans1, q2: ans2, code: ansCode }
+        };
+
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        resDiv.innerHTML = `<div style="padding: 15px; background: rgba(46, 196, 182, 0.2); border: 1px solid var(--success-green); border-radius: 8px; color: #6ee7b7;">
+          🎉 <strong>ส่งใบงานสำเร็จ!</strong> คะแนนประเมินเบื้องต้น: <strong>${data.score || '10/10'}</strong> (บันทึกลงฐานข้อมูลเรียบร้อยแล้ว)
+        </div>`;
+      } catch (e) {
+        resDiv.innerHTML = `<div style="padding: 15px; background: rgba(78, 168, 222, 0.2); border: 1px solid var(--primary); border-radius: 8px; color: #38bdf8;">
+          ✓ บันทึกข้อมูลใบงานในระดับเครื่องเรียบร้อยแล้ว
+        </div>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -136,6 +136,12 @@ const gradingRules = {
     q1Keywords: ['latency|ความหน่วง|เร็ว|เรียลไทม์|จุดต่อจุด|direct|lan|local', 'อินเทอร์เน็ต|internet|cloud|ข้ามเครือข่าย|nat|firewall|remote|ระยะไกล', 'คู่ขนาน|hybrid|สำรอง|fallback|เสถียร'],
     q2Keywords: ['overhead|หัวข้อมูล|โครงสร้างข้อมูล|json', 'qos|quality of service|retained|last will|lwt', 'broadcast|multicast|subscribe|publish']
   },
+  'LAB6_Perform': {
+    blankKeywords: ['LittleFS.open', 'config.json', 'WiFi.macAddress', 'subTopic|pubTopic'],
+    challengeKeywords: ['config.html|config.json|loadConfiguration|saveConfiguration', 'WiFi.macAddress|cleanMac|esp-node', 'dhtType|dhtPin|analogPin|fanRelayPin|mistRelayPin', 'WebSocketsServer|PubSubClient|broadcastAndPublishState'],
+    q1Keywords: ['ชน|ซ้ำ|ทับ|unique|เจาะจง|แยก|broker|หลายเครื่อง|ไอดี', 'mac|address|ฮาร์ดแวร์|ประจำตัว'],
+    q2Keywords: ['post|api/config|json|littlefs|บันทึก', 'reboot|restart|รีบูต|รีสตาร์ท|ESP.restart']
+  },
   'lab6': {
     challengeKeywords: ['WiFi', 'connect|reconnect', 'non-blocking|millis|nonblocking', 'webSocket|client', 'elec|elec1234'],
     q1Keywords: ['non-blocking', 'ไม่บล็อก', 'หลุด', 'ค้าง', 'ทำงานต่อ', 'loop'],
@@ -333,15 +339,16 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Routing for lab index pages
-const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
+const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev', 'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
 validLabs.forEach(lab => {
   app.get(`/${lab}`, (req, res) => {
-    const targetFolder = (lab === 'lab6_dev') ? 'LAB6_Dev' : (lab === 'lab5_dev') ? 'LAB5_Dev' : lab;
+    const targetFolder = (lab === 'lab6_perform') ? 'LAB6_Perform' : (lab === 'lab6_dev') ? 'LAB6_Dev' : (lab === 'lab5_dev') ? 'LAB5_Dev' : lab;
     serveInjectedHtml(targetFolder, res);
   });
 });
 
 // Serve solution data folders for dashboards
+app.use('/LAB6_Perform/solution/data', express.static(path.join(__dirname, 'LAB6_Perform', 'solution', 'data')));
 app.use('/LAB6_Dev/solution/data', express.static(path.join(__dirname, 'LAB6_Dev', 'solution', 'data')));
 app.use('/LAB5_Dev/solution/data', express.static(path.join(__dirname, 'LAB5_Dev', 'solution', 'data')));
 app.use('/lab4/solution/data', express.static(path.join(__dirname, 'lab4', 'solution', 'data')));

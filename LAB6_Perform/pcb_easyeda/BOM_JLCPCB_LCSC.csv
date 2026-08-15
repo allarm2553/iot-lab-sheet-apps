@@ -1,0 +1,22 @@
+Comment,Designator,Footprint,LCSC Part Number,Manufacturer,Quantity
+ESP32 NodeMCU-32S (30 Pin Socket),U1,DIP-30-2.54mm,C225439,Generic,1
+AMS1117-3.3 LDO Regulator,U2,SOT-223,C6186,Advanced Monolithic Systems,1
+PC817C Optocoupler,U3 U4,DIP-4,C4998,Sharp,2
+SS8050 NPN Transistor,Q1 Q2,SOT-23,C2146,CJ,2
+SRD-05VDC-SL-C 5V Relay,K1 K2,RELAY-5P-SRD,C39818,Songle,2
+1N4007 (M7) Flyback Diode,D1 D2,SMA,C18981,MDD,2
+SS34 Schottky Diode 3A,D3,SMA,C3498,MDD,1
+LED Red (Power 3.3V),LED1,0805,C84256,Everlight,1
+LED Green (Fan Active),LED2,0805,C84260,Everlight,1
+LED Blue (Mist Active),LED3,0805,C84263,Everlight,1
+Resistor 1k 1% 1/8W,R5 R6 R7 R8 R9,0805,C17513,UniOhm,5
+Resistor 4.7k 1% 1/8W,R1 R2,0805,C25900,UniOhm,2
+Resistor 10k 1% 1/8W,R3 R4,0805,C25804,UniOhm,2
+Capacitor 100uF 16V Electrolytic,C1 C2,CAP-SMD-6.3x5.4mm,C3340,Lelon,2
+Capacitor 0.1uF (100nF) 50V,C3 C4 C5 C6 C7,0805,C49678,Samsung,5
+USB Type-C 16-Pin Receptacle,J1,TYPE-C-16P,C165948,Korean Hroparts,1
+Screw Terminal Block 3-Pin 5.08mm,TB1 TB2,TB-5.08-3P,C8475,Cixi Kefa,2
+Tactile Switch 6x6mm (SW1),SW1,SW-SMD-6x6mm,C318884,XKB,1
+OLED 0.96 I2C 4-Pin Socket,J_OLED,HDR-1x4-2.54mm,C225434,Generic,1
+DHT11/DHT22 3-Pin Socket,J_DHT,HDR-1x3-2.54mm,C225433,Generic,1
+VR Potentiometer 3-Pin Socket,J_VR,HDR-1x3-2.54mm,C225433,Generic,1

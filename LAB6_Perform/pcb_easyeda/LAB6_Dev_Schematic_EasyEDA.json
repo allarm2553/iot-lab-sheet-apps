@@ -1,0 +1,144 @@
+{
+  "head": {
+    "docType": "1",
+    "editorVersion": "6.5.40",
+    "newUID": "lab6_dev_esp32_iot_board",
+    "c_para": {
+      "title": "LAB6_Dev Dual-Mode IoT Controller",
+      "company": "IoT Lab Sheet Apps",
+      "author": "Antigravity AI",
+      "date": "2026-08-15"
+    }
+  },
+  "canvas": "CA~1200~800~#FFFFFF~yes~#CCCCCC~10~10~line~10~mm~1~none~0~#000000~none~0.5~0~0~0~0~0~0~0~0",
+  "description": "EasyEDA Source Schematic for LAB6_Dev ESP32 Hybrid IoT Controller",
+  "modules": [
+    {
+      "name": "Power_Supply",
+      "desc": "USB Type-C 5V Input to AMS1117-3.3V Regulator with bulk and decoupling capacitors",
+      "components": [
+        "J1 (USB Type-C)",
+        "D3 (SS34 Schottky)",
+        "U2 (AMS1117-3.3)",
+        "C1, C2 (100uF)",
+        "C3, C4 (0.1uF)",
+        "LED1 (Power 3.3V)",
+        "R5 (1k)"
+      ]
+    },
+    {
+      "name": "Microcontroller_Core",
+      "desc": "ESP32 NodeMCU-32S Socket Header (30-pin) with SW1 User Button & Filter Cap",
+      "components": [
+        "U1 (ESP32-DEVKIT-30P)",
+        "SW1 (Tactile Switch)",
+        "R4 (10k Pull-up)",
+        "C7 (0.1uF Debounce Cap)"
+      ]
+    },
+    {
+      "name": "Sensor_And_Display_Interfaces",
+      "desc": "I2C OLED (GPIO21/22), DHT Sensor (GPIO33), and Potentiometer (GPIO36)",
+      "components": [
+        "J_OLED (4-Pin I2C + R1, R2 4.7k Pull-ups)",
+        "J_DHT (3-Pin DHT11 + R3 10k Pull-up + C5 0.1uF)",
+        "J_VR (3-Pin Potentiometer + C6 0.1uF Filter)"
+      ]
+    },
+    {
+      "name": "Isolated_Relay_Drivers",
+      "desc": "Opto-isolated Relay 1 (Fan - GPIO5) and Relay 2 (Mist - GPIO23) with Flyback Diodes & LEDs",
+      "components": [
+        "U3, U4 (PC817 Optocouplers)",
+        "Q1, Q2 (SS8050 NPN Transistors)",
+        "K1, K2 (SRD-05VDC-SL-C 5V Relays)",
+        "D1, D2 (1N4007 Diodes)",
+        "LED2, LED3 (Status LEDs)",
+        "TB1, TB2 (3-Pin Terminal Blocks)"
+      ]
+    }
+  ],
+  "nets": {
+    "VCC_5V": [
+      "J1.VBUS",
+      "D3.Anode",
+      "D3.Cathode -> 5V_BUS",
+      "U2.VIN",
+      "C1.+",
+      "C3.1",
+      "U3.Pin4",
+      "U4.Pin4",
+      "K1.Coil+",
+      "K2.Coil+"
+    ],
+    "VCC_3V3": [
+      "U2.VOUT",
+      "C2.+",
+      "C4.1",
+      "U1.3V3",
+      "LED1.Anode",
+      "R1.1",
+      "R2.1",
+      "R3.1",
+      "R4.1",
+      "J_OLED.VCC",
+      "J_DHT.VCC",
+      "J_VR.VCC"
+    ],
+    "GND": [
+      "J1.GND",
+      "U2.GND",
+      "C1.-",
+      "C2.-",
+      "C3.2",
+      "C4.2",
+      "C5.2",
+      "C6.2",
+      "C7.2",
+      "U1.GND",
+      "SW1.Pin2",
+      "LED1.Cathode(via R5)",
+      "LED2.Cathode(via R8)",
+      "LED3.Cathode(via R9)",
+      "Q1.Emitter",
+      "Q2.Emitter",
+      "J_OLED.GND",
+      "J_DHT.GND",
+      "J_VR.GND"
+    ],
+    "GPIO5_FAN": [
+      "U1.GPIO5",
+      "R6.1 -> U3.Pin1"
+    ],
+    "GPIO23_MIST": [
+      "U1.GPIO23",
+      "R7.1 -> U4.Pin1"
+    ],
+    "GPIO21_SDA": [
+      "U1.GPIO21",
+      "R1.2",
+      "J_OLED.SDA"
+    ],
+    "GPIO22_SCL": [
+      "U1.GPIO22",
+      "R2.2",
+      "J_OLED.SCL"
+    ],
+    "GPIO33_DHT": [
+      "U1.GPIO33",
+      "R3.2",
+      "J_DHT.DATA"
+    ],
+    "GPIO36_ADC": [
+      "U1.GPIO36",
+      "C6.1",
+      "J_VR.OUT"
+    ],
+    "GPIO0_SW1": [
+      "U1.GPIO0",
+      "R4.2",
+      "SW1.Pin1",
+      "C7.1"
+    ]
+  }
+}
