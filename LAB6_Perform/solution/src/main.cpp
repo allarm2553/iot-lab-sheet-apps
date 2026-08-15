@@ -74,6 +74,7 @@ float temperature = 0.0;
 float humidity = 0.0;
 float analogPercent = 0.0;
 float tempThreshold = 30.0;
+float mistThreshold = 60.0;
 bool fanState = false;
 bool mistState = false;
 int toggleCount = 0;
@@ -300,6 +301,7 @@ void setupWebServer() {
     doc["fanState"] = fanState;
     doc["mistState"] = mistState;
     doc["tempThreshold"] = tempThreshold;
+    doc["mistThreshold"] = mistThreshold;
     doc["autoMode"] = autoMode;
     doc["toggleCount"] = toggleCount;
     doc["wsClients"] = wsClientCount;
@@ -343,9 +345,9 @@ void updateOledDisplay(const char* statusMsg) {
     display.printf("T:%.1fC H:%.1f%%", temperature, humidity);
   }
 
-  // Line 5: Analog & Threshold
+  // Line 5: Analog & Thresholds
   display.setCursor(0, 38);
-  display.printf("Pot:%.1f%% Set:%.1fC", analogPercent, tempThreshold);
+  display.printf("Pot:%.0f%% T:%.0f H:%.0f", analogPercent, tempThreshold, mistThreshold);
 
   // Line 6: Actuator States & Button Count
   display.setCursor(0, 50);
@@ -370,6 +372,7 @@ void broadcastAndPublishState() {
   doc["fanState"] = fanState;
   doc["mistState"] = mistState;
   doc["tempThreshold"] = serialized(String(tempThreshold, 1));
+  doc["mistThreshold"] = serialized(String(mistThreshold, 1));
   doc["autoMode"] = autoMode;
   doc["toggleCount"] = toggleCount;
   doc["wsClients"] = wsClientCount;
@@ -406,6 +409,7 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
   } else if (cmd == "toggle_mist") {
     mistState = !mistState;
     digitalWrite(config.mistRelayPin, mistState ? HIGH : LOW);
+    autoMode = false;
     stateChanged = true;
   } else if (cmd == "set_fan") {
     fanState = doc["state"].as<bool>();
@@ -415,9 +419,16 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
   } else if (cmd == "set_mist") {
     mistState = doc["state"].as<bool>();
     digitalWrite(config.mistRelayPin, mistState ? HIGH : LOW);
+    autoMode = false;
     stateChanged = true;
   } else if (cmd == "set_threshold") {
-    tempThreshold = doc["threshold"].as<float>();
+    if (doc["threshold"].is<float>()) tempThreshold = doc["threshold"].as<float>();
+    if (doc["tempThreshold"].is<float>()) tempThreshold = doc["tempThreshold"].as<float>();
+    if (doc["mistThreshold"].is<float>()) mistThreshold = doc["mistThreshold"].as<float>();
+    stateChanged = true;
+  } else if (cmd == "set_mist_threshold") {
+    if (doc["threshold"].is<float>()) mistThreshold = doc["threshold"].as<float>();
+    if (doc["mistThreshold"].is<float>()) mistThreshold = doc["mistThreshold"].as<float>();
     stateChanged = true;
   } else if (cmd == "set_mode") {
     autoMode = doc["autoMode"].as<bool>();
@@ -653,8 +664,9 @@ void loop() {
     int rawAnalog = analogRead(config.analogPin);
     analogPercent = (rawAnalog / 4095.0) * 100.0;
 
-    // Auto Fan Control with Hysteresis (0.5 degC)
+    // Auto Fan & Mist Control with Hysteresis
     if (autoMode) {
+      // Fan Auto: Turns ON if temperature > threshold + 0.5°C, Turns OFF if temperature < threshold - 0.5°C
       if (temperature > (tempThreshold + 0.5) && !fanState) {
         fanState = true;
         digitalWrite(config.fanRelayPin, HIGH);
@@ -663,6 +675,17 @@ void loop() {
         fanState = false;
         digitalWrite(config.fanRelayPin, LOW);
         Serial.println("[AUTO] Temperature dropped below threshold -> Fan OFF");
+      }
+
+      // Mist Auto: Turns ON if humidity < mistThreshold - 1.5%, Turns OFF if humidity > mistThreshold + 1.5%
+      if (humidity < (mistThreshold - 1.5) && !mistState) {
+        mistState = true;
+        digitalWrite(config.mistRelayPin, HIGH);
+        Serial.println("[AUTO] Humidity dropped below threshold -> Mist ON");
+      } else if (humidity > (mistThreshold + 1.5) && mistState) {
+        mistState = false;
+        digitalWrite(config.mistRelayPin, LOW);
+        Serial.println("[AUTO] Humidity reached threshold -> Mist OFF");
       }
     }
 

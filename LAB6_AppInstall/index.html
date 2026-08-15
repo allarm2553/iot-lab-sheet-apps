@@ -104,7 +104,7 @@
         </div>
       </div>
 
-      <!-- Threshold Slider Card -->
+      <!-- Temp Threshold Slider Card -->
       <div class="card">
         <div class="card-title">
           <span>เกณฑ์อุณหภูมิพัดลม (Threshold)</span>
@@ -116,6 +116,21 @@
         </div>
         <div style="margin-top: 12px;">
           <input type="range" id="sliderThreshold" min="15" max="45" step="0.5" value="30.0" style="width: 100%; accent-color: var(--accent-cyan);" oninput="onThresholdChange(this.value)">
+        </div>
+      </div>
+
+      <!-- Mist Threshold Slider Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>เกณฑ์ความชื้นพ่นหมอก (Mist Setpoint)</span>
+          <span>💦</span>
+        </div>
+        <div class="card-value">
+          <span id="valMistThreshold">60.0</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <input type="range" id="sliderMistThreshold" min="20" max="90" step="1.0" value="60.0" style="width: 100%; accent-color: var(--accent-blue);" oninput="onMistThresholdChange(this.value)">
         </div>
       </div>
 
@@ -445,6 +460,10 @@
         document.getElementById('valThreshold').innerText = parseFloat(data.tempThreshold).toFixed(1);
         document.getElementById('sliderThreshold').value = parseFloat(data.tempThreshold);
       }
+      if (data.mistThreshold !== undefined) {
+        document.getElementById('valMistThreshold').innerText = parseFloat(data.mistThreshold).toFixed(1);
+        document.getElementById('sliderMistThreshold').value = parseFloat(data.mistThreshold);
+      }
       if (data.fanState !== undefined) {
         document.getElementById('switchFan').checked = data.fanState;
         document.getElementById('txtFanStatus').innerText = data.fanState ? 'เปิด (ON)' : 'ปิด (OFF)';
@@ -460,7 +479,7 @@
         document.getElementById('txtBtnCount').innerText = data.toggleCount + ' ครั้ง';
       }
 
-      log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'})`, source);
+      log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'}, Mist:${data.mistState ? 'ON' : 'OFF'})`, source);
     }
 
     // 6. Outgoing Command Dispatch
@@ -498,6 +517,15 @@
       clearTimeout(thresholdTimer);
       thresholdTimer = setTimeout(() => {
         sendCommand({ command: 'set_threshold', threshold: parseFloat(val) });
+      }, 300);
+    }
+
+    let mistThresholdTimer = null;
+    function onMistThresholdChange(val) {
+      document.getElementById('valMistThreshold').innerText = parseFloat(val).toFixed(1);
+      clearTimeout(mistThresholdTimer);
+      mistThresholdTimer = setTimeout(() => {
+        sendCommand({ command: 'set_mist_threshold', threshold: parseFloat(val) });
       }, 300);
     }
 
