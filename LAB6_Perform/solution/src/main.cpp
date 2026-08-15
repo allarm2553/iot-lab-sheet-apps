@@ -353,9 +353,9 @@ void updateOledDisplay(const char* statusMsg) {
   display.setCursor(0, 43);
   display.printf("Pot:%.0f%% Set:%.0fC/%.0f%%", analogPercent, tempThreshold, mistThreshold);
 
-  // Line 7: Actuator Relays & Button Press Count
+  // Line 7: Actuator Relays, Auto/Manual Mode & Button Press Count
   display.setCursor(0, 54);
-  display.printf("FAN:%s MST:%s SW:%d", fanState ? "ON" : "OFF", mistState ? "ON" : "OFF", toggleCount);
+  display.printf("F:%s M:%s [%s] #%d", fanState ? "ON" : "OFF", mistState ? "ON" : "OFF", autoMode ? "AUT" : "MAN", toggleCount);
 
   if (strlen(statusMsg) > 0) {
     display.fillRect(0, 48, 128, 16, SSD1306_BLACK);
@@ -435,7 +435,34 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
     if (doc["mistThreshold"].is<float>()) mistThreshold = doc["mistThreshold"].as<float>();
     stateChanged = true;
   } else if (cmd == "set_mode") {
-    autoMode = doc["autoMode"].as<bool>();
+    if (doc["autoMode"].is<bool>()) autoMode = doc["autoMode"].as<bool>();
+    else if (doc["mode"].is<String>()) autoMode = (doc["mode"].as<String>() == "auto");
+    else if (doc["state"].is<bool>()) autoMode = doc["state"].as<bool>();
+    
+    // When switching to Auto mode, immediately apply threshold automation for BOTH Fan & Mist
+    if (autoMode) {
+      if (!isnan(temperature)) {
+        fanState = (temperature > tempThreshold);
+        digitalWrite(config.fanRelayPin, fanState ? HIGH : LOW);
+      }
+      if (!isnan(humidity)) {
+        mistState = (humidity < mistThreshold);
+        digitalWrite(config.mistRelayPin, mistState ? HIGH : LOW);
+      }
+    }
+    stateChanged = true;
+  } else if (cmd == "toggle_mode") {
+    autoMode = !autoMode;
+    if (autoMode) {
+      if (!isnan(temperature)) {
+        fanState = (temperature > tempThreshold);
+        digitalWrite(config.fanRelayPin, fanState ? HIGH : LOW);
+      }
+      if (!isnan(humidity)) {
+        mistState = (humidity < mistThreshold);
+        digitalWrite(config.mistRelayPin, mistState ? HIGH : LOW);
+      }
+    }
     stateChanged = true;
   } else if (cmd == "ping") {
     stateChanged = true;

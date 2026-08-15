@@ -57,6 +57,24 @@
       <div>📤 <strong>Pub Topic:</strong> <span id="lblPub" class="topic-badge">esp-node/+/state</span></div>
     </div>
 
+    <!-- Master System Auto/Manual Mode Bar -->
+    <div style="background: var(--bg-card); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-sm);">
+      <div>
+        <div style="font-size: 0.95rem; font-weight: 600; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+          <span>🎛️ โหมดควบคุมระบบรวม (Fan & Mist Mode)</span>
+          <span id="badgeMasterMode" class="topic-badge" style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7;">Auto Mode</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+          พัดลม & หัวพ่นหมอก ควบคุมอัตโนมัติตามเซ็นเซอร์ T / H
+        </p>
+      </div>
+
+      <div class="segmented-control" style="background: rgba(15, 23, 42, 0.8);">
+        <button id="btnSysAuto" class="segmented-btn active" onclick="sendModeCommand(true)">🔄 อัตโนมัติ (Auto)</button>
+        <button id="btnSysManual" class="segmented-btn" onclick="sendModeCommand(false)">✋ กำหนดเอง (Manual)</button>
+      </div>
+    </div>
+
     <!-- Cards Grid -->
     <div class="grid">
       <!-- Temperature Card -->
@@ -148,7 +166,7 @@
           </label>
         </div>
         <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>โหมดควบคุม:</span>
+          <span>โหมดพัดลม:</span>
           <span id="txtModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
         </div>
       </div>
@@ -167,8 +185,8 @@
           </label>
         </div>
         <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>สวิตช์กดปุ่ม SW1:</span>
-          <span id="txtBtnCount">0 ครั้ง</span>
+          <span>โหมดพ่นหมอก:</span>
+          <span id="txtMistModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
         </div>
       </div>
     </div>
@@ -473,13 +491,33 @@
         document.getElementById('txtMistStatus').innerText = data.mistState ? 'เปิด (ON)' : 'ปิด (OFF)';
       }
       if (data.autoMode !== undefined) {
-        document.getElementById('txtModeStatus').innerText = data.autoMode ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
+        const isAuto = data.autoMode;
+        document.getElementById('txtModeStatus').innerText = isAuto ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
+        document.getElementById('txtMistModeStatus').innerText = isAuto ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
+
+        const badge = document.getElementById('badgeMasterMode');
+        const btnAuto = document.getElementById('btnSysAuto');
+        const btnManual = document.getElementById('btnSysManual');
+
+        if (isAuto) {
+          badge.style.background = 'rgba(16, 185, 129, 0.2)';
+          badge.style.color = '#6ee7b7';
+          badge.innerText = 'Auto Mode';
+          btnAuto.classList.add('active');
+          btnManual.classList.remove('active');
+        } else {
+          badge.style.background = 'rgba(245, 158, 11, 0.2)';
+          badge.style.color = '#fcd34d';
+          badge.innerText = 'Manual Mode';
+          btnAuto.classList.remove('active');
+          btnManual.classList.add('active');
+        }
       }
       if (data.toggleCount !== undefined) {
-        document.getElementById('txtBtnCount').innerText = data.toggleCount + ' ครั้ง';
+        // debug count
       }
 
-      log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'}, Mist:${data.mistState ? 'ON' : 'OFF'})`, source);
+      log(`Telemetry updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'}, Mist:${data.mistState ? 'ON' : 'OFF'}, Mode:${data.autoMode ? 'AUTO' : 'MANUAL'})`, source);
     }
 
     // 6. Outgoing Command Dispatch
@@ -501,6 +539,10 @@
         mqttClient.publish(targetSub, jsonStr);
         log(`Published [${cmdPayload.command}] to MQTT: ${targetSub}`, 'MQTT');
       }
+    }
+
+    function sendModeCommand(isAuto) {
+      sendCommand({ command: 'set_mode', autoMode: isAuto });
     }
 
     function sendFanCommand(state) {
