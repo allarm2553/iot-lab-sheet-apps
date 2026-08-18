@@ -92,16 +92,74 @@
       margin: 0.5rem auto 0;
     }
 
+    /* Header Badges & Online Status Indicator */
+    .header-badges {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
     .course-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       padding: 0.35rem 0.85rem;
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
-      margin-top: 1rem;
       background: rgba(99, 102, 241, 0.1);
       color: #a5b4fc;
       border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.online {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.offline {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-badge.online .status-dot {
+      background-color: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse-dot 2s infinite;
+    }
+
+    .status-badge.offline .status-dot {
+      background-color: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    @keyframes pulse-dot {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
 
     /* Grid Layout */
@@ -789,8 +847,14 @@
         <h1>ใบงานที่ 1.1: การควบคุมเอาต์พุตด้วยอินพุตสวิตช์ปุ่มกด</h1>
       </div>
       <p class="subtitle">(Digital Input & Debounce) - หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32</p>
-      <div class="course-badge">
-        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+      <div class="header-badges">
+        <div class="course-badge">
+          <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
+        </div>
+        <div id="onlineStatusBadge" class="status-badge online">
+          <span class="status-dot"></span>
+          <span id="onlineStatusText">ออนไลน์ (พร้อมส่งรายงาน)</span>
+        </div>
       </div>
     </header>
 
@@ -847,20 +911,62 @@
         </div>
 
         <h2>การเชื่อมต่อวงจร (Wiring)</h2>
-        <ul>
-          <li><strong>Switch Button:</strong> 
-            <ul>
-              <li><strong>IPST-WiFi:</strong> ใช้ปุ่มกด <code>SW1</code> บนบอร์ด (ต่อกับพอร์ต <code>GPIO 0</code> ในตัว มี Pull-up ในตัว)</li>
-              <li><strong>AX-WiFi:</strong> ใช้ปุ่มกด <code>FLASH</code> (สวิตช์ D3) บนบอร์ด (ต่อกับพอร์ต <code>GPIO 0</code> ในตัว มี Pull-up ในตัว)</li>
-            </ul>
-          </li>
-          <li><strong>LED / Relay Output:</strong> 
-            <ul>
-              <li><strong>IPST-WiFi:</strong> ใช้ไฟ <code>LED</code> สีแดงบนบอร์ด (ต่อกับพอร์ต <code>GPIO 18</code> ในตัว) หรือต่อผ่านพอร์ตภายนอก เช่น พอร์ต 5 / GPIO 5</li>
-              <li><strong>AX-WiFi:</strong> ใช้ไฟ <code>SLED</code> บนบอร์ด (ต่อกับพอร์ต <code>GPIO 14 / D5</code> ในตัว) หรือต่อผ่านพอร์ตภายนอก เช่น พอร์ต D7 / GPIO 13</li>
-            </ul>
-          </li>
-        </ul>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อุปกรณ์ / โมดูล</th>
+                <th>พิน / สัญญาณ</th>
+                <th>ESP32 (IPST-WiFi)</th>
+                <th>ESP8266 (AX-WiFi)</th>
+                <th>รายละเอียด / หมายเหตุ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 600;">Switch Button (สวิตช์ปุ่มกด)</td>
+                <td>SW / Input</td>
+                <td><code>GPIO 0</code> (ปุ่ม SW1 บนบอร์ด)</td>
+                <td><code>GPIO 0 / D3</code> (ปุ่ม FLASH บนบอร์ด)</td>
+                <td>วงจรแบบ Active LOW (มี Pull-up ในตัว)</td>
+              </tr>
+              <tr>
+                <td rowspan="3" style="vertical-align: middle; font-weight: 600;">LED / Relay 1 (พัดลม / แสดงสถานะ)</td>
+                <td>VCC</td>
+                <td>5V (หรือ 3.3V สำหรับ LED)</td>
+                <td>5V (หรือ 3.3V สำหรับ LED)</td>
+                <td rowspan="3" style="vertical-align: middle;">ใช้ไฟ LED สีแดงบนบอร์ด (IPST: <code>GPIO 18</code> / AX: <code>GPIO 2 / D4</code>) หรือต่อผ่านโมดูลรีเลย์ภายนอก (Active HIGH)</td>
+              </tr>
+              <tr>
+                <td>GND</td>
+                <td>GND</td>
+                <td>GND</td>
+              </tr>
+              <tr>
+                <td>IN / Data</td>
+                <td><code>GPIO 18</code> (LED บนบอร์ด) หรือ <code>GPIO 5</code> (Relay)</td>
+                <td><code>GPIO 2 / D4</code> (LED Built-in บนบอร์ด) หรือ <code>GPIO 13 / D7</code> (Relay)</td>
+              </tr>
+              <tr>
+                <td rowspan="3" style="vertical-align: middle; font-weight: 600;">Relay 2 (ปั๊มน้ำ / เครื่องพ่นหมอก - Challenge)</td>
+                <td>VCC</td>
+                <td>5V</td>
+                <td>5V</td>
+                <td rowspan="3" style="vertical-align: middle;">ขับปั๊มน้ำหรือหัวพ่นหมอกในโจทย์ท้าทาย (Active HIGH)</td>
+              </tr>
+              <tr>
+                <td>GND</td>
+                <td>GND</td>
+                <td>GND</td>
+              </tr>
+              <tr>
+                <td>IN / Data</td>
+                <td><code>GPIO 23 / พอร์ต 23</code></td>
+                <td><code>GPIO 16 / D0</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
         <p>ศึกษาโค้ดต่อไปนี้และค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือให้สมบูรณ์:</p>
@@ -873,7 +979,7 @@
 <pre><code>#include &lt;Arduino.h&gt;
 
 #define BUTTON_PIN 0  // (GPIO 0: SW1 บน IPST-WiFi หรือ D3/FLASH บน AX-WiFi)
-#define RELAY_PIN 18  // (GPIO 18 บน IPST-WiFi หรือ D5/GPIO 14 บน AX-WiFi)
+#define RELAY_PIN 18  // (GPIO 18 บน IPST-WiFi หรือ D4/GPIO 2 บน AX-WiFi)
 
 bool lastButtonState = HIGH;
 bool currentButtonState = HIGH;
@@ -1424,6 +1530,33 @@ void loop() {
     }
     window.addEventListener('load', initTextareaAutoResize);
     // -----------------------------------
+
+    // --- ONLINE/OFFLINE STATUS INDICATOR ---
+    function initOnlineStatus() {
+      const badge = document.getElementById('onlineStatusBadge');
+      const text = document.getElementById('onlineStatusText');
+      if (!badge || !text) return;
+      function update() {
+        if (navigator.onLine) {
+          badge.className = 'status-badge online';
+          text.textContent = 'ออนไลน์ (พร้อมส่งรายงาน)';
+        } else {
+          badge.className = 'status-badge offline';
+          text.textContent = 'ออฟไลน์ (ไม่มีการเชื่อมต่อเครือข่าย)';
+        }
+      }
+      window.addEventListener('online', update);
+      window.addEventListener('offline', update);
+      update();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initOnlineStatus);
+    } else {
+      initOnlineStatus();
+    }
+    window.addEventListener('load', initOnlineStatus);
+    // ----------------------------------------
+
 </script>
 </body>
 </html>
