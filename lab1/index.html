@@ -713,14 +713,163 @@
       20%, 40%, 60%, 80% { transform: translateX(5px); }
     }
 
-    .loading-spinner {
-      animation: spin 1s linear infinite;
-      margin-right: 0.5rem;
-    }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    /* Theory Modal & Button Styling */
+    .btn-theory-toggle {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.25));
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      color: #c7d2fe;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .btn-theory-toggle:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.4));
+      border-color: #818cf8;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .theory-modal-content {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      max-width: 860px;
+      width: 95%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theory-modal-header {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.6);
+    }
+
+    .theory-modal-header h2 {
+      font-size: 1.25rem;
+      color: #f8fafc;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .theory-close-x {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      transition: color 0.2s;
+    }
+
+    .theory-close-x:hover {
+      color: #f8fafc;
+    }
+
+    .theory-modal-body {
+      padding: 1.5rem 1.75rem;
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.7;
+    }
+
+    .theory-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .theory-tab-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .theory-tab-btn.active, .theory-tab-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      color: #e0e7ff;
+    }
+
+    .theory-tab-panel {
+      display: none;
+    }
+
+    .theory-tab-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .theory-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .theory-card h4 {
+      color: #818cf8;
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theory-formula {
+      background: #090d16;
+      border: 1px dashed rgba(99, 102, 241, 0.4);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      color: #38bdf8;
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+    }
+
+    .theory-modal-footer {
+      padding: 1rem 1.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: flex-end;
+      background: rgba(15, 23, 42, 0.7);
     }
 
     /* Print Styles */
@@ -870,9 +1019,14 @@
       
       <!-- Left Column: Lab Sheet Manual -->
       <div class="glass-card">
-        <div class="card-title">
-          <i class="fa-solid fa-book-open"></i>
-          <span>คู่มือใบงานการทดลอง</span>
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-book-open"></i>
+            <span>คู่มือใบงานการทดลอง</span>
+          </div>
+          <button type="button" class="btn-theory-toggle" onclick="openTheoryModal()">
+            <i class="fa-solid fa-lightbulb"></i> <span>ดูเนื้อหาทฤษฎีที่เกี่ยวข้อง</span>
+          </button>
         </div>
 
         <div class="info-frame">
@@ -1258,6 +1412,147 @@ void loop() {
     </div>
   </div>
 
+  <!-- Theory Content Modal -->
+  <div class="modal-overlay" id="theoryModal" style="display: none;">
+    <div class="theory-modal-content">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎีที่เกี่ยวข้อง: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต</h2>
+        <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="theory-modal-body">
+        <!-- Theory Navigation Tabs -->
+        <div class="theory-tab-bar">
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('gpio', this)"><i class="fa-solid fa-bolt"></i> 1. GPIO &amp; Relays</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('adc', this)"><i class="fa-solid fa-chart-line"></i> 2. ระบบแปลงสัญญาณ ADC</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dht', this)"><i class="fa-solid fa-temperature-half"></i> 3. เซ็นเซอร์ DHT11</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)"><i class="fa-solid fa-sliders"></i> 4. Hysteresis Control</button>
+        </div>
+
+        <!-- Panel 1: GPIO & Relays -->
+        <div class="theory-tab-panel active" id="theory-tab-gpio">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-microchip"></i> 1.1 การกำหนดโหมดพินและการส่งสัญญาณดิจิทัล (Digital I/O)</h4>
+            <p>ไมโครคอนโทรลเลอร์ ESP32/ESP8266 มีขา General Purpose Input/Output (GPIO) ที่สามารถกำหนดหน้าที่ผ่านคำสั่งภาษา C/C++:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><code>pinMode(pin, OUTPUT);</code> : กำหนดให้พินทำหน้าที่ส่งแรงดันลอจิกออกภายนอก</li>
+              <li><code>digitalWrite(pin, HIGH);</code> : จ่ายแรงดันไฟฟ้าระดับลอจิกสูง (3.3V)</li>
+              <li><code>digitalWrite(pin, LOW);</code> : จ่ายแรงดันไฟฟ้าระดับลอจิกต่ำ (0V / Ground)</li>
+            </ul>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-toggle-on"></i> 1.2 เหตุผลที่ต้องใช้โมดูลรีเลย์ (Relay Module) ขับโหลด</h4>
+            <p>ขา GPIO ของไมโครคอนโทรลเลอร์สามารถจ่ายกระแสไฟฟ้าได้สูงสุดเพียงประมาณ <strong>12 – 20 mA</strong> ที่แรงดัน 3.3V ซึ่งไม่สามารถจ่ายพลังงานให้แก่อุปกรณ์กำลังสูง เช่น มอเตอร์พัดลมระบายความร้อน หรือปั๊มน้ำ (ซึ่งต้องการกระแส 100 mA – 1 A+ ที่แรงดัน 5V/12V/220V) ได้โดยตรง</p>
+            <p style="margin-top: 0.5rem;"><strong>โมดูลรีเลย์ (Relay)</strong> ทำหน้าที่เป็นสวิตช์แม่เหล็กไฟฟ้าที่มีวงจร <strong>Optocoupler</strong> แยกสัญญาณควบคุมฝั่งแรงดันต่ำ (3.3V) ออกจากวงจรขับโหลดกำลังสูง ป้องกันสัญญาณรบกวนและแรงดันไฟเหนี่ยวนำย้อนกลับ (Back EMF) ไม่ให้ทำลายชิปไมโครคอนโทรลเลอร์</p>
+          </div>
+        </div>
+
+        <!-- Panel 2: ADC -->
+        <div class="theory-tab-panel" id="theory-tab-adc">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-wave-square"></i> 2.1 หลักการแปลงสัญญาณแอนะล็อกเป็นดิจิทัล (ADC)</h4>
+            <p>วงจร <strong>ADC (Analog-to-Digital Converter)</strong> ทำหน้าที่สุ่มวัดระดับแรงดันไฟฟ้าแบบต่อเนื่อง (0 – 3.3V) แล้วแปลงเป็นตัวเลขจำนวนเต็มดิจิทัล (Discrete Digital Value)</p>
+            
+            <div class="table-container" style="margin: 1rem 0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>คุณสมบัติ</th>
+                    <th>ESP32 (IPST-WiFi)</th>
+                    <th>ESP8266 (AX-WiFi)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>ความละเอียด (Resolution)</strong></td>
+                    <td>12-bit (2<sup>12</sup> = 4096 ระดับ)</td>
+                    <td>10-bit (2<sup>10</sup> = 1024 ระดับ)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ช่วงค่าดิบที่อ่านได้ (Raw Value)</strong></td>
+                    <td><code>0 ถึง 4095</code></td>
+                    <td><code>0 ถึง 1023</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>พินรับสัญญาณแอนะล็อก</strong></td>
+                    <td>GPIO 32–36, 39 (พิน 36 คือ KNOB-S)</td>
+                    <td>พิน <code>A0 / ADC0</code> (ปรับจัมเปอร์ไปที่ VR)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-calculator"></i> 2.2 สูตรการแปลงค่าดิบเป็นเปอร์เซ็นต์ (0 - 100%)</h4>
+            <p>เพื่อนำค่าแรงดันไปแสดงผลและประมวลผลต่อในรูปแบบสากล เราจะแปลงค่าดิบจาก ADC ให้เป็นสเกล 0–100%:</p>
+            <div class="theory-formula">
+              // สำหรับ ESP32 (12-bit ADC):<br>
+              float analogPercent = (rawAnalog / 4095.0) * 100.0;<br><br>
+              // สำหรับ ESP8266 (10-bit ADC):<br>
+              float analogPercent = (rawAnalog / 1023.0) * 100.0;
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: DHT11 -->
+        <div class="theory-tab-panel" id="theory-tab-dht">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-temperature-arrow-up"></i> 3.1 โครงสร้างและหลักการทำงานของเซ็นเซอร์ DHT11</h4>
+            <p><strong>DHT11</strong> เป็นโมดูลเซ็นเซอร์วัดสภาพแวดล้อมแบบดิจิทัลที่รวมเซ็นเซอร์ 2 ชนิดไว้ในตัวเดียว:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>วัดอุณหภูมิ:</strong> ใช้ตัวต้านทานแปรค่าตามอุณหภูมิชนิด <strong>NTC Thermistor</strong> (ความต้านทานลดลงเมื่ออุณหภูมิสูงขึ้น)</li>
+              <li><strong>วัดความชื้นสัมพัทธ์:</strong> ใช้แผ่นโพลีเมอร์ดูดซับความชื้นแบบ <strong>Resistive Humidity Sensing Component</strong></li>
+            </ul>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-network-wired"></i> 3.2 การสื่อสารข้อมูลแบบ Single-Bus Protocol</h4>
+            <p>DHT11 ส่งข้อมูลดิจิทัลผ่านสายสัญญาณ DATA เพียงเส้นเดียว โดยในการอ่านค่า 1 ครั้ง เซ็นเซอร์จะส่งข้อมูลมาทั้งหมด <strong>40 บิต (5 ไบต์)</strong>:</p>
+            <div class="theory-formula">
+              [ไบต์ 1: ค่าจำนวนเต็มความชื้น] + [ไบต์ 2: ค่าทศนิยมความชื้น] +<br>
+              [ไบต์ 3: ค่าจำนวนเต็มอุณหภูมิ] + [ไบต์ 4: ค่าทศนิยมอุณหภูมิ] +<br>
+              [ไบต์ 5: Parity Checksum ตรวจสอบความถูกต้อง]
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">ช่วงการวัด: อุณหภูมิ 0 ถึง 50°C (±2°C) | ความชื้น 20 ถึง 90% RH (±5% RH)</p>
+          </div>
+        </div>
+
+        <!-- Panel 4: Hysteresis Control -->
+        <div class="theory-tab-panel" id="theory-tab-hysteresis">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-triangle-exclamation"></i> 4.1 ปัญหารีเลย์ตัด-ต่อถี่เกินไป (Relay Chatter / Clicking)</h4>
+            <p>หากเราเขียนเงื่อนไขควบคุมแบบจุดตัดเดียว เช่น <code>if (temp &gt; 30.0) ON; else OFF;</code> เมื่ออุณหภูมิจริงอยู่ที่ประมาณ 29.99°C – 30.01°C สัญญาณรบกวนเพียงเล็กน้อยจะทำให้รีเลย์เปิดและปิดสลับไปมาอย่างรวดเร็วหลายครั้งต่อวินาที ส่งผลให้หน้าสัมผัสของรีเลย์สึกหรออย่างรวดเร็วและมอเตอร์พัดลมอาจเสียหาย</p>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-shield-halved"></i> 4.2 การแก้ไขด้วยเทคนิค Hysteresis (Deadband Control)</h4>
+            <p>การควบคุมแบบ <strong>Hysteresis</strong> จะกำหนดจุดตัด 2 ระดับเพื่อสร้างช่วงปลอดภัย (Deadband):</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>Upper Threshold (จุดเปิดพัดลม):</strong> สั่งเปิดเมื่อ <code>อุณหภูมิ &gt; 30.0°C</code></li>
+              <li><strong>Lower Threshold (จุดปิดพัดลม):</strong> สั่งปิดเมื่อ <code>อุณหภูมิ &lt; 29.5°C</code></li>
+              <li><strong>ช่วง Hysteresis Band (29.5°C ถึง 30.0°C):</strong> รักษาสถานะเดิมไว้ ไม่สั่งเปลี่ยน</li>
+            </ul>
+            <div class="theory-formula">
+              if (temperature &gt; 30.0) {<br>
+              &nbsp;&nbsp;fanState = true;&nbsp;&nbsp;// สั่งเปิดพัดลม<br>
+              } else if (temperature &lt; 29.5) {<br>
+              &nbsp;&nbsp;fanState = false; // สั่งปิดพัดลม<br>
+              }<br>
+              digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="theory-modal-footer">
+        <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Custom Popup Alert Modal -->
   <div class="modal-overlay" id="alertModal">
     <div class="modal-content">
@@ -1269,6 +1564,23 @@ void loop() {
   </div>
 
   <script>
+    // Theory Modal helpers
+    function openTheoryModal() {
+      document.getElementById('theoryModal').style.display = 'flex';
+    }
+
+    function closeTheoryModal() {
+      document.getElementById('theoryModal').style.display = 'none';
+    }
+
+    function switchTheoryTab(tabKey, btn) {
+      document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const panel = document.getElementById('theory-tab-' + tabKey);
+      if (panel) panel.classList.add('active');
+    }
     // File Base64 caches
     let uploadedScreenshotBase64 = null;
     let uploadedScreenshotName = null;

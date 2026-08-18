@@ -840,6 +840,161 @@
         display: none !important;
       }
     }
+  
+    /* Theory Modal & Button Styling */
+    .btn-theory-toggle {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.25));
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      color: #c7d2fe;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .btn-theory-toggle:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.4));
+      border-color: #818cf8;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .theory-modal-content {
+      background: #0f172a;
+      border: 1px solid var(--card-border, rgba(255,255,255,0.1));
+      border-radius: 16px;
+      max-width: 860px;
+      width: 95%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theory-modal-header {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.6);
+    }
+
+    .theory-modal-header h2 {
+      font-size: 1.25rem;
+      color: #f8fafc;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .theory-close-x {
+      background: transparent;
+      border: none;
+      color: var(--text-muted, #94a3b8);
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      transition: color 0.2s;
+    }
+
+    .theory-close-x:hover {
+      color: #f8fafc;
+    }
+
+    .theory-modal-body {
+      padding: 1.5rem 1.75rem;
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.7;
+    }
+
+    .theory-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .theory-tab-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted, #94a3b8);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .theory-tab-btn.active, .theory-tab-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent, #6366f1);
+      color: #e0e7ff;
+    }
+
+    .theory-tab-panel {
+      display: none;
+    }
+
+    .theory-tab-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .theory-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .theory-card h4 {
+      color: #818cf8;
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theory-formula {
+      background: #090d16;
+      border: 1px dashed rgba(99, 102, 241, 0.4);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      color: #38bdf8;
+      font-family: var(--mono-font, monospace);
+      font-size: 0.9rem;
+    }
+
+    .theory-modal-footer {
+      padding: 1rem 1.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: flex-end;
+      background: rgba(15, 23, 42, 0.7);
+    }
+
   </style>
 </head>
 <body>
@@ -878,6 +1033,36 @@
             <li>เพื่อเข้าใจโครงสร้างฐานข้อมูลอนุกรมเวลา (Time-Series Database)</li>
             <li>เพื่อบันทึกข้อมูลภูมิอากาศและสถานะรีเลย์จาก ESP32 ลงใน InfluxDB โดยใช้ Node-RED</li>
           </ol>
+        </div>
+
+        <h2>อุปกรณ์ที่ต้องใช้</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>รายการอุปกรณ์</th>
+                <th>รายละเอียด</th>
+                <th style="text-align: center;">จำนวน</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>คอมพิวเตอร์ / เซิร์ฟเวอร์</td>
+                <td>ติดตั้งโปรแกรม InfluxDB v2 (Time-Series Database Engine) และ Node-RED</td>
+                <td style="text-align: center;">1 เครื่อง</td>
+              </tr>
+              <tr>
+                <td>โหนดอุปกรณ์ IoT หรือตัวจำลองข้อมูล</td>
+                <td>ESP32 / ESP8266 หรือ Node-RED Inject Node ส่งข้อมูลตัวแปรตามเวลา</td>
+                <td style="text-align: center;">1 ชุด</td>
+              </tr>
+              <tr>
+                <td>เว็บบราวเซอร์</td>
+                <td>สำหรับเข้าจัดการ InfluxDB Web UI (สร้าง Bucket, Organization และ API Token)</td>
+                <td style="text-align: center;">1 โปรแกรม</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <h3><i class="fa-solid fa-toolbox"></i> เครื่องมือที่ใช้ในการทดลอง</h3>
@@ -1141,6 +1326,53 @@ if (msg.payload === 'ON') {
   </div>
 
   <!-- Status Modals -->
+  
+  <!-- Theory Content Modal -->
+  <div class="modal-overlay" id="theoryModal" style="display: none;">
+    <div class="theory-modal-content">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent, #6366f1);"></i> ทฤษฎีที่เกี่ยวข้อง: การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)</h2>
+        <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="theory-modal-body">
+        <!-- Theory Navigation Tabs -->
+        <div class="theory-tab-bar">
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tsdb', this)"><i class="fa-solid fa-database"></i> 1. Time-Series DB</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('schema', this)"><i class="fa-solid fa-table"></i> 2. Data Schema</button>
+        </div>
+
+        <div class="theory-tab-panel active" id="theory-tab-tsdb">
+<div class="theory-card">
+                <h4><i class="fa-solid fa-database"></i> 1.1 จุดเด่นของ Time-Series Database</h4>
+                <p>ฐานข้อมูลอนุกรมเวลา (TSDB) ถูกออกแบบมาเฉพาะสำหรับข้อมูลที่มีแกนเวลาเป็นหลัก มีคุณสมบัติเด่น:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                  <li><strong>High Write Throughput:</strong> รองรับการเขียนข้อมูลความถี่สูงได้หลายแสนจุดต่อวินาที</li>
+                  <li><strong>TSM Compression:</strong> บีบอัดข้อมูลอนุกรมเวลาประหยัดพื้นที่จัดเก็บบนดิสก์ได้มากกว่าฐานข้อมูล RDBMS ถึง 10 เท่า</li>
+                  <li><strong>Time-based Operations:</strong> มีฟังก์ชันการจัดการช่วงเวลาและการลบข้อมูลเก่าตามอายุ (Retention Policy) ในตัว</li>
+                </ul>
+              </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-schema">
+<div class="theory-card">
+                <h4><i class="fa-solid fa-sitemap"></i> 2.1 องค์ประกอบ Data Schema ใน InfluxDB</h4>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                  <li><strong>Bucket:</strong> ภาชนะบรรจุข้อมูลหลัก กำหนดระยะเวลาเก็บรักษา (Retention Period)</li>
+                  <li><strong>Measurement:</strong> ชื่อกลุ่มข้อมูลวัดค่า เช่น <code>climate_sensor</code> (เปรียบเสมือน Table)</li>
+                  <li><strong>Tags:</strong> ฟิลด์ข้อมูลกำกับแบบ Key-Value ที่ถูกทำ Index ช่วยให้การค้นหาและฟิลเตอร์ทำได้รวดเร็ว เช่น <code>device="esp32_01"</code></li>
+                  <li><strong>Fields:</strong> ค่าตัวเลขหรือข้อความที่วัดได้จริงตามเวลา เช่น <code>temperature=29.5</code>, <code>humidity=65</code> (ไม่ทำ Index)</li>
+                  <li><strong>Timestamp:</strong> เวลาจริงที่ข้อมูลเกิดขึ้นระดับนาโนวินาที</li>
+                </ul>
+              </div>
+        </div>
+      </div>
+
+      <div class="theory-modal-footer">
+        <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="statusModal">
     <div class="modal-content">
       <span class="modal-icon" id="modalIcon"></span>
@@ -1151,6 +1383,28 @@ if (msg.payload === 'ON') {
   </div>
 
   <script>
+
+    // --- THEORY MODAL HELPERS ---
+    function openTheoryModal() {
+      const m = document.getElementById('theoryModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeTheoryModal() {
+      const m = document.getElementById('theoryModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function switchTheoryTab(tabKey, btn) {
+      document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
+      
+      if (btn) btn.classList.add('active');
+      const panel = document.getElementById('theory-tab-' + tabKey);
+      if (panel) panel.classList.add('active');
+    }
+    // ----------------------------
+
     // Local Storage persistence keys
     const LS_NAME = 'student_name';
     const LS_ID = 'student_id';

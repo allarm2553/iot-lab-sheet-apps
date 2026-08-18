@@ -13,13 +13,16 @@
 
 ---
 
-## 🔌 การต่อวงจรและพินฮาร์ดแวร์ (Hardware Pinouts)
+## 🔌 การต่อวงจรและพินฮาร์ดแวร์ (Hardware Pinouts & Wiring)
 
-| สัญญาณจอ OLED | บอร์ด ESP32 (IPST-WiFi) | บอร์ด ESP8266 (AX-WiFi) | คำอธิบาย |
-| :--- | :--- | :--- | :--- |
-| **SDA (Data)** | `GPIO 21` (I2C Default) | `GPIO 4` (`D2`) | สายสัญญาณข้อมูล |
-| **SCL (Clock)** | `GPIO 22` (I2C Default) | `GPIO 5` (`D1`) | สายสัญญาณนาฬิกา |
-| **VCC / GND** | `3.3V` / `GND` | `3.3V` / `GND` | ไฟเลี้ยงโมดูลจอ |
+| อุปกรณ์ / โมดูล | พิน / สัญญาณ | บอร์ด ESP32 (IPST-WiFi) | บอร์ด ESP8266 (AX-WiFi) | รายละเอียด / หมายเหตุ |
+| :--- | :--- | :--- | :--- | :--- |
+| **จอแสดงผล OLED SSD1306** | SDA (Data) | `GPIO 21` | `GPIO 4 / D2` | จอ OLED บนบอร์ด (I2C Address `0x3C`) |
+| | SCL (Clock) | `GPIO 22` | `GPIO 5 / D1` | สัญญาณนาฬิกา I2C |
+| **เซ็นเซอร์ DHT11** | DATA | `GPIO 33` | `GPIO 0 / D3` | อุณหภูมิและความชื้น (ไฟเลี้ยง 3.3V) |
+| **Analog Input (VR / KNOB)** | Signal | `GPIO 36` (KNOB-S) | `A0` (จัมเปอร์ VR) | แรงดันแอนะล็อก ADC (0 - 3.3V) |
+| **สวิตช์ปุ่มกด (Switch Button)** | Input | `GPIO 0` (SW1) | `GPIO 0 / D3` (FLASH) | สลับสถานะและนับรอบ (Active LOW) |
+| **LED / Relay Output** | Control | `GPIO 18` (LED) / `GPIO 5` (Relay) | `GPIO 2 / D4` (LED) / `GPIO 13` (Relay) | แสดงสถานะสอดคล้องกับหน้าจอ |
 
 ---
 
