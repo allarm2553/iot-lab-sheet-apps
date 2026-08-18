@@ -189,6 +189,67 @@
       background: rgba(78, 168, 222, 0.2);
       color: var(--primary);
     }
+  
+    .btn-theory-toggle {
+      background: linear-gradient(135deg, rgba(72, 202, 228, 0.2), rgba(83, 144, 217, 0.3));
+      border: 1px solid var(--primary);
+      color: #edf2f4;
+      padding: 0.45rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+    .btn-theory-toggle:hover {
+      background: linear-gradient(135deg, rgba(72, 202, 228, 0.4), rgba(83, 144, 217, 0.5));
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(72, 202, 228, 0.4);
+      transform: translateY(-1px);
+    }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(2, 6, 17, 0.85); backdrop-filter: blur(8px);
+      z-index: 9999; display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .theory-modal-content {
+      background: #1c2541; border: 1px solid var(--card-border); border-radius: 16px;
+      max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7); overflow: hidden;
+    }
+    .theory-modal-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex; justify-content: space-between; align-items: center; background: rgba(11, 19, 43, 0.6);
+    }
+    .theory-close-x {
+      background: transparent; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;
+    }
+    .theory-modal-body {
+      padding: 1.5rem; overflow-y: auto; flex: 1; line-height: 1.7;
+    }
+    .theory-tab-bar {
+      display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.75rem;
+    }
+    .theory-tab-btn {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted); padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.85rem;
+      cursor: pointer; font-family: inherit;
+    }
+    .theory-tab-btn.active, .theory-tab-btn:hover {
+      background: rgba(72, 202, 228, 0.2); border-color: var(--primary); color: #edf2f4;
+    }
+    .theory-tab-panel { display: none; }
+    .theory-tab-panel.active { display: block; }
+    .theory-card {
+      background: rgba(11, 19, 43, 0.5); border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+    }
+
   </style>
 </head>
 <body>
@@ -232,7 +293,12 @@
 
     <!-- Section 1: Objective & Concept -->
     <div class="card">
-      <h2>🎯 1. วัตถุประสงค์และการทำงานของ LAB6_Perform</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 12px;">
+        <h2 style="margin-bottom: 0;">🎯 1. วัตถุประสงค์และการทำงานของ LAB6_Perform</h2>
+        <button type="button" class="btn-theory-toggle" onclick="openTheoryModal()">
+          💡 <span>ดูเนื้อหาทฤษฎีที่เกี่ยวข้อง</span>
+        </button>
+      </div>
       <ul style="margin-left: 20px; color: var(--text-muted); font-size: 0.95rem;">
         <li><strong style="color: var(--text-main);">การแยกหน้า Config ออกจาก Dashboard:</strong> เพื่อความปลอดภัยและความสะดวกของผู้ใช้ทั่วไป ไม่ให้เห็นหรือแก้ไขค่า Network/Hardware พร่ำเพรื่อ</li>
         <li><strong style="color: var(--text-main);">การบันทึกค่าลง LittleFS:</strong> จัดเก็บค่า `config.json` ลงใน Flash Memory ไม่สูญหายเมื่อปิดไฟ</li>
@@ -318,5 +384,75 @@
       }
     }
   </script>
+
+  <!-- Theory Content Modal -->
+  <div class="modal-overlay" id="theoryModal" style="display: none;">
+    <div class="theory-modal-content">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-graduation-cap" style="color: #48cae4;"></i> ทฤษฎีที่เกี่ยวข้อง: การบูรณาการโครงงาน Hybrid Node (WS + MQTT)</h2>
+        <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="theory-modal-body">
+        <div class="theory-tab-bar">
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('hybrid', this)">1. สถาปัตยกรรม Hybrid</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('nonblock', this)">2. Non-blocking System</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)">3. Dual-Loop Control</button>
+        </div>
+
+        <div class="theory-tab-panel active" id="theory-tab-hybrid">
+          <div class="theory-card">
+            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">1.1 Dual-Channel Communication (Local + Cloud)</h4>
+            <p>ระบบ Hybrid IoT Node รองรับช่องทางสื่อสาร 2 ทางพร้อมกัน:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>Local WebSocket (Port 81):</strong> ทำงานบนเครือข่ายภายในบ้าน/โรงงาน รวดเร็ว ตอบสนองระดับมิลลิวินาที และยังควบคุมได้แม้เน็ตภายนอกดับ</li>
+              <li><strong>Cloud MQTT (Port 1883):</strong> ส่งข้อมูลขึ้นสู่ Cloud Broker ทำให้สามารถติดตามและสั่งการจากระยะไกลผ่านอินเทอร์เน็ตได้ทุกที่ทั่วโลก</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-nonblock">
+          <div class="theory-card">
+            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">2.1 Multi-tasking แบบ Non-blocking ด้วย millis()</h4>
+            <p>ในระบบที่ซับซ้อน ห้ามใช้คำสั่ง <code>delay()</code> เด็ดขาด เพราะจะทำให้ระบบเว็บเซิร์ฟเวอร์, การวาดจอ OLED และการเชื่อมต่อ MQTT ค้าง การใช้ตัวแปรจับเวลาแบบ <code>millis()</code> ช่วยให้ CPU สามารถสลับประมวลผลงานย่อยทั้งหมดได้อย่างราบรื่น</p>
+          </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-hysteresis">
+          <div class="theory-card">
+            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">3.1 ระบบควบคุมอัตโนมัติ 2 ลูปแบบอิสระ</h4>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>ลูปพัดลม (Temperature Loop):</strong> สั่งเปิดเมื่อ <code>อุณหภูมิ &gt; เกณฑ์ Threshold</code> และปิดเมื่อ <code>อุณหภูมิ &lt; (Threshold - 0.5&deg;C)</code></li>
+              <li><strong>ลูปพ่นหมอก (Humidity/Soil Loop):</strong> สั่งเปิดเมื่อความชื้นในดินหรือบรรยากาศต่ำกว่า 40% และปิดเมื่อเกิน 50%</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="theory-modal-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end;">
+        <button type="button" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer;" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+    function openTheoryModal() {
+      const m = document.getElementById('theoryModal');
+      if (m) m.style.display = 'flex';
+    }
+    function closeTheoryModal() {
+      const m = document.getElementById('theoryModal');
+      if (m) m.style.display = 'none';
+    }
+    function switchTheoryTab(tabKey, btn) {
+      document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const panel = document.getElementById('theory-tab-' + tabKey);
+      if (panel) panel.classList.add('active');
+    }
+
+</script>
 </body>
 </html>
