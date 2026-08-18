@@ -1322,7 +1322,7 @@ void loop() {
         <div class="theory-tab-panel" id="theory-tab-buffer">
 <div class="theory-card">
                 <h4><i class="fa-solid fa-layer-group"></i> 2.1 สถาปัตยกรรม Frame Buffer ในหน่วยความจำ RAM</h4>
-                <p>จอภาพ OLED ขนาด 128x64 พิกเซล แบบ Monochrome (1 บิตต่อพิกเซล) ใช้บัฟเฟอร์ในแรมขนาด: $rac{128 	imes 64}{8} = 1024 	ext{ ไบต์ (1 KB)}$</p>
+                <p>จอภาพ OLED ขนาด 128&times;64 พิกเซล แบบ Monochrome (1 บิตต่อพิกเซล) ใช้บัฟเฟอร์ในแรมขนาด: <code>(128 &times; 64) / 8 = 1,024 ไบต์ (1 KB)</code></p>
                 <p style="margin-top: 0.5rem;">คำสั่งวาดภาพ เช่น <code>display.print()</code> หรือ <code>display.drawLine()</code> จะเขียนข้อมูลลงบัฟเฟอร์ในแรมก่อน และเมื่อเรียกใช้คำสั่ง <code>display.display()</code> ข้อมูลทั้งเฟรมจะถูกส่งผ่านบัส I2C ขึ้นสู่หน้าจอจริงในครั้งเดียว ช่วยป้องกันอาการจอกะพริบ</p>
               </div>
         </div>
