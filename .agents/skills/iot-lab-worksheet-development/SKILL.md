@@ -383,3 +383,25 @@ function copyCode() {
   });
 }
 ```
+
+---
+
+## 8. Anti-Cheat & Plagiarism Prevention System
+
+To maintain academic integrity and encourage genuine critical thinking, all worksheets implement client-side anti-plagiarism protection across Post-Lab Questions and Conclusion text areas:
+
+### Features & Interceptions
+- **Paste Prevention (`paste`):** Intercepts clipboard paste attempts and displays an animated warning toast.
+- **Copy/Cut Prevention (`copy`, `cut`):** Prevents copying or cutting answers from analytical textareas.
+- **Context Menu Lock (`contextmenu`):** Disables right-click context menus specifically over protected response fields.
+- **Drag & Drop Lock (`drop`):** Prevents dragging external text directly into the answer boxes.
+- **Whitelisting:** Code submission areas (`#challengeCode`) remain unrestricted to allow pasting program code from the IDE.
+
+### Animated Warning Toast Notification
+```html
+<div id="antiCheatToast" class="anti-cheat-toast">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>
+</div>
+```
+

@@ -1064,6 +1064,35 @@
       background: rgba(15, 23, 42, 0.7);
     }
 
+  
+    /* Anti-Cheat Toast Warning */
+    .anti-cheat-toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+    }
+    .anti-cheat-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
   </style>
 </head>
 <body>
@@ -2085,6 +2114,69 @@ function toggleFan(state) {
     window.addEventListener('load', initOnlineStatus);
     // ----------------------------------------
 
-</script>
+
+    // Anti-Cheat System (Prohibit Copy/Paste/Cut/Drop in Questions & Conclusion)
+    function initAntiCheat() {
+      const protectedSelectors = [
+        '#question1', '#question2', '#question3', '#question4', '#question5',
+        '#conclusion', '#discussion', '#answer1', '#answer2', '#answer3',
+        'textarea:not(#challengeCode)'
+      ];
+      
+      let toast = document.getElementById('antiCheatToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'antiCheatToast';
+        toast.className = 'anti-cheat-toast';
+        toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>';
+        document.body.appendChild(toast);
+      }
+
+      let toastTimeout = null;
+      function triggerWarning(msg) {
+        if (msg) {
+          toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>${msg}</span>`;
+        }
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2800);
+      }
+
+      protectedSelectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (el.id === 'challengeCode') return;
+
+          el.addEventListener('paste', (e) => {
+            e.preventDefault();
+            triggerWarning('⚠️ ห้ามวางข้อความ (Paste)! กรุณาพิมพ์คำตอบและวิเคราะห์ผลด้วยตนเอง');
+          });
+
+          el.addEventListener('copy', (e) => {
+            e.preventDefault();
+            triggerWarning('⚠️ ห้ามคัดลอกข้อความ (Copy) จากส่วนนี้');
+          });
+
+          el.addEventListener('cut', (e) => {
+            e.preventDefault();
+            triggerWarning('⚠️ ไม่อนุญาตให้ตัดข้อความ (Cut)');
+          });
+
+          el.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            triggerWarning('⚠️ ปิดการใช้งานเมนูคลิกขวาในส่วนคำตอบ');
+          });
+
+          el.addEventListener('drop', (e) => {
+            e.preventDefault();
+            triggerWarning('⚠️ ไม่อนุญาตให้ลากวางข้อความ (Drag & Drop)');
+          });
+        });
+      });
+    }
+    window.addEventListener('DOMContentLoaded', initAntiCheat);
+
+  </script>
 </body>
 </html>
