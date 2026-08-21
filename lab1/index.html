@@ -375,6 +375,37 @@
       color: #38bdf8;
     }
 
+    .code-blank {
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px dashed #818cf8;
+      border-radius: 6px;
+      padding: 0.15rem 0.55rem;
+      color: #38bdf8;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      display: inline-block;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+    }
+
+    .code-blank:focus {
+      border-style: solid;
+      border-color: #38bdf8;
+      background: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+
+    .code-blank::placeholder {
+      color: rgba(165, 180, 252, 0.65);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
     /* Input Fields & Forms */
     .form-section {
       margin-bottom: 1.5rem;
@@ -1181,8 +1212,8 @@ void setup() {
   dht.begin();
   
   // 1. ตั้งค่าโหมดของขารีเลย์ให้เป็นเอาต์พุต
-  pinMode(FAN_RELAY_PIN, [ ช่องที่ 1 ] );
-  pinMode(MIST_RELAY_PIN, [ ช่องที่ 2 ] );
+  pinMode(FAN_RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น OUTPUT)" style="width: 175px;">);
+  pinMode(MIST_RELAY_PIN, <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น OUTPUT)" style="width: 175px;">);
   
   // 2. ตั้งค่าลดทอนสัญญาณของ ADC เป็น 11dB (ช่วงแรงดัน 0-3.3V)
   #if defined(ESP32)
@@ -1195,15 +1226,15 @@ void loop() {
   rawAnalog = analogRead(ANALOG_PIN);
   
   // 3. แปลงค่า rawAnalog (0-4095 สำหรับ ESP32 หรือ 0-1023 สำหรับ ESP8266) ให้เป็นเปอร์เซ็นต์ (0-100%)
-  analogPercent = (rawAnalog / [ ช่องที่ 3 ]) * 100.0;
+  analogPercent = (rawAnalog / <input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="ช่องที่ 3 (เช่น 4095.0)" style="width: 185px;">) * 100.0;
   
   Serial.printf("Temp: %.1f C | Analog: %.1f%%\n", temperature, analogPercent);
   
   // 4. เขียนเงื่อนไข: หากอุณหภูมิ > 30 องศาเซลเซียส ให้เปิดพัดลม
   if (temperature > 30.0) {
-    digitalWrite(FAN_RELAY_PIN, [ ช่องที่ 4 ]);
+    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="ช่องที่ 4 (เช่น HIGH)" style="width: 165px;">);
   } else {
-    digitalWrite(FAN_RELAY_PIN, [ ช่องที่ 5 ]);
+    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น LOW)" style="width: 165px;">);
   }
   
   delay(2000);
@@ -1266,47 +1297,14 @@ void loop() {
             </div>
           </div>
 
-          <!-- 2. Code Fill-in-the-blanks -->
+          <!-- 2. Code Fill-in-the-blanks Status Notice -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-solid fa-code"></i> เติมคำตอบในช่องว่างของโค้ด (Skeleton Code)
+              <i class="fa-solid fa-code"></i> คำตอบในโค้ดโปรแกรม (Interactive Skeleton Code)
             </div>
-            
-            <div class="blank-input-group">
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 1:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank1" required placeholder="เช่น OUTPUT">
-                </div>
-              </div>
-              
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 2:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank2" required placeholder="เช่น OUTPUT">
-                </div>
-              </div>
-              
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 3:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank3" required placeholder="เช่น 4095.0">
-                </div>
-              </div>
-              
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 4:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank4" required placeholder="เช่น HIGH">
-                </div>
-              </div>
-              
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 5:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank5" required placeholder="เช่น LOW">
-                </div>
-              </div>
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.88rem; color: #cbd5e1; display: flex; align-items: center; gap: 0.75rem;">
+              <i class="fa-solid fa-laptop-code" style="color: #38bdf8; font-size: 1.25rem;"></i>
+              <span>พิมพ์คำตอบลงในช่องว่างของ <strong>โค้ดโครงร่าง (ฝั่งซ้าย)</strong> ได้โดยตรง ระบบจะรวมคำตอบทั้งหมดส่งเข้าสู่ระบบรายงานผลอัตโนมัติ</span>
             </div>
           </div>
 
@@ -1609,8 +1607,14 @@ void loop() {
       initDragAndDrop();
     });
 
-    // Code copy function
+    // Code copy function (with student answers embedded)
     function copyCode() {
+      const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* ช่องที่ 1 */';
+      const b2 = document.getElementById('codeBlank2')?.value.trim() || '/* ช่องที่ 2 */';
+      const b3 = document.getElementById('codeBlank3')?.value.trim() || '/* ช่องที่ 3 */';
+      const b4 = document.getElementById('codeBlank4')?.value.trim() || '/* ช่องที่ 4 */';
+      const b5 = document.getElementById('codeBlank5')?.value.trim() || '/* ช่องที่ 5 */';
+
       const codeText = `// Skeleton Code for Lab 1
 #include <Arduino.h>
 #include <DHT.h>
@@ -1630,8 +1634,8 @@ float analogPercent = 0;
 void setup() {
   Serial.begin(115200);
   dht.begin();
-  pinMode(FAN_RELAY_PIN, OUTPUT);
-  pinMode(MIST_RELAY_PIN, OUTPUT);
+  pinMode(FAN_RELAY_PIN, ${b1});
+  pinMode(MIST_RELAY_PIN, ${b2});
   #if defined(ESP32)
   analogSetPinAttenuation(ANALOG_PIN, ADC_11db);
   #endif
@@ -1640,12 +1644,12 @@ void setup() {
 void loop() {
   temperature = dht.readTemperature();
   rawAnalog = analogRead(ANALOG_PIN);
-  analogPercent = (rawAnalog / 4095.0) * 100.0;
+  analogPercent = (rawAnalog / ${b3}) * 100.0;
   Serial.printf("Temp: %.1f C | Analog: %.1f%%\\n", temperature, analogPercent);
   if (temperature > 30.0) {
-    digitalWrite(FAN_RELAY_PIN, HIGH);
+    digitalWrite(FAN_RELAY_PIN, ${b4});
   } else {
-    digitalWrite(FAN_RELAY_PIN, LOW);
+    digitalWrite(FAN_RELAY_PIN, ${b5});
   }
   delay(2000);
 }`;

@@ -311,10 +311,75 @@ Worksheets must print cleanly for physical grading and archiving:
     border-collapse: collapse !important;
     width: 100% !important;
   }
-  th, td {
-    border: 1px solid #cbd5e1 !important;
-    color: #000000 !important;
-    background: transparent !important;
-  }
+}
+```
+
+---
+
+## 7. Interactive Inline Skeleton Code Blanks (`.code-blank`)
+
+To maximize interactive learning, fill-in-the-blank questions must be embedded directly inside the skeleton code block (`<pre><code>`) rather than as a disconnected list.
+
+### HTML Pattern
+```html
+<div class="code-container">
+  <div class="code-header">
+    <span>lab_skeleton.ino</span>
+    <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
+  </div>
+  <pre><code>void setup() {
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น OUTPUT)" style="width: 175px;">);
+}</code></pre>
+</div>
+```
+
+### CSS Styling
+```css
+.code-blank {
+  background: rgba(99, 102, 241, 0.22);
+  border: 1px dashed #818cf8;
+  border-radius: 6px;
+  padding: 0.15rem 0.55rem;
+  color: #38bdf8;
+  font-family: var(--mono-font), monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  display: inline-block;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+}
+
+.code-blank:focus {
+  border-style: solid;
+  border-color: #38bdf8;
+  background: rgba(99, 102, 241, 0.4);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+}
+
+.code-blank::placeholder {
+  color: rgba(165, 180, 252, 0.65);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+```
+
+### Smart Copy with Injected Student Answers
+```javascript
+function copyCode() {
+  const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* ช่องที่ 1 */';
+  const codeText = `void setup() {
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, ${b1});
+}`;
+  navigator.clipboard.writeText(codeText).then(() => {
+    const copyBtn = document.querySelector('.copy-btn');
+    copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+    setTimeout(() => copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy', 2000);
+  });
 }
 ```

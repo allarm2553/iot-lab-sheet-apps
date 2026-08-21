@@ -320,6 +320,38 @@
       margin: 0;
     }
 
+    
+    .code-blank {
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px dashed #818cf8;
+      border-radius: 6px;
+      padding: 0.15rem 0.55rem;
+      color: #38bdf8;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      display: inline-block;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+    }
+
+    .code-blank:focus {
+      border-style: solid;
+      border-color: #38bdf8;
+      background: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+
+    .code-blank::placeholder {
+      color: rgba(165, 180, 252, 0.65);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
     code {
       font-family: var(--mono-font);
       font-size: 0.85rem;
@@ -1100,14 +1132,14 @@ void loop() {
   display.print("MONITORING NODE");
   
   // 2. วาดเส้นแบ่งกึ่งกลางหน้าจอแนวนอนที่พิกเซล Y = 10
-  display.drawLine(0, 10, 128, 10, [ ช่องที่ 1 ] );
+  display.drawLine(0, 10, 128, 10, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น SSD1306_WHITE)" style="width: 210px;">);
   
   // 3. แสดงค่าเซ็นเซอร์อุณหภูมิที่อ่านได้ (สมมติค่าอุณหภูมิ = 28.5)
   display.setCursor(0, 15);
   display.printf("Temp: %.1f C", 28.5);
   
   // 4. แสดงผลข้อความส่งคำสั่งออกจอภาพจริง
-  display. [ ช่องที่ 2 ] ;
+  display.<input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น display())" style="width: 160px;">;
   delay(1000);
 }</code></pre>
         </div>
@@ -1168,27 +1200,16 @@ void loop() {
             </div>
           </div>
 
-          <!-- 2. Code Fill-in-the-blanks -->
+                    <!-- 2. Code Fill-in-the-blanks Status Notice -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-solid fa-code"></i> เติมคำตอบในช่องว่างของโค้ด (Skeleton Code)
+              <i class="fa-solid fa-code"></i> คำตอบในโค้ดโปรแกรม (Interactive Skeleton Code)
             </div>
-            
-            <div class="blank-input-group">
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 1:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank1" required placeholder="เช่น SSD1306_WHITE หรือ 1">
-                </div>
-              </div>
-              
-              <div class="blank-row">
-                <span class="blank-label">ช่องที่ 2:</span>
-                <div class="blank-input">
-                  <input type="text" id="codeBlank2" required placeholder="เช่น display()">
-                </div>
-              </div>
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.88rem; color: #cbd5e1; display: flex; align-items: center; gap: 0.75rem;">
+              <i class="fa-solid fa-laptop-code" style="color: #38bdf8; font-size: 1.25rem;"></i>
+              <span>พิมพ์คำตอบลงในช่องว่างของ <strong>โค้ดโครงร่าง (ฝั่งซ้าย)</strong> ได้โดยตรง ระบบจะรวมคำตอบทั้งหมดส่งเข้าสู่ระบบรายงานผลอัตโนมัติ</span>
             </div>
+          </div>
           </div>
 
           <!-- 3. Post-Lab Questions -->
@@ -1405,6 +1426,9 @@ void loop() {
     });
 
     function copyCode() {
+      const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* ช่องที่ 1 */';
+      const b2 = document.getElementById('codeBlank2')?.value.trim() || '/* ช่องที่ 2 */';
+
       const codeText = `// Skeleton Code for Lab 2
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -1417,24 +1441,28 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin(21, 22); // SDA, SCL
+  #if defined(ESP8266)
+  Wire.begin(4, 5);
+  #else
+  Wire.begin(21, 22);
+  #endif
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
   display.clearDisplay();
-  display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 }
 
 void loop() {
   display.clearDisplay();
+  display.setTextSize(1);
   display.setCursor(0, 0);
   display.print("MONITORING NODE");
-  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
+  display.drawLine(0, 10, 128, 10, ${b1});
   display.setCursor(0, 15);
   display.printf("Temp: %.1f C", 28.5);
-  display.display();
+  display.${b2};
   delay(1000);
 }`;
       navigator.clipboard.writeText(codeText).then(() => {

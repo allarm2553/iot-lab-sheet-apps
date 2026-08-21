@@ -443,6 +443,38 @@
       margin: 0;
     }
 
+    
+    .code-blank {
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px dashed #818cf8;
+      border-radius: 6px;
+      padding: 0.15rem 0.55rem;
+      color: #38bdf8;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      display: inline-block;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+    }
+
+    .code-blank:focus {
+      border-style: solid;
+      border-color: #38bdf8;
+      background: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+
+    .code-blank::placeholder {
+      color: rgba(165, 180, 252, 0.65);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
     code {
       font-family: var(--mono-font);
       font-size: 0.83rem;
@@ -1252,7 +1284,7 @@ void setup() {
   Serial.println("\n=== WiFi Scanner ===");
 
   // 1. ตั้งค่าโหมด WiFi เป็น Station (STA) Mode
-  WiFi.mode( <span class="blank">[ ช่องที่ 1 ]</span> );
+  WiFi.mode( <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น WIFI_STA)" style="width: 180px;"> );
 
   Serial.println("กำลังสแกนหาเครือข่าย...");
 }
@@ -1272,16 +1304,16 @@ void loop() {
 
     for (int i = 0; i &lt; n; i++) {
       // 3. อ่านชื่อ SSID ของเครือข่ายลำดับที่ i
-      String ssid = WiFi.<span class="blank">[ ช่องที่ 2 ]</span>(i);
+      String ssid = WiFi.<input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น SSID)" style="width: 150px;">(i);
 
       // 4. อ่านความแรงสัญญาณ RSSI (dBm)
-      int rssi = WiFi.<span class="blank">[ ช่องที่ 3 ]</span>(i);
+      int rssi = WiFi.<input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="ช่องที่ 3 (เช่น RSSI)" style="width: 150px;">(i);
 
       // 5. อ่านหมายเลขช่องสัญญาณ (Channel)
-      int ch = WiFi.<span class="blank">[ ช่องที่ 4 ]</span>(i);
+      int ch = WiFi.<input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="ช่องที่ 4 (เช่น channel)" style="width: 150px;">(i);
 
       // 6. ตรวจสอบประเภทความปลอดภัย (ถ้า OPEN ให้แสดง "OPEN" ไม่งั้นแสดง "WPA/WPA2")
-      String security = (WiFi.encryptionType(i) == <span class="blank">[ ช่องที่ 5 ]</span>) ? "OPEN" : "WPA/WPA2";
+      String security = (WiFi.encryptionType(i) == <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น WIFI_AUTH_OPEN)" style="width: 210px;">) ? "OPEN" : "WPA/WPA2";
 
       Serial.printf("%-4d %-30s %-8d %-6d %s\n",
                     i + 1, ssid.c_str(), ch, rssi, security.c_str());
@@ -1360,12 +1392,12 @@ void setup() {
   Serial.println("\n=== WiFi Station Mode ===");
 
   // 1. เริ่มต้นการเชื่อมต่อ WiFi ด้วย SSID และ Password
-  WiFi.<span class="blank">[ ช่องที่ 6 ]</span>(ssid, password);
+  WiFi.<input type="text" id="codeBlank6" form="labForm" required class="code-blank" placeholder="ช่องที่ 6 (เช่น begin)" style="width: 150px;">(ssid, password);
   Serial.print("กำลังเชื่อมต่อกับ ");
   Serial.print(ssid);
 
   // 2. รอจนกว่าสถานะ WiFi จะเท่ากับ WL_CONNECTED (เชื่อมต่อสำเร็จ)
-  while (WiFi.status() != <span class="blank">[ ช่องที่ 7 ]</span>) {
+  while (WiFi.status() != <input type="text" id="codeBlank7" form="labForm" required class="code-blank" placeholder="ช่องที่ 7 (เช่น WL_CONNECTED)" style="width: 190px;">) {
     delay(500);
     Serial.print(".");
   }
@@ -1376,16 +1408,16 @@ void setup() {
 
   // 3. แสดง IP Address ที่ได้รับจาก DHCP Server
   Serial.print("IP Address : ");
-  Serial.println(WiFi.<span class="blank">[ ช่องที่ 8 ]</span>());
+  Serial.println(WiFi.<input type="text" id="codeBlank8" form="labForm" required class="code-blank" placeholder="ช่องที่ 8 (เช่น localIP)" style="width: 160px;">());
 
   // 4. แสดงความแรงของสัญญาณ RSSI (dBm)
   Serial.print("RSSI     : ");
-  Serial.print(WiFi.<span class="blank">[ ช่องที่ 9 ]</span>());
+  Serial.print(WiFi.<input type="text" id="codeBlank9" form="labForm" required class="code-blank" placeholder="ช่องที่ 9 (เช่น macAddress)" style="width: 170px;">());
   Serial.println(" dBm");
 
   // 5. แสดง MAC Address ของบอร์ด
   Serial.print("MAC Addr : ");
-  Serial.println(WiFi.<span class="blank">[ ช่องที่ 10 ]</span>());
+  Serial.println(WiFi.<input type="text" id="codeBlank10" form="labForm" required class="code-blank" placeholder="ช่องที่ 10 (เช่น gatewayIP)" style="width: 170px;">());
 }
 
 void loop() {
