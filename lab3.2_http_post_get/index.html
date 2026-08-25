@@ -886,14 +886,23 @@
               <span>lab3_2_rest_server.ino</span>
               <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
             </div>
-            <pre><code>#include &lt;Arduino.h&gt;
+            <pre><code>#if defined(ESP8266)
+#include &lt;ESP8266WiFi.h&gt;
+#include &lt;ESP8266WebServer.h&gt;
+ESP8266WebServer server(80);
+#define DHTPIN 2         // GPIO 2 (D4) สำหรับ AX-WiFi
+#define FAN_RELAY_PIN 13 // GPIO 13 (D7) สำหรับ AX-WiFi
+#elif defined(ESP32)
 #include &lt;WiFi.h&gt;
 #include &lt;WebServer.h&gt;
+WebServer server(80);
+#define DHTPIN 33        // พอร์ต 33 สำหรับ IPST-WiFi
+#define FAN_RELAY_PIN 5  // พอร์ต 5 สำหรับ IPST-WiFi
+#endif
 #include &lt;ArduinoJson.h&gt;
 #include &lt;DHT.h&gt;
 
-WebServer server(80);
-DHT dht(33, DHT11);
+DHT dht(DHTPIN, DHT11);
 bool relayState = false;
 
 // 1. ฟังก์ชันส่งค่าเซ็นเซอร์กลับเป็น JSON (HTTP GET)
@@ -915,7 +924,7 @@ void handleSetRelay() {
     <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น deserializeJson(doc, server.arg(&quot;plain&quot;)))" style="width: 320px;">;
     if (doc["relay"].is&lt;JsonVariant&gt;()) {
       relayState = doc["relay"];
-      digitalWrite(5, relayState ? HIGH : LOW);
+      digitalWrite(FAN_RELAY_PIN, relayState ? HIGH : LOW);
     }
     server.send(200, "application/json", "{\"success\":true}");
   }
@@ -923,7 +932,7 @@ void handleSetRelay() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(5, OUTPUT);
+  pinMode(FAN_RELAY_PIN, OUTPUT);
   dht.begin();
   WiFi.begin("iot_512", "iot123456");
   while (WiFi.status() != WL_CONNECTED) delay(500);
@@ -1218,14 +1227,23 @@ void loop() {
       const b4 = document.getElementById('codeBlank4')?.value.trim() || 'server.send(200, "application/json", jsonStr)';
       const b5 = document.getElementById('codeBlank5')?.value.trim() || 'deserializeJson(doc, server.arg("plain"))';
 
-      const code = `#include <Arduino.h>
+      const code = `#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+ESP8266WebServer server(80);
+#define DHTPIN 2         // GPIO 2 (D4) สำหรับ AX-WiFi
+#define FAN_RELAY_PIN 13 // GPIO 13 (D7) สำหรับ AX-WiFi
+#elif defined(ESP32)
 #include <WiFi.h>
 #include <WebServer.h>
+WebServer server(80);
+#define DHTPIN 33        // พอร์ต 33 สำหรับ IPST-WiFi
+#define FAN_RELAY_PIN 5  // พอร์ต 5 สำหรับ IPST-WiFi
+#endif
 #include <ArduinoJson.h>
 #include <DHT.h>
 
-WebServer server(80);
-DHT dht(33, DHT11);
+DHT dht(DHTPIN, DHT11);
 bool relayState = false;
 
 // 1. ฟังก์ชันส่งค่าเซ็นเซอร์กลับเป็น JSON (HTTP GET)
@@ -1247,7 +1265,7 @@ void handleSetRelay() {
     ${b5};
     if (doc["relay"].is<JsonVariant>()) {
       relayState = doc["relay"];
-      digitalWrite(5, relayState ? HIGH : LOW);
+      digitalWrite(FAN_RELAY_PIN, relayState ? HIGH : LOW);
     }
     server.send(200, "application/json", "{\\"success\\":true}");
   }
@@ -1255,7 +1273,7 @@ void handleSetRelay() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(5, OUTPUT);
+  pinMode(FAN_RELAY_PIN, OUTPUT);
   dht.begin();
   WiFi.begin("iot_512", "iot123456");
   while (WiFi.status() != WL_CONNECTED) delay(500);
