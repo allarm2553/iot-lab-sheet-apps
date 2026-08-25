@@ -87,21 +87,23 @@
         </div>
 
         <!-- Control Panel Card -->
+        <!-- Control Panel Card -->
         <div class="card">
-            <h2>แผงควบคุม (Control Panel)</h2>
+            <h2>แผงควบคุมอุปกรณ์ (Control Panel)</h2>
 
             <!-- Threshold Slider -->
             <div class="control-row">
                 <div class="control-label">
-                    <span class="control-title">เกณฑ์อุณหภูมิควบคุมพัดลม (Threshold)</span>
-                    <span class="control-desc">ลากสไลเดอร์เพื่อปรับค่าส่งไปยังบอร์ด ESP32</span>
+                    <span class="control-title">เกณฑ์อุณหภูมิควบคุมพัดลมอัตโนมัติ (Threshold)</span>
+                    <span class="control-desc">ลากสไลเดอร์เพื่อส่งค่าเกณฑ์ไปยังบอร์ดผ่าน WebSocket</span>
                 </div>
-                <span style="color: var(--ha-blue); font-weight: 700; font-size: 1rem; white-space: nowrap;">
+                <span style="color: var(--ha-blue); font-weight: 700; font-size: 1.1rem; white-space: nowrap;">
                     <span id="threshold-val">30.0</span>°C
                 </span>
             </div>
             <input type="range" id="temp-slider" min="25.0" max="35.0" step="0.5" value="30.0"
-                   oninput="onThresholdChange(this.value)"
+                   oninput="onThresholdInput(this.value)"
+                   onchange="onThresholdChange(this.value)"
                    style="-webkit-appearance: none; appearance: none; width: 100%; height: 6px;
                           background: rgba(255,255,255,0.1); border-radius: 5px; outline: none;
                           cursor: pointer; accent-color: var(--ha-blue);">
@@ -114,7 +116,7 @@
             <div class="control-row">
                 <div class="control-label">
                     <span class="control-title">โหมดควบคุมพัดลม (Auto / Manual)</span>
-                    <span class="control-desc">สั่งทำงานอัตโนมัติด้วยเซ็นเซอร์ หรือสั่งการด้วยมือ</span>
+                    <span class="control-desc">สั่งทำงานอัตโนมัติตามอุณหภูมิ (Hysteresis) หรือควบคุมด้วยมือ</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="status-badge state-on" id="mode-badge" style="background: rgba(3, 169, 244, 0.15); color: var(--ha-blue); border: 1px solid rgba(3, 169, 244, 0.3);">AUTO</span>
@@ -128,13 +130,64 @@
             <!-- Fan Toggle -->
             <div class="control-row">
                 <div class="control-label">
-                    <span class="control-title">ควบคุมพัดลม (GPIO 13)</span>
-                    <span class="control-desc">สั่งเปิด/ปิดพัดลมแบบแมนนวล</span>
+                    <span class="control-title">ควบคุมพัดลม (Fan Relay - GPIO 5 / 13)</span>
+                    <span class="control-desc">สั่งเปิด/ปิดพัดลมแบบแมนนวลผ่าน WebSocket</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="status-badge state-off" id="fan-badge">OFF</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="fan-switch" onchange="onToggleFan(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Humidity Threshold Slider -->
+            <div class="control-row" style="margin-top: 10px;">
+                <div class="control-label">
+                    <span class="control-title">เกณฑ์ความชื้นอากาศควบคุมปั๊มพ่นหมอก (Humidity Threshold)</span>
+                    <span class="control-desc">ลากสไลเดอร์เพื่อกำหนดเกณฑ์ความชื้นสัมพัทธ์ในการเปิดปั๊มพ่นหมอกอัตโนมัติผ่าน WebSocket</span>
+                </div>
+                <span style="color: var(--accent-orange); font-weight: 700; font-size: 1.1rem; white-space: nowrap;">
+                    <span id="hum-threshold-val">50.0</span>%
+                </span>
+            </div>
+            <input type="range" id="hum-slider" min="30.0" max="80.0" step="1.0" value="50.0"
+                   oninput="onHumThresholdInput(this.value)"
+                   onchange="onHumThresholdChange(this.value)"
+                   style="-webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+                          background: rgba(255,255,255,0.1); border-radius: 5px; outline: none;
+                          cursor: pointer; accent-color: var(--accent-orange);">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                <span>30.0%</span>
+                <span>80.0%</span>
+            </div>
+
+            <!-- Mist Mode Toggle -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">โหมดควบคุมปั๊มพ่นหมอก (Auto / Manual)</span>
+                    <span class="control-desc">สั่งทำงานอัตโนมัติตามเกณฑ์ความชื้น (&lt; <span id="hum-threshold-desc">50.0</span>% หรือค่าแอนะล็อก &lt; 40%) หรือควบคุมด้วยมือ</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge state-on" id="mist-mode-badge" style="background: rgba(3, 169, 244, 0.15); color: var(--ha-blue); border: 1px solid rgba(3, 169, 244, 0.3);">AUTO</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mist-mode-switch" checked onchange="onToggleMistMode(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Mist Toggle -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">ควบคุมปั๊มพ่นหมอก (Mist Relay - GPIO 23 / 16)</span>
+                    <span class="control-desc">สั่งเปิด/ปิดระบบพ่นหมอกแบบแมนนวลผ่าน WebSocket</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge state-off" id="mist-badge">OFF</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mist-switch" onchange="onToggleMist(this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -153,8 +206,7 @@
         let socket;
 
         function connectWebSocket() {
-            // ดึงไอพีโฮสต์ปัจจุบัน และเชื่อมโยงไปที่พอร์ต 81 สำหรับ WebSocket
-            const host = window.location.hostname || "192.168.1.100"; // Fallback IP สำหรับเครื่องจำลอง
+            const host = window.location.hostname || "192.168.1.100";
             const wsUri = `ws://${host}:81/`;
 
             socket = new WebSocket(wsUri);
@@ -176,28 +228,29 @@
                 try {
                     const data = JSON.parse(event.data);
 
-                    // อัปเดตค่าอุณหภูมิและความชื้น
+                    // 1. อุณหภูมิและความชื้น
                     if (data.temp !== undefined) {
-                        document.getElementById('temp-val').textContent = data.temp.toFixed(1);
-                        // อัปเดต progress bar อุณหภูมิ (range 0–50°C)
-                        const tempPct = Math.min(100, Math.max(0, (data.temp / 50) * 100));
+                        const tempNum = typeof data.temp === 'string' ? parseFloat(data.temp) : data.temp;
+                        document.getElementById('temp-val').textContent = tempNum.toFixed(1);
+                        const tempPct = Math.min(100, Math.max(0, (tempNum / 50) * 100));
                         document.getElementById('temp-bar').style.width = tempPct + '%';
                     }
                     if (data.humidity !== undefined) {
-                        document.getElementById('hum-val').textContent = data.humidity.toFixed(1);
-                        // อัปเดต progress bar ความชื้น (range 0–100%)
-                        const humPct = Math.min(100, Math.max(0, data.humidity));
+                        const humNum = typeof data.humidity === 'string' ? parseFloat(data.humidity) : data.humidity;
+                        document.getElementById('hum-val').textContent = humNum.toFixed(1);
+                        const humPct = Math.min(100, Math.max(0, humNum));
                         document.getElementById('hum-bar').style.width = humPct + '%';
                     }
 
-                    // อัปเดตเซ็นเซอร์แอนะล็อก
+                    // 2. เซ็นเซอร์แอนะล็อก
                     if (data.soil !== undefined) {
-                        document.getElementById('analog-val').textContent = data.soil.toFixed(1);
-                        const analogPct = Math.min(100, Math.max(0, data.soil));
+                        const soilNum = typeof data.soil === 'string' ? parseFloat(data.soil) : data.soil;
+                        document.getElementById('analog-val').textContent = soilNum.toFixed(1);
+                        const analogPct = Math.min(100, Math.max(0, soilNum));
                         document.getElementById('analog-bar').style.width = analogPct + '%';
                     }
 
-                    // อัปเดตสถานะปุ่มสวิตช์ควบคุมพัดลม (รีเลย์)
+                    // 3. สถานะรีเลย์พัดลม
                     if (data.fan !== undefined) {
                         document.getElementById('fan-switch').checked = data.fan;
                         updateFanBadge(data.fan);
@@ -219,21 +272,45 @@
                         }
                     }
 
-                    // อัปเดตจำนวนครั้งการกดปุ่มทางกายภาพ
+                    // 4. สถานะรีเลย์ปั๊มพ่นหมอก
+                    if (data.mist !== undefined) {
+                        document.getElementById('mist-switch').checked = data.mist;
+                        updateMistBadge(data.mist);
+                    }
+
+                    // 5. จำนวนครั้งกดปุ่ม
                     if (data.press !== undefined) {
                         document.getElementById('press-val').textContent = `กด: ${data.press} ครั้ง`;
                     }
 
-                    // อัปเดตสถานะโหมดควบคุม Auto/Manual
+                    // 6. โหมด Auto / Manual (พัดลม)
                     if (data.mode !== undefined) {
                         document.getElementById('mode-switch').checked = data.mode;
                         updateModeBadge(data.mode);
                     }
 
-                    // อัปเดตค่าเกณฑ์อุณหภูมิที่ดึงมาจากบอร์ดจริง
+                    // 6.1 โหมด Auto / Manual (ปั๊มพ่นหมอก)
+                    if (data.mist_mode !== undefined || data.mistMode !== undefined) {
+                        const mM = (data.mist_mode !== undefined) ? data.mist_mode : data.mistMode;
+                        document.getElementById('mist-mode-switch').checked = mM;
+                        updateMistModeBadge(mM);
+                    }
+
+                    // 7. เกณฑ์อุณหภูมิ Threshold
                     if (data.threshold !== undefined) {
-                        document.getElementById('threshold-val').textContent = data.threshold.toFixed(1);
-                        document.getElementById('temp-slider').value = data.threshold;
+                        const thNum = typeof data.threshold === 'string' ? parseFloat(data.threshold) : data.threshold;
+                        document.getElementById('threshold-val').textContent = thNum.toFixed(1);
+                        document.getElementById('temp-slider').value = thNum;
+                    }
+
+                    // 7.1 เกณฑ์ความชื้น Threshold (Mist)
+                    if (data.hum_threshold !== undefined || data.humThreshold !== undefined) {
+                        const hTh = (data.hum_threshold !== undefined) ? data.hum_threshold : data.humThreshold;
+                        const hNum = typeof hTh === 'string' ? parseFloat(hTh) : hTh;
+                        document.getElementById('hum-threshold-val').textContent = hNum.toFixed(1);
+                        const desc = document.getElementById('hum-threshold-desc');
+                        if (desc) desc.textContent = hNum.toFixed(1);
+                        document.getElementById('hum-slider').value = hNum;
                     }
                 } catch(e) {
                     console.error("Error parsing socket JSON data", e);
@@ -245,30 +322,58 @@
             };
         }
 
-        // เมื่อผู้ใช้ลากสไลเดอร์ ให้ส่งค่าความท้าทายกลับไปยังบอร์ด
-        function onThresholdChange(val) {
-            document.getElementById('threshold-val').textContent = parseFloat(val).toFixed(1);
+        function sendCommand(payloadObj) {
             if (socket && socket.readyState === WebSocket.OPEN) {
-                const payload = {
-                    threshold: parseFloat(val)
-                };
-                socket.send(JSON.stringify(payload));
+                socket.send(JSON.stringify(payloadObj));
+                console.log("Sent WS command:", payloadObj);
             }
         }
 
-        // เมื่อผู้ใช้กดปุ่มเปิด-ปิด พัดลมแบบแมนนวล
+        function onThresholdInput(val) {
+            document.getElementById('threshold-val').textContent = parseFloat(val).toFixed(1);
+        }
+
+        function onThresholdChange(val) {
+            const num = parseFloat(val);
+            document.getElementById('threshold-val').textContent = num.toFixed(1);
+            sendCommand({ threshold: num, action: "set_threshold", value: num });
+        }
+
+        function onHumThresholdInput(val) {
+            const num = parseFloat(val).toFixed(1);
+            document.getElementById('hum-threshold-val').textContent = num;
+            const desc = document.getElementById('hum-threshold-desc');
+            if (desc) desc.textContent = num;
+        }
+
+        function onHumThresholdChange(val) {
+            const num = parseFloat(val);
+            document.getElementById('hum-threshold-val').textContent = num.toFixed(1);
+            const desc = document.getElementById('hum-threshold-desc');
+            if (desc) desc.textContent = num.toFixed(1);
+            sendCommand({ hum_threshold: num, action: "set_hum_threshold", value: num });
+        }
+
         function onToggleFan(state) {
             updateFanBadge(state);
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                const payload = {
-                    action: "toggle_fan",
-                    value: state
-                };
-                socket.send(JSON.stringify(payload));
-            }
+            sendCommand({ action: "toggle_fan", value: state });
         }
 
-        // อัปเดต badge แสดงสถานะพัดลม ON/OFF
+        function onToggleMist(state) {
+            updateMistBadge(state);
+            sendCommand({ action: "toggle_mist", value: state });
+        }
+
+        function onToggleMode(state) {
+            updateModeBadge(state);
+            sendCommand({ action: "toggle_mode", value: state });
+        }
+
+        function onToggleMistMode(state) {
+            updateMistModeBadge(state);
+            sendCommand({ action: "toggle_mist_mode", value: state });
+        }
+
         function updateFanBadge(state) {
             const badge = document.getElementById('fan-badge');
             if (state) {
@@ -279,19 +384,18 @@
                 badge.className = 'status-badge state-off';
             }
         }
-        // เมื่อผู้ใช้เปลี่ยนโหมด Auto/Manual
-        function onToggleMode(state) {
-            updateModeBadge(state);
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                const payload = {
-                    action: "toggle_mode",
-                    value: state
-                };
-                socket.send(JSON.stringify(payload));
+
+        function updateMistBadge(state) {
+            const badge = document.getElementById('mist-badge');
+            if (state) {
+                badge.textContent = 'ON';
+                badge.className = 'status-badge state-on';
+            } else {
+                badge.textContent = 'OFF';
+                badge.className = 'status-badge state-off';
             }
         }
 
-        // อัปเดต badge แสดงสถานะโหมด AUTO/MANUAL
         function updateModeBadge(state) {
             const badge = document.getElementById('mode-badge');
             if (state) {
@@ -309,7 +413,23 @@
             }
         }
 
-        // เริ่มต้นการเชื่อมต่อ
+        function updateMistModeBadge(state) {
+            const badge = document.getElementById('mist-mode-badge');
+            if (state) {
+                badge.textContent = 'AUTO';
+                badge.className = 'status-badge state-on';
+                badge.style.background = 'rgba(3, 169, 244, 0.15)';
+                badge.style.color = 'var(--ha-blue)';
+                badge.style.border = '1px solid rgba(3, 169, 244, 0.3)';
+            } else {
+                badge.textContent = 'MANUAL';
+                badge.className = 'status-badge state-off';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = 'var(--accent-orange)';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', connectWebSocket);
     </script>
 </body>

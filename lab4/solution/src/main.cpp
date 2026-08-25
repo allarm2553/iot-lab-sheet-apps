@@ -60,32 +60,45 @@ float analogPercent = 0;
 
 // Dynamic control parameters
 float tempThreshold = 30.0; // Default temperature threshold (changeable via slider)
+float humThreshold = 50.0;  // Default humidity threshold for mist pump (changeable via slider)
 bool fanState = false;
 bool mistState = false;
 int toggleCount = 0;        // Physical button press counter (from Lab 2)
-bool autoMode = true;       // Mode flag: true = Auto (temp control), false = Manual
+bool autoMode = true;       // Fan Mode flag: true = Auto (temp control), false = Manual
+bool autoMistMode = true;   // Mist Mode flag: true = Auto (humidity control), false = Manual
 
 // Broadcaster helper
-void broadcastSensorData(float temp, float hum, float soil, bool fan, float threshold, int press, bool mode) {
+void broadcastSensorData(float temp, float hum, float soil, bool fan, bool mist, float threshold, float hum_threshold, int press, bool mode, bool mist_mode) {
   JsonDocument doc;
-  doc["temp"] = temp;
-  doc["humidity"] = hum;
-  doc["soil"] = soil;
+  doc["temp"] = isnan(temp) ? 0.0 : (round(temp * 10.0) / 10.0);
+  doc["humidity"] = isnan(hum) ? 0.0 : (round(hum * 10.0) / 10.0);
+  doc["soil"] = round(soil * 10.0) / 10.0;
   doc["fan"] = fan;
-  doc["threshold"] = threshold;
+  doc["mist"] = mist;
+  doc["threshold"] = round(threshold * 10.0) / 10.0;
+  doc["hum_threshold"] = round(hum_threshold * 10.0) / 10.0;
   doc["press"] = press;
   doc["mode"] = mode;
+  doc["mist_mode"] = mist_mode;
   
   String output;
   serializeJson(doc, output);
   
-  // 2. ส่งข้อมูลกระจายไปยังหน้าเว็บทุกหน้าจอที่มีการเชื่อมต่อท่อ Socket อยู่ (broadcastTXT)
+  // ส่งข้อมูลกระจายไปยังหน้าเว็บทุกหน้าจอที่มีการเชื่อมต่อท่อ Socket อยู่ (broadcastTXT)
   webSocket.broadcastTXT(output);
+}
+
+void broadcastState() {
+  broadcastSensorData(temperature, humidity, analogPercent, fanState, mistState, tempThreshold, humThreshold, toggleCount, autoMode, autoMistMode);
 }
 
 // WebSocket Event Handler
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-  if (type == WStype_TEXT) {
+  if (type == WStype_CONNECTED) {
+    IPAddress ip = webSocket.remoteIP(num);
+    Serial.printf("[%u] Connected from %d.%d.%d.%d\n", num, ip[0], ip[1], ip[2], ip[3]);
+    broadcastState();
+  } else if (type == WStype_TEXT) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload, length);
     if (error) {
@@ -102,15 +115,16 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           autoMode = false; // Switch to Manual mode upon user manual override
           digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
           Serial.printf("WS: Fan toggled manually to %s (Manual Mode)\n", fanState ? "ON" : "OFF");
-          broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+          broadcastState();
        } else if (action == "toggle_mist") {
           mistState = doc["value"];
+          autoMistMode = false; // Switch to Manual mode upon user manual override
           digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
-          Serial.printf("WS: Mist toggled manually to %s\n", mistState ? "ON" : "OFF");
-          broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+          Serial.printf("WS: Mist toggled manually to %s (Manual Mode)\n", mistState ? "ON" : "OFF");
+          broadcastState();
        } else if (action == "toggle_mode") {
           autoMode = doc["value"];
-          Serial.printf("WS: Mode toggled manually to %s\n", autoMode ? "Auto" : "Manual");
+          Serial.printf("WS: Fan Mode toggled manually to %s\n", autoMode ? "Auto" : "Manual");
           if (autoMode && !isnan(temperature) && !isnan(humidity)) {
             if (temperature > tempThreshold) {
               fanState = true;
@@ -119,16 +133,53 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             }
             digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
           }
-          broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+          broadcastState();
+       } else if (action == "toggle_mist_mode") {
+          autoMistMode = doc["value"];
+          Serial.printf("WS: Mist Mode toggled manually to %s\n", autoMistMode ? "Auto" : "Manual");
+          if (autoMistMode && !isnan(humidity)) {
+            if (humidity < humThreshold || analogPercent < 40.0) {
+              mistState = true;
+            } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+              mistState = false;
+            }
+            digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+          }
+          broadcastState();
+       } else if (action == "set_threshold") {
+          tempThreshold = doc["value"];
+          autoMode = true; // Auto mode active
+          Serial.printf("WS: Temperature Threshold updated to %.1f C (Auto Mode)\n", tempThreshold);
+          if (!isnan(temperature) && !isnan(humidity)) {
+            if (temperature > tempThreshold) {
+              fanState = true;
+            } else if (temperature < (tempThreshold - 0.5)) {
+              fanState = false;
+            }
+            digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+          }
+          broadcastState();
+       } else if (action == "set_hum_threshold") {
+          humThreshold = doc["value"];
+          autoMistMode = true; // Auto mode active
+          Serial.printf("WS: Humidity Threshold updated to %.1f %% (Auto Mode)\n", humThreshold);
+          if (!isnan(humidity)) {
+            if (humidity < humThreshold || analogPercent < 40.0) {
+              mistState = true;
+            } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+              mistState = false;
+            }
+            digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+          }
+          broadcastState();
        }
     }
     
-    // 2. โจทย์ท้าทาย: ตรวจสอบและอัปเดตเกณฑ์อุณหภูมิ (Temperature Threshold) จากสไลเดอร์
+    // 2. รับค่า threshold จากสไลเดอร์โดยตรง
     if (doc["threshold"].is<JsonVariant>()) {
       tempThreshold = doc["threshold"];
-      autoMode = true; // Switch back to Auto mode when threshold is changed
+      autoMode = true;
       Serial.printf("WS: Temperature Threshold updated to %.1f C (Auto Mode)\n", tempThreshold);
-      // Run hysteresis logic immediately to update state
       if (!isnan(temperature) && !isnan(humidity)) {
         if (temperature > tempThreshold) {
           fanState = true;
@@ -137,8 +188,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         }
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
       }
-      // สะท้อนค่ากลับเพื่อแจ้งเครื่องอื่นๆ
-      broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+      broadcastState();
+    }
+
+    // 2.1 รับค่า hum_threshold จากสไลเดอร์โดยตรง
+    if (doc["hum_threshold"].is<JsonVariant>()) {
+      humThreshold = doc["hum_threshold"];
+      autoMistMode = true;
+      Serial.printf("WS: Humidity Threshold updated to %.1f %% (Auto Mode)\n", humThreshold);
+      if (!isnan(humidity)) {
+        if (humidity < humThreshold || analogPercent < 40.0) {
+          mistState = true;
+        } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+          mistState = false;
+        }
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+      }
+      broadcastState();
     }
   }
 }
@@ -233,7 +299,7 @@ void loop() {
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
         Serial.printf("Button Pressed. Fan toggled to: %d, Count: %d (Manual Mode)\n", fanState, toggleCount);
         // Broadcast immediately
-        broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+        broadcastState();
       }
     }
   }
@@ -250,7 +316,7 @@ void loop() {
     int rawAnalog = analogRead(ANALOG_PIN);
     analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
     
-    // Check if DHT is functioning and system is in Auto Mode
+    // Check if DHT is functioning and fan is in Auto Mode
     if (autoMode && !isnan(temperature) && !isnan(humidity)) {
       // Hysteresis Control Logic based on dynamic tempThreshold
       if (temperature > tempThreshold) {
@@ -260,9 +326,19 @@ void loop() {
       }
       digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
     }
+
+    // Auto Mode Mist Control Logic based on dynamic humThreshold & soil moisture
+    if (autoMistMode && !isnan(humidity)) {
+      if (humidity < humThreshold || analogPercent < 40.0) {
+        mistState = true;
+      } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+        mistState = false;
+      }
+      digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+    }
     
     // Broadcast data to all connected WebSocket clients
-    broadcastSensorData(temperature, humidity, analogPercent, fanState, tempThreshold, toggleCount, autoMode);
+    broadcastState();
   }
   
   delay(1);
