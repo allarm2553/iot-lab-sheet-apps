@@ -12,32 +12,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
+    /* CSS Variables & Design System */
     :root {
       --bg-gradient-start: #0f172a;
       --bg-gradient-end: #020617;
       --card-bg: rgba(30, 41, 59, 0.7);
       --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover-border: rgba(6, 182, 212, 0.4);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent: #06b6d4;       /* Cyan theme for HTTP REST */
-      --accent-alt: #3b82f6;
-      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --info-frame-bg: rgba(6, 182, 212, 0.08);
-      --info-frame-border: #06b6d4;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
       --challenge-frame-bg: rgba(245, 158, 11, 0.08);
       --challenge-frame-border: #f59e0b;
-      --exp-frame-bg: rgba(16, 185, 129, 0.08);
-      --exp-frame-border: #10b981;
       --body-font: 'Sarabun', sans-serif;
       --heading-font: 'Outfit', 'Sarabun', sans-serif;
       --mono-font: 'JetBrains Mono', monospace;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
@@ -48,26 +50,11 @@
       padding: 2rem 1rem;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background:
-        radial-gradient(ellipse at 20% 40%, rgba(6,182,212,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(59,130,246,0.06) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
     .container {
-      max-width: 1440px;
+      max-width: 1400px;
       margin: 0 auto;
-      position: relative;
-      z-index: 1;
     }
 
-    /* Header */
     header {
       text-align: center;
       margin-bottom: 2.5rem;
@@ -84,31 +71,34 @@
 
     .logo-icon {
       font-size: 2.5rem;
-      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      background: linear-gradient(135deg, #818cf8, #c084fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      animation: pulse 3s infinite alternate;
     }
 
     h1 {
       font-family: var(--heading-font);
-      font-size: clamp(1.6rem, 3.5vw, 2.3rem);
+      font-size: 2.25rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #ffffff, #94a3b8);
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -0.02em;
     }
 
     .subtitle {
       color: var(--text-muted);
-      font-size: clamp(0.85rem, 1.8vw, 1.05rem);
-      margin-top: 0.25rem;
+      font-size: 1rem;
+      max-width: 750px;
+      margin: 0.5rem auto 0;
     }
 
+    /* Header Badges & Online Status Indicator */
     .header-badges {
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
       margin-top: 1rem;
@@ -117,14 +107,14 @@
     .course-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(6, 182, 212, 0.12);
-      color: #38bdf8;
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      gap: 0.4rem;
       padding: 0.35rem 0.85rem;
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
     .status-badge {
@@ -174,51 +164,72 @@
       100% { transform: scale(0.95); opacity: 0.8; }
     }
 
-    /* Grid Layout */
-    .lab-grid {
+    .dashboard-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.2fr 1fr;
       gap: 2rem;
+      margin-bottom: 2rem;
     }
 
     @media (max-width: 1024px) {
-      .lab-grid { grid-template-columns: 1fr; }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    /* Glass Cards */
     .glass-card {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
-      border-radius: 1.25rem;
-      padding: 1.75rem;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      transition: all 0.3s ease;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: relative;
+      overflow: hidden;
     }
 
-    .glass-card:hover {
-      border-color: var(--card-hover-border);
-      box-shadow: 0 12px 40px 0 rgba(6, 182, 212, 0.15);
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      opacity: 0.8;
     }
 
     .card-title {
       font-family: var(--heading-font);
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: space-between;
+      gap: 0.75rem;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+    }
+
+    .card-title-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent);
     }
 
     .btn-theory-toggle {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2));
-      border: 1px solid rgba(6, 182, 212, 0.4);
-      color: #38bdf8;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #c7d2fe;
       border-radius: 8px;
       padding: 0.35rem 0.75rem;
       font-size: 0.8rem;
@@ -232,40 +243,78 @@
     }
 
     .btn-theory-toggle:hover {
-      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      background: linear-gradient(135deg, #6366f1, #a855f7);
       color: #ffffff;
       box-shadow: 0 0 12px var(--accent-glow);
     }
 
-    /* Frames */
     .info-frame {
       background: var(--info-frame-bg);
       border-left: 4px solid var(--info-frame-border);
-      border-radius: 0.5rem;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.25rem;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
     }
 
     .info-frame h3 {
-      font-size: 1rem;
-      color: var(--accent);
+      font-family: var(--heading-font);
+      color: #93c5fd;
+      font-size: 1.1rem;
       margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    .info-frame ul {
-      padding-left: 1.25rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.1);
+      border-left-width: 4px;
+    }
+
+    .challenge-frame h3 {
+      font-family: var(--heading-font);
+      color: #fde047;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 {
+      font-family: var(--heading-font);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
     }
 
     /* Tables */
     .table-container {
       overflow-x: auto;
       margin: 1rem 0 1.5rem;
-      border-radius: 0.5rem;
+      border-radius: 8px;
       border: 1px solid var(--card-border);
     }
 
@@ -278,7 +327,7 @@
 
     th {
       background: rgba(15, 23, 42, 0.8);
-      color: var(--accent);
+      color: #a5b4fc;
       padding: 0.75rem 1rem;
       font-weight: 600;
       border-bottom: 1px solid var(--card-border);
@@ -296,178 +345,210 @@
 
     /* Code Blocks */
     .code-container {
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      border-radius: 0.75rem;
-      margin: 1rem 0;
+      position: relative;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .code-header {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(15, 23, 42, 0.8);
       padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--card-border);
-      font-family: var(--mono-font);
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
 
     .copy-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
       cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      transition: all 0.2s;
+      gap: 0.35rem;
     }
 
     .copy-btn:hover {
-      background: var(--accent);
-      color: #000;
+      color: var(--accent);
     }
 
     pre {
-      padding: 1rem;
+      background: rgba(15, 23, 42, 0.5);
+      padding: 1.25rem;
       overflow-x: auto;
+      margin: 0;
       font-family: var(--mono-font);
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       line-height: 1.6;
       color: #e2e8f0;
     }
 
-    /* Inline Code Blanks */
+    /* Interactive Inline Code Blanks */
     .code-blank {
-      background: rgba(6, 182, 212, 0.2);
-      border: 1px dashed #06b6d4;
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px dashed #818cf8;
       border-radius: 6px;
-      padding: 0.15rem 0.5rem;
+      padding: 0.15rem 0.55rem;
       color: #38bdf8;
       font-family: var(--mono-font), monospace;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
       outline: none;
       display: inline-block;
       vertical-align: middle;
       transition: all 0.2s ease;
-      box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
     }
 
     .code-blank:focus {
       border-style: solid;
       border-color: #38bdf8;
-      background: rgba(6, 182, 212, 0.4);
+      background: rgba(99, 102, 241, 0.4);
       color: #ffffff;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
     }
 
     .code-blank::placeholder {
-      color: rgba(148, 163, 184, 0.7);
+      color: rgba(165, 180, 252, 0.65);
       font-style: italic;
       font-weight: 400;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    code {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #38bdf8;
     }
 
     /* Form Styles */
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
       margin-bottom: 1.25rem;
     }
 
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 0.35rem;
-    }
-
-    .form-control {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 0.5rem;
-      padding: 0.6rem 0.85rem;
-      color: #ffffff;
-      font-family: var(--body-font);
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent-glow);
-    }
-
-    textarea.form-control {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .form-grid-2 {
+    .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
 
     @media (max-width: 640px) {
-      .form-grid-2 { grid-template-columns: 1fr; }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .form-section-title {
-      font-family: var(--heading-font);
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin: 1.5rem 0 0.75rem;
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .input-wrapper {
+      position: relative;
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    textarea {
+      padding-left: 1rem;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     /* Notice Card */
     .notice-card {
-      background: rgba(6, 182, 212, 0.08);
-      border: 1px solid rgba(6, 182, 212, 0.25);
-      border-radius: 0.5rem;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 8px;
       padding: 0.85rem 1rem;
       margin-bottom: 1.25rem;
       font-size: 0.85rem;
-      color: #bae6fd;
+      color: #c7d2fe;
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
 
     /* Buttons */
-    .btn-submit {
-      background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
       color: #ffffff;
       border: none;
-      border-radius: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: var(--heading-font);
+      font-size: 1.05rem;
       font-weight: 600;
       cursor: pointer;
-      width: 100%;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      box-shadow: 0 4px 14px 0 var(--accent-glow);
-      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
     }
 
-    .btn-submit:hover {
-      opacity: 0.9;
+    .btn:hover {
       transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .btn-actions {
@@ -480,8 +561,8 @@
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-muted);
       border: 1px solid var(--card-border);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
       font-size: 0.85rem;
       cursor: pointer;
       flex: 1;
@@ -501,7 +582,7 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(2, 6, 23, 0.8);
       backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
@@ -565,8 +646,8 @@
     }
 
     .theory-tab-btn.active {
-      background: rgba(6, 182, 212, 0.2);
-      color: var(--accent);
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
     }
 
     .theory-tab-panel { display: none; }
@@ -581,7 +662,7 @@
     }
 
     .theory-card h4 {
-      color: var(--accent);
+      color: #a5b4fc;
       margin-bottom: 0.5rem;
       font-size: 0.95rem;
     }
@@ -650,13 +731,13 @@
       body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
       .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .glass-card { background: #ffffff !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; color: #000000 !important; page-break-inside: avoid; margin-bottom: 1rem !important; }
-      header, .header-badges, .btn-theory-toggle, .btn-submit, .btn-actions, .modal-overlay, .anti-cheat-toast, .copy-btn { display: none !important; }
+      header, .header-badges, .btn-theory-toggle, .btn, .btn-actions, .modal-overlay, .anti-cheat-toast, .copy-btn { display: none !important; }
       .card-title { color: #000000 !important; border-bottom: 2px solid #000000 !important; }
       .code-blank, input, textarea { border-bottom: 1px dotted #000 !important; background: transparent !important; color: #000 !important; }
       table { border: 1px solid #000 !important; }
       th { background: #f1f5f9 !important; color: #000 !important; }
       td { color: #000 !important; }
-      .info-frame { border-left-color: #000 !important; background: #f8fafc !important; color: #000 !important; }
+      .info-frame, .challenge-frame { border-left-color: #000 !important; background: #f8fafc !important; color: #000 !important; }
     }
   </style>
 </head>
@@ -682,16 +763,16 @@
       </div>
     </header>
 
-    <!-- Main Grid -->
-    <div class="lab-grid">
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
 
       <!-- Left Column: Lab Manual & Skeleton Code -->
       <div class="manual-column">
         <div class="glass-card">
           
-          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-book-open" style="color: var(--accent);"></i>
+          <div class="card-title">
+            <div class="card-title-left">
+              <i class="fa-solid fa-book-open"></i>
               <span>คู่มือใบงานการทดลอง</span>
             </div>
             <button type="button" class="btn-theory-toggle" onclick="openTheoryModal()">
@@ -711,7 +792,7 @@
           </div>
 
           <!-- Equipment Required Table -->
-          <h3 style="font-size: 1rem; color: var(--accent); margin: 1.25rem 0 0.5rem;"><i class="fa-solid fa-toolbox"></i> อุปกรณ์ที่ต้องใช้</h3>
+          <h2 style="font-size: 1.1rem; color: #a5b4fc; margin-top: 1rem;"><i class="fa-solid fa-toolbox"></i> อุปกรณ์ที่ต้องใช้</h2>
           <div class="table-container">
             <table>
               <thead>
@@ -752,7 +833,7 @@
           </div>
 
           <!-- Hardware Wiring Table -->
-          <h3 style="font-size: 1rem; color: var(--accent); margin: 1.25rem 0 0.5rem;"><i class="fa-solid fa-microchip"></i> การเชื่อมต่อวงจร (Hardware Pinouts)</h3>
+          <h2 style="font-size: 1.1rem; color: #a5b4fc; margin-top: 1rem;"><i class="fa-solid fa-microchip"></i> การเชื่อมต่อวงจร (Hardware Pinouts)</h2>
           <div class="table-container">
             <table>
               <thead>
@@ -798,11 +879,12 @@
           </div>
 
           <!-- Skeleton Code with Interactive Blanks -->
-          <h3 style="font-size: 1rem; color: var(--accent); margin: 1.25rem 0 0.5rem;"><i class="fa-solid fa-code"></i> โค้ดโครงร่างโปรแกรม (Interactive Skeleton Code)</h3>
+          <h2 style="font-size: 1.1rem; color: #a5b4fc; margin-top: 1.5rem;"><i class="fa-solid fa-code"></i> โค้ดโครงร่าง (Skeleton Code)</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">ศึกษาโค้ดต่อไปนี้และค้นหาคำตอบเพื่อนำมาเติมในช่องว่างให้สมบูรณ์:</p>
           <div class="code-container">
             <div class="code-header">
               <span>lab3_2_rest_server.ino</span>
-              <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+              <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
             </div>
             <pre><code>#include &lt;Arduino.h&gt;
 #include &lt;WiFi.h&gt;
@@ -859,10 +941,8 @@ void loop() {
           </div>
 
           <!-- โจทย์ท้าทายการทดลอง (Challenge Task) -->
-          <div class="challenge-frame" style="background: var(--challenge-frame-bg); border-left: 4px solid var(--challenge-frame-border); border-radius: 0.5rem; padding: 1.2rem; margin-top: 1.5rem;">
-            <h3 style="color: var(--warning); font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge Task)
-            </h3>
+          <div class="challenge-frame">
+            <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge Task)</h3>
             <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.75rem;">
               ให้นักศึกษาพัฒนาและต่อยอดโปรแกรม Web Server REST API ให้มีคุณสมบัติครบถ้วนตามระบบควบคุมจริง สอดคล้องกับไฟล์ Solution:
             </p>
@@ -882,93 +962,119 @@ void loop() {
         <div class="glass-card">
           
           <div class="card-title">
-            <i class="fa-solid fa-file-pen" style="color: var(--accent);"></i>
-            <span>ฟอร์มบันทึกและส่งรายงานผลการทดลอง</span>
+            <div class="card-title-left">
+              <i class="fa-solid fa-file-pen"></i>
+              <span>ฟอร์มบันทึกและส่งรายงานผลการทดลอง</span>
+            </div>
           </div>
 
           <form id="labForm" onsubmit="handleFormSubmit(event)">
             
             <!-- Student Information -->
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="studentName"><i class="fa-solid fa-user"></i> ชื่อ-นามสกุล นักศึกษา</label>
-                <input type="text" id="studentName" class="form-control" placeholder="เช่น นายสมชาย ใจดี" required>
+            <div class="form-section">
+              <div class="form-section-title">
+                <i class="fa-solid fa-user-graduate"></i> ข้อมูลนักศึกษา
               </div>
-              <div class="form-group">
-                <label for="studentId"><i class="fa-solid fa-id-card"></i> รหัสนักศึกษา</label>
-                <input type="text" id="studentId" class="form-control" placeholder="เช่น 66010123" required>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="studentName">ชื่อ-นามสกุล</label>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-user input-icon"></i>
+                    <input type="text" id="studentName" placeholder="เช่น นายสมชาย ใจดี" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="studentId">รหัสนักศึกษา</label>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-id-card input-icon"></i>
+                    <input type="text" id="studentId" placeholder="เช่น 66010123" required>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="studentClass"><i class="fa-solid fa-chalkboard-user"></i> กลุ่ม / ตอนเรียน (Section)</label>
-                <input type="text" id="studentClass" class="form-control" placeholder="เช่น ชฟ.2/1 หรือ Sec 1" required>
-              </div>
-              <div class="form-group">
-                <label for="groupNumber"><i class="fa-solid fa-users"></i> กลุ่มปฏิบัติการที่</label>
-                <input type="text" id="groupNumber" class="form-control" placeholder="เช่น กลุ่มที่ 3" required>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="studentClass">กลุ่ม / ตอนเรียน (Section)</label>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-chalkboard-user input-icon"></i>
+                    <input type="text" id="studentClass" placeholder="เช่น ชฟ.2/1 หรือ Sec 1" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="groupNumber">กลุ่มปฏิบัติการที่</label>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-users input-icon"></i>
+                    <input type="text" id="groupNumber" placeholder="เช่น กลุ่มที่ 3" required>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Code Blank Notice -->
             <div class="notice-card">
-              <i class="fa-solid fa-circle-info" style="font-size: 1.2rem; color: var(--accent);"></i>
-              <div><b>คำตอบโค้ดโปรแกรม (ช่องที่ 1 – 5):</b> ถูกรวมไว้ในช่องว่างของ <i>Interactive Skeleton Code</i> ฝั่งซ้ายมือเรียบร้อยแล้ว เมื่อกดส่งใบงานระบบจะรวบรวมคำตอบให้อัตโนมัติ</div>
+              <i class="fa-solid fa-circle-info" style="font-size: 1.2rem; color: #818cf8;"></i>
+              <div><b>คำตอบโค้ดโปรแกรม (ช่องที่ 1 – 5):</b> ถูกรวมไว้ในช่องว่างของ <i>Skeleton Code</i> ฝั่งซ้ายมือเรียบร้อยแล้ว เมื่อกดส่งใบงานระบบจะรวบรวมคำตอบให้อัตโนมัติ</div>
             </div>
 
             <!-- Experimental Results Section -->
-            <div class="form-section-title">
-              <i class="fa-solid fa-square-poll-vertical"></i> บันทึกผลการทดลอง (Experimental Results)
-            </div>
+            <div class="form-section">
+              <div class="form-section-title">
+                <i class="fa-solid fa-square-poll-vertical"></i> บันทึกผลการทดลอง (Experimental Results)
+              </div>
 
-            <div class="form-group">
-              <label for="expResult1"><b>ตอนที่ 1:</b> ผลการทดสอบส่ง HTTP GET <code>/api/data</code> อ่านค่าเซ็นเซอร์</label>
-              <input type="text" id="expResult1" class="form-control" placeholder="เช่น อุณหภูมิอ่านได้ 28.6°C, ความชื้น 62.0%, ค่า Latency เฉลี่ย 28 ms" required>
-            </div>
+              <div class="form-group">
+                <label for="expResult1"><b>ตอนที่ 1:</b> ผลการทดสอบส่ง HTTP GET <code>/api/data</code> อ่านค่าเซ็นเซอร์</label>
+                <input type="text" id="expResult1" placeholder="เช่น อุณหภูมิอ่านได้ 28.6°C, ความชื้น 62.0%, ค่า Latency เฉลี่ย 28 ms" style="padding-left: 1rem;" required>
+              </div>
 
-            <div class="form-group">
-              <label for="expResult2"><b>ตอนที่ 2:</b> ผลการทดสอบส่ง HTTP POST <code>/api/relay</code> ควบคุมเปิด-ปิดรีเลย์</label>
-              <input type="text" id="expResult2" class="form-control" placeholder="เช่น ส่ง payload {'relay': true} รีเลย์ติดทันที, ข้อความตอบกลับ: {'success': true, 'relay': true}" required>
+              <div class="form-group">
+                <label for="expResult2"><b>ตอนที่ 2:</b> ผลการทดสอบส่ง HTTP POST <code>/api/relay</code> ควบคุมเปิด-ปิดรีเลย์</label>
+                <input type="text" id="expResult2" placeholder="เช่น ส่ง payload {'relay': true} รีเลย์ติดทันที, ข้อความตอบกลับ: {'success': true, 'relay': true}" style="padding-left: 1rem;" required>
+              </div>
             </div>
 
             <!-- Review Questions -->
-            <div class="form-section-title">
-              <i class="fa-solid fa-circle-question"></i> คำถามวิเคราะห์และสรุปผลการทดลอง (Review Questions)
-            </div>
+            <div class="form-section">
+              <div class="form-section-title">
+                <i class="fa-solid fa-circle-question"></i> คำถามวิเคราะห์และสรุปผลการทดลอง
+              </div>
 
-            <div class="form-group">
-              <label for="question1"><b>คำถามที่ 1:</b> เหตุใดการอ่านค่าเซ็นเซอร์จึงเหมาะสมกับการใช้เมธอด <code>HTTP GET</code> ในขณะที่การสั่งเปิด-ปิดรีเลย์จึงเหมาะสมกับการใช้ <code>HTTP POST</code>?</label>
-              <textarea id="question1" class="form-control" placeholder="อธิบายตามหลักการ Idempotent, Safe Retrieval, และ State Mutation พร้อมข้อดีเรื่องความปลอดภัย..." required></textarea>
-            </div>
+              <div class="form-group">
+                <label for="question1"><b>คำถามที่ 1:</b> เหตุใดการอ่านค่าเซ็นเซอร์จึงเหมาะสมกับการใช้เมธอด <code>HTTP GET</code> ในขณะที่การสั่งเปิด-ปิดรีเลย์จึงเหมาะสมกับการใช้ <code>HTTP POST</code>?</label>
+                <textarea id="question1" rows="3" placeholder="อธิบายตามหลักการ Idempotent, Safe Retrieval, และ State Mutation พร้อมข้อดีเรื่องความปลอดภัย..." required></textarea>
+              </div>
 
-            <div class="form-group">
-              <label for="question2"><b>คำถามที่ 2:</b> การใช้เทคนิค HTTP Polling เพื่ออ่านค่าเซ็นเซอร์แบบเรียลไทม์ส่งผลกระทบต่อไมโครคอนโทรลเลอร์อย่างไร และหากต้องการลดภาระควรเลือกใช้โปรโตคอลใดแทน?</label>
-              <textarea id="question2" class="form-control" placeholder="วิเคราะห์ปัญหาเรื่อง Network Overhead, HTTP Header, การเปิด-ปิด TCP Connection ซ้ำๆ และแนวทางแก้ไข..." required></textarea>
-            </div>
+              <div class="form-group">
+                <label for="question2"><b>คำถามที่ 2:</b> การใช้เทคนิค HTTP Polling เพื่ออ่านค่าเซ็นเซอร์แบบเรียลไทม์ส่งผลกระทบต่อไมโครคอนโทรลเลอร์อย่างไร และหากต้องการลดภาระควรเลือกใช้โปรโตคอลใดแทน?</label>
+                <textarea id="question2" rows="3" placeholder="วิเคราะห์ปัญหาเรื่อง Network Overhead, HTTP Header, การเปิด-ปิด TCP Connection ซ้ำๆ และแนวทางแก้ไข..." required></textarea>
+              </div>
 
-            <div class="form-group">
-              <label for="conclusion"><b>สรุปผลการทดลอง (Conclusion):</b></label>
-              <textarea id="conclusion" class="form-control" placeholder="สรุปองค์ความรู้ที่ได้รับจากการทดลองสร้าง Web Server REST API ด้วย ESP32/ESP8266..." required></textarea>
+              <div class="form-group">
+                <label for="conclusion"><b>สรุปผลการทดลอง (Conclusion):</b></label>
+                <textarea id="conclusion" rows="3" placeholder="สรุปองค์ความรู้ที่ได้รับจากการทดลองสร้าง Web Server REST API ด้วย ESP32/ESP8266..." required></textarea>
+              </div>
             </div>
 
             <!-- Challenge Section -->
-            <div class="form-section-title" style="color: var(--warning);">
-              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Submission)
-            </div>
+            <div class="form-section">
+              <div class="form-section-title" style="color: #fde047;">
+                <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Submission)
+              </div>
 
-            <div class="form-group">
-              <label for="challengeLogic"><b>คำอธิบายการออกแบบตรรกะโจทย์ท้าทาย (Challenge Logic):</b></label>
-              <textarea id="challengeLogic" class="form-control" placeholder="อธิบายแนวคิดการพัฒนาฟังก์ชัน handleSetRelay, การจัดการจอ OLED SSD1306, และการเขียนโปรแกรม Debounce สวิตช์ปุ่มกด GPIO 0..." required></textarea>
-            </div>
+              <div class="form-group">
+                <label for="challengeLogic"><b>คำอธิบายการออกแบบตรรกะโจทย์ท้าทาย (Challenge Logic):</b></label>
+                <textarea id="challengeLogic" rows="3" placeholder="อธิบายแนวคิดการพัฒนาฟังก์ชัน handleSetRelay, การจัดการจอ OLED SSD1306, และการเขียนโปรแกรม Debounce สวิตช์ปุ่มกด GPIO 0..." required></textarea>
+              </div>
 
-            <div class="form-group">
-              <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทายฉบับสมบูรณ์ (Complete Challenge Code):</label>
-              <textarea id="challengeCode" class="form-control" style="font-family: var(--mono-font); font-size: 0.8rem; min-height: 160px;" placeholder="คัดลอกซอร์สโค้ดภาษา C++ ที่แก้โจทย์ท้าทายครบทุกเงื่อนไขและคอมไพล์ผ่านสมบูรณ์มาวางที่นี่..." required></textarea>
+              <div class="form-group">
+                <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทายฉบับสมบูรณ์ (Complete Challenge Code):</label>
+                <textarea id="challengeCode" rows="6" style="font-family: var(--mono-font); font-size: 0.85rem;" placeholder="คัดลอกซอร์สโค้ดภาษา C++ ที่แก้โจทย์ท้าทายครบทุกเงื่อนไขและคอมไพล์ผ่านสมบูรณ์มาวางที่นี่..." required></textarea>
+              </div>
             </div>
 
             <!-- Action Buttons -->
-            <button type="submit" id="btnSubmit" class="btn-submit">
+            <button type="submit" id="btnSubmit" class="btn">
               <i class="fa-solid fa-paper-plane"></i> ส่งใบงานปฏิบัติการออนไลน์
             </button>
 
@@ -1167,8 +1273,8 @@ void loop() {
 
       navigator.clipboard.writeText(code).then(() => {
         const copyBtn = document.querySelector('.copy-btn');
-        copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> คัดลอกสำเร็จ!';
-        setTimeout(() => copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy Code', 2000);
+        copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+        setTimeout(() => copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy', 2000);
       });
     }
 
