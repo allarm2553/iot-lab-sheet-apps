@@ -71,3 +71,187 @@ sequenceDiagram
 > **แนวคำตอบ:** 
 > - **ผลกระทบ:** HTTP Polling บราวเซอร์ต้องส่ง Request พร้อม HTTP Header ขนาดใหญ่ (~500–1000 Bytes) ไปยังไมโครคอนโทรลเลอร์ซ้ำๆ ทุก 1–2 วินาที ทำให้ ESP32/ESP8266 ต้องเปิด-ปิด TCP Connection ซ้ำซาก เปลืองหน่วยความจำ RAM และประมวลผล Header ตลอดเวลา จนอาจทำให้บอร์ดตอบสนองช้าลง (High Latency)
 > - **แนวทางแก้ไข:** ในระบบที่ต้องการความถี่สูงและต้องการให้บอร์ดส่งข้อมูลหาเว็บได้ทันที (Event-driven) ควรเปลี่ยนไปใช้โปรโตคอล **WebSockets (Full-Duplex)** หรือ **MQTT Broker** ที่เปิดท่อ TCP ค้างไว้เพียงครั้งเดียวและมี Overhead ต่ำกว่ามาก
+
+---
+
+## 🏆 3. แนวทางการทำโจทย์ท้าทาย (Challenge Task Guide)
+
+### 📋 เงื่อนไขโจทย์ท้าทาย:
+1. **การควบคุม HTTP POST ขั้นสูง:** พัฒนาฟังก์ชัน `handleSetRelay()` ให้รองรับการส่ง JSON แบบระบุคำสั่ง เช่น `{"action": "toggle"}` หรือ `{"relay": true/false}` พร้อมส่งข้อความตอบกลับ `{"success": true, "relay": state, "message": "..."}`
+2. **การแสดงผลจอ OLED SSD1306 (I2C 0x3C):** แสดงผล IP Address ของบอร์ด, อุณหภูมิ, ความชื้น, สถานะรีเลย์ (ON/OFF), และตัวนับการกดปุ่ม
+3. **ระบบสวิตช์กายภาพ (GPIO 0 Debounce):** ดักจับการกดปุ่ม SW1 บนบอร์ด IPST-WiFi หรือปุ่ม FLASH บนบอร์ด AX-WiFi เพื่อสลับสถานะรีเลย์ พร้อมอัปเดตตัวแปร `toggleCount` และสะท้อนไปยัง REST API
+4. **CORS Support:** ใส่ Header `Access-Control-Allow-Origin: *` และรองรับ `HTTP_OPTIONS` เพื่อให้ Web App บน Localhost หรือโดเมนอื่นส่ง Request ข้ามโดเมนได้
+
+---
+
+## 💻 4. โค้ดเฉลยโจทย์ท้าทายฉบับสมบูรณ์ (Complete Solution Code)
+
+```cpp
+/**
+ * Lab 3.2: HTTP GET / POST Web Server & REST API (Complete Solution)
+ */
+#include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WebServer.h>
+#endif
+#include <ArduinoJson.h>
+#include <DHT.h>
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+
+#if defined(ESP8266)
+ESP8266WebServer server(80);
+#define DHTPIN 2
+#define FAN_RELAY_PIN 13
+#define BUTTON_PIN 0
+#elif defined(ESP32)
+WebServer server(80);
+#define DHTPIN 33
+#define FAN_RELAY_PIN 5
+#define BUTTON_PIN 0
+#endif
+
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+bool oledAvailable = false;
+
+float temperature = 0.0;
+float humidity = 0.0;
+bool relayState = false;
+int toggleCount = 0;
+
+void updateOledDisplay(const char* statusMsg = "") {
+  if (!oledAvailable) return;
+  display.clearDisplay();
+  display.setCursor(8, 0);
+  display.print("HTTP REST SERVER");
+  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
+  display.setCursor(0, 14);
+  display.printf("Temp: %.1f C", temperature);
+  display.setCursor(0, 24);
+  display.printf("Humid: %.1f %%", humidity);
+  display.setCursor(0, 35);
+  if (statusMsg && strlen(statusMsg) > 0) display.print(statusMsg);
+  else display.printf("IP: %s", WiFi.localIP().toString().c_str());
+  display.drawLine(0, 48, 128, 48, SSD1306_WHITE);
+  display.setCursor(0, 52);
+  display.printf("Fan:%s | Cnt:%d", relayState ? "ON" : "OFF", toggleCount);
+  display.display();
+}
+
+void handleGetData() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  JsonDocument doc;
+  doc["temp"] = isnan(temperature) ? 0.0 : (round(temperature * 10.0) / 10.0);
+  doc["humidity"] = isnan(humidity) ? 0.0 : (round(humidity * 10.0) / 10.0);
+  doc["relay"] = relayState;
+  doc["press"] = toggleCount;
+  doc["ip"] = WiFi.localIP().toString();
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+  server.send(200, "application/json", jsonStr);
+}
+
+void handleSetRelay() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\": \"Missing Request Body\"}");
+    return;
+  }
+  JsonDocument doc;
+  if (deserializeJson(doc, server.arg("plain"))) {
+    server.send(400, "application/json", "{\"error\": \"Invalid JSON\"}");
+    return;
+  }
+  if (doc["relay"].is<JsonVariant>()) {
+    relayState = doc["relay"];
+  } else if (doc["action"].is<JsonVariant>() && doc["action"] == "toggle") {
+    relayState = !relayState;
+  }
+  digitalWrite(FAN_RELAY_PIN, relayState ? HIGH : LOW);
+  updateOledDisplay("Relay Updated!");
+
+  JsonDocument resDoc;
+  resDoc["success"] = true;
+  resDoc["relay"] = relayState;
+  resDoc["message"] = relayState ? "Fan Relay Turned ON" : "Fan Relay Turned OFF";
+  String resStr;
+  serializeJson(resDoc, resStr);
+  server.send(200, "application/json", resStr);
+}
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  digitalWrite(FAN_RELAY_PIN, LOW);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  #if defined(ESP8266)
+  Wire.begin(4, 5);
+  #elif defined(ESP32)
+  Wire.begin(21, 22);
+  #endif
+
+  if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    oledAvailable = true;
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    updateOledDisplay("Connecting WiFi...");
+  }
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+
+  server.on("/api/data", HTTP_GET, handleGetData);
+  server.on("/api/relay", HTTP_POST, handleSetRelay);
+  server.begin();
+  updateOledDisplay();
+}
+
+void loop() {
+  server.handleClient();
+
+  // Button Debounce
+  int reading = digitalRead(BUTTON_PIN);
+  static bool lastBtn = HIGH;
+  static unsigned long lastDebounce = 0;
+  if (reading != lastBtn) lastDebounce = millis();
+  if ((millis() - lastDebounce) > 50) {
+    static bool currentBtn = HIGH;
+    if (reading != currentBtn) {
+      currentBtn = reading;
+      if (currentBtn == LOW) {
+        relayState = !relayState;
+        toggleCount++;
+        digitalWrite(FAN_RELAY_PIN, relayState ? HIGH : LOW);
+        updateOledDisplay("Btn Pressed!");
+      }
+    }
+  }
+  lastBtn = reading;
+
+  // Sensor Reading every 2s
+  static unsigned long lastRead = 0;
+  if (millis() - lastRead > 2000) {
+    lastRead = millis();
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+    if (!isnan(t)) temperature = t;
+    if (!isnan(h)) humidity = h;
+    updateOledDisplay();
+  }
+}
+```
+

@@ -47,18 +47,21 @@ function gradeSubmission(data) {
 
   // 2. Grade Challenge / Full Code (2.5 points max)
   var challengeCodeText = data.challengeCode || '';
+  var challengeLogicText = data.challengeLogic || '';
   if (challengeCodeText.trim().length > 30) {
     var codeMatches = 0;
-    var keywords = ["handleGetData", "handleSetRelay", "HTTP_GET", "HTTP_POST", "ArduinoJson", "digitalWrite", "dht", "WiFi"];
+    var keywords = ["handleGetData", "handleSetRelay", "HTTP_GET", "HTTP_POST", "ArduinoJson", "digitalWrite", "dht", "SSD1306", "BUTTON_PIN"];
     for (var k = 0; k < keywords.length; k++) {
       if (challengeCodeText.indexOf(keywords[k]) !== -1) {
         codeMatches++;
       }
     }
-    challengeScore = Math.min(2.5, (codeMatches / keywords.length) * 2.5);
-    feedbackDetails.push("- โค้ดโปรแกรมฉบับสมบูรณ์: โครงสร้างครบถ้วน (" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
+    var codeScore = Math.min(1.5, (codeMatches / keywords.length) * 1.5);
+    var logicScore = challengeLogicText.trim().length > 15 ? 1.0 : 0.4;
+    challengeScore = codeScore + logicScore;
+    feedbackDetails.push("- โค้ดและตรรกะโจทย์ท้าทาย: โครงสร้างครบถ้วน (" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
   } else {
-    feedbackDetails.push("- โค้ดโปรแกรมฉบับสมบูรณ์: ไม่พบการแนบโค้ด (+0.0/2.5 คะแนน)");
+    feedbackDetails.push("- โค้ดและตรรกะโจทย์ท้าทาย: ไม่พบการส่งคำตอบ (+0.0/2.5 คะแนน)");
   }
 
   // 3. Grade Question 1 (2.0 points max)
@@ -127,7 +130,7 @@ function doPost(e) {
         "Exp 1: GET Temp/Hum", "Exp 2: POST Relay Latency",
         "Code Blank 1", "Code Blank 2", "Code Blank 3", "Code Blank 4", "Code Blank 5",
         "Question 1 (GET vs POST)", "Question 2 (HTTP Polling)", "Conclusion",
-        "Challenge Code", "Attachment File", "Photo URL"
+        "Challenge Logic", "Challenge Code", "Attachment File", "Photo URL"
       ]);
     }
 
@@ -149,6 +152,7 @@ function doPost(e) {
       data.question1 || '',
       data.question2 || '',
       data.conclusion || '',
+      data.challengeLogic || '',
       data.challengeCode || '',
       data.fileName ? "Attached: " + data.fileName : '',
       data.photoName ? "Attached: " + data.photoName : ''

@@ -858,6 +858,22 @@ void loop() {
 }</code></pre>
           </div>
 
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Task) -->
+          <div class="challenge-frame" style="background: var(--challenge-frame-bg); border-left: 4px solid var(--challenge-frame-border); border-radius: 0.5rem; padding: 1.2rem; margin-top: 1.5rem;">
+            <h3 style="color: var(--warning); font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge Task)
+            </h3>
+            <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.75rem;">
+              ให้นักศึกษาพัฒนาและต่อยอดโปรแกรม Web Server REST API ให้มีคุณสมบัติครบถ้วนตามระบบควบคุมจริง สอดคล้องกับไฟล์ Solution:
+            </p>
+            <ol style="padding-left: 1.3rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+              <li><b>การประมวลผล JSON Payload ใน HTTP POST:</b> พัฒนาฟังก์ชัน <code>handleSetRelay()</code> ให้รองรับทั้ง <code>{"relay": true/false}</code> และ <code>{"action": "toggle"}</code> พร้อมส่งสถานะผลลัพธ์กลับในรูปแบบ JSON</li>
+              <li><b>การแสดงผลบนจอ OLED SSD1306 (I2C):</b> แสดงข้อมูล IP Address, อุณหภูมิ, ความชื้น, สถานะรีเลย์ (ON/OFF), และตัวนับการกดปุ่ม</li>
+              <li><b>ระบบสวิตช์ปุ่มกดกายภาพ (GPIO 0 Debounce):</b> เขียนตรรกะตรวจจับการกดปุ่ม SW1/FLASH เพื่อสลับสถานะรีเลย์บนบอร์ด พร้อมอัปเดตตัวนับและสะท้อนสถานะไปยัง REST API</li>
+              <li><b>การรองรับ CORS Header:</b> ใส่ <code>Access-Control-Allow-Origin: *</code> ในการตอบกลับ เพื่อให้เว็บแดชบอร์ดสามารถเรียกใช้งานได้จากทุกที่</li>
+            </ol>
+          </div>
+
         </div>
       </div>
 
@@ -936,10 +952,19 @@ void loop() {
               <textarea id="conclusion" class="form-control" placeholder="สรุปองค์ความรู้ที่ได้รับจากการทดลองสร้าง Web Server REST API ด้วย ESP32/ESP8266..." required></textarea>
             </div>
 
-            <!-- Challenge / Full Code -->
+            <!-- Challenge Section -->
+            <div class="form-section-title" style="color: var(--warning);">
+              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Submission)
+            </div>
+
             <div class="form-group">
-              <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมฉบับสมบูรณ์ (Complete Code Solution)</label>
-              <textarea id="challengeCode" class="form-control" style="font-family: var(--mono-font); font-size: 0.8rem; min-height: 120px;" placeholder="คัดลอกโค้ด C++ ที่คอมไพล์ผ่านและทำงานได้ถูกต้องมาวางที่นี่..."></textarea>
+              <label for="challengeLogic"><b>คำอธิบายการออกแบบตรรกะโจทย์ท้าทาย (Challenge Logic):</b></label>
+              <textarea id="challengeLogic" class="form-control" placeholder="อธิบายแนวคิดการพัฒนาฟังก์ชัน handleSetRelay, การจัดการจอ OLED SSD1306, และการเขียนโปรแกรม Debounce สวิตช์ปุ่มกด GPIO 0..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทายฉบับสมบูรณ์ (Complete Challenge Code):</label>
+              <textarea id="challengeCode" class="form-control" style="font-family: var(--mono-font); font-size: 0.8rem; min-height: 160px;" placeholder="คัดลอกซอร์สโค้ดภาษา C++ ที่แก้โจทย์ท้าทายครบทุกเงื่อนไขและคอมไพล์ผ่านสมบูรณ์มาวางที่นี่..." required></textarea>
             </div>
 
             <!-- Action Buttons -->
@@ -1151,7 +1176,7 @@ void loop() {
     // Anti-Cheat System (Block Paste on Protected Fields)
     // -------------------------------------------------------------
     function initAntiCheat() {
-      const protectedFields = ['#question1', '#question2', '#conclusion'];
+      const protectedFields = ['#question1', '#question2', '#conclusion', '#challengeLogic'];
       const toast = document.getElementById('antiCheatToast');
 
       function showToast() {
@@ -1208,6 +1233,7 @@ void loop() {
         question1: document.getElementById('question1').value.trim(),
         question2: document.getElementById('question2').value.trim(),
         conclusion: document.getElementById('conclusion').value.trim(),
+        challengeLogic: document.getElementById('challengeLogic').value.trim(),
         challengeCode: document.getElementById('challengeCode').value.trim(),
         submittedAt: new Date().toISOString()
       };
