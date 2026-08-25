@@ -147,11 +147,32 @@
                 </div>
             </div>
 
+            <!-- Humidity Threshold Slider -->
+            <div class="control-row" style="margin-top: 10px;">
+                <div class="control-label">
+                    <span class="control-title">เกณฑ์ความชื้นอากาศควบคุมปั๊มพ่นหมอก (Humidity Threshold)</span>
+                    <span class="control-desc">ลากสไลเดอร์เพื่อกำหนดเกณฑ์ความชื้นสัมพัทธ์ในการเปิดปั๊มพ่นหมอกอัตโนมัติผ่าน MQTT</span>
+                </div>
+                <span style="color: var(--accent-orange); font-weight: 700; font-size: 1.1rem; white-space: nowrap;">
+                    <span id="hum-threshold-val">50.0</span>%
+                </span>
+            </div>
+            <input type="range" id="hum-slider" min="30.0" max="80.0" step="1.0" value="50.0"
+                   oninput="onHumThresholdInput(this.value)"
+                   onchange="onHumThresholdChange(this.value)"
+                   style="-webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+                          background: rgba(255,255,255,0.1); border-radius: 5px; outline: none;
+                          cursor: pointer; accent-color: var(--accent-orange);">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                <span>30.0%</span>
+                <span>80.0%</span>
+            </div>
+
             <!-- Mist Mode Toggle -->
             <div class="control-row">
                 <div class="control-label">
                     <span class="control-title">โหมดควบคุมปั๊มพ่นหมอก (Auto / Manual)</span>
-                    <span class="control-desc">สั่งทำงานอัตโนมัติตามความชื้น (&lt; 50% หรือค่าแอนะล็อก &lt; 40%) หรือควบคุมด้วยมือ</span>
+                    <span class="control-desc">สั่งทำงานอัตโนมัติตามเกณฑ์ความชื้น (&lt; <span id="hum-threshold-desc">50.0</span>% หรือค่าแอนะล็อก &lt; 40%) หรือควบคุมด้วยมือ</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="status-badge state-on" id="mist-mode-badge" style="background: rgba(3, 169, 244, 0.15); color: var(--ha-blue); border: 1px solid rgba(3, 169, 244, 0.3);">AUTO</span>
@@ -365,6 +386,16 @@
                 document.getElementById('threshold-val').textContent = thNum.toFixed(1);
                 document.getElementById('temp-slider').value = thNum;
             }
+
+            // 7.1 เกณฑ์ความชื้น Threshold (Mist)
+            if (data.hum_threshold !== undefined || data.humThreshold !== undefined) {
+                const hTh = (data.hum_threshold !== undefined) ? data.hum_threshold : data.humThreshold;
+                const hNum = typeof hTh === 'string' ? parseFloat(hTh) : hTh;
+                document.getElementById('hum-threshold-val').textContent = hNum.toFixed(1);
+                const desc = document.getElementById('hum-threshold-desc');
+                if (desc) desc.textContent = hNum.toFixed(1);
+                document.getElementById('hum-slider').value = hNum;
+            }
         }
 
         function publishCommand(payloadObj) {
@@ -385,6 +416,21 @@
             const num = parseFloat(val);
             document.getElementById('threshold-val').textContent = num.toFixed(1);
             publishCommand({ threshold: num, action: "set_threshold", value: num });
+        }
+
+        function onHumThresholdInput(val) {
+            const num = parseFloat(val).toFixed(1);
+            document.getElementById('hum-threshold-val').textContent = num;
+            const desc = document.getElementById('hum-threshold-desc');
+            if (desc) desc.textContent = num;
+        }
+
+        function onHumThresholdChange(val) {
+            const num = parseFloat(val);
+            document.getElementById('hum-threshold-val').textContent = num.toFixed(1);
+            const desc = document.getElementById('hum-threshold-desc');
+            if (desc) desc.textContent = num.toFixed(1);
+            publishCommand({ hum_threshold: num, action: "set_hum_threshold", value: num });
         }
 
         function onToggleFan(state) {

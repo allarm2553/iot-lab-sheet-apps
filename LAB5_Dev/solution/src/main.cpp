@@ -76,6 +76,7 @@ float analogPercent = 0;
 
 // Dynamic control parameters
 float tempThreshold = 30.0; // Default temperature threshold (changeable via dashboard slider)
+float humThreshold = 50.0;  // Default humidity threshold for mist pump (changeable via dashboard slider)
 bool fanState = false;
 bool mistState = false;
 int toggleCount = 0;        // Physical button press counter
@@ -137,6 +138,7 @@ void publishSensorState() {
   doc["fan"] = fanState;
   doc["mist"] = mistState;
   doc["threshold"] = round(tempThreshold * 10.0) / 10.0;
+  doc["hum_threshold"] = round(humThreshold * 10.0) / 10.0;
   doc["press"] = toggleCount;
   doc["mode"] = autoMode;
   doc["mist_mode"] = autoMistMode;
@@ -197,9 +199,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       autoMistMode = doc["value"];
       Serial.printf("MQTT: Mist Mode toggled to %s\n", autoMistMode ? "Auto" : "Manual");
       if (autoMistMode && !isnan(humidity)) {
-        if (humidity < 50.0 || analogPercent < 40.0) {
+        if (humidity < humThreshold || analogPercent < 40.0) {
           mistState = true;
-        } else if (humidity > 60.0 && analogPercent > 50.0) {
+        } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
           mistState = false;
         }
         digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
@@ -218,6 +220,19 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
       }
       stateChanged = true;
+    } else if (action == "set_hum_threshold") {
+      humThreshold = doc["value"];
+      autoMistMode = true; // Auto mode active
+      Serial.printf("MQTT: Humidity Threshold updated to %.1f %%\n", humThreshold);
+      if (!isnan(humidity)) {
+        if (humidity < humThreshold || analogPercent < 40.0) {
+          mistState = true;
+        } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+          mistState = false;
+        }
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+      }
+      stateChanged = true;
     }
   }
   
@@ -233,6 +248,22 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         fanState = false;
       }
       digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+    }
+    stateChanged = true;
+  }
+
+  // 2.1 รับค่า hum_threshold จากสไลเดอร์โดยตรง (เช่น {"hum_threshold": 55.0})
+  if (doc["hum_threshold"].is<JsonVariant>()) {
+    humThreshold = doc["hum_threshold"];
+    autoMistMode = true; // Switch back to Auto mode
+    Serial.printf("MQTT: Humidity Threshold updated to %.1f %% (Auto Mode)\n", humThreshold);
+    if (!isnan(humidity)) {
+      if (humidity < humThreshold || analogPercent < 40.0) {
+        mistState = true;
+      } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
+        mistState = false;
+      }
+      digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
     }
     stateChanged = true;
   }
@@ -381,11 +412,11 @@ void loop() {
       digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
     }
 
-    // Auto Mode Mist Control Logic based on humidity & soil moisture
+    // Auto Mode Mist Control Logic based on dynamic humThreshold & soil moisture
     if (autoMistMode && !isnan(humidity)) {
-      if (humidity < 50.0 || analogPercent < 40.0) {
+      if (humidity < humThreshold || analogPercent < 40.0) {
         mistState = true;
-      } else if (humidity > 60.0 && analogPercent > 50.0) {
+      } else if (humidity > (humThreshold + 5.0) && analogPercent > 50.0) {
         mistState = false;
       }
       digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);

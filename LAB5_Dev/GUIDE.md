@@ -34,8 +34,10 @@ flowchart LR
     "fan": false,
     "mist": false,
     "threshold": 30.0,
+    "hum_threshold": 50.0,
     "press": 3,
-    "mode": true
+    "mode": true,
+    "mist_mode": true
   }
   ```
 * **รับคำสั่งควบคุมจากแดชบอร์ด (Subscribe):** หัวข้อ `esp-node/control/cmd`
@@ -43,7 +45,8 @@ flowchart LR
   * เปิด-ปิดปั๊มหมอก: `{"action": "toggle_mist", "value": true}`
   * สลับโหมดพัดลมอัตโนมัติ: `{"action": "toggle_mode", "value": true}`
   * สลับโหมดปั๊มพ่นหมอกอัตโนมัติ: `{"action": "toggle_mist_mode", "value": true}`
-  * ปรับเกณฑ์อุณหภูมิ: `{"threshold": 31.5}` หรือ `{"action": "set_threshold", "value": 31.5}`
+  * ปรับเกณฑ์อุณหภูมิพัดลม: `{"threshold": 31.5}` หรือ `{"action": "set_threshold", "value": 31.5}`
+  * ปรับเกณฑ์ความชื้นปั๊มหมอก: `{"hum_threshold": 55.0}` หรือ `{"action": "set_hum_threshold", "value": 55.0}`
 
 ---
 
