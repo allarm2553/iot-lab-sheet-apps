@@ -41,7 +41,8 @@ flowchart LR
 * **รับคำสั่งควบคุมจากแดชบอร์ด (Subscribe):** หัวข้อ `esp-node/control/cmd`
   * เปิด-ปิดพัดลม: `{"action": "toggle_fan", "value": true}`
   * เปิด-ปิดปั๊มหมอก: `{"action": "toggle_mist", "value": true}`
-  * สลับโหมดอัตโนมัติ: `{"action": "toggle_mode", "value": true}`
+  * สลับโหมดพัดลมอัตโนมัติ: `{"action": "toggle_mode", "value": true}`
+  * สลับโหมดปั๊มพ่นหมอกอัตโนมัติ: `{"action": "toggle_mist_mode", "value": true}`
   * ปรับเกณฑ์อุณหภูมิ: `{"threshold": 31.5}` หรือ `{"action": "set_threshold", "value": 31.5}`
 
 ---

@@ -147,6 +147,21 @@
                 </div>
             </div>
 
+            <!-- Mist Mode Toggle -->
+            <div class="control-row">
+                <div class="control-label">
+                    <span class="control-title">โหมดควบคุมปั๊มพ่นหมอก (Auto / Manual)</span>
+                    <span class="control-desc">สั่งทำงานอัตโนมัติตามความชื้น (&lt; 50% หรือค่าแอนะล็อก &lt; 40%) หรือควบคุมด้วยมือ</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge state-on" id="mist-mode-badge" style="background: rgba(3, 169, 244, 0.15); color: var(--ha-blue); border: 1px solid rgba(3, 169, 244, 0.3);">AUTO</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mist-mode-switch" checked onchange="onToggleMistMode(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Mist Toggle -->
             <div class="control-row">
                 <div class="control-label">
@@ -331,10 +346,17 @@
                 document.getElementById('press-val').textContent = `กด: ${data.press} ครั้ง`;
             }
 
-            // 6. โหมด Auto / Manual
+            // 6. โหมด Auto / Manual (พัดลม)
             if (data.mode !== undefined) {
                 document.getElementById('mode-switch').checked = data.mode;
                 updateModeBadge(data.mode);
+            }
+
+            // 6.1 โหมด Auto / Manual (ปั๊มพ่นหมอก)
+            if (data.mist_mode !== undefined || data.mistMode !== undefined) {
+                const mM = (data.mist_mode !== undefined) ? data.mist_mode : data.mistMode;
+                document.getElementById('mist-mode-switch').checked = mM;
+                updateMistModeBadge(mM);
             }
 
             // 7. เกณฑ์อุณหภูมิ Threshold
@@ -380,6 +402,11 @@
             publishCommand({ action: "toggle_mode", value: state });
         }
 
+        function onToggleMistMode(state) {
+            updateMistModeBadge(state);
+            publishCommand({ action: "toggle_mist_mode", value: state });
+        }
+
         function updateFanBadge(state) {
             const badge = document.getElementById('fan-badge');
             if (state) {
@@ -399,6 +426,23 @@
             } else {
                 badge.textContent = 'OFF';
                 badge.className = 'status-badge state-off';
+            }
+        }
+
+        function updateMistModeBadge(state) {
+            const badge = document.getElementById('mist-mode-badge');
+            if (state) {
+                badge.textContent = 'AUTO';
+                badge.className = 'status-badge state-on';
+                badge.style.background = 'rgba(3, 169, 244, 0.15)';
+                badge.style.color = 'var(--ha-blue)';
+                badge.style.border = '1px solid rgba(3, 169, 244, 0.3)';
+            } else {
+                badge.textContent = 'MANUAL';
+                badge.className = 'status-badge state-off';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = 'var(--accent-orange)';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
             }
         }
 

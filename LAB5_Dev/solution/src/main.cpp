@@ -79,7 +79,8 @@ float tempThreshold = 30.0; // Default temperature threshold (changeable via das
 bool fanState = false;
 bool mistState = false;
 int toggleCount = 0;        // Physical button press counter
-bool autoMode = true;       // Mode flag: true = Auto (hysteresis control), false = Manual
+bool autoMode = true;       // Fan Mode flag: true = Auto (hysteresis control), false = Manual
+bool autoMistMode = true;   // Mist Mode flag: true = Auto (humidity/soil control), false = Manual
 
 // Helper to draw OLED interface
 void updateOledDisplay(const char* statusMsg = "") {
@@ -138,6 +139,7 @@ void publishSensorState() {
   doc["threshold"] = round(tempThreshold * 10.0) / 10.0;
   doc["press"] = toggleCount;
   doc["mode"] = autoMode;
+  doc["mist_mode"] = autoMistMode;
   
   String output;
   serializeJson(doc, output);
@@ -175,12 +177,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       stateChanged = true;
     } else if (action == "toggle_mist") {
       mistState = doc["value"];
+      autoMistMode = false; // Switch to Manual mode upon user manual override
       digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
-      Serial.printf("MQTT: Mist toggled manually to %s\n", mistState ? "ON" : "OFF");
+      Serial.printf("MQTT: Mist toggled manually to %s (Manual Mode)\n", mistState ? "ON" : "OFF");
       stateChanged = true;
     } else if (action == "toggle_mode") {
       autoMode = doc["value"];
-      Serial.printf("MQTT: Mode toggled to %s\n", autoMode ? "Auto" : "Manual");
+      Serial.printf("MQTT: Fan Mode toggled to %s\n", autoMode ? "Auto" : "Manual");
       if (autoMode && !isnan(temperature)) {
         if (temperature > tempThreshold) {
           fanState = true;
@@ -188,6 +191,18 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
           fanState = false;
         }
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+      }
+      stateChanged = true;
+    } else if (action == "toggle_mist_mode") {
+      autoMistMode = doc["value"];
+      Serial.printf("MQTT: Mist Mode toggled to %s\n", autoMistMode ? "Auto" : "Manual");
+      if (autoMistMode && !isnan(humidity)) {
+        if (humidity < 50.0 || analogPercent < 40.0) {
+          mistState = true;
+        } else if (humidity > 60.0 && analogPercent > 50.0) {
+          mistState = false;
+        }
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
       }
       stateChanged = true;
     } else if (action == "set_threshold") {
@@ -364,6 +379,16 @@ void loop() {
         fanState = false;
       }
       digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+    }
+
+    // Auto Mode Mist Control Logic based on humidity & soil moisture
+    if (autoMistMode && !isnan(humidity)) {
+      if (humidity < 50.0 || analogPercent < 40.0) {
+        mistState = true;
+      } else if (humidity > 60.0 && analogPercent > 50.0) {
+        mistState = false;
+      }
+      digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
     }
     
     updateOledDisplay();
