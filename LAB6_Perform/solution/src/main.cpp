@@ -51,7 +51,7 @@ struct DeviceConfig {
   int dhtType = 11;       // 11 = DHT11, 22 = DHT22
 #if defined(ESP8266)
   int dhtPin = 2;         // GPIO 2 (D4)
-  int analogPin = 0;      // A0
+  int analogPin = A0;      // A0
   int fanRelayPin = 14;   // GPIO 14 (D5)
   int mistRelayPin = 12;  // GPIO 12 (D6)
   int fanButtonPin = 13;  // GPIO 13 (D7)
