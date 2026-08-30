@@ -100,7 +100,26 @@
             <span>10°C</span>
             <span>50°C</span>
           </div>
-          <input type="range" id="sliderThreshold" min="10" max="50" step="0.5" value="30" onchange="sendThreshold(this.value)">
+          <input type="range" id="sliderThreshold" min="10" max="50" step="0.5" value="30" oninput="document.getElementById('valThreshold').innerText = parseFloat(this.value).toFixed(1)" onchange="sendThreshold(this.value)">
+        </div>
+      </div>
+
+      <!-- Mist Humidity Threshold Slider Control Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>ตั้งเกณฑ์ความชื้นพ่นหมอก</span>
+          <span>💦</span>
+        </div>
+        <div class="card-value">
+          <span id="valMistThreshold">60.0</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>20%</span>
+            <span>90%</span>
+          </div>
+          <input type="range" id="sliderMistThreshold" min="20" max="90" step="1" value="60" oninput="document.getElementById('valMistThreshold').innerText = parseFloat(this.value).toFixed(1)" onchange="sendMistThreshold(this.value)">
         </div>
       </div>
     </div>
@@ -117,7 +136,7 @@
         <div class="switch-row">
           <div>
             <strong>พัดลมระบายอากาศ (Fan Relay)</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">ควบคุมตามเกณฑ์อุณหภูมิ Hysteresis หรือสั่งงานด้วยตนเอง</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด-ปิดพัดลมระบายอากาศด้วยตนเอง</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="switchFan" onchange="toggleFan(this.checked)">
@@ -127,8 +146,19 @@
 
         <div class="switch-row">
           <div>
+            <strong>โหมดพัดลมอัตโนมัติ (Fan Auto Mode)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด: ทำงานตามเกณฑ์อุณหภูมิ Hysteresis | ปิด: สั่งงานด้วยตนเอง</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchAuto" onchange="toggleAutoMode(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <div>
             <strong>ปั๊มพ่นหมอก (Mist Relay)</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด-ปิดระบบพ่นหมอกความชื้น</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด-ปิดระบบพ่นหมอกความชื้นด้วยตนเอง</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="switchMist" onchange="toggleMist(this.checked)">
@@ -138,11 +168,11 @@
 
         <div class="switch-row">
           <div>
-            <strong>โหมดการทำงานอัตโนมัติ (Auto Mode)</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด: ทำงานตามเกณฑ์อุณหภูมิ | ปิด: สั่งงานผ่านแดชบอร์ด</p>
+            <strong>โหมดปั๊มพ่นหมอกอัตโนมัติ (Mist Auto Mode)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">เปิด: พ่นหมอกอัตโนมัติเมื่อความชื้น &lt; เกณฑ์ | ปิด: สั่งงานด้วยตนเอง</p>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="switchAuto" onchange="toggleAutoMode(this.checked)">
+            <input type="checkbox" id="switchMistAuto" onchange="toggleMistAutoMode(this.checked)">
             <span class="slider"></span>
           </label>
         </div>
@@ -337,10 +367,18 @@
         document.getElementById('valThreshold').innerText = data.threshold.toFixed(1);
         document.getElementById('sliderThreshold').value = data.threshold;
       }
+      if (data.mist_threshold !== undefined) {
+        document.getElementById('valMistThreshold').innerText = data.mist_threshold.toFixed(1);
+        document.getElementById('sliderMistThreshold').value = data.mist_threshold;
+      } else if (data.hum_threshold !== undefined) {
+        document.getElementById('valMistThreshold').innerText = data.hum_threshold.toFixed(1);
+        document.getElementById('sliderMistThreshold').value = data.hum_threshold;
+      }
 
       if (data.fan !== undefined) document.getElementById('switchFan').checked = data.fan;
       if (data.mist !== undefined) document.getElementById('switchMist').checked = data.mist;
       if (data.mode !== undefined) document.getElementById('switchAuto').checked = data.mode;
+      if (data.mist_mode !== undefined) document.getElementById('switchMistAuto').checked = data.mist_mode;
 
       const now = new Date();
       document.getElementById('valLastUpdate').innerText = `${now.toLocaleTimeString()} (${source})`;
@@ -380,10 +418,20 @@
       sendCommand({ action: "toggle_mode", value: val });
     }
 
+    function toggleMistAutoMode(val) {
+      sendCommand({ action: "toggle_mist_mode", value: val });
+    }
+
     function sendThreshold(val) {
       const numVal = parseFloat(val);
       document.getElementById('valThreshold').innerText = numVal.toFixed(1);
       sendCommand({ action: "set_threshold", value: numVal });
+    }
+
+    function sendMistThreshold(val) {
+      const numVal = parseFloat(val);
+      document.getElementById('valMistThreshold').innerText = numVal.toFixed(1);
+      sendCommand({ action: "set_mist_threshold", value: numVal });
     }
 
     // --- Preference Mode Switcher ---

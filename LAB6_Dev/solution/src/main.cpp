@@ -85,10 +85,12 @@ float humidity = 0.0;
 float analogPercent = 0.0;
 
 float tempThreshold = 30.0;
+float mistThreshold = 60.0;
 bool fanState = false;
 bool mistState = false;
 int toggleCount = 0;
 bool autoMode = true;
+bool autoMistMode = true;
 
 // Timing & State tracking
 unsigned long lastReadTime = 0;
@@ -152,7 +154,7 @@ void updateOledDisplay(const char* statusMsg) {
   if (isnan(humidity)) {
     display.print("Humid: -- %%");
   } else {
-    display.printf("Humid:%.1f%% KNOB:%.0f%%", humidity, analogPercent);
+    display.printf("Hum:%.1f%% MTh:%.0f", humidity, mistThreshold);
   }
   
   // 3. Dual Connection Information
@@ -164,7 +166,7 @@ void updateOledDisplay(const char* statusMsg) {
   // 4. Relay & Button Counter Status
   display.drawLine(0, 52, 128, 52, SSD1306_WHITE);
   display.setCursor(0, 55);
-  display.printf("Fan:%s Mist:%s %s", fanState ? "ON" : "OFF", mistState ? "ON" : "OFF", autoMode ? "AUTO" : "MANU");
+  display.printf("F:%s(%c) M:%s(%c)", fanState ? "ON" : "OFF", autoMode ? 'A' : 'M', mistState ? "ON" : "OFF", autoMistMode ? 'A' : 'M');
   
   display.display();
 }
@@ -178,8 +180,10 @@ void broadcastAndPublishState() {
   doc["fan"] = fanState;
   doc["mist"] = mistState;
   doc["threshold"] = round(tempThreshold * 10.0) / 10.0;
+  doc["mist_threshold"] = round(mistThreshold * 10.0) / 10.0;
   doc["press"] = toggleCount;
   doc["mode"] = autoMode;
+  doc["mist_mode"] = autoMistMode;
   doc["ws_clients"] = wsClientCount;
   doc["mqtt_conn"] = mqttClient.connected();
   
@@ -206,18 +210,19 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
     String action = doc["action"];
     if (action == "toggle_fan") {
       fanState = doc["value"].as<bool>();
-      autoMode = false; // Switch to manual override
+      autoMode = false; // Switch fan to manual override
       digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
       Serial.printf("[%s] Fan toggled to %s (Manual Mode)\n", source, fanState ? "ON" : "OFF");
       stateChanged = true;
     } else if (action == "toggle_mist") {
       mistState = doc["value"].as<bool>();
+      autoMistMode = false; // Switch mist to manual override
       digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
-      Serial.printf("[%s] Mist toggled to %s\n", source, mistState ? "ON" : "OFF");
+      Serial.printf("[%s] Mist toggled to %s (Manual Mode)\n", source, mistState ? "ON" : "OFF");
       stateChanged = true;
     } else if (action == "toggle_mode") {
       autoMode = doc["value"].as<bool>();
-      Serial.printf("[%s] Mode toggled to %s\n", source, autoMode ? "AUTO" : "MANUAL");
+      Serial.printf("[%s] Fan Mode toggled to %s\n", source, autoMode ? "AUTO" : "MANUAL");
       if (autoMode && !isnan(temperature)) {
         if (temperature > tempThreshold) {
           fanState = true;
@@ -227,11 +232,23 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
       }
       stateChanged = true;
+    } else if (action == "toggle_mist_mode") {
+      autoMistMode = doc["value"].as<bool>();
+      Serial.printf("[%s] Mist Mode toggled to %s\n", source, autoMistMode ? "AUTO" : "MANUAL");
+      if (autoMistMode && !isnan(humidity)) {
+        if (humidity < mistThreshold) {
+          mistState = true;
+        } else if (humidity > (mistThreshold + 2.0)) {
+          mistState = false;
+        }
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+      }
+      stateChanged = true;
     } else if (action == "set_threshold") {
       float newTh = doc["value"].as<float>();
       if (newTh >= 10.0 && newTh <= 50.0) {
         tempThreshold = newTh;
-        Serial.printf("[%s] Threshold updated to %.1f C\n", source, tempThreshold);
+        Serial.printf("[%s] Temperature Threshold updated to %.1f C\n", source, tempThreshold);
         if (autoMode && !isnan(temperature)) {
           if (temperature > tempThreshold) {
             fanState = true;
@@ -242,10 +259,25 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
         }
         stateChanged = true;
       }
+    } else if (action == "set_mist_threshold" || action == "set_hum_threshold") {
+      float newTh = doc["value"].as<float>();
+      if (newTh >= 10.0 && newTh <= 95.0) {
+        mistThreshold = newTh;
+        Serial.printf("[%s] Mist Humidity Threshold updated to %.1f %%\n", source, mistThreshold);
+        if (autoMistMode && !isnan(humidity)) {
+          if (humidity < mistThreshold) {
+            mistState = true;
+          } else if (humidity > (mistThreshold + 2.0)) {
+            mistState = false;
+          }
+          digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+        }
+        stateChanged = true;
+      }
     }
   }
 
-  // Direct threshold property check
+  // Direct temperature threshold property check
   if (doc["threshold"].is<JsonVariant>()) {
     float newTh = doc["threshold"].as<float>();
     if (newTh >= 10.0 && newTh <= 50.0) {
@@ -258,6 +290,24 @@ void handleIncomingCommand(JsonDocument& doc, const char* source) {
           fanState = false;
         }
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+      }
+      stateChanged = true;
+    }
+  }
+
+  // Direct mist threshold property check
+  if (doc["mist_threshold"].is<JsonVariant>()) {
+    float newTh = doc["mist_threshold"].as<float>();
+    if (newTh >= 10.0 && newTh <= 95.0) {
+      mistThreshold = newTh;
+      Serial.printf("[%s] Mist Threshold updated via field to %.1f %%\n", source, mistThreshold);
+      if (autoMistMode && !isnan(humidity)) {
+        if (humidity < mistThreshold) {
+          mistState = true;
+        } else if (humidity > (mistThreshold + 2.0)) {
+          mistState = false;
+        }
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
       }
       stateChanged = true;
     }
@@ -457,7 +507,7 @@ void loop() {
     analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
     if (analogPercent > 100.0) analogPercent = 100.0;
 
-    // Execute Hysteresis Logic in Auto Mode
+    // Execute Hysteresis Logic in Auto Fan Mode
     if (autoMode && !isnan(temperature)) {
       bool previousFanState = fanState;
       if (temperature > tempThreshold) {
@@ -467,7 +517,21 @@ void loop() {
       }
       if (previousFanState != fanState) {
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
-        Serial.printf("[Auto Logic] Temperature %.1f C -> Fan toggled to %s\n", temperature, fanState ? "ON" : "OFF");
+        Serial.printf("[Auto Fan Logic] Temperature %.1f C -> Fan toggled to %s\n", temperature, fanState ? "ON" : "OFF");
+      }
+    }
+
+    // Execute Hysteresis Logic in Auto Mist Mode
+    if (autoMistMode && !isnan(humidity)) {
+      bool previousMistState = mistState;
+      if (humidity < mistThreshold) {
+        mistState = true;
+      } else if (humidity > (mistThreshold + 2.0)) {
+        mistState = false;
+      }
+      if (previousMistState != mistState) {
+        digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+        Serial.printf("[Auto Mist Logic] Humidity %.1f %% -> Mist toggled to %s\n", humidity, mistState ? "ON" : "OFF");
       }
     }
 

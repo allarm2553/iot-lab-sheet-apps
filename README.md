@@ -7,17 +7,18 @@
 ---
 
 ## 📁 โครงสร้างโปรเจกต์
-- [lab-basic/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab-basic) - ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32
-- [lab1/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab1) - ใบงานที่ 1: การอ่านค่าเซ็นเซอร์และการควบคุมเอาต์พุต (GPIO, ADC & Relays)
-- [lab2/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab2) - ใบงานที่ 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)
-- [lab3/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab3) - ใบงานที่ 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)
-- [lab4/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab4) - ใบงานที่ 4: การส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)
-- [lab5/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab5) - ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT
-- [lab6/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab6) - ใบงานที่ 6: การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)
-- [lab-extra/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab-extra) - ใบงานเสริมปฏิบัติการ: การพัฒนา Web Dashboard ด้วย HTML, CSS และ JavaScript
-- [lab7/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab7) - ใบงานที่ 7: การเชื่อมโยงข้อมูลและการสร้างแดชบอร์ดด้วย Node-RED
-- [lab8/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab8) - ใบงานที่ 8: การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)
-- [lab9/](file:///C:/Users/terd2/.gemini/antigravity/scratch/lab-sheet-apps/lab9) - ใบงานที่ 9: การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana
+- [WOKWI_SIMULATION_GUIDE.md](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/WOKWI_SIMULATION_GUIDE.md) - **คู่มือการจำลองการทำงาน IoT (ESP32/ESP8266) ด้วย Wokwi Simulator บน VS Code**
+- [lab-basic/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab-basic) - ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32
+- [lab1/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab1) - ใบงานที่ 1: การอ่านค่าเซ็นเซอร์และการควบคุมเอาต์พุต (GPIO, ADC & Relays)
+- [lab2/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab2) - ใบงานที่ 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)
+- [lab3/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab3) - ใบงานที่ 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)
+- [lab4/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab4) - ใบงานที่ 4: การส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)
+- [lab5/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab5) - ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT
+- [lab6/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab6) - ใบงานที่ 6: การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)
+- [lab-extra/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab-extra) - ใบงานเสริมปฏิบัติการ: การพัฒนา Web Dashboard ด้วย HTML, CSS และ JavaScript
+- [lab7/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab7) - ใบงานที่ 7: การเชื่อมโยงข้อมูลและการสร้างแดชบอร์ดด้วย Node-RED
+- [lab8/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab8) - ใบงานที่ 8: การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)
+- [lab9/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab9) - ใบงานที่ 9: การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana
 
 ---
 

@@ -72,8 +72,10 @@ sequenceDiagram
     "fan": false,
     "mist": false,
     "threshold": 30.0,
+    "mist_threshold": 60.0,
     "press": 3,
     "mode": true,
+    "mist_mode": true,
     "ws_clients": 2,
     "mqtt_conn": true
   }
@@ -82,8 +84,10 @@ sequenceDiagram
 * **โครงสร้างคำสั่งควบคุม (Incoming Commands):**
   * สลับพัดลม: `{"action": "toggle_fan", "value": true}`
   * สลับปั๊มหมอก: `{"action": "toggle_mist", "value": true}`
-  * สลับโหมดออโต้: `{"action": "toggle_mode", "value": true}`
+  * สลับโหมดพัดลมอัตโนมัติ: `{"action": "toggle_mode", "value": true}`
+  * สลับโหมดปั๊มหมอกอัตโนมัติ: `{"action": "toggle_mist_mode", "value": true}`
   * ตั้งค่าเกณฑ์อุณหภูมิ: `{"action": "set_threshold", "value": 32.0}` หรือ `{"threshold": 32.0}`
+  * ตั้งค่าเกณฑ์ความชื้นพ่นหมอก: `{"action": "set_mist_threshold", "value": 60.0}` หรือ `{"mist_threshold": 60.0}`
 
 ---
 

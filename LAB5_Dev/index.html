@@ -1401,7 +1401,7 @@ function toggleFan(state) {
           <span>ฟอร์มบันทึกและส่งรายงานผล</span>
         </div>
 
-        <form id="labForm" onsubmit="handleFormSubmit(event)">
+        <form id="labForm" onsubmit="return false;">
           
           <!-- 1. Student Metadata -->
           <div class="form-section">
@@ -1543,13 +1543,18 @@ function toggleFan(state) {
           </div>
 
           <!-- Submit & Print Button Group -->
-          <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-            <button type="submit" class="btn" id="submitBtn" style="flex: 1;">
-              <i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5
+          <div class="button-group" style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">
+            <button type="button" class="btn-check-score" id="checkScoreBtn" onclick="checkPreSubmissionScore()">
+              <i class="fa-solid fa-list-check"></i> ตรวจสอบคะแนนก่อนส่ง (Pre-check Score)
             </button>
-            <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.1);">
-              <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
-            </button>
+            <div style="display:flex;gap:1rem;">
+              <button type="button" class="btn" id="submitBtn" onclick="openSubmitConfirmModal()" style="flex:1;">
+                <i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;">
+                <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -1963,21 +1968,22 @@ function toggleFan(state) {
       }
     }
 
-    function handleFormSubmit(e) {
-      e.preventDefault();
+    function _doActualSubmit() {
       const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+      }
 
       const studentName = document.getElementById('studentName').value.trim();
       const studentId = document.getElementById('studentId').value.trim();
       const studentGroup = document.getElementById('studentGroup').value.trim();
       const labDate = document.getElementById('labDate').value;
-      const codeBlank1 = document.getElementById('codeBlank1').value.trim();
-      const codeBlank2 = document.getElementById('codeBlank2').value.trim();
-      const question1 = document.getElementById('question1').value.trim();
-      const question2 = document.getElementById('question2').value.trim();
-      const conclusion = document.getElementById('conclusion').value.trim();
+      const codeBlank1 = document.getElementById('codeBlank1') ? document.getElementById('codeBlank1').value.trim() : '';
+      const codeBlank2 = document.getElementById('codeBlank2') ? document.getElementById('codeBlank2').value.trim() : '';
+      const question1 = document.getElementById('question1') ? document.getElementById('question1').value.trim() : '';
+      const question2 = document.getElementById('question2') ? document.getElementById('question2').value.trim() : '';
+      const conclusion = document.getElementById('conclusion') ? document.getElementById('conclusion').value.trim() : '';
 
       localStorage.setItem('studentName', studentName);
       localStorage.setItem('studentId', studentId);
@@ -2000,32 +2006,52 @@ function toggleFan(state) {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler((response) => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            }
             if (response.status === 'success') {
               if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
               showModal('ส่งใบงานสำเร็จ', response.message, true);
               removeFile('screenshot'); removeFile('code');
-              document.getElementById('codeBlank1').value = '';
-              document.getElementById('codeBlank2').value = '';
-              document.getElementById('question1').value = '';
-              document.getElementById('question2').value = '';
-              document.getElementById('conclusion').value = '';
+              if (document.getElementById('codeBlank1')) document.getElementById('codeBlank1').value = '';
+              if (document.getElementById('codeBlank2')) document.getElementById('codeBlank2').value = '';
+              if (document.getElementById('question1')) document.getElementById('question1').value = '';
+              if (document.getElementById('question2')) document.getElementById('question2').value = '';
+              if (document.getElementById('conclusion')) document.getElementById('conclusion').value = '';
+              
+              const idVal = studentId;
+              if (idVal) {
+                const nowFormatted = new Date().toLocaleString('th-TH');
+                localStorage.setItem('submitted_iot_lab5_dev_' + idVal, nowFormatted);
+                lockFormAsSubmitted(nowFormatted);
+              }
             } else {
               showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
             }
           })
           .withFailureHandler((error) => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+            }
             showModal('เกิดข้อผิดพลาด', error.toString(), false);
           })
           .submitLabData(payload);
       } else {
         setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ Lab 5';
+          }
           showModal('โหมดจำลอง (Local Preview)', 'ฟังก์ชันส่งใบงานทำงานสำเร็จแล้วในโหมด Local Preview!', true);
+          
+          const idVal = studentId;
+          if (idVal) {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem('submitted_iot_lab5_dev_' + idVal, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+          }
         }, 1500);
       }
     }
@@ -2178,5 +2204,59 @@ function toggleFan(state) {
     window.addEventListener('DOMContentLoaded', initAntiCheat);
 
   </script>
+  <!-- Pre-submission Score Check Modal -->
+  <div class="modal-overlay" id="scoreCheckModal" style="display:none;">
+    <div class="modal-content score-check-modal-content">
+      <div class="score-modal-header">
+        <div class="score-modal-icon"><i class="fa-solid fa-chart-pie"></i></div>
+        <div>
+          <h3 class="modal-title" style="text-align:left;margin-bottom:0.15rem;font-size:1.25rem;">ผลการประเมินคะแนนเบื้องต้น</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted,#94a3b8);text-align:left;margin:0;">ตรวจสอบความสมบูรณ์และคะแนนประเมินก่อนส่งใบงานจริง</p>
+        </div>
+      </div>
+      <div class="score-hero-card">
+        <div class="score-big-num" id="preScoreTotal">0.0 <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span></div>
+        <div class="score-status-badge" id="preScoreBadge">กำลังประเมิน...</div>
+      </div>
+      <div class="score-breakdown-list" id="preScoreBreakdown"></div>
+      <div class="score-modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeScoreCheckModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;">
+          <i class="fa-solid fa-pen-to-square"></i> กลับไปแก้ไข
+        </button>
+        <button type="button" class="btn btn-primary" id="modalSubmitBtn" onclick="submitFromScoreModal()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;">
+          <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งใบงาน
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submission Confirmation Modal -->
+  <div class="modal-overlay" id="confirmSubmitModal" style="display:none;">
+    <div class="modal-content" style="max-width:500px;text-align:left;padding:1.75rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:0.75rem;">
+        <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 class="modal-title" style="margin:0;font-size:1.2rem;text-align:left;">ยืนยันการส่งใบงานขั้นสุดท้าย</h3>
+          <p style="margin:0;font-size:0.8rem;color:var(--text-muted,#94a3b8);">กรุณาตรวจสอบความถูกต้องก่อนยืนยัน</p>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:0.85rem 1rem;color:#fde047;font-size:0.88rem;line-height:1.5;margin-bottom:1.25rem;">
+        <i class="fa-solid fa-circle-exclamation"></i> <strong>คำเตือน:</strong> ใบงานนี้สามารถส่งได้ <u>เพียง 1 ครั้งเท่านั้น</u> และจะไม่สามารถแก้ไขได้อีกหลังจากกดยืนยัน
+      </div>
+      <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:1.5rem;line-height:1.6;">
+        คุณต้องการยืนยันการส่งใบงานของ <strong><span id="confirmStudentName">-</span></strong> (รหัส <strong><span id="confirmStudentId">-</span></strong>) ใช่หรือไม่?
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeSubmitConfirmModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;">
+          <i class="fa-solid fa-pen-to-square"></i> กลับไปตรวจอีกครั้ง
+        </button>
+        <button type="button" class="btn btn-primary" style="background:linear-gradient(135deg,#10b981,#059669);border:none;" onclick="executeFinalSubmit()">
+          <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งงาน
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
