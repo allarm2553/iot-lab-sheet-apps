@@ -1,5 +1,5 @@
 /**
- * Lab 1.1: Digital Inputs, Software Debounce & Relays (Complete Code Solution)
+ * Lab 1.1: Digital Inputs, Software Debounce & Relays (Arduino Sketch Solution)
  * 
  * Features:
  *  - Interfacing Push Button switch with software debounce (non-blocking millis).

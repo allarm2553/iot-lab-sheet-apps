@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "author": "Antigravity IoT Lab",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -100,
+      "left": -60,
+      "attrs": { "color": "green", "label": "SW1 (GPIO 0)" }
+    },
+    {
+      "type": "board-relay-module",
+      "id": "relay1",
+      "top": 180,
+      "left": -120,
+      "attrs": {}
+    },
+    {
+      "type": "board-relay-module",
+      "id": "relay2",
+      "top": 180,
+      "left": 60,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -80,
+      "left": 130,
+      "attrs": { "color": "red", "label": "ALERT LED (GPIO 18)" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -30,
+      "left": 130,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "btn1:1.l", "esp:GND.1", "black", [ "v0", "h-20", "v120" ] ],
+    [ "btn1:2.l", "esp:D0", "green", [ "v0", "h-10", "v140" ] ],
+
+    [ "relay1:VCC", "esp:VIN", "red", [ "v0" ] ],
+    [ "relay1:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "relay1:IN", "esp:D5", "blue", [ "v0" ] ],
+
+    [ "relay2:VCC", "esp:VIN", "red", [ "v0" ] ],
+    [ "relay2:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "relay2:IN", "esp:D23", "purple", [ "v0" ] ],
+
+    [ "esp:D18", "r1:1", "orange", [ "v0" ] ],
+    [ "r1:2", "led1:A", "orange", [ "v0" ] ],
+    [ "led1:C", "esp:GND.2", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
