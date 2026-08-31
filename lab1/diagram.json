@@ -21,7 +21,7 @@
 
     [ "esp:GND.1", "pot:GND", "black", [ "v0" ] ],
     [ "esp:3V3", "pot:VCC", "red", [ "v0" ] ],
-    [ "esp:36", "pot:SIG", "orange", [ "v0" ] ],
+    [ "esp:VP", "pot:SIG", "orange", [ "v0" ] ],
 
     [ "esp:GND.2", "fan_relay:GND", "black", [ "v0" ] ],
     [ "esp:5V", "fan_relay:VCC", "red", [ "v0" ] ],
