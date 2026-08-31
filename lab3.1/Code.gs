@@ -1,20 +1,8 @@
 /**
  * Web App for Lab 3.1: Basic WiFi Connectivity (WiFi Scan & Station Mode)
- * Designed by Antigravity AI (Auto-Grading Version)
- *
- * Grading Breakdown (10 points total):
- *  - Skeleton Blanks  Exp1 (1-5)  : 2.0 pts
- *  - Skeleton Blanks  Exp2 (6-10) : 2.0 pts
- *  - Scan Result Table            : 1.0 pt
- *  - Challenge Code               : 2.0 pts
- *  - Question 1                   : 1.0 pt
- *  - Question 2                   : 1.0 pt
- *  - Attachments                  : 1.0 pt
+ * Designed by Antigravity AI (Auto-Grading Version with Multiple Choice Quiz & Anti-Cheat)
  */
 
-// ─────────────────────────────────────────────
-//  doGet — Serve the HTML page
-// ─────────────────────────────────────────────
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
@@ -23,313 +11,291 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// ─────────────────────────────────────────────
-//  gradeSubmission — Auto-grading logic
-// ─────────────────────────────────────────────
+// Auto-grading logic for Lab 3.1
 function gradeSubmission(data) {
-
-  // Keywords for each graded section
-  // Exp1 blanks: WIFI_STA, SSID, RSSI, channel, WIFI_AUTH_OPEN|ENC_TYPE_NONE
-  var exp1Keywords = [
+  var blankKeywords = [
     "WIFI_STA|WIFI_MODE_STA",
-    "SSID",
-    "RSSI",
-    "channel",
-    "WIFI_AUTH_OPEN|ENC_TYPE_NONE|AUTH_OPEN"
-  ];
-
-  // Exp2 blanks: begin, WL_CONNECTED, localIP, RSSI, macAddress
-  var exp2Keywords = [
-    "begin",
+    "scanNetworks",
+    "WiFi.SSID|SSID",
+    "WiFi.RSSI|RSSI",
+    "WiFi.channel|channel",
+    "WiFi.begin|begin",
     "WL_CONNECTED",
-    "localIP",
-    "RSSI",
-    "macAddress"
+    "WiFi.localIP|localIP",
+    "WiFi.macAddress|macAddress"
   ];
 
-  // Challenge code: scanNetworks, begin, WL_CONNECTED, digitalWrite|blink
   var challengeKeywords = [
     "scanNetworks",
-    "begin",
+    "WiFi.begin|begin",
     "WL_CONNECTED",
-    "digitalWrite|ledcWrite|blink"
+    "digitalWrite|blink|LED_PIN"
   ];
 
-  // Question 1: RSSI, Received Signal Strength, ลบ, negative, dBm
   var q1Keywords = [
-    "RSSI|Received Signal Strength",
-    "ลบ|negative",
-    "dBm",
-    "แรง|strength|สัญญาณ"
+    "dbm|เดซิเบล",
+    "ลบ|negative|ต่ำกว่า 1 มิลลิวัตต์|1 mw",
+    "แรง|strength|-50|-65|คุณภาพ"
   ];
 
-  // Question 2: STA|Station, AP|Access Point, WIFI_AP_STA|AP_STA, โหมด|mode
   var q2Keywords = [
-    "STA|Station|สถานีลูกข่าย",
-    "AP|Access Point|จุดเชื่อมต่อ",
-    "WIFI_AP_STA|AP_STA|ทั้งสอง",
-    "เชื่อมต่อ|กระจาย|ให้บริการ"
+    "station|sta|ลูกข่าย|client|เกาะ router",
+    "access point|ap|ปล่อยสัญญาณ|โฮสต์|host",
+    "ap_sta|ap+sta|config|portal|ตั้งค่า"
   ];
 
-  var exp1Score       = 0.0;
-  var exp2Score       = 0.0;
-  var scanScore       = 0.0;
-  var challengeScore  = 0.0;
-  var q1Score         = 0.0;
-  var q2Score         = 0.0;
+  var q3Keywords = [
+    "blocking|ค้าง|หยุดรอ|หน่วง",
+    "timeout|millis|non-blocking",
+    "เซ็นเซอร์|รีเลย์|ควบคุมไม่ได้|watchdog|wdt"
+  ];
+
+  // เฉลยแบบทดสอบแบบเลือกตอบ 5 ข้อ (Quiz Answer Keys)
+  var quizKeys = {
+    quiz1: "1c", // ค่า RSSI มีหน่วยเป็น dBm และเป็นค่าติดลบเพราะสัญญาณที่รับได้ต่ำกว่า 1 มิลลิวัตต์ โดย -45 dBm ดีกว่า -85 dBm
+    quiz2: "2b", // Station (STA) ทำหน้าที่เป็น Client ไปเชื่อม Router ส่วน AP ทำหน้าที่เป็นศูนย์กลางปล่อย Wi-Fi
+    quiz3: "3a", // WiFi.scanNetworks() เป็นการสแกนแบบ Synchronous ค้นหา SSID, RSSI, Channel, Security
+    quiz4: "4c", // วนลูปรอให้กระบวนการ Handshake และขอ IP จาก DHCP Server เสร็จสมบูรณ์
+    quiz5: "5b"  // ใช้การตรวจสอบแบบ Non-blocking ด้วย millis() และกำหนด Timeout ป้องกันบอร์ดค้าง
+  };
+
+  var skeletonScore = 0.0;
+  var quizScore = 0.0;
+  var challengeScore = 0.0;
+  var q1Score = 0.0;
+  var q2Score = 0.0;
+  var q3Score = 0.0;
   var attachmentScore = 0.0;
+  var conclusionScore = 0.0;
   var feedbackDetails = [];
 
-  // ── 1. Grade Exp1 Skeleton Blanks (2.0 pts) ──────────────────────────────
-  var exp1Content = [
+  // 1. ตรวจช่องว่างโครงร่างโค้ด (1.5 คะแนน)
+  var codeContent = [
     data.codeBlank1 || '', data.codeBlank2 || '', data.codeBlank3 || '',
-    data.codeBlank4 || '', data.codeBlank5 || ''
+    data.codeBlank4 || '', data.codeBlank5 || '', data.codeBlank6 || '',
+    data.codeBlank7 || '', data.codeBlank8 || '', data.codeBlank9 || ''
   ].join(' ');
 
-  if (exp1Content.replace(/\s+/g, '').length > 0) {
-    var matchedExp1 = 0;
-    for (var i = 0; i < exp1Keywords.length; i++) {
-      var subKws = exp1Keywords[i].split('|');
+  if (codeContent.replace(/\s+/g, '').length > 0) {
+    var matchedBlanks = 0;
+    for (var i = 0; i < blankKeywords.length; i++) {
+      var subKws = blankKeywords[i].split('|');
+      var isMatched = false;
       for (var j = 0; j < subKws.length; j++) {
-        if (exp1Content.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          matchedExp1++;
+        if (codeContent.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
           break;
         }
       }
+      if (isMatched) matchedBlanks++;
     }
-    exp1Score = (matchedExp1 / exp1Keywords.length) * 2.0;
-    feedbackDetails.push("- โค้ด Exp1 (WiFi Scan): ถูกต้อง " + matchedExp1 + "/" + exp1Keywords.length + " ช่อง (+"+exp1Score.toFixed(1)+"/2.0 คะแนน)");
+    skeletonScore = (matchedBlanks / blankKeywords.length) * 1.5;
+    feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น " + matchedBlanks + "/" + blankKeywords.length + " ช่อง (+" + skeletonScore.toFixed(1) + "/1.5 คะแนน)");
   } else {
-    feedbackDetails.push("- โค้ด Exp1 (WiFi Scan): ไม่พบการส่งคำตอบ (+0.0/2.0 คะแนน)");
+    feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ไม่พบการส่งคำตอบ (+0.0/1.5 คะแนน)");
   }
 
-  // ── 2. Grade Exp2 Skeleton Blanks (2.0 pts) ──────────────────────────────
-  var exp2Content = [
-    data.codeBlank6 || '', data.codeBlank7 || '', data.codeBlank8 || '',
-    data.codeBlank9 || '', data.codeBlank10 || ''
-  ].join(' ');
-
-  if (exp2Content.replace(/\s+/g, '').length > 0) {
-    var matchedExp2 = 0;
-    for (var i = 0; i < exp2Keywords.length; i++) {
-      var subKws = exp2Keywords[i].split('|');
-      for (var j = 0; j < subKws.length; j++) {
-        if (exp2Content.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          matchedExp2++;
-          break;
-        }
-      }
+  // 2. ตรวจแบบทดสอบแบบเลือกตอบ (2.0 คะแนน: ข้อละ 0.4)
+  var correctQuizCount = 0;
+  var quizAnswers = [data.quiz1, data.quiz2, data.quiz3, data.quiz4, data.quiz5];
+  var expectedKeys = [quizKeys.quiz1, quizKeys.quiz2, quizKeys.quiz3, quizKeys.quiz4, quizKeys.quiz5];
+  for (var k = 0; k < expectedKeys.length; k++) {
+    if (quizAnswers[k] && quizAnswers[k].trim() === expectedKeys[k]) {
+      correctQuizCount++;
     }
-    exp2Score = (matchedExp2 / exp2Keywords.length) * 2.0;
-    feedbackDetails.push("- โค้ด Exp2 (WiFi Connect): ถูกต้อง " + matchedExp2 + "/" + exp2Keywords.length + " ช่อง (+"+exp2Score.toFixed(1)+"/2.0 คะแนน)");
-  } else {
-    feedbackDetails.push("- โค้ด Exp2 (WiFi Connect): ไม่พบการส่งคำตอบ (+0.0/2.0 คะแนน)");
   }
+  quizScore = (correctQuizCount / 5.0) * 2.0;
+  feedbackDetails.push("- แบบทดสอบแบบเลือกตอบ: ถูกต้อง " + correctQuizCount + "/5 ข้อ (+" + quizScore.toFixed(1) + "/2.0 คะแนน)");
 
-  // ── 3. Grade Scan Result Table (1.0 pt) ──────────────────────────────────
-  var hasNetwork1 = (data.scan1ssid && data.scan1ssid.trim().length > 0) &&
-                    (data.scan1rssi && data.scan1rssi.trim().length > 0);
-  var hasNetwork2 = (data.scan2ssid && data.scan2ssid.trim().length > 0) &&
-                    (data.scan2rssi && data.scan2rssi.trim().length > 0);
-  var hasNetwork3 = (data.scan3ssid && data.scan3ssid.trim().length > 0) &&
-                    (data.scan3rssi && data.scan3rssi.trim().length > 0);
-  var hasIPMAC    = (data.connIP && data.connIP.trim().length > 0) &&
-                    (data.connMAC && data.connMAC.trim().length > 0);
-
-  var scanParts = [hasNetwork1, hasNetwork2, hasNetwork3, hasIPMAC].filter(Boolean).length;
-  scanScore = (scanParts / 4) * 1.0;
-  feedbackDetails.push("- ตารางบันทึกผล Scan: กรอกข้อมูล " + scanParts + "/4 ส่วน (+"+scanScore.toFixed(1)+"/1.0 คะแนน)");
-
-  // ── 4. Grade Challenge Code (2.0 pts) ────────────────────────────────────
-  var challengeText = data.challengeCode || '';
-  if (challengeText.trim().length > 0) {
+  // 3. ตรวจโค้ดโจทย์ท้าทาย (2.5 คะแนน)
+  var challengeCodeText = data.challengeCode || '';
+  if (challengeCodeText.trim().length > 0) {
     var matchedChallenge = 0;
     for (var i = 0; i < challengeKeywords.length; i++) {
       var subKws = challengeKeywords[i].split('|');
+      var isMatched = false;
       for (var j = 0; j < subKws.length; j++) {
-        if (challengeText.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          matchedChallenge++;
+        if (challengeCodeText.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
           break;
         }
       }
+      if (isMatched) matchedChallenge++;
     }
-    challengeScore = (matchedChallenge / challengeKeywords.length) * 2.0;
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge): ตรงตรรกะ " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+"+challengeScore.toFixed(1)+"/2.0 คะแนน)");
+    challengeScore = (matchedChallenge / challengeKeywords.length) * 2.5;
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ WiFi Scan & Connect Indicator " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
   } else {
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge): ไม่พบการส่งโค้ด (+0.0/2.0 คะแนน)");
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/2.5 คะแนน)");
   }
 
-  // ── 5. Grade Question 1 (1.0 pt) ─────────────────────────────────────────
+  // 4. ตรวจคำถามท้ายการทดลอง 3 ข้อ (2.5 คะแนน)
   var q1Text = data.question1 || '';
   if (q1Text.trim().length > 0) {
     var matchedQ1 = 0;
     for (var i = 0; i < q1Keywords.length; i++) {
       var subKws = q1Keywords[i].split('|');
+      var isMatched = false;
       for (var j = 0; j < subKws.length; j++) {
         if (q1Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          matchedQ1++;
+          isMatched = true;
           break;
         }
       }
+      if (isMatched) matchedQ1++;
     }
-    q1Score = (matchedQ1 / q1Keywords.length) * 1.0;
-    feedbackDetails.push("- คำถามข้อ 1 (RSSI): ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+"+q1Score.toFixed(1)+"/1.0 คะแนน)");
+    q1Score = (matchedQ1 / q1Keywords.length) * 0.85;
+    feedbackDetails.push("- คำถามข้อ 1 (RSSI & dBm): ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(2) + "/0.85 คะแนน)");
   } else {
-    feedbackDetails.push("- คำถามข้อ 1 (RSSI): ไม่พบการตอบคำถาม (+0.0/1.0 คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
 
-  // ── 6. Grade Question 2 (1.0 pt) ─────────────────────────────────────────
   var q2Text = data.question2 || '';
   if (q2Text.trim().length > 0) {
     var matchedQ2 = 0;
     for (var i = 0; i < q2Keywords.length; i++) {
       var subKws = q2Keywords[i].split('|');
+      var isMatched = false;
       for (var j = 0; j < subKws.length; j++) {
         if (q2Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          matchedQ2++;
+          isMatched = true;
           break;
         }
       }
+      if (isMatched) matchedQ2++;
     }
-    q2Score = (matchedQ2 / q2Keywords.length) * 1.0;
-    feedbackDetails.push("- คำถามข้อ 2 (WiFi Modes): ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+"+q2Score.toFixed(1)+"/1.0 คะแนน)");
+    q2Score = (matchedQ2 / q2Keywords.length) * 0.85;
+    feedbackDetails.push("- คำถามข้อ 2 (WiFi Modes STA/AP/Dual): ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(2) + "/0.85 คะแนน)");
   } else {
-    feedbackDetails.push("- คำถามข้อ 2 (WiFi Modes): ไม่พบการตอบคำถาม (+0.0/1.0 คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
 
-  // ── 7. Attachments (1.0 pt) ──────────────────────────────────────────────
-  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 0.5 : 0.0;
-  var codeFileOk   = (data.codeBase64 && data.codeFileName) ? 0.5 : 0.0;
-  attachmentScore  = screenshotOk + codeFileOk;
-  feedbackDetails.push(
-    "- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") +
-    ", แนบไฟล์โค้ด " + (codeFileOk ? "แล้ว" : "ไม่พบ") +
-    " (+" + attachmentScore.toFixed(1) + "/1.0 คะแนน)"
-  );
+  var q3Text = data.question3 || '';
+  if (q3Text.trim().length > 0) {
+    var matchedQ3 = 0;
+    for (var i = 0; i < q3Keywords.length; i++) {
+      var subKws = q3Keywords[i].split('|');
+      var isMatched = false;
+      for (var j = 0; j < subKws.length; j++) {
+        if (q3Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
+          break;
+        }
+      }
+      if (isMatched) matchedQ3++;
+    }
+    q3Score = (matchedQ3 / q3Keywords.length) * 0.80;
+    feedbackDetails.push("- คำถามข้อ 3 (Non-blocking & Watchdog): ตรงจุดสำคัญ " + matchedQ3 + "/" + q3Keywords.length + " จุด (+" + q3Score.toFixed(2) + "/0.80 คะแนน)");
+  } else {
+    feedbackDetails.push("- คำถามข้อ 3: ไม่พบการตอบคำถาม (+0.0/0.80 คะแนน)");
+  }
 
-  // ── Final Score ───────────────────────────────────────────────────────────
-  var finalScore = parseFloat(
-    (exp1Score + exp2Score + scanScore + challengeScore + q1Score + q2Score + attachmentScore).toFixed(1)
-  );
+  // 5. ตรวจไฟล์แนบ (1.0 คะแนน)
+  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 0.5 : 0.0;
+  var codeOk = (data.codeBase64 && data.codeFileName) ? 0.5 : 0.0;
+  attachmentScore = screenshotOk + codeOk;
+  feedbackDetails.push("- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") + ", แนบไฟล์โค้ด " + (codeOk ? "แล้ว" : "ไม่พบ") + " (+" + attachmentScore.toFixed(1) + "/1.0 คะแนน)");
+
+  // 6. สรุปผลการทดลอง (0.5 คะแนน)
+  conclusionScore = (data.conclusion && data.conclusion.trim().length > 10) ? 0.5 : 0.0;
+  feedbackDetails.push("- สรุปผลการทดลอง: " + (conclusionScore > 0 ? "สมบูรณ์ (+0.5/0.5 คะแนน)" : "ไม่พบ (+0.0/0.5 คะแนน)"));
+
+  var finalScore = parseFloat((skeletonScore + quizScore + challengeScore + q1Score + q2Score + q3Score + attachmentScore + conclusionScore).toFixed(1));
 
   return {
-    score:    finalScore,
+    score: finalScore,
     feedback: feedbackDetails.join('\n')
   };
 }
 
-// ─────────────────────────────────────────────
-//  submitLabData — Main submission handler
-// ─────────────────────────────────────────────
 function submitLabData(data) {
   try {
-    var ss        = SpreadsheetApp.getActiveSpreadsheet();
+    // 1. Open the active spreadsheet
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = "Lab 3.1 Submissions";
-    var sheet     = ss.getSheetByName(sheetName);
+    var sheet = ss.getSheetByName(sheetName);
 
+    // Auto-grading calculation
     var grading = gradeSubmission(data);
 
-    // Auto-create sheet with headers if not found
+    // Auto-create sheet if it doesn't exist
     if (!sheet) {
       sheet = ss.insertSheet(sheetName);
       var headers = [
         "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
-        // Exp1 blanks
-        "Blank1 (WiFi.mode)", "Blank2 (SSID fn)", "Blank3 (RSSI fn)",
-        "Blank4 (channel fn)", "Blank5 (OPEN const)",
-        // Exp2 blanks
-        "Blank6 (WiFi.begin)", "Blank7 (WL_CONNECTED)", "Blank8 (localIP)",
-        "Blank9 (RSSI)", "Blank10 (macAddress)",
-        // Scan results
-        "Scan1 SSID", "Scan1 RSSI", "Scan1 Security",
-        "Scan2 SSID", "Scan2 RSSI", "Scan2 Security",
-        "Scan3 SSID", "Scan3 RSSI", "Scan3 Security",
-        "IP Address ที่ได้รับ", "MAC Address",
-        // Challenge
-        "โค้ดโจทย์ท้าทาย", "อธิบายตรรกะ Challenge",
-        // Questions
-        "คำถามข้อ 1 (RSSI)", "คำถามข้อ 2 (WiFi Modes)",
-        // Attachments
-        "ลิงก์รูปภาพ Serial Monitor", "ลิงก์ไฟล์โค้ด",
-        // Conclusion
-        "สรุปผลการทดลอง",
-        // Grading
+        "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำอธิบายตรรกะควบคุม",
+        "คำตอบ Code ช่องที่ 1-5 (WiFi Scan)", "คำตอบ Code ช่องที่ 6-9 (WiFi Connect)",
+        "Quiz 1 (RSSI & dBm)", "Quiz 2 (STA vs AP Mode)", "Quiz 3 (scanNetworks)", "Quiz 4 (Connection Loop)", "Quiz 5 (Auto-Reconnect)",
+        "คำถามข้อที่ 1 (RSSI & Negative dBm)", "คำถามข้อที่ 2 (WiFi Modes STA/AP/AP+STA)", "คำถามข้อที่ 3 (Blocking loop Pitfalls)",
+        "ลิงก์ไฟล์รูปภาพ Serial Monitor", "ลิงก์ไฟล์โค้ด (.ino/.zip)", "สรุปผลการทดลอง",
         "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ"
       ];
       sheet.appendRow(headers);
-      sheet.getRange(1, 1, 1, headers.length)
-           .setFontWeight("bold")
-           .setBackground("#e2e8f0");
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e2e8f0");
       sheet.setFrozenRows(1);
     }
 
-    // ── Handle File Uploads ──────────────────────────────────────────────────
+    // 2. Handle File Uploads (Drive Storage)
     var screenshotUrl = "ไม่ได้แนบไฟล์";
-    var codeFileUrl   = "ไม่ได้แนบไฟล์";
+    var codeFileUrl = "ไม่ได้แนบไฟล์";
 
     var folderName = "Lab 3.1 Attachments";
-    var folders    = DriveApp.getFoldersByName(folderName);
-    var folder     = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+    var folders = DriveApp.getFoldersByName(folderName);
+    var folder;
+    if (folders.hasNext()) {
+      folder = folders.next();
+    } else {
+      folder = DriveApp.createFolder(folderName);
+    }
 
+    // Process screenshot
     if (data.screenshotBase64 && data.screenshotName) {
       var screenshotBlob = Utilities.newBlob(
         Utilities.base64Decode(data.screenshotBase64.split(",")[1]),
         data.screenshotType,
         data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_screenshot_" + data.screenshotName
       );
-      var f = folder.createFile(screenshotBlob);
-      f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      screenshotUrl = f.getUrl();
+      var file = folder.createFile(screenshotBlob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      screenshotUrl = file.getUrl();
     }
 
+    // Process code file
     if (data.codeBase64 && data.codeFileName) {
       var codeBlob = Utilities.newBlob(
         Utilities.base64Decode(data.codeBase64.split(",")[1]),
         data.codeFileType,
         data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_code_" + data.codeFileName
       );
-      var f = folder.createFile(codeBlob);
-      f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      codeFileUrl = f.getUrl();
+      var file = folder.createFile(codeBlob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      codeFileUrl = file.getUrl();
     }
 
-    // ── Log to Spreadsheet ───────────────────────────────────────────────────
+    // 3. Log data to Spreadsheet
+    var scanBlanks = [data.codeBlank1, data.codeBlank2, data.codeBlank3, data.codeBlank4, data.codeBlank5].join(', ');
+    var connBlanks = [data.codeBlank6, data.codeBlank7, data.codeBlank8, data.codeBlank9].join(', ');
+
     var rowData = [
       new Date(),
       data.studentName,
       data.studentId,
       data.studentGroup,
       data.labDate,
-      // Exp1
-      data.codeBlank1  || '',
-      data.codeBlank2  || '',
-      data.codeBlank3  || '',
-      data.codeBlank4  || '',
-      data.codeBlank5  || '',
-      // Exp2
-      data.codeBlank6  || '',
-      data.codeBlank7  || '',
-      data.codeBlank8  || '',
-      data.codeBlank9  || '',
-      data.codeBlank10 || '',
-      // Scan results
-      data.scan1ssid || '', data.scan1rssi || '', data.scan1sec || '',
-      data.scan2ssid || '', data.scan2rssi || '', data.scan2sec || '',
-      data.scan3ssid || '', data.scan3rssi || '', data.scan3sec || '',
-      data.connIP  || '',
-      data.connMAC || '',
-      // Challenge
-      data.challengeCode  || '',
-      data.challengeLogic || '',
-      // Questions
+      data.challengeCode || '',
+      data.controlLogic || '',
+      scanBlanks,
+      connBlanks,
+      data.quiz1 || '',
+      data.quiz2 || '',
+      data.quiz3 || '',
+      data.quiz4 || '',
+      data.quiz5 || '',
       data.question1 || '',
       data.question2 || '',
-      // Attachments
+      data.question3 || '',
       screenshotUrl,
       codeFileUrl,
-      // Conclusion
       data.conclusion || '',
-      // Grading
       grading.score,
       grading.feedback
     ];
@@ -337,14 +303,13 @@ function submitLabData(data) {
     sheet.appendRow(rowData);
 
     return {
-      status:  "success",
-      message: "บันทึกข้อมูลใบงานที่ 3.1 สำเร็จแล้ว!\n\nคะแนนประเมินอัตโนมัติ: " +
-               grading.score + "/10.0 คะแนน\n\nรายละเอียดคะแนน:\n" + grading.feedback
+      status: "success",
+      message: "บันทึกข้อมูลใบงานที่ 3.1 สำเร็จแล้ว! คะแนนประเมินอัตโนมัติ: " + grading.score + "/10.0 คะแนน\n\nรายละเอียดคะแนน:\n" + grading.feedback
     };
 
   } catch (error) {
     return {
-      status:  "error",
+      status: "error",
       message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.toString()
     };
   }
