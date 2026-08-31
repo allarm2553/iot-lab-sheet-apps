@@ -1,247 +1,181 @@
 /**
- * Web App for Lab 4: Local WebSockets
- * Designed by Antigravity AI (Auto-Grading Version)
+ * Web App for Lab 4: Local WebSockets Full-Duplex Communication
+ * Designed by Antigravity AI (Auto-Grading & Sheet Logger Version)
  */
 
+const SHEET_NAME = "Lab 4 Submissions";
+const DRIVE_FOLDER_NAME = "Lab 4 Attachments";
+
+const quizKeys = {
+  quiz1: "1b", // Full-Duplex persistent TCP connection on Port 81 reducing header overhead
+  quiz2: "2b", // webSocket.broadcastTXT() broadcasts JSON payload to all connected clients
+  quiz3: "3a", // ArduinoJson consolidates multiple sensor values into standard key-value
+  quiz4: "4c", // WStype_TEXT event for incoming text messages from client
+  quiz5: "5a"  // Client sends JSON via ws.send() for immediate non-blocking hysteresis control
+};
+
 function doGet(e) {
-  return HtmlService.createTemplateFromFile('index')
+  return HtmlService.createTemplateFromFile("index")
     .evaluate()
-    .setTitle('ใบงานที่ 4: การส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setTitle("ใบงานที่ 4: การส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// Auto-grading logic for Lab 4
-// Auto-grading logic for lab4
-// Auto-grading logic for lab4
-function gradeSubmission(data) {
-  var blankKeywords = ["broadcastTXT", "msg"];
-  var challengeKeywords = ["webSocket", "tempThreshold|threshold|30|analog|potentiometer|soil", "broadcastSensorData|broadcast|send", "containsKey|haskey|digitalRead|BUTTON_PIN|debounce|toggleCount"];
-  var q1Keywords = ["real-time","polling","ดึงข้อมูล","ทราฟฟิก","แบนด์วิธ","รวดเร็ว"];
-  var q2Keywords = ["โครงสร้าง","key","value","อ่านง่าย","parse","หลายค่า"];
-  
-  var challengeScore = 0.0;
-  var q1Score = 0.0;
-  var q2Score = 0.0;
-  var attachmentScore = 0.0;
-  var feedbackDetails = [];
-
-  // 1. Grade Code / Challenge (4.0 points max)
-  // 1.1 Grade Skeleton Blanks (1.5 points max if blanks exist, otherwise challenge gets full 4.0 points)
-  var hasBlanks = blankKeywords && blankKeywords.length > 0;
-  var skeletonScore = 0.0;
-  
-  if (hasBlanks) {
-    var codeContent = (data.codeBlank1 || '') + ' ' + (data.codeBlank2 || '') + ' ' + (data.codeBlank3 || '') + ' ' + (data.codeBlank4 || '') + ' ' + (data.codeBlank5 || '');
-    if (codeContent.replace(/\s+/g, '').length > 0) {
-      var matchedBlanks = 0;
-      for (var i = 0; i < blankKeywords.length; i++) {
-        var subKws = blankKeywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (codeContent.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedBlanks++;
-        }
-      }
-      skeletonScore = (matchedBlanks / blankKeywords.length) * 1.5;
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น " + matchedBlanks + "/" + blankKeywords.length + " ส่วนหลัก (+" + skeletonScore.toFixed(1) + "/1.5 คะแนน)");
-    } else {
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ไม่พบการส่งคำตอบ (+0.0/1.5 คะแนน)");
-    }
-  }
-
-  // 1.2 Grade Pasted Challenge Code (2.5 points max if blanks exist, otherwise 4.0 points max)
-  var challengeMax = hasBlanks ? 2.5 : 4.0;
-  var challengeCodeText = data.challengeCode || '';
-  if (challengeCodeText.trim().length > 0) {
-    var matchedChallenge = 0;
-    for (var i = 0; i < challengeKeywords.length; i++) {
-      var subKws = challengeKeywords[i].split('|');
-      var isMatched = false;
-      for (var j = 0; j < subKws.length; j++) {
-        if (challengeCodeText.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          isMatched = true;
-          break;
-        }
-      }
-      if (isMatched) {
-        matchedChallenge++;
-      }
-    }
-    challengeScore = (matchedChallenge / challengeKeywords.length) * challengeMax;
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/" + challengeMax.toFixed(1) + " คะแนน)");
-  } else {
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/" + challengeMax.toFixed(1) + " คะแนน)");
-  }
-
-  // 2. Grade Question 1 (2.0 points, or 4.0 points if Q2 does not exist)
-  var q1Text = data.question1 || '';
-  var hasQ2 = q2Keywords && q2Keywords.length > 0;
-  var q1Max = hasQ2 ? 2.0 : 4.0;
-  if (q1Text.trim().length > 0) {
-    var matchedQ1 = 0;
-    for (var i = 0; i < q1Keywords.length; i++) {
-      var subKws = q1Keywords[i].split('|');
-      var isMatched = false;
-      for (var j = 0; j < subKws.length; j++) {
-        if (q1Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          isMatched = true;
-          break;
-        }
-      }
-      if (isMatched) {
-        matchedQ1++;
-      }
-    }
-    q1Score = (matchedQ1 / q1Keywords.length) * q1Max;
-    feedbackDetails.push("- คำถามข้อ 1: ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(1) + "/" + q1Max.toFixed(1) + " คะแนน)");
-  } else {
-    feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/" + q1Max.toFixed(1) + " คะแนน)");
-  }
-
-  // 3. Grade Question 2 (2.0 points max)
-  if (hasQ2) {
-    var q2Text = data.question2 || '';
-    if (q2Text.trim().length > 0) {
-      var matchedQ2 = 0;
-      for (var i = 0; i < q2Keywords.length; i++) {
-        var subKws = q2Keywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (q2Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedQ2++;
-        }
-      }
-      q2Score = (matchedQ2 / q2Keywords.length) * 2.0;
-      feedbackDetails.push("- คำถามข้อ 2: ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(1) + "/2.0 คะแนน)");
-    } else {
-      feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/2.0 คะแนน)");
-    }
-  }
-
-  // 4. Attachments (2.0 points max)
-  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 1.0 : 0.0;
-  var codeOk = (data.codeBase64 && data.codeFileName) ? 1.0 : 0.0;
-  attachmentScore = screenshotOk + codeOk;
-  feedbackDetails.push("- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") + ", แนบไฟล์โค้ด " + (codeOk ? "แล้ว" : "ไม่พบ") + " (+" + attachmentScore.toFixed(1) + "/2.0 คะแนน)");
-
-  var finalScore = parseFloat((skeletonScore + challengeScore + q1Score + q2Score + attachmentScore).toFixed(1));
-
-  return {
-    score: finalScore,
-    feedback: feedbackDetails.join('\n')
-  };
-}
-
-function submitLabData(data) {
+function submitLabData(formObject) {
   try {
-    // 1. Open the active spreadsheet
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetName = "Lab 4 Submissions";
-    var sheet = ss.getSheetByName(sheetName);
-    
-    // Auto-grading calculation
-    var grading = gradeSubmission(data);
-    
-    // Auto-create sheet if it doesn't exist
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
-      var headers = [
-        "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
-        "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำอธิบายตรรกะ (controlLogic)", "คำอธิบายโจทย์ท้าทาย (challengeLogic)",
-        "คำตอบ Code ช่องที่ 1", "คำตอบ Code ช่องที่ 2", "คำตอบ Code ช่องที่ 3", "คำตอบ Code ช่องที่ 4", "คำตอบ Code ช่องที่ 5",
-        "คำถามข้อที่ 1 (WebSockets vs Polling)", "คำถามข้อที่ 2 (JSON Benefit)",
-        "ลิงก์ไฟล์รูปภาพผลการทดลอง", "ลิงก์ไฟล์โค้ด (.ino/.zip)", "สรุปผลการทดลอง",
-        "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ"
+      sheet = ss.insertSheet(SHEET_NAME);
+      const headers = [
+        "Timestamp", "Student ID", "Student Name", "Group/Sec", "Lab Date",
+        "Total Score (10.0)", "Skeleton Blanks (1.5)", "Quiz Score (2.0)", 
+        "Challenge (2.5)", "Questions (2.5)", "Attachments (1.0)", "Conclusion (0.5)",
+        "Quiz 1", "Quiz 2", "Quiz 3", "Quiz 4", "Quiz 5",
+        "Blank 1", "Blank 2", "Blank 3", "Blank 4", "Blank 5",
+        "Challenge Code", "Control Logic",
+        "Question 1 (WebSocket vs HTTP)", "Question 2 (JSON Payload)", "Question 3 (Heap & Broadcast)",
+        "Conclusion Text", "Screenshot File URL", "Code File URL"
       ];
       sheet.appendRow(headers);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e2e8f0");
       sheet.setFrozenRows(1);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#1e293b").setFontColor("#f8fafc");
     }
-    
-    // 2. Handle File Uploads (Drive Storage)
-    var screenshotUrl = "ไม่ได้แนบไฟล์";
-    var codeFileUrl = "ไม่ได้แนบไฟล์";
-    
-    // Auto-create folders for uploads
-    var folderName = "Lab 4 Attachments";
-    var folders = DriveApp.getFoldersByName(folderName);
-    var folder;
-    if (folders.hasNext()) {
-      folder = folders.next();
-    } else {
-      folder = DriveApp.createFolder(folderName);
-    }
-    
-    // Process screenshot
-    if (data.screenshotBase64 && data.screenshotName) {
-      var screenshotBlob = Utilities.newBlob(
-        Utilities.base64Decode(data.screenshotBase64.split(",")[1]),
-        data.screenshotType,
-        data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_screenshot_" + data.screenshotName
-      );
-      var file = folder.createFile(screenshotBlob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      screenshotUrl = file.getUrl();
-    }
-    
-    // Process code file
-    if (data.codeBase64 && data.codeFileName) {
-      var codeBlob = Utilities.newBlob(
-        Utilities.base64Decode(data.codeBase64.split(",")[1]),
-        data.codeFileType,
-        data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_code_" + data.codeFileName
-      );
-      var file = folder.createFile(codeBlob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      codeFileUrl = file.getUrl();
-    }
-    
-    // 3. Log data to Spreadsheet
-    var rowData = [
-      new Date(),
-      data.studentName,
-      data.studentId,
-      data.studentGroup,
-      data.labDate,
-      data.challengeCode || '',
-      data.controlLogic || '',
-      data.challengeLogic || '',
-      data.codeBlank1,
-      data.codeBlank2,
-      data.codeBlank3,
-      data.codeBlank4,
-      data.codeBlank5,
-      data.question1,
-      data.question2,
-      screenshotUrl,
-      codeFileUrl,
-      data.conclusion,
-      grading.score,
-      grading.feedback
+
+    // ── 1. Evaluate Skeleton Blanks (1.5 Points) ──
+    const blanks = [
+      (formObject.codeBlank1 || "").trim(),
+      (formObject.codeBlank2 || "").trim(),
+      (formObject.codeBlank3 || "").trim(),
+      (formObject.codeBlank4 || "").trim(),
+      (formObject.codeBlank5 || "").trim()
     ];
-    
+    let filledBlanks = 0;
+    blanks.forEach(b => { if (b.length > 0) filledBlanks++; });
+    const blankScore = Math.min(1.5, (filledBlanks / 5.0) * 1.5);
+
+    // ── 2. Evaluate Multiple Choice Quiz (2.0 Points - 0.4 each) ──
+    let quizScore = 0.0;
+    for (const q in quizKeys) {
+      if (formObject[q] === quizKeys[q]) {
+        quizScore += 0.4;
+      }
+    }
+    quizScore = Math.min(2.0, quizScore);
+
+    // ── 3. Evaluate Challenge Code & Logic (2.5 Points) ──
+    const chCode = (formObject.challengeCode || "").trim();
+    const ctrlLogic = (formObject.controlLogic || "").trim();
+    let challengeScore = 0.0;
+    if (chCode.length > 30) challengeScore += 1.5;
+    if (ctrlLogic.length > 15) challengeScore += 1.0;
+    challengeScore = Math.min(2.5, challengeScore);
+
+    // ── 4. Evaluate Analytical Questions (2.5 Points) ──
+    const q1 = (formObject.question1 || "").trim();
+    const q2 = (formObject.question2 || "").trim();
+    const q3 = (formObject.question3 || "").trim();
+    let qScore = 0.0;
+    if (q1.length > 10) qScore += 0.85;
+    if (q2.length > 10) qScore += 0.85;
+    if (q3.length > 10) qScore += 0.80;
+    qScore = Math.min(2.5, qScore);
+
+    // ── 5. Evaluate File Attachments (1.0 Points) ──
+    let screenshotUrl = "";
+    let codeFileUrl = "";
+    let attachScore = 0.0;
+
+    let folder = getOrCreateFolder(DRIVE_FOLDER_NAME);
+
+    if (formObject.screenshotBase64) {
+      try {
+        const decodedImg = Utilities.base64Decode(formObject.screenshotBase64.split(",")[1]);
+        const imgBlob = Utilities.newBlob(decodedImg, formObject.screenshotType || "image/png", `${formObject.studentId}_Lab4_Screenshot_${new Date().getTime()}.png`);
+        const savedImg = folder.createFile(imgBlob);
+        savedImg.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        screenshotUrl = savedImg.getUrl();
+        attachScore += 0.5;
+      } catch (e) {
+        screenshotUrl = "Upload Error: " + e.toString();
+      }
+    }
+
+    if (formObject.codeBase64) {
+      try {
+        const decodedCode = Utilities.base64Decode(formObject.codeBase64.split(",")[1]);
+        const codeBlob = Utilities.newBlob(decodedCode, formObject.codeFileType || "text/plain", `${formObject.studentId}_Lab4_Code_${new Date().getTime()}_${formObject.codeFileName || "solution.ino"}`);
+        const savedCode = folder.createFile(codeBlob);
+        savedCode.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        codeFileUrl = savedCode.getUrl();
+        attachScore += 0.5;
+      } catch (e) {
+        codeFileUrl = "Upload Error: " + e.toString();
+      }
+    }
+    attachScore = Math.min(1.0, attachScore);
+
+    // ── 6. Evaluate Conclusion (0.5 Points) ──
+    const concl = (formObject.conclusion || "").trim();
+    const conclScore = (concl.length > 10) ? 0.5 : (concl.length > 0 ? 0.25 : 0.0);
+
+    // ── Total Score ──
+    const totalScore = Number((blankScore + quizScore + challengeScore + qScore + attachScore + conclScore).toFixed(1));
+
+    const rowData = [
+      new Date(),
+      formObject.studentId,
+      formObject.studentName,
+      formObject.studentGroup,
+      formObject.labDate,
+      totalScore,
+      blankScore,
+      quizScore,
+      challengeScore,
+      qScore,
+      attachScore,
+      conclScore,
+      formObject.quiz1 || "",
+      formObject.quiz2 || "",
+      formObject.quiz3 || "",
+      formObject.quiz4 || "",
+      formObject.quiz5 || "",
+      formObject.codeBlank1 || "",
+      formObject.codeBlank2 || "",
+      formObject.codeBlank3 || "",
+      formObject.codeBlank4 || "",
+      formObject.codeBlank5 || "",
+      chCode,
+      ctrlLogic,
+      q1,
+      q2,
+      q3,
+      concl,
+      screenshotUrl,
+      codeFileUrl
+    ];
+
     sheet.appendRow(rowData);
-    
+
     return {
       status: "success",
-      message: "บันทึกข้อมูลใบงานที่ 4 สำเร็จแล้ว! คะแนนประเมินอัตโนมัติ: " + grading.score + "/10.0 คะแนน\n\nรายละเอียดคะแนน:\n" + grading.feedback
+      totalScore: totalScore,
+      message: `คะแนนประเมินรวม: ${totalScore.toFixed(1)} / 10.0 คะแนน\nบันทึกข้อมูลเรียบร้อยแล้ว`
     };
-    
+
   } catch (error) {
     return {
       status: "error",
-      message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.toString()
+      message: error.toString()
     };
   }
+}
+
+function getOrCreateFolder(folderName) {
+  const folders = DriveApp.getFoldersByName(folderName);
+  if (folders.hasNext()) {
+    return folders.next();
+  }
+  return DriveApp.createFolder(folderName);
 }
