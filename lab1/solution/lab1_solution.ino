@@ -1,5 +1,5 @@
 /**
- * Lab 1: GPIO, ADC & Relays (Complete Fault-Tolerant & Fail-Safe Solution)
+ * Lab 1: GPIO, ADC & Relays (Arduino IDE Sketch Solution)
  * 
  * Features:
  *  - Configurable DHT Sensor Selection (DHT11 / DHT22)

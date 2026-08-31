@@ -405,3 +405,74 @@ To maintain academic integrity and encourage genuine critical thinking, all work
 </div>
 ```
 
+---
+
+## 9. Multiple Choice Quiz & Real-time Assessment Standards
+
+Every lab worksheet should feature a **5-Question Multiple Choice Quiz** testing theoretical fundamentals, compiler/hardware quirks, and troubleshooting awareness:
+
+### UI Structure & Glassmorphic Radio Tiles
+```html
+<div class="quiz-card">
+  <div class="quiz-q-title">
+    <span class="quiz-q-badge">ข้อที่ 1</span>
+    <span>[คำถามเชิงทฤษฎี/การทำงานของฮาร์ดแวร์]</span>
+  </div>
+  <div class="quiz-options-grid">
+    <label class="quiz-option-label">
+      <input type="radio" name="quiz1" value="1a" form="labForm" required>
+      <span>ก. [ตัวเลือกที่ 1]</span>
+    </label>
+    <label class="quiz-option-label">
+      <input type="radio" name="quiz1" value="1b" form="labForm" required>
+      <span>ข. [ตัวเลือกที่ 2]</span>
+    </label>
+    <label class="quiz-option-label">
+      <input type="radio" name="quiz1" value="1c" form="labForm" required>
+      <span>ค. [ตัวเลือกที่ 3 - ถูกต้อง]</span>
+    </label>
+    <label class="quiz-option-label">
+      <input type="radio" name="quiz1" value="1d" form="labForm" required>
+      <span>ง. [ตัวเลือกที่ 4]</span>
+    </label>
+  </div>
+</div>
+```
+
+---
+
+## 10. Wokwi Simulation & PlatformIO Integration Standard
+
+To support seamless online simulation alongside physical hardware:
+
+1. **Root & Solution Configuration:**
+   - Maintain `diagram.json` and `wokwi.toml` at both worksheet root (`labX/`) and `labX/solution/`.
+   - Provide a root `platformio.ini` with `src_dir = solution/src` so VS Code PlatformIO status bar buttons (`✓ Build`, `→ Upload`) activate immediately.
+
+2. **Fault-Tolerant Code Pattern:**
+   - **Configurable Sensor Selector:**
+     ```cpp
+     #define USE_DHT22    // Toggle between USE_DHT22 and USE_DHT11
+     #if defined(USE_DHT22)
+       #define DHTTYPE DHT22
+     #else
+       #define DHTTYPE DHT11
+     #endif
+     ```
+   - **ESP32 Core 3.x ADC Setup:**
+     ```cpp
+     pinMode(ANALOG_PIN, INPUT);
+     #if defined(ESP32)
+     analogSetAttenuation(ADC_11db);
+     analogReadResolution(12);
+     #endif
+     ```
+   - **Fail-Safe Sensor Disconnection Handler:**
+     ```cpp
+     if (isnan(temp) || isnan(hum)) {
+       setSafeState("Sensor Disconnection");
+       return;
+     }
+     ```
+
+
