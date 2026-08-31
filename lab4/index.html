@@ -1503,7 +1503,8 @@ function sendToggleFan(state) {
         <div class="theory-tab-bar">
           <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. WebSockets vs HTTP Polling</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. ArduinoJson Serialization</button>
-          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. Event-Driven & Broadcast</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. Event-Driven &amp; Broadcast</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)"><i class="fa-solid fa-terminal"></i> 4. WebSocket Payloads &amp; Message Box</button>
         </div>
 
         <!-- Tab 1 -->
@@ -1559,6 +1560,58 @@ function sendToggleFan(state) {
             </ul>
           </div>
         </div>
+
+        <!-- Tab 4: WebSocket Payloads & Message Box Reference -->
+        <div class="theory-tab-panel" id="theory-tab-tab4">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบข้อความ JSON ใน WebSocket Message Box &amp; Test Console</h4>
+            <p>เมื่อไคลเอนต์ส่งข้อความผ่านท่อ WebSocket (Port 81) จะใช้รูปแบบ JSON Event Payload ดังนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>ข้อความที่ต้องพิมพ์ใน Message Box / ws.send()</th>
+                    <th>ผลลัพธ์บนไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>สั่งเปิดพัดลม</b></td>
+                    <td><code>{"action": "toggle_fan", "value": true}</code></td>
+                    <td>รีเลย์พัดลม GPIO 5 ON, broadcast สถานะกลับทุกหน้าจอ</td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งปิดพัดลม</b></td>
+                    <td><code>{"action": "toggle_fan", "value": false}</code></td>
+                    <td>รีเลย์พัดลม GPIO 5 OFF, broadcast สถานะกลับทุกหน้าจอ</td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเกณฑ์อุณหภูมิ</b></td>
+                    <td><code>{"threshold": 32.5}</code> หรือ <code>{"action": "set_threshold", "value": 32.5}</code></td>
+                    <td>อัปเดต <code>tempThreshold = 32.5</code> คำนวณ Hysteresis ทันที</td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งเปิดปั๊มหมอก</b></td>
+                    <td><code>{"action": "toggle_mist", "value": true}</code></td>
+                    <td>รีเลย์ปั๊มหมอก GPIO 23 ON</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p style="margin-top: 0.8rem; font-size: 0.88rem; color: #cbd5e1;">
+              ⚠️ <strong>ข้อควรระวังเรื่องไวยากรณ์ JSON (JSON Syntax Rules):</strong>
+            </p>
+            <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;">
+              <li>Key และ String ต้องอยู่ในเครื่องหมาย Double Quotes <code>"..."</code> เสมอ</li>
+              <li>ค่า Boolean ต้องพิมพ์ <code>true</code> หรือ <code>false</code> (ตัวพิมพ์เล็ก ไม่มีเครื่องหมายคำพูด)</li>
+              <li>ค่าตัวเลขทศนิยม เช่น <code>32.5</code> ส่งตรงได้เลยโดยไม่ต้องใส่เครื่องหมายคำพูด</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
 
       <div class="theory-modal-footer">

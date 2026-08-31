@@ -1786,6 +1786,7 @@ void loop() {
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dht', this)"><i class="fa-solid fa-temperature-half"></i> 3. เซ็นเซอร์ DHT11</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)"><i class="fa-solid fa-sliders"></i> 4. Hysteresis Control</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshoot', this)"><i class="fa-solid fa-wrench"></i> 5. การตรวจวินิจฉัยและแก้ปัญหา</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('commands', this)"><i class="fa-solid fa-terminal"></i> 6. คำสั่ง Interactive Message &amp; Serial</button>
         </div>
 
         <!-- Panel 1: GPIO & Relays -->
@@ -1967,6 +1968,64 @@ void loop() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- Panel 6: Interactive Message Box & Serial Commands -->
+        <div class="theory-tab-panel" id="theory-tab-commands">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 6.1 รูปแบบคำสั่งใน Serial Monitor / Message Box</h4>
+            <p>ไมโครคอนโทรลเลอร์สามารถรับข้อความคำสั่งจาก <strong>Serial Monitor Input Box (Baud rate 115200)</strong> หรือกล่องข้อความบนแดชบอร์ด เพื่อควบคุมและตั้งค่าพารามิเตอร์แบบทันที:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>การตอบสนองของไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>สั่งเปิดพัดลม</b></td>
+                    <td><code>FAN_ON</code></td>
+                    <td>จ่ายไฟ GPIO 5 = HIGH, ตอบกลับ <code>[OK] Fan turned ON</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งปิดพัดลม</b></td>
+                    <td><code>FAN_OFF</code></td>
+                    <td>จ่ายไฟ GPIO 5 = LOW, ตอบกลับ <code>[OK] Fan turned OFF</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเกณฑ์อุณหภูมิ</b></td>
+                    <td><code>SET_TEMP=32.0</code></td>
+                    <td>อัปเดต <code>tempThreshold = 32.0</code>, ตอบกลับ <code>[OK] Threshold updated</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>อ่านสถานะระบบ</b></td>
+                    <td><code>STATUS</code></td>
+                    <td>ส่งข้อความสรุปค่าเซ็นเซอร์และสถานะรีเลย์ปัจจุบัน</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างโค้ดภาษา C++ ในการถอดรหัสข้อความจาก Serial Box:<br>
+              if (Serial.available() > 0) {<br>
+              &nbsp;&nbsp;String cmd = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;cmd.trim(); // ตัดช่องว่างและตัวขึ้นบรรทัดใหม่ออก<br>
+              &nbsp;&nbsp;if (cmd == "FAN_ON") { digitalWrite(FAN_PIN, HIGH); }<br>
+              &nbsp;&nbsp;else if (cmd.startsWith("SET_TEMP=")) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;tempThreshold = cmd.substring(9).toFloat();<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+
+            <p style="margin-top: 0.6rem; font-size: 0.85rem; color: #fbbf24;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>ข้อควรระวัง:</strong> ตรวจสอบการตั้งค่า Line Ending ใน Serial Monitor ให้ตรงกับ <code>Newline</code> (<code>\n</code>) และตั้ง Baud Rate เป็น <code>115200</code> เสมอ
+            </p>
           </div>
         </div>
 

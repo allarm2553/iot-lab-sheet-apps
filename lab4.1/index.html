@@ -1516,6 +1516,7 @@ void loop() {
           <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. สถาปัตยกรรม REST API</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. JSON & ArduinoJson v7</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. HTTP Polling vs WebSockets</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)"><i class="fa-solid fa-terminal"></i> 4. HTTP Body &amp; Fetch Payload</button>
         </div>
 
         <!-- Tab 1 -->
@@ -1570,6 +1571,53 @@ void loop() {
             </div>
           </div>
         </div>
+
+        <!-- Tab 4: HTTP Request Body & Fetch Console -->
+        <div class="theory-tab-panel" id="theory-tab-tab4">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบ Payload ในการเรียก HTTP POST &amp; Postman / Fetch Console</h4>
+            <p>เมื่อส่งคำสั่งควบคุมผ่าน <strong>HTTP POST <code>/api/relay</code></strong> ทั้งผ่าน JavaScript <code>fetch()</code>, Postman, หรือ Serial Test Console จะต้องส่ง JSON Body ดังนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>คำสั่งที่ต้องการ</th>
+                    <th>สิ่งที่ต้องพิมพ์ใน Request Body (JSON)</th>
+                    <th>ผลตอบกลับจากเซิร์ฟเวอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>สั่งเปิดพัดลม</b></td>
+                    <td><code>{"relay": true}</code></td>
+                    <td><code>{"success": true, "relay": true, "message": "Fan ON"}</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งปิดพัดลม</b></td>
+                    <td><code>{"relay": false}</code></td>
+                    <td><code>{"success": true, "relay": false, "message": "Fan OFF"}</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>สลับสถานะ (Toggle)</b></td>
+                    <td><code>{"action": "toggle"}</code></td>
+                    <td><code>{"success": true, "relay": [สถานะใหม่]}</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างการส่งคำสั่งด้วย JavaScript fetch():<br>
+              fetch('/api/relay', {<br>
+              &nbsp;&nbsp;method: 'POST',<br>
+              &nbsp;&nbsp;headers: { 'Content-Type': 'application/json' },<br>
+              &nbsp;&nbsp;body: JSON.stringify({ relay: true })<br>
+              }).then(res => res.json()).then(data => console.log(data));
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="theory-modal-footer">

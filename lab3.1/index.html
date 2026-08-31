@@ -1591,7 +1591,8 @@ void loop() {
       <div class="theory-tab-bar">
         <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. สถาปัตยกรรม HTTP Server</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS vs SPIFFS</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. File Streaming & MIME Types</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. File Streaming &amp; MIME Types</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)"><i class="fa-solid fa-terminal"></i> 4. REST API &amp; JSON Message Box</button>
       </div>
 
       <!-- Tab 1 -->
@@ -1638,6 +1639,53 @@ void loop() {
             file.close();
           </div>
         </div>
+
+        <!-- Tab 4: REST API & JSON Message Box Reference -->
+        <div class="theory-tab-panel" id="theory-tab-tab4">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบข้อความ JSON ใน REST API &amp; Request Body</h4>
+            <p>เมื่อผู้ใช้หรือเว็บแอปส่งคำสั่งผ่าน <strong>HTTP Request Body / Test Console</strong> ข้อมูลจะต้องอยู่ในรูปแบบ JSON ที่ถูกต้อง:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Endpoint &amp; Method</th>
+                    <th>สิ่งที่ต้องพิมพ์ใน Request Body</th>
+                    <th>ผลตอบกลับจาก ESP32 / ESP8266</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>GET /api/status</code></td>
+                    <td><i>(ไม่มี Body)</i></td>
+                    <td><code>{"temp": 28.5, "led": false, "heap": 215400}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>POST /api/led</code></td>
+                    <td><code>{"state": true}</code></td>
+                    <td>เปิด Onboard LED, ตอบกลับ <code>{"success": true, "led": true}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>POST /api/relay</code></td>
+                    <td><code>{"relay": true, "timer": 10}</code></td>
+                    <td>สั่งเปิดรีเลย์ 10 วินาที, ตอบกลับ <code>{"success": true}</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p style="margin-top: 0.8rem; font-size: 0.88rem; color: #cbd5e1;">
+              ⚠️ <strong>ข้อควรระวังเรื่องไวยากรณ์ JSON (JSON Syntax Rules):</strong>
+            </p>
+            <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;">
+              <li>Key ต้องอยู่ในเครื่องหมาย Double Quotes <code>"..."</code> เท่านั้น (ห้ามใช้ Single Quote <code>'...'</code>)</li>
+              <li>ค่า Boolean ต้องพิมพ์ <code>true</code> หรือ <code>false</code> (ตัวพิมพ์เล็ก ไม่มีเครื่องหมายคำพูด)</li>
+              <li>ค่าตัวเลข เช่น <code>28.5</code> ไม่ต้องใส่เครื่องหมายคำพูด</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
     </div>
 

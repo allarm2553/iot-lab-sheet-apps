@@ -1516,36 +1516,76 @@ return msg;" required></textarea>
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('fbp', this)"><i class="fa-solid fa-diagram-project"></i> 1. Flow-based Programming</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('json_node', this)"><i class="fa-solid fa-code"></i> 2. การแปลง JSON & Function</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dashboard', this)"><i class="fa-solid fa-gauge"></i> 3. Node-RED Dashboard</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('fbp', this)"><i class="fa-solid fa-diagram-project"></i> 1. Flow-based Programming</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('json_node', this)"><i class="fa-solid fa-code"></i> 2. การแปลง JSON &amp; Function</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dashboard', this)"><i class="fa-solid fa-gauge"></i> 3. Node-RED Dashboard</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('inject_debug', this)"><i class="fa-solid fa-terminal"></i> 4. Inject &amp; Debug Message Box</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-fbp">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-diagram-project"></i> 1.1 สถาปัตยกรรม Flow-Based Programming</h4>
-                <p><strong>Node-RED</strong> เป็นแพลตฟอร์ม Visual Programming แบบ Flow-based ที่พัฒนาบน Node.js เหมาะสำหรับเชื่อมต่อฮาร์ดแวร์, API, และบริการออนไลน์ โดยข้อความทั้งหมดจะถูกส่งต่อระหว่างโหนดในรูปของ JavaScript Object ชื่อว่า <code>msg</code></p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-diagram-project"></i> 1.1 สถาปัตยกรรม Flow-Based Programming</h4>
+            <p><strong>Node-RED</strong> เป็นแพลตฟอร์ม Visual Programming แบบ Flow-based ที่พัฒนาบน Node.js เหมาะสำหรับเชื่อมต่อฮาร์ดแวร์, API, และบริการออนไลน์ โดยข้อความทั้งหมดจะถูกส่งต่อระหว่างโหนดในรูปของ JavaScript Object ชื่อว่า <code>msg</code></p>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-json_node">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-file-code"></i> 2.1 โหนด json และ Function Node</h4>
-                <p><strong>โหนด json:</strong> แปลงข้อความสตริง JSON ที่รับมาจาก <code>mqtt in</code> ให้กลายเป็น JavaScript Object ทำให้สามารถอ้างอิงฟิลด์ข้อมูลย่อยได้ทันที เช่น <code>msg.payload.temperature</code></p>
-                <p style="margin-top: 0.5rem;"><strong>Function Node:</strong> เขียนโค้ด JavaScript ประมวลผลเงื่อนไข เช่น:</p>
-                <div class="theory-formula">
-                  if (msg.payload.humidity &lt; 20) {<br>
-                  &nbsp;&nbsp;msg.payload = "Alert: Dry Climate!";<br>
-                  &nbsp;&nbsp;return msg;<br>
-                  }<br>
-                  return null; // ไม่ส่งต่อข้อความถ้าไม่เข้าเงื่อนไข
-                </div>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-file-code"></i> 2.1 โหนด json และ Function Node</h4>
+            <p><strong>โหนด json:</strong> แปลงข้อความสตริง JSON ที่รับมาจาก <code>mqtt in</code> ให้กลายเป็น JavaScript Object ทำให้สามารถอ้างอิงฟิลด์ข้อมูลย่อยได้ทันที เช่น <code>msg.payload.temperature</code></p>
+            <p style="margin-top: 0.5rem;"><strong>Function Node:</strong> เขียนโค้ด JavaScript ประมวลผลเงื่อนไข เช่น:</p>
+            <div class="theory-formula">
+              if (msg.payload.humidity &lt; 20) {<br>
+              &nbsp;&nbsp;msg.payload = "Alert: Dry Climate!";<br>
+              &nbsp;&nbsp;return msg;<br>
+              }<br>
+              return null; // ไม่ส่งต่อข้อความถ้าไม่เข้าเงื่อนไข
+            </div>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-dashboard">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-chart-pie"></i> 3.1 การสร้าง UI ด้วย node-red-dashboard</h4>
-                <p>ชุดโหนด UI เช่น <code>ui_gauge</code> (เกจวัดค่า), <code>ui_chart</code> (กราฟเส้นแสดงแนวโน้ม), และ <code>ui_switch</code> (สวิตช์ควบคุม) ช่วยให้สร้างหน้าเว็บแดชบอร์ดควบคุมระบบได้ในเวลาไม่กี่นาทีผ่าน URL <code>http://localhost:1880/ui</code></p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-chart-pie"></i> 3.1 การสร้าง UI ด้วย node-red-dashboard</h4>
+            <p>ชุดโหนด UI เช่น <code>ui_gauge</code> (เกจวัดค่า), <code>ui_chart</code> (กราฟเส้นแสดงแนวโน้ม), และ <code>ui_switch</code> (สวิตช์ควบคุม) ช่วยให้สร้างหน้าเว็บแดชบอร์ดควบคุมระบบได้ในเวลาไม่กี่นาทีผ่าน URL <code>http://localhost:1880/ui</code></p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Inject & Debug Message Box Reference -->
+        <div class="theory-tab-panel" id="theory-tab-inject_debug">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบข้อความทดสอบในโหนด Inject และ Debug Message Box</h4>
+            <p>เมื่อทดสอบส่งข้อความจำลองจากโหนด <strong>Inject</strong> หรือดูข้อมูลในหน้าต่าง <strong>Debug Sidebar</strong> ข้อความจะต้องมีโครงสร้างตามตารางนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>โหนด / เครื่องมือ</th>
+                    <th>ข้อความ Payload ที่ต้องพิมพ์ใน Message Box</th>
+                    <th>ผลลัพธ์ใน Flow และ Dashboard</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>Inject Node (JSON)</b></td>
+                    <td><code>{"temp": 33.5, "humidity": 58.0}</code></td>
+                    <td>จำลองข้อมูลเซ็นเซอร์ส่งเข้าโหนด <code>ui_gauge</code> และ <code>ui_chart</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>Inject Node (Boolean)</b></td>
+                    <td><code>true</code> หรือ <code>false</code></td>
+                    <td>สั่งเปิด/ปิดพัดลมจำลองผ่าน MQTT topic <code>.../cmd/fan</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>Function Node (Payload Mapping)</b></td>
+                    <td><code>msg.payload = { "fan": msg.payload ? 1 : 0 };</code></td>
+                    <td>แปลง Boolean จาก UI Switch ให้เป็นตัวเลขก่อนส่งเข้า MQTT</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

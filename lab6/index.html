@@ -1324,35 +1324,83 @@
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('hybrid', this)"><i class="fa-solid fa-cubes-stacked"></i> 1. สถาปัตยกรรม Hybrid</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('nonblock', this)"><i class="fa-solid fa-gauge-high"></i> 2. Non-blocking System</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)"><i class="fa-solid fa-sliders"></i> 3. Dual-Loop Control</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('hybrid', this)"><i class="fa-solid fa-cubes-stacked"></i> 1. สถาปัตยกรรม Hybrid</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('nonblock', this)"><i class="fa-solid fa-gauge-high"></i> 2. Non-blocking System</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)"><i class="fa-solid fa-sliders"></i> 3. Dual-Loop Control</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('payloads', this)"><i class="fa-solid fa-terminal"></i> 4. Hybrid Message Box &amp; Payloads</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-hybrid">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-diagram-project"></i> 1.1 Dual-Channel Communication (Local + Cloud)</h4>
-                <p>ระบบ Hybrid IoT Node รองรับช่องทางสื่อสาร 2 ทางพร้อมกัน:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>Local WebSocket (Port 81):</strong> ทำงานบนเครือข่ายภายในบ้าน/โรงงาน รวดเร็ว ตอบสนองระดับมิลลิวินาที และยังควบคุมได้แม้เน็ตภายนอกดับ</li>
-                  <li><strong>Cloud MQTT (Port 1883):</strong> ส่งข้อมูลขึ้นสู่ Cloud Broker ทำให้สามารถติดตามและสั่งการจากระยะไกลผ่านอินเทอร์เน็ตได้ทุกที่ทั่วโลก</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-diagram-project"></i> 1.1 Dual-Channel Communication (Local + Cloud)</h4>
+            <p>ระบบ Hybrid IoT Node รองรับช่องทางสื่อสาร 2 ทางพร้อมกัน:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>Local WebSocket (Port 81):</strong> ทำงานบนเครือข่ายภายในบ้าน/โรงงาน รวดเร็ว ตอบสนองระดับมิลลิวินาที และยังควบคุมได้แม้เน็ตภายนอกดับ</li>
+              <li><strong>Cloud MQTT (Port 1883):</strong> ส่งข้อมูลขึ้นสู่ Cloud Broker ทำให้สามารถติดตามและสั่งการจากระยะไกลผ่านอินเทอร์เน็ตได้ทุกที่ทั่วโลก</li>
+            </ul>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-nonblock">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-clock-rotate-left"></i> 2.1 Multi-tasking แบบ Non-blocking ด้วย millis()</h4>
-                <p>ในระบบที่ซับซ้อน ห้ามใช้คำสั่ง <code>delay()</code> เด็ดขาด เพราะจะทำให้ระบบเว็บเซิร์ฟเวอร์, การวาดจอ OLED และการเชื่อมต่อ MQTT ค้าง การใช้ตัวแปรจับเวลาแบบ <code>millis()</code> ช่วยให้ CPU สามารถสลับประมวลผลงานย่อยทั้งหมดได้อย่างราบรื่น</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> 2.1 Multi-tasking แบบ Non-blocking ด้วย millis()</h4>
+            <p>ในระบบที่ซับซ้อน ห้ามใช้คำสั่ง <code>delay()</code> เด็ดขาด เพราะจะทำให้ระบบเว็บเซิร์ฟเวอร์, การวาดจอ OLED และการเชื่อมต่อ MQTT ค้าง การใช้ตัวแปรจับเวลาแบบ <code>millis()</code> ช่วยให้ CPU สามารถสลับประมวลผลงานย่อยทั้งหมดได้อย่างราบรื่น</p>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-hysteresis">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-gears"></i> 3.1 ระบบควบคุมอัตโนมัติ 2 ลูปแบบอิสระ</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>ลูปพัดลม (Temperature Loop):</strong> สั่งเปิดเมื่อ <code>อุณหภูมิ &gt; เกณฑ์ Threshold</code> และปิดเมื่อ <code>อุณหภูมิ &lt; (Threshold - 0.5&deg;C)</code></li>
-                  <li><strong>ลูปพ่นหมอก (Humidity/Soil Loop):</strong> สั่งเปิดเมื่อความชื้นในดินหรือบรรยากาศต่ำกว่า 40% และปิดเมื่อเกิน 50%</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-gears"></i> 3.1 ระบบควบคุมอัตโนมัติ 2 ลูปแบบอิสระ</h4>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>ลูปพัดลม (Temperature Loop):</strong> สั่งเปิดเมื่อ <code>อุณหภูมิ &gt; เกณฑ์ Threshold</code> และปิดเมื่อ <code>อุณหภูมิ &lt; (Threshold - 0.5&deg;C)</code></li>
+              <li><strong>ลูปพ่นหมอก (Humidity/Soil Loop):</strong> สั่งเปิดเมื่อความชื้นในดินหรือบรรยากาศต่ำกว่า 40% และปิดเมื่อเกิน 50%</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 4: Hybrid Message Box & Payloads Reference -->
+        <div class="theory-tab-panel" id="theory-tab-payloads">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบข้อความคำสั่งทั้งฝั่ง Local WebSocket และ Cloud MQTT</h4>
+            <p>การส่งคำสั่งควบคุมผ่าน Message Box ในสถาปัตยกรรม Hybrid รองรับทั้งสองช่องทาง:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ช่องทาง (Channel)</th>
+                    <th>คำสั่งหรือ JSON Payload ที่พิมพ์ใน Message Box</th>
+                    <th>การทำงานของระบบ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>Local WebSocket (Port 81)</b></td>
+                    <td><code>{"action": "toggle_fan", "value": true}</code></td>
+                    <td>สั่งงานรีเลย์พัดลมทันทีใน Local LAN พร้อมซิงค์สถานะขึ้น Cloud</td>
+                  </tr>
+                  <tr>
+                    <td><b>Cloud MQTT Topic: <code>.../cmd/fan</code></b></td>
+                    <td><code>{"state": "ON"}</code> หรือ <code>{"relay": 1}</code></td>
+                    <td>สั่งงานผ่านอินเทอร์เน็ต และส่งสถานะยืนยันกลับลง Local Dashboard</td>
+                  </tr>
+                  <tr>
+                    <td><b>Cloud MQTT Topic: <code>.../cmd/set_temp</code></b></td>
+                    <td><code>{"threshold": 31.5}</code></td>
+                    <td>ปรับเกณฑ์อุณหภูมิและอัปเดตค่าลงหน้าจอ OLED อัตโนมัติ</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างการซิงค์สถานะสองทาง (State Synchronization):<br>
+              void syncState(bool fan, bool mist) {<br>
+              &nbsp;&nbsp;broadcastLocalWS(fan, mist);&nbsp;&nbsp;// ส่งหา Local Web Dashboard<br>
+              &nbsp;&nbsp;publishCloudMQTT(fan, mist);&nbsp;&nbsp;// ส่งหา Cloud Dashboard<br>
+              }
+            </div>
+          </div>
         </div>
       </div>
 

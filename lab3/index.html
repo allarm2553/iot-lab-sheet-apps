@@ -1589,6 +1589,7 @@ void loop() {
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. การสแกน, RSSI & ความปลอดภัย</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. พารามิเตอร์ & รหัสสถานะ Enum</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)">4. Event-Driven Auto-Reconnect</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab5', this)"><i class="fa-solid fa-terminal"></i> 5. คำสั่ง Wi-Fi Message Box Commands</button>
       </div>
 
       <!-- Tab 1: Wi-Fi Modes -->
@@ -1733,6 +1734,63 @@ void loop() {
             WiFi.setAutoReconnect(true);
           </div>
         </div>
+
+        <!-- Tab 5: Interactive Wi-Fi Message Box Commands -->
+        <div class="theory-tab-panel" id="theory-tab-tab5">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 5.1 รูปแบบคำสั่งควบคุมและตรวจเช็ค Wi-Fi ผ่าน Message Box</h4>
+            <p>นักศึกษาสามารถส่งคำสั่งทดสอบผ่าน <strong>Serial Monitor Input Box (Baud rate 115200)</strong> หรือกล่องข้อความคำสั่งบนเว็บแอป เพื่อควบคุมและทดสอบกระบวนการเชื่อมต่อเครือข่าย:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>การตอบสนองของไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>สั่งสแกนเครือข่ายรอบตัว</b></td>
+                    <td><code>SCAN_WIFI</code></td>
+                    <td>สั่ง <code>WiFi.scanNetworks()</code> แล้วส่งตาราง SSID, RSSI, Channel กลับมา</td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งเชื่อมต่อ Access Point</b></td>
+                    <td><code>CONNECT:MySSID,MyPassword</code></td>
+                    <td>เรียก <code>WiFi.begin("MySSID", "MyPassword")</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>อ่านพารามิเตอร์ IP &amp; MAC</b></td>
+                    <td><code>GET_NETWORK_INFO</code></td>
+                    <td>ส่งคืน IP Address, Subnet, Gateway, DNS, MAC Address</td>
+                  </tr>
+                  <tr>
+                    <td><b>จำลองการตัดการเชื่อมต่อ</b></td>
+                    <td><code>DISCONNECT_WIFI</code></td>
+                    <td>สั่ง <code>WiFi.disconnect()</code> เพื่อทดสอบระบบ Event-driven Auto-reconnect</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างการแยกคำสั่ง Wi-Fi จาก Serial:<br>
+              if (Serial.available()) {<br>
+              &nbsp;&nbsp;String cmd = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;cmd.trim();<br>
+              &nbsp;&nbsp;if (cmd == "SCAN_WIFI") {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;int n = WiFi.scanNetworks();<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;Serial.printf("[SCAN] พบเครือข่ายทั้งหมด %d วง\n", n);<br>
+              &nbsp;&nbsp;} else if (cmd == "DISCONNECT_WIFI") {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;WiFi.disconnect();<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 

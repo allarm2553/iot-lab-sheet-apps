@@ -1628,6 +1628,7 @@ void factoryResetWifi() {
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS JSON Storage</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. OLED Debug & Reset Logic</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)">4. Event-Driven Auto-Fallback</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab5', this)"><i class="fa-solid fa-terminal"></i> 5. Form Payload &amp; Message Box</button>
       </div>
 
       <!-- Tab 1 -->
@@ -1677,17 +1678,63 @@ void factoryResetWifi() {
         </div>
       </div>
 
-      <!-- Tab 4 -->
-      <div class="theory-tab-panel" id="theory-tab-tab4">
-        <div class="theory-card">
-          <h4><i class="fa-solid fa-bolt"></i> 4.1 สถาปัตยกรรม Event-Driven Auto-Reconnect & 30s Auto-Fallback</h4>
-          <p>
-            เมื่อสัญญาณ Wi-Fi หลุดขณะทำงาน ระบบจะใช้ <strong>Event Handler</strong> (เช่น <code>WiFi.onEvent</code> หรือ <code>WiFiEventHandler</code>) สั่ง <code>WiFi.reconnect()</code> ใน Background Task ทันทีโดยไม่บล็อก Main Loop<br><br>
-            <strong>ระบบ 30-Second Auto-Fallback:</strong> หากเราเตอร์ดับเป็นเวลานานเกิน 30 วินาที ระบบจะสลับเข้าสู่โหมด <code>startConfigPortal()</code> เปิด Hotspot ใหม่อัตโนมัติ เพื่อให้ผู้ใช้สามารถเชื่อมต่อเข้ามาเปลี่ยนรหัสผ่าน Wi-Fi ได้ทันทีโดยไม่ต้องกดปุ่ม Reset กายภาพ
-          </p>
+        <!-- Tab 4 -->
+        <div class="theory-tab-panel" id="theory-tab-tab4">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-bolt"></i> 4.1 สถาปัตยกรรม Event-Driven Auto-Reconnect & 30s Auto-Fallback</h4>
+            <p>
+              เมื่อสัญญาณ Wi-Fi หลุดขณะทำงาน ระบบจะใช้ <strong>Event Handler</strong> (เช่น <code>WiFi.onEvent</code> หรือ <code>WiFiEventHandler</code>) สั่ง <code>WiFi.reconnect()</code> ใน Background Task ทันทีโดยไม่บล็อก Main Loop<br><br>
+              <strong>ระบบ 30-Second Auto-Fallback:</strong> หากเราเตอร์ดับเป็นเวลานานเกิน 30 วินาที ระบบจะสลับเข้าสู่โหมด <code>startConfigPortal()</code> เปิด Hotspot ใหม่อัตโนมัติ เพื่อให้ผู้ใช้สามารถเชื่อมต่อเข้ามาเปลี่ยนรหัสผ่าน Wi-Fi ได้ทันทีโดยไม่ต้องกดปุ่ม Reset กายภาพ
+            </p>
+          </div>
         </div>
+
+        <!-- Tab 5: Form Payload & Message Box -->
+        <div class="theory-tab-panel" id="theory-tab-tab5">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 5.1 โครงสร้าง Payload การบันทึกค่า Wi-Fi และคำสั่ง Serial Debug</h4>
+            <p>เมื่อผู้ใช้กดบันทึกข้อมูลในหน้าตั้งค่า Captive Portal หรือส่งผ่าน <strong>REST API / Serial Input</strong> โครงสร้างข้อมูลที่ใช้มีดังนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ช่องทางการส่ง</th>
+                    <th>ข้อความหรือ Payload ที่ต้องพิมพ์</th>
+                    <th>ผลลัพธ์บนไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>HTTP POST <code>/api/save</code></b></td>
+                    <td><code>{"ssid": "MyWiFi_2.4G", "pass": "secret1234"}</code></td>
+                    <td>บันทึกลง <code>/config.json</code> ใน LittleFS แล้วสั่งรีสตาร์ตเพื่อเกาะเราเตอร์ใหม่</td>
+                  </tr>
+                  <tr>
+                    <td><b>HTTP GET <code>/api/scan</code></b></td>
+                    <td><i>(เรียกผ่านบราวเซอร์/Fetch)</i></td>
+                    <td>ส่งคืนอาร์เรย์ JSON: <code>[{"ssid":"WiFi_1","rssi":-65}]</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>Serial Command (115200)</b></td>
+                    <td><code>FACTORY_RESET</code></td>
+                    <td>ลบไฟล์ <code>/config.json</code> และสั่ง <code>ESP.restart()</code> ทันที</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างโครงสร้างไฟล์ /config.json ใน LittleFS:<br>
+              {<br>
+              &nbsp;&nbsp;"ssid": "IoT_Laboratory_Room512",<br>
+              &nbsp;&nbsp;"pass": "SuperSecurePass2026"<br>
+              }
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
 
     <div class="theory-modal-footer">
       <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>

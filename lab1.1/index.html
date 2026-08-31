@@ -1778,6 +1778,7 @@ void loop() {
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('debounce', this)"><i class="fa-solid fa-clock"></i> 3. Software Debounce</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('longpress', this)"><i class="fa-solid fa-stopwatch"></i> 4. การกดปุ่มค้าง</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshooting', this)"><i class="fa-solid fa-triangle-exclamation"></i> 5. ตรวจวินิจฉัยและแก้ปัญหา</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('commands', this)"><i class="fa-solid fa-terminal"></i> 6. คำสั่ง Interactive Message &amp; Serial</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-pullup">
@@ -1863,6 +1864,61 @@ void loop() {
             </div>
           </div>
         </div>
+
+        <!-- Panel 6: Interactive Message Box & Serial Commands -->
+        <div class="theory-tab-panel" id="theory-tab-commands">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 6.1 คำสั่งจำลองปุ่มกดและตั้งค่าผ่าน Message Box</h4>
+            <p>นอกจากการกดปุ่มสวิตช์กายภาพแล้ว นักศึกษาสามารถส่งคำสั่งทดสอบผ่าน <strong>Serial Monitor / Message Box</strong> เพื่อทดสอบการทำงานของ State Machine และการ Debounce:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>การตอบสนองของไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>จำลองการกดปุ่มสลับรีเลย์</b></td>
+                    <td><code>PRESS_BUTTON</code></td>
+                    <td>สลับสถานะรีเลย์, เพิ่มตัวนับ <code>toggleCount++</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>รีเซ็ตตัวนับการกดปุ่ม</b></td>
+                    <td><code>RESET_COUNT</code></td>
+                    <td>ตั้งค่า <code>toggleCount = 0</code>, ตอบกลับ <code>[OK] Count reset</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเวลา Debounce (ms)</b></td>
+                    <td><code>SET_DEBOUNCE=50</code></td>
+                    <td>ตั้งค่า <code>debounceDelay = 50ms</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเวลา Long-Press (ms)</b></td>
+                    <td><code>SET_LONGPRESS=3000</code></td>
+                    <td>ตั้งค่า <code>longPressThreshold = 3000ms</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // การแยกแยะคำสั่งใน C++:<br>
+              if (Serial.available()) {<br>
+              &nbsp;&nbsp;String input = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;input.trim();<br>
+              &nbsp;&nbsp;if (input == "RESET_COUNT") {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;toggleCount = 0;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[OK] Counter has been reset to 0");<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="theory-modal-footer">

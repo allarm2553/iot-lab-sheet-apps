@@ -1666,6 +1666,7 @@ void loop() {
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('gfx', this)"><i class="fa-solid fa-pen-ruler"></i> 3. Adafruit_GFX</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dashboard', this)"><i class="fa-solid fa-gauge-high"></i> 4. Dashboard UI</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshooting', this)"><i class="fa-solid fa-triangle-exclamation"></i> 5. ตรวจวินิจฉัยและแก้ปัญหา</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('commands', this)"><i class="fa-solid fa-terminal"></i> 6. คำสั่ง Interactive Message &amp; Serial</button>
         </div>
 
         <!-- Tab 1: I2C Bus Protocol -->
@@ -1780,6 +1781,61 @@ void loop() {
             </table>
           </div>
         </div>
+
+        <!-- Tab 6: Interactive Message Box & Serial Commands -->
+        <div class="theory-tab-panel" id="theory-tab-commands">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 6.1 คำสั่งควบคุมหน้าจอ OLED และตั้งค่าผ่าน Message Box</h4>
+            <p>นักศึกษาสามารถพิมพ์คำสั่งผ่าน <strong>Serial Monitor Input Box (Baud rate 115200)</strong> เพื่อทดสอบการเรนเดอร์หน้าจอ OLED และการจำลองสัญญาณอินพุต:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>ผลลัพธ์บนจอ OLED และฮาร์ดแวร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>พิมพ์ข้อความขึ้นจอ OLED</b></td>
+                    <td><code>MSG=Hello_IoT</code></td>
+                    <td>แสดงข้อความ "Hello_IoT" ในบรรทัดสถานะบนจอ OLED</td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งเปิด/ปิดพัดลมระบายความร้อน</b></td>
+                    <td><code>FAN=1</code> หรือ <code>FAN=0</code></td>
+                    <td>สลับรีเลย์ GPIO 5 และอัปเดตไอคอนพัดลมบน OLED ทันที</td>
+                  </tr>
+                  <tr>
+                    <td><b>จำลองค่าระดับความชื้นดิน</b></td>
+                    <td><code>SOIL=85.5</code></td>
+                    <td>อัปเดต Gauge และกราฟแท่ง Progress bar บนหน้าจอ</td>
+                  </tr>
+                  <tr>
+                    <td><b>ล้างหน้าจอ OLED ทั้งหมด</b></td>
+                    <td><code>CLEAR_OLED</code></td>
+                    <td>สั่ง <code>display.clearDisplay(); display.display();</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างการรับข้อความมาแสดงผลบนจอ OLED:<br>
+              if (Serial.available()) {<br>
+              &nbsp;&nbsp;String input = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;input.trim();<br>
+              &nbsp;&nbsp;if (input.startsWith("MSG=")) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;customMsg = input.substring(4);<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;updateOledScreen(); // เรียกวาดจอใหม่ทันที<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="theory-modal-footer">
