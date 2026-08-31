@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบงานที่ 3.2: การพัฒนาระบบตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI (Web Wi-Fi Configurator & Reset Button)</title>
+  <title>ใบงานที่ 3.2: การพัฒนาระบบตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI พร้อมโหมด Debug บนจอ OLED</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1124,7 +1124,7 @@
       <i class="fa-solid fa-sliders logo-icon"></i>
       <h1>ใบงานที่ 3.2: การพัฒนาระบบตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI</h1>
     </div>
-    <p class="subtitle">การสร้าง Captive Portal Web Dashboard สำหรับตั้งค่า Wi-Fi ลงใน LittleFS และระบบ Reset การตั้งค่าด้วยปุ่ม GPIO 0</p>
+    <p class="subtitle">การสร้าง Captive Portal Web Dashboard สำหรับตั้งค่า Wi-Fi ลงใน LittleFS พร้อมโหมดแสดงผล Debug บนจอ OLED และปุ่ม Reset GPIO 0</p>
     
     <div class="header-badges">
       <div class="course-badge">
@@ -1158,6 +1158,12 @@
             <li>เข้าใจสถาปัตยกรรม <strong>Captive Portal</strong> และการสลับโหมดระหว่าง Access Point (AP) และ Station (STA)</li>
             <li>สามารถบันทึกและโหลดการตั้งค่าเครือข่ายลงในไฟล์ <code>/config.json</code> ผ่านระบบไฟล์ <strong>LittleFS</strong></li>
             <li>สามารถสร้าง Web API: <code>/api/scan</code> (สแกนหาเครือข่าย) และ <code>/api/save</code> (บันทึกรหัสผ่าน Wi-Fi)</li>
+            <li>สามารถแสดงผล <strong>Debug Mode บนจอ OLED SSD1306 (I2C)</strong>:
+              <ul style="margin-top: 0.2rem; padding-left: 1rem;">
+                <li><strong>โหมด AP:</strong> แสดงชื่อ Hotspot <code>SSID</code> และ <code>IP: 192.168.4.1</code></li>
+                <li><strong>โหมด STA (ต่อสำเร็จ):</strong> แสดง <code>SSID</code>, <code>IP</code>, และความแรงสัญญาณ <code>RSSI (dBm)</code></li>
+              </ul>
+            </li>
             <li>สามารถเขียนโปรแกรมดักจับการกดปุ่มทางกายภาพ <strong>GPIO 0 ค้างไว้ 3 วินาที (Long-Press)</strong> เพื่อล้างค่า Wi-Fi และเข้าสู่โหมดตั้งค่าใหม่</li>
           </ul>
         </div>
@@ -1181,6 +1187,11 @@
                   <td>บอร์ดไมโครคอนโทรลเลอร์</td>
                   <td>ESP32 (IPST-WiFi) หรือ ESP8266 (AX-WiFi / NodeMCU)</td>
                   <td style="text-align: center;">1 บอร์ด</td>
+                </tr>
+                <tr>
+                  <td>จอแสดงผล OLED Display</td>
+                  <td>SSD1306 Monochrome 0.96 นิ้ว (128x64 พิกเซล, I2C 0x3C)</td>
+                  <td style="text-align: center;">1 จอ</td>
                 </tr>
                 <tr>
                   <td>ปุ่มกดสวิตช์ Onboard</td>
@@ -1220,6 +1231,20 @@
               </thead>
               <tbody>
                 <tr>
+                  <td>OLED SDA (Data)</td>
+                  <td>ขาสัญญาณข้อมูล I2C Data</td>
+                  <td><span class="badge-pin">GPIO 21</span></td>
+                  <td><span class="badge-pin">GPIO 4 (D2)</span></td>
+                  <td>I2C Address <code>0x3C</code></td>
+                </tr>
+                <tr>
+                  <td>OLED SCL (Clock)</td>
+                  <td>ขาสัญญาณนาฬิกา I2C Clock</td>
+                  <td><span class="badge-pin">GPIO 22</span></td>
+                  <td><span class="badge-pin">GPIO 5 (D1)</span></td>
+                  <td>I2C Clock Line</td>
+                </tr>
+                <tr>
                   <td>Factory Reset Button</td>
                   <td>กดค้าง $\ge 3$ วินาที ล้างค่า Config</td>
                   <td><span class="badge-pin">GPIO 0 (SW1)</span></td>
@@ -1256,6 +1281,9 @@
               <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
             </div>
             <pre><code>#include &lt;Arduino.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
 #include &lt;LittleFS.h&gt;
 #include &lt;ArduinoJson.h&gt;
 #include &lt;DNSServer.h&gt;
@@ -1322,7 +1350,7 @@ void factoryResetWifi() {
         <div class="challenge-frame">
           <h4><i class="fa-solid fa-trophy"></i> โจทย์ท้าทาย (Challenge Mission)</h4>
           <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.4rem;">
-            ให้นักศึกษาเขียนโค้ดเพิ่มระบบ <strong>Status LED Heartbeat</strong> (กะพริบทุกๆ 1 วินาทีในโหมด AP และสว่างค้างในโหมด STA) พร้อมพัฒนาหน้าเว็บ <code>index.html</code> ในโฟลเดอร์ <code>data/</code> ให้สามารถดึงรายการ Wi-Fi รอบตัวมาแสดงใน Dropdown และแสดงระดับความแรงสัญญาณ (RSSI dBm) ได้แบบ Real-time
+            ให้นักศึกษาเขียนโค้ดเพิ่มระบบ <strong>OLED Debug Display</strong> ให้สมบูรณ์: ในโหมด AP แสดง <code>[AP Mode]</code> พร้อม SSID และ IP (192.168.4.1) และเมื่อต่อ Wi-Fi สำเร็จในโหมด STA ให้แสดง <code>[STA Online]</code> พร้อมชื่อ SSID, หมายเลข IP Address ที่ได้รับ และค่าความแรงสัญญาณ RSSI (dBm) อัปเดตทุก 5 วินาที
           </p>
         </div>
       </div>
@@ -1502,7 +1530,7 @@ void factoryResetWifi() {
         <!-- โค้ดโจทย์ท้าทาย -->
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution)</label>
+            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution พร้อม OLED Debug)</label>
             <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
           </div>
           <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดจริง..." required></textarea>
@@ -1510,8 +1538,8 @@ void factoryResetWifi() {
 
         <!-- คำอธิบายตรรกะควบคุม -->
         <div class="form-group">
-          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการสลับโหมด AP/STA และการกดปุ่ม Reset</label>
-          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่บอร์ดเปิดเครื่อง การตรวจสอบ /config.json จนถึงการกดปุ่ม GPIO 0 ค้างเพื่อล้างข้อมูล..." required></textarea>
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการสลับโหมด AP/STA และการแสดงผลบนจอ OLED</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่บอร์ดเปิดเครื่อง การแสดงผล OLED ในโหมด AP และ STA จนถึงการกดปุ่ม GPIO 0 ค้างเพื่อล้างข้อมูล..." required></textarea>
         </div>
 
         <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
@@ -1539,7 +1567,7 @@ void factoryResetWifi() {
         <!-- แนบไฟล์ผลการทดลอง -->
         <div class="form-group-row">
           <div class="form-group">
-            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ Web Wi-Fi Config Dashboard</label>
+            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ OLED Display หรือ Web Dashboard</label>
             <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
               <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
               <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
@@ -1589,7 +1617,7 @@ void factoryResetWifi() {
 <div class="modal-overlay" id="theoryModal">
   <div class="theory-modal-content">
     <div class="theory-modal-header">
-      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Web Wi-Fi Provisioning & Reset Logic</h2>
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Web Wi-Fi Provisioning & OLED Debug Mode</h2>
       <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -1598,7 +1626,7 @@ void factoryResetWifi() {
       <div class="theory-tab-bar">
         <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. Captive Portal & SoftAP</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS JSON Storage</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. GPIO 0 Long-Press Reset</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. OLED Debug & Reset Logic</button>
       </div>
 
       <!-- Tab 1 -->
@@ -1636,15 +1664,19 @@ void factoryResetWifi() {
       <!-- Tab 3 -->
       <div class="theory-tab-panel" id="theory-tab-tab3">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-stopwatch"></i> 3.1 การตรวจจับปุ่มกดค้าง 3 วินาทีแบบ Non-blocking</h4>
+          <h4><i class="fa-solid fa-tv"></i> 3.1 การแสดงผล OLED Debug Display & การกดปุ่ม Reset</h4>
           <p>
-            การออกแบบระบบฝังตัวที่ดีต้องไม่ใช้คำสั่ง <code>delay()</code> เพราะจะทำให้ซีพียูหยุดทำงานและไม่สามารถตอบสนองคำขอเครือข่ายได้ การตรวจจับการกดปุ่มค้าง (Long-Press) จึงใช้การบันทึกค่าเวลาเริ่มต้นด้วย <code>millis()</code> เมื่อสถานะปุ่มเป็น LOW (Active LOW) และนำเวลาปัจจุบันมาลบเพื่อดูว่าเวลาผ่านไป $\ge 3000$ มิลลิวินาทีหรือไม่ หากครบกำหนดจึงสั่งฟังก์ชัน <code>factoryResetWifi()</code>
+            จอแสดงผล <strong>OLED SSD1306 (I2C 0x3C)</strong> ทำหน้าที่เป็นหน้าจอ Debug กึ่งเรียลไทม์:
           </p>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.75rem;">
+            <li><strong>เมื่ออยู่ในโหมด AP:</strong> แสดงข้อความ <code>[AP Mode]</code> พร้อมชื่อ SSID <code>ESP_WiFi_Config</code> และ IP <code>192.168.4.1</code> เพื่อให้ผู้ใช้ทราบว่าต้องต่อ Wi-Fi อะไร</li>
+            <li><strong>เมื่อเชื่อมต่อสำเร็จ (โหมด STA):</strong> แสดงข้อความ <code>[STA Online]</code> พร้อมชื่อ SSID เครือข่าย, หมายเลข IP ที่ได้รับจาก Router และค่าความแรงสัญญาณ <code>RSSI (dBm)</code></li>
+            <li><strong>เมื่อกดปุ่ม GPIO 0 ค้าง 3 วินาที:</strong> จอ OLED จะแสดงผล <code>>> FACTORY RESET <<</code> และสั่งลบ <code>/config.json</code> ก่อนรีสตาร์ต</li>
+          </ul>
           <div class="theory-formula">
-            if (digitalRead(BUTTON_PIN) == LOW) {<br>
-            &nbsp;&nbsp;if (!isPressed) { pressStart = millis(); isPressed = true; }<br>
-            &nbsp;&nbsp;else if (millis() - pressStart &gt;= 3000) { factoryReset(); }<br>
-            } else { isPressed = false; }
+            // การดึงค่า RSSI และ IP มาแสดงผลบน OLED<br>
+            display.println("IP: " + WiFi.localIP().toString());<br>
+            display.println("RSSI: " + String(WiFi.RSSI()) + " dBm");
           </div>
         </div>
       </div>
@@ -1777,6 +1809,9 @@ void factoryResetWifi() {
     const b5 = document.getElementById('codeBlank5')?.value.trim() || 'LittleFS.remove("/config.json")';
 
     const codeText = `#include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <DNSServer.h>
@@ -1843,12 +1878,23 @@ void factoryResetWifi() {
 
   function pasteChallengeTemplate() {
     const template = `/**
- * Lab 3.2 Challenge: Web Wi-Fi Configurator & GPIO 0 Reset Button
+ * Lab 3.2 Challenge: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
  */
 #include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <DNSServer.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+#define OLED_ADDR     0x3C
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+bool hasOLED = false;
 
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
@@ -1858,6 +1904,8 @@ void factoryResetWifi() {
   #define LED_PIN    2
   #define LED_ON     LOW
   #define LED_OFF    HIGH
+  #define SDA_PIN    4
+  #define SCL_PIN    5
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -1866,6 +1914,8 @@ void factoryResetWifi() {
   #define LED_PIN    2
   #define LED_ON     HIGH
   #define LED_OFF    LOW
+  #define SDA_PIN    21
+  #define SCL_PIN    22
 #endif
 
 const char* apSSID = "ESP_WiFi_Config";
@@ -1876,6 +1926,82 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+
+void initOLED() {
+  Wire.begin(SDA_PIN, SCL_PIN);
+  if (display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    hasOLED = true;
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println(F("IoT Lab 3.2: WiFi UI"));
+    display.println(F("Initializing..."));
+    display.display();
+  }
+}
+
+void showOledAPMode() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [AP MODE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  display.println(apSSID);
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(apIP.toString());
+  display.setCursor(0, 42);
+  display.println(F("Portal: http://"));
+  display.setCursor(0, 53);
+  display.println(F("192.168.4.1 (Port 80)"));
+  display.display();
+}
+
+void showOledSTAMode(String ssid, String ip, int rssi) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [STA ONLINE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  if (ssid.length() > 14) display.println(ssid.substring(0, 13) + ".");
+  else display.println(ssid);
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(ip);
+  display.setCursor(0, 42);
+  display.print(F("RSSI: "));
+  display.print(rssi);
+  display.println(F(" dBm"));
+  display.setCursor(0, 54);
+  if (rssi >= -60) display.println(F("Signal: Excellent (++)"));
+  else if (rssi >= -75) display.println(F("Signal: Good (+)"));
+  else display.println(F("Signal: Fair/Weak (-)"));
+  display.display();
+}
+
+void showOledReset() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 10);
+  display.println(F(">> FACTORY RESET <<"));
+  display.drawLine(0, 22, 127, 22, SSD1306_WHITE);
+  display.setCursor(0, 30);
+  display.println(F("WiFi config cleared!"));
+  display.setCursor(0, 46);
+  display.println(F("Rebooting to AP..."));
+  display.display();
+}
 
 void blinkLED(int times, int ms = 120) {
   for (int i = 0; i < times; i++) {
@@ -1909,9 +2035,10 @@ void saveWifiConfig(String ssid, String pass) {
 
 void factoryResetWifi() {
   Serial.println("\\n[FACTORY RESET] Holding GPIO 0 for 3s detected! Erasing Wi-Fi config...");
+  showOledReset();
   if (LittleFS.exists("/config.json")) LittleFS.remove("/config.json");
   blinkLED(5, 80);
-  delay(500);
+  delay(1000);
   ESP.restart();
 }
 
@@ -1946,6 +2073,8 @@ void startConfigPortal() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID);
+  
+  showOledAPMode();
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/api/scan", HTTP_GET, handleScan);
@@ -1958,6 +2087,8 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LED_OFF);
+
+  initOLED();
 
   #if defined(ESP8266)
   LittleFS.begin();
@@ -1975,6 +2106,7 @@ void setup() {
     }
     if (WiFi.status() == WL_CONNECTED) {
       blinkLED(3, 150);
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     }
   }
@@ -1995,6 +2127,12 @@ void loop() {
   if (isAPMode) {
     dnsServer.processNextRequest();
     server.handleClient();
+  } else {
+    static unsigned long lastHeartbeat = 0;
+    if (millis() - lastHeartbeat >= 5000) {
+      lastHeartbeat = millis();
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+    }
   }
   delay(2);
 }`;
@@ -2189,7 +2327,7 @@ void loop() {
       </div>
       <div class="score-item-row">
         <div class="score-item-info">
-          <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Web Config + GPIO 0 Reset)</div>
+          <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Web Config + OLED Debug)</div>
           <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้เรียบร้อย' : '⚠️ ยังไม่ได้วางโค้ดหรือโค้ดสั้นเกินไป'}</div>
         </div>
         <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
@@ -2204,7 +2342,7 @@ void loop() {
       <div class="score-item-row">
         <div class="score-item-info">
           <div class="score-item-title"><i class="fa-solid fa-paperclip" style="color:${attachScore>=1?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> ไฟล์แนบหลักฐานการทดลอง</div>
-          <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพ Web Dashboard (0.5)':'✗ ยังไม่แนบภาพ'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
+          <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพ OLED/Web Dashboard (0.5)':'✗ ยังไม่แนบภาพ'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
         </div>
         <div class="score-item-points">${attachScore.toFixed(1)} / 1.0</div>
       </div>

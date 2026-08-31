@@ -1,9 +1,13 @@
 /**
- * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button (Complete Solution)
+ * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
  * Features:
  *  - Persistent Wi-Fi credentials storage using LittleFS (/config.json).
  *  - Automatic fallback to Access Point (AP) mode (SSID: ESP_WiFi_Config, IP: 192.168.4.1) with DNS Captive Portal.
  *  - Embedded Web Server serving Glassmorphic Wi-Fi Setup Dashboard from LittleFS (or inline fallback).
+ *  - OLED Debug Display (SSD1306 128x64 I2C 0x3C):
+ *      * AP Mode : Displays "[AP Mode] Setup", AP SSID ("ESP_WiFi_Config"), and IP ("192.168.4.1").
+ *      * STA Mode: Displays "[STA Mode] Online", Connected SSID, Assigned IP, and Signal RSSI (dBm).
+ *      * Reset   : Displays "[RESET] Cleared!" notification on factory reset.
  *  - REST API Endpoints:
  *      GET  /api/scan -> Scans nearby Wi-Fi networks and returns JSON array.
  *      POST /api/save -> Receives SSID/Password, saves to LittleFS, and restarts board.
@@ -12,9 +16,20 @@
  */
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <DNSServer.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+#define OLED_ADDR     0x3C
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+bool hasOLED = false;
 
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
@@ -24,6 +39,8 @@
   #define LED_PIN    2    // D4/GPIO 2 (LED บนบอร์ด AX-WiFi / Active LOW)
   #define LED_ON     LOW
   #define LED_OFF    HIGH
+  #define SDA_PIN    4    // D2/GPIO 4
+  #define SCL_PIN    5    // D1/GPIO 5
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -32,6 +49,8 @@
   #define LED_PIN    2    // GPIO 2 (Built-in LED บนบอร์ด ESP32 / Active HIGH)
   #define LED_ON     HIGH
   #define LED_OFF    LOW
+  #define SDA_PIN    21   // GPIO 21
+  #define SCL_PIN    22   // GPIO 22
 #endif
 
 // Access Point & DNS Captive Portal Settings
@@ -43,6 +62,108 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+
+// ── OLED Display Helper Functions ──
+void initOLED() {
+  #if defined(ESP8266)
+  Wire.begin(SDA_PIN, SCL_PIN);
+  #elif defined(ESP32)
+  Wire.begin(SDA_PIN, SCL_PIN);
+  #endif
+
+  if (display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    hasOLED = true;
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println(F("IoT Lab 3.2: WiFi UI"));
+    display.println(F("Initializing..."));
+    display.display();
+    delay(500);
+  } else {
+    Serial.println(F("[OLED] SSD1306 not detected at 0x3C. Continuing without display."));
+  }
+}
+
+void showOledAPMode() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  
+  // Header bar
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [AP MODE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  display.println(apSSID);
+  
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(apIP.toString());
+  
+  display.setCursor(0, 42);
+  display.println(F("Portal: http://"));
+  display.setCursor(0, 53);
+  display.println(F("192.168.4.1 (Port 80)"));
+  
+  display.display();
+}
+
+void showOledSTAMode(String ssid, String ip, int rssi) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  
+  // Header bar
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [STA ONLINE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  if (ssid.length() > 14) {
+    display.println(ssid.substring(0, 13) + ".");
+  } else {
+    display.println(ssid);
+  }
+  
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(ip);
+  
+  display.setCursor(0, 42);
+  display.print(F("RSSI: "));
+  display.print(rssi);
+  display.println(F(" dBm"));
+  
+  // Signal strength status
+  display.setCursor(0, 54);
+  if (rssi >= -60) display.println(F("Signal: Excellent (++)"));
+  else if (rssi >= -75) display.println(F("Signal: Good (+)"));
+  else display.println(F("Signal: Fair/Weak (-)"));
+  
+  display.display();
+}
+
+void showOledReset() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 10);
+  display.println(F(">> FACTORY RESET <<"));
+  display.drawLine(0, 22, 127, 22, SSD1306_WHITE);
+  display.setCursor(0, 30);
+  display.println(F("WiFi config cleared!"));
+  display.setCursor(0, 46);
+  display.println(F("Rebooting to AP..."));
+  display.display();
+}
 
 // ── LED Feedback Helper ──
 void blinkStatusLED(int times, int delayMs = 120) {
@@ -100,12 +221,13 @@ bool saveWifiConfig(String ssid, String pass) {
 // ── Factory Reset (Erase /config.json) ──
 void factoryResetWifi() {
   Serial.println("\n[FACTORY RESET] Holding GPIO 0 for 3s detected! Erasing Wi-Fi config...");
+  showOledReset();
   if (LittleFS.exists("/config.json")) {
     LittleFS.remove("/config.json");
     Serial.println("[FACTORY RESET] /config.json deleted successfully.");
   }
   blinkStatusLED(5, 80); // Rapid blink 5 times
-  delay(500);
+  delay(1000);
   Serial.println("[FACTORY RESET] Restarting system...");
   #if defined(ESP8266) || defined(ESP32)
   ESP.restart();
@@ -190,13 +312,11 @@ void handleSave() {
   String reqPass = "";
 
   if (server.hasArg("plain")) {
-    // JSON Payload
     JsonDocument doc;
     deserializeJson(doc, server.arg("plain"));
     reqSSID = doc["ssid"].as<String>();
     reqPass = doc["pass"].as<String>();
   } else if (server.hasArg("ssid")) {
-    // Form POST Payload
     reqSSID = server.arg("ssid");
     reqPass = server.arg("pass");
   }
@@ -228,6 +348,9 @@ void startConfigPortal() {
   Serial.print("[AP] IP Address: ");
   Serial.println(WiFi.softAPIP());
 
+  // Update OLED with AP Information
+  showOledAPMode();
+
   // Start DNS Server for Captive Portal (Redirect all domains to 192.168.4.1)
   dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -254,7 +377,10 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LED_OFF);
 
-  Serial.println("\n\n--- IoT Lab 3.2: Web Wi-Fi Configurator ---");
+  Serial.println("\n\n--- IoT Lab 3.2: Web Wi-Fi Configurator with OLED ---");
+
+  // Initialize OLED Display
+  initOLED();
 
   // Mount LittleFS
   #if defined(ESP8266)
@@ -270,6 +396,14 @@ void setup() {
   // Check saved Wi-Fi configuration
   if (loadWifiConfig()) {
     Serial.printf("[STA] Connecting to saved Wi-Fi: %s ...\n", wifiSSID.c_str());
+    if (hasOLED) {
+      display.clearDisplay();
+      display.setCursor(0, 10);
+      display.println(F("Connecting to:"));
+      display.println(wifiSSID);
+      display.display();
+    }
+
     WiFi.mode(WIFI_STA);
     WiFi.begin(wifiSSID.c_str(), wifiPass.c_str());
 
@@ -285,6 +419,9 @@ void setup() {
       Serial.print("[STA] Local IP Address: ");
       Serial.println(WiFi.localIP());
       blinkStatusLED(3, 150); // Blink 3 times when connected
+      
+      // Update OLED with Connected Station information: SSID, IP, RSSI
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     } else {
       Serial.println("\n[STA] Connection failed/timed out. Switching to Config Mode...");
@@ -320,12 +457,13 @@ void loop() {
     dnsServer.processNextRequest();
     server.handleClient();
   } else {
-    // STA Mode Heartbeat Logger
+    // STA Mode Heartbeat Logger & OLED Refresh
     static unsigned long lastHeartbeat = 0;
-    if (millis() - lastHeartbeat >= 10000) {
+    if (millis() - lastHeartbeat >= 5000) {
       lastHeartbeat = millis();
       Serial.printf("[STA Monitor] Connected to %s | IP: %s | RSSI: %d dBm\n",
         wifiSSID.c_str(), WiFi.localIP().toString().c_str(), WiFi.RSSI());
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
     }
   }
 

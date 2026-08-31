@@ -1,18 +1,28 @@
 /**
- * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button
+ * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
  * Standalone Arduino IDE Sketch (.ino)
  * 
- * Instructions:
- * 1. Install ArduinoJson library (version 7.x) from Library Manager.
- * 2. Select Board: "ESP32 Dev Module" or "NodeMCU 1.0 (ESP-12E Module)".
- * 3. Upload sketch.
- * 4. To upload data folder to LittleFS, use "ESP32 LittleFS Data Upload" plugin.
+ * Required Libraries:
+ *  - ArduinoJson (v7.x)
+ *  - Adafruit SSD1306
+ *  - Adafruit GFX Library
  */
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <DNSServer.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+#define OLED_ADDR     0x3C
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+bool hasOLED = false;
 
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
@@ -22,6 +32,8 @@
   #define LED_PIN    2
   #define LED_ON     LOW
   #define LED_OFF    HIGH
+  #define SDA_PIN    4
+  #define SCL_PIN    5
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -30,6 +42,8 @@
   #define LED_PIN    2
   #define LED_ON     HIGH
   #define LED_OFF    LOW
+  #define SDA_PIN    21
+  #define SCL_PIN    22
 #endif
 
 const char* apSSID = "ESP_WiFi_Config";
@@ -40,6 +54,83 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+
+void initOLED() {
+  Wire.begin(SDA_PIN, SCL_PIN);
+  if (display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    hasOLED = true;
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println(F("IoT Lab 3.2: WiFi UI"));
+    display.println(F("Initializing..."));
+    display.display();
+    delay(500);
+  }
+}
+
+void showOledAPMode() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [AP MODE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  display.println(apSSID);
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(apIP.toString());
+  display.setCursor(0, 42);
+  display.println(F("Portal: http://"));
+  display.setCursor(0, 53);
+  display.println(F("192.168.4.1 (Port 80)"));
+  display.display();
+}
+
+void showOledSTAMode(String ssid, String ip, int rssi) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F("=== [STA ONLINE] ==="));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("SSID: "));
+  if (ssid.length() > 14) display.println(ssid.substring(0, 13) + ".");
+  else display.println(ssid);
+  display.setCursor(0, 28);
+  display.print(F("IP  : "));
+  display.println(ip);
+  display.setCursor(0, 42);
+  display.print(F("RSSI: "));
+  display.print(rssi);
+  display.println(F(" dBm"));
+  display.setCursor(0, 54);
+  if (rssi >= -60) display.println(F("Signal: Excellent (++)"));
+  else if (rssi >= -75) display.println(F("Signal: Good (+)"));
+  else display.println(F("Signal: Fair/Weak (-)"));
+  display.display();
+}
+
+void showOledReset() {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 10);
+  display.println(F(">> FACTORY RESET <<"));
+  display.drawLine(0, 22, 127, 22, SSD1306_WHITE);
+  display.setCursor(0, 30);
+  display.println(F("WiFi config cleared!"));
+  display.setCursor(0, 46);
+  display.println(F("Rebooting to AP..."));
+  display.display();
+}
 
 void blinkStatusLED(int times, int delayMs = 120) {
   for (int i = 0; i < times; i++) {
@@ -78,11 +169,12 @@ bool saveWifiConfig(String ssid, String pass) {
 
 void factoryResetWifi() {
   Serial.println("\n[FACTORY RESET] GPIO 0 Long-Press detected! Clearing Wi-Fi config...");
+  showOledReset();
   if (LittleFS.exists("/config.json")) {
     LittleFS.remove("/config.json");
   }
   blinkStatusLED(5, 80);
-  delay(500);
+  delay(1000);
   ESP.restart();
 }
 
@@ -172,6 +264,8 @@ void startConfigPortal() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID);
+  
+  showOledAPMode();
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/", HTTP_GET, handleRoot);
@@ -191,6 +285,8 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LED_OFF);
 
+  initOLED();
+
   #if defined(ESP8266)
   LittleFS.begin();
   #elif defined(ESP32)
@@ -207,6 +303,7 @@ void setup() {
     }
     if (WiFi.status() == WL_CONNECTED) {
       blinkStatusLED(3, 150);
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     }
   }
@@ -235,6 +332,12 @@ void loop() {
   if (isAPMode) {
     dnsServer.processNextRequest();
     server.handleClient();
+  } else {
+    static unsigned long lastHeartbeat = 0;
+    if (millis() - lastHeartbeat >= 5000) {
+      lastHeartbeat = millis();
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+    }
   }
   delay(2);
 }
