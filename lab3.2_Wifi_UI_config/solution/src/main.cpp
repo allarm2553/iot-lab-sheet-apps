@@ -2,11 +2,15 @@
  * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
  * Features:
  *  - Persistent Wi-Fi credentials storage using LittleFS (/config.json).
+ *  - Event-Driven Auto-Reconnect:
+ *      * Uses WiFi.onEvent() (ESP32) / WiFiEventHandler (ESP8266) for real-time background reconnect.
+ *      * Auto-Fallback to AP Portal: If disconnected for > 30 seconds, automatically launches AP Portal!
  *  - Automatic fallback to Access Point (AP) mode (SSID: ESP_WiFi_Config, IP: 192.168.4.1) with DNS Captive Portal.
  *  - Embedded Web Server serving Glassmorphic Wi-Fi Setup Dashboard from LittleFS (or inline fallback).
  *  - OLED Debug Display (SSD1306 128x64 I2C 0x3C):
  *      * AP Mode : Displays "[AP Mode] Setup", AP SSID ("ESP_WiFi_Config"), and IP ("192.168.4.1").
  *      * STA Mode: Displays "[STA Mode] Online", Connected SSID, Assigned IP, and Signal RSSI (dBm).
+ *      * Reconnect Mode: Displays "[RECONNECTING]" with countdown to AP fallback.
  *      * Reset   : Displays "[RESET] Cleared!" notification on factory reset.
  *  - REST API Endpoints:
  *      GET  /api/scan -> Scans nearby Wi-Fi networks and returns JSON array.
@@ -41,6 +45,7 @@ bool hasOLED = false;
   #define LED_OFF    HIGH
   #define SDA_PIN    4    // D2/GPIO 4
   #define SCL_PIN    5    // D1/GPIO 5
+  WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -62,14 +67,16 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+unsigned long disconnectStartTime = 0;
+const unsigned long AP_FALLBACK_TIMEOUT_MS = 30000; // 30 seconds
+
+// ── Forward Declarations ──
+void startConfigPortal();
+void blinkStatusLED(int times, int delayMs = 120);
 
 // ── OLED Display Helper Functions ──
 void initOLED() {
-  #if defined(ESP8266)
   Wire.begin(SDA_PIN, SCL_PIN);
-  #elif defined(ESP32)
-  Wire.begin(SDA_PIN, SCL_PIN);
-  #endif
 
   if (display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
     hasOLED = true;
@@ -91,7 +98,6 @@ void showOledAPMode() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   
-  // Header bar
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.println(F("=== [AP MODE] ==="));
@@ -118,7 +124,6 @@ void showOledSTAMode(String ssid, String ip, int rssi) {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   
-  // Header bar
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.println(F("=== [STA ONLINE] ==="));
@@ -141,11 +146,33 @@ void showOledSTAMode(String ssid, String ip, int rssi) {
   display.print(rssi);
   display.println(F(" dBm"));
   
-  // Signal strength status
   display.setCursor(0, 54);
   if (rssi >= -60) display.println(F("Signal: Excellent (++)"));
   else if (rssi >= -75) display.println(F("Signal: Good (+)"));
   else display.println(F("Signal: Fair/Weak (-)"));
+  
+  display.display();
+}
+
+void showOledReconnecting(String ssid, int remainingSec) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F(">> RECONNECTING <<"));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  
+  display.setCursor(0, 15);
+  display.print(F("Target: "));
+  display.println(ssid);
+  
+  display.setCursor(0, 30);
+  display.println(F("Signal Lost..."));
+  
+  display.setCursor(0, 45);
+  display.printf("AP Fallback: %ds\n", remainingSec);
   
   display.display();
 }
@@ -166,13 +193,69 @@ void showOledReset() {
 }
 
 // ── LED Feedback Helper ──
-void blinkStatusLED(int times, int delayMs = 120) {
+void blinkStatusLED(int times, int delayMs) {
   for (int i = 0; i < times; i++) {
     digitalWrite(LED_PIN, LED_ON);
     delay(delayMs);
     digitalWrite(LED_PIN, LED_OFF);
     if (i < times - 1) delay(delayMs);
   }
+}
+
+// ── Event-Driven Auto-Reconnect Handler ──
+#if defined(ESP32)
+void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+      Serial.printf("[Event ✓] Connected! IP: %s | RSSI: %d dBm\n",
+                    WiFi.localIP().toString().c_str(), WiFi.RSSI());
+      disconnectStartTime = 0;
+      isAPMode = false;
+      blinkStatusLED(3, 150);
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      break;
+
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      if (!isAPMode) {
+        if (disconnectStartTime == 0) {
+          disconnectStartTime = millis();
+        }
+        Serial.println("[Event ⚠️] Wi-Fi Disconnected! Auto-reconnecting in Background...");
+        WiFi.reconnect();
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+#endif
+
+void initWiFiEvents() {
+  #if defined(ESP32)
+  WiFi.onEvent(onWiFiEvent);
+  #elif defined(ESP8266)
+  gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event) {
+    Serial.printf("[Event ✓] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    disconnectStartTime = 0;
+    isAPMode = false;
+    blinkStatusLED(3, 150);
+    showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+  });
+
+  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
+    if (!isAPMode) {
+      if (disconnectStartTime == 0) {
+        disconnectStartTime = millis();
+      }
+      Serial.println("[Event ⚠️] Wi-Fi Disconnected! Auto-reconnecting in Background...");
+      WiFi.reconnect();
+    }
+  });
+  #endif
+
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
 }
 
 // ── Load Credentials from LittleFS ──
@@ -226,12 +309,10 @@ void factoryResetWifi() {
     LittleFS.remove("/config.json");
     Serial.println("[FACTORY RESET] /config.json deleted successfully.");
   }
-  blinkStatusLED(5, 80); // Rapid blink 5 times
+  blinkStatusLED(5, 80);
   delay(1000);
   Serial.println("[FACTORY RESET] Restarting system...");
-  #if defined(ESP8266) || defined(ESP32)
   ESP.restart();
-  #endif
 }
 
 // ── Fallback HTML if LittleFS data files are not uploaded ──
@@ -335,6 +416,8 @@ void handleSave() {
 // ── Start Access Point Config Portal ──
 void startConfigPortal() {
   isAPMode = true;
+  disconnectStartTime = 0;
+
   Serial.println("\n==========================================");
   Serial.println("   LAUNCHING WI-FI CONFIG AP PORTAL");
   Serial.println("==========================================");
@@ -348,20 +431,16 @@ void startConfigPortal() {
   Serial.print("[AP] IP Address: ");
   Serial.println(WiFi.softAPIP());
 
-  // Update OLED with AP Information
   showOledAPMode();
 
-  // Start DNS Server for Captive Portal (Redirect all domains to 192.168.4.1)
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  // Web Server Routes
   server.on("/", HTTP_GET, handleRoot);
   server.on("/styles.css", HTTP_GET, []() { handleStaticFile("/styles.css", "text/css"); });
   server.on("/app.js", HTTP_GET, []() { handleStaticFile("/app.js", "application/javascript"); });
   server.on("/api/scan", HTTP_GET, handleScan);
   server.on("/api/save", HTTP_POST, handleSave);
 
-  // Captive portal detection routes
   server.onNotFound([]() {
     server.sendHeader("Location", "http://192.168.4.1/", true);
     server.send(302, "text/plain", "");
@@ -377,23 +456,17 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LED_OFF);
 
-  Serial.println("\n\n--- IoT Lab 3.2: Web Wi-Fi Configurator with OLED ---");
+  Serial.println("\n\n--- IoT Lab 3.2: Web Wi-Fi Configurator with Event-Driven Auto-Reconnect ---");
 
-  // Initialize OLED Display
   initOLED();
+  initWiFiEvents();
 
-  // Mount LittleFS
   #if defined(ESP8266)
-  if (!LittleFS.begin()) {
-    Serial.println("[LittleFS] Mount Failed!");
-  }
+  if (!LittleFS.begin()) Serial.println("[LittleFS] Mount Failed!");
   #elif defined(ESP32)
-  if (!LittleFS.begin(true)) {
-    Serial.println("[LittleFS] Mount Failed!");
-  }
+  if (!LittleFS.begin(true)) Serial.println("[LittleFS] Mount Failed!");
   #endif
 
-  // Check saved Wi-Fi configuration
   if (loadWifiConfig()) {
     Serial.printf("[STA] Connecting to saved Wi-Fi: %s ...\n", wifiSSID.c_str());
     if (hasOLED) {
@@ -416,19 +489,12 @@ void setup() {
 
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println("\n[STA] Connected successfully!");
-      Serial.print("[STA] Local IP Address: ");
-      Serial.println(WiFi.localIP());
-      blinkStatusLED(3, 150); // Blink 3 times when connected
-      
-      // Update OLED with Connected Station information: SSID, IP, RSSI
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     } else {
-      Serial.println("\n[STA] Connection failed/timed out. Switching to Config Mode...");
+      Serial.println("\n[STA] Connection timed out. Switching to Config Mode...");
     }
   }
 
-  // If no config or connection failed -> Start AP Config Portal
   startConfigPortal();
 }
 
@@ -438,7 +504,7 @@ void loop() {
   static bool isPressed = false;
 
   int btnState = digitalRead(BUTTON_PIN);
-  if (btnState == LOW) { // Button active LOW
+  if (btnState == LOW) {
     if (!isPressed) {
       pressStartTime = millis();
       isPressed = true;
@@ -452,18 +518,38 @@ void loop() {
     isPressed = false;
   }
 
-  // ── 2. AP Mode Process Handling ──
+  // ── 2. AP Mode vs STA Mode Process Handling ──
   if (isAPMode) {
     dnsServer.processNextRequest();
     server.handleClient();
   } else {
-    // STA Mode Heartbeat Logger & OLED Refresh
-    static unsigned long lastHeartbeat = 0;
-    if (millis() - lastHeartbeat >= 5000) {
-      lastHeartbeat = millis();
-      Serial.printf("[STA Monitor] Connected to %s | IP: %s | RSSI: %d dBm\n",
-        wifiSSID.c_str(), WiFi.localIP().toString().c_str(), WiFi.RSSI());
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+    // Check if disconnected and calculate fallback timeout to AP Portal
+    if (WiFi.status() != WL_CONNECTED) {
+      if (disconnectStartTime == 0) {
+        disconnectStartTime = millis();
+      }
+
+      unsigned long elapsed = millis() - disconnectStartTime;
+      int remainingSec = (elapsed < AP_FALLBACK_TIMEOUT_MS) ? (AP_FALLBACK_TIMEOUT_MS - elapsed) / 1000 : 0;
+      
+      static unsigned long lastOledUpdate = 0;
+      if (millis() - lastOledUpdate >= 1000) {
+        lastOledUpdate = millis();
+        showOledReconnecting(wifiSSID, remainingSec);
+      }
+
+      // If disconnected for more than 30s -> Auto Fallback to AP Config Portal
+      if (elapsed >= AP_FALLBACK_TIMEOUT_MS) {
+        Serial.println("\n[FALLBACK ⚠️] Wi-Fi lost for >30s! Auto-launching Config AP Portal...");
+        startConfigPortal();
+      }
+    } else {
+      // Normal STA Mode Monitor
+      static unsigned long lastHeartbeat = 0;
+      if (millis() - lastHeartbeat >= 5000) {
+        lastHeartbeat = millis();
+        showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      }
     }
   }
 

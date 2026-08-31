@@ -1559,7 +1559,7 @@ void factoryResetWifi() {
           </div>
 
           <div class="form-group">
-            <label for="question3">3. ในแง่การเขียนโปรแกรมเชิงวิศวกรรม IoT เหตุใดการตรวจจับปุ่ม Reset ด้วย <code>millis()</code> จึงเหนือกว่าการใช้ <code>delay(3000)</code>?</label>
+            <label for="question3">3. ในแง่การเขียนโปรแกรมเชิงวิศวกรรม IoT เหตุใดการนำ <strong>Event-Driven Auto-Reconnect</strong> มาร่วมกับระบบ <strong>30-Second Auto-Fallback to AP</strong> จึงช่วยแก้ปัญหาสัญญาณหลุดได้อย่างสมบูรณ์แบบ?</label>
             <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
         </div>
@@ -1617,7 +1617,7 @@ void factoryResetWifi() {
 <div class="modal-overlay" id="theoryModal">
   <div class="theory-modal-content">
     <div class="theory-modal-header">
-      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Web Wi-Fi Provisioning & OLED Debug Mode</h2>
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Web Wi-Fi Provisioning, OLED Debug & Event-Driven Reconnect</h2>
       <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -1627,6 +1627,7 @@ void factoryResetWifi() {
         <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. Captive Portal & SoftAP</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS JSON Storage</button>
         <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. OLED Debug & Reset Logic</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)">4. Event-Driven Auto-Fallback</button>
       </div>
 
       <!-- Tab 1 -->
@@ -1673,11 +1674,17 @@ void factoryResetWifi() {
             <li><strong>เมื่อเชื่อมต่อสำเร็จ (โหมด STA):</strong> แสดงข้อความ <code>[STA Online]</code> พร้อมชื่อ SSID เครือข่าย, หมายเลข IP ที่ได้รับจาก Router และค่าความแรงสัญญาณ <code>RSSI (dBm)</code></li>
             <li><strong>เมื่อกดปุ่ม GPIO 0 ค้าง 3 วินาที:</strong> จอ OLED จะแสดงผล <code>>> FACTORY RESET <<</code> และสั่งลบ <code>/config.json</code> ก่อนรีสตาร์ต</li>
           </ul>
-          <div class="theory-formula">
-            // การดึงค่า RSSI และ IP มาแสดงผลบน OLED<br>
-            display.println("IP: " + WiFi.localIP().toString());<br>
-            display.println("RSSI: " + String(WiFi.RSSI()) + " dBm");
-          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4 -->
+      <div class="theory-tab-panel" id="theory-tab-tab4">
+        <div class="theory-card">
+          <h4><i class="fa-solid fa-bolt"></i> 4.1 สถาปัตยกรรม Event-Driven Auto-Reconnect & 30s Auto-Fallback</h4>
+          <p>
+            เมื่อสัญญาณ Wi-Fi หลุดขณะทำงาน ระบบจะใช้ <strong>Event Handler</strong> (เช่น <code>WiFi.onEvent</code> หรือ <code>WiFiEventHandler</code>) สั่ง <code>WiFi.reconnect()</code> ใน Background Task ทันทีโดยไม่บล็อก Main Loop<br><br>
+            <strong>ระบบ 30-Second Auto-Fallback:</strong> หากเราเตอร์ดับเป็นเวลานานเกิน 30 วินาที ระบบจะสลับเข้าสู่โหมด <code>startConfigPortal()</code> เปิด Hotspot ใหม่อัตโนมัติ เพื่อให้ผู้ใช้สามารถเชื่อมต่อเข้ามาเปลี่ยนรหัสผ่าน Wi-Fi ได้ทันทีโดยไม่ต้องกดปุ่ม Reset กายภาพ
+          </p>
         </div>
       </div>
     </div>
@@ -1878,7 +1885,7 @@ void factoryResetWifi() {
 
   function pasteChallengeTemplate() {
     const template = `/**
- * Lab 3.2 Challenge: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
+ * Lab 3.2: Web Wi-Fi Configurator with Event-Driven Reconnect, 30s AP Fallback & OLED Debug
  */
 #include <Arduino.h>
 #include <Wire.h>
@@ -1906,6 +1913,7 @@ bool hasOLED = false;
   #define LED_OFF    HIGH
   #define SDA_PIN    4
   #define SCL_PIN    5
+  WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -1926,6 +1934,10 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+unsigned long disconnectStartTime = 0;
+const unsigned long AP_FALLBACK_TIMEOUT_MS = 30000;
+
+void startConfigPortal();
 
 void initOLED() {
   Wire.begin(SDA_PIN, SCL_PIN);
@@ -1988,6 +2000,24 @@ void showOledSTAMode(String ssid, String ip, int rssi) {
   display.display();
 }
 
+void showOledReconnecting(String ssid, int remainingSec) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F(">> RECONNECTING <<"));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("Target: "));
+  display.println(ssid);
+  display.setCursor(0, 30);
+  display.println(F("Signal Lost..."));
+  display.setCursor(0, 45);
+  display.printf("AP Fallback: %ds\\n", remainingSec);
+  display.display();
+}
+
 void showOledReset() {
   if (!hasOLED) return;
   display.clearDisplay();
@@ -2010,6 +2040,47 @@ void blinkLED(int times, int ms = 120) {
     digitalWrite(LED_PIN, LED_OFF);
     if (i < times - 1) delay(ms);
   }
+}
+
+#if defined(ESP32)
+void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+      disconnectStartTime = 0;
+      isAPMode = false;
+      blinkLED(3, 150);
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      if (!isAPMode) {
+        if (disconnectStartTime == 0) disconnectStartTime = millis();
+        WiFi.reconnect();
+      }
+      break;
+    default: break;
+  }
+}
+#endif
+
+void initWiFiEvents() {
+  #if defined(ESP32)
+  WiFi.onEvent(onWiFiEvent);
+  #elif defined(ESP8266)
+  gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event) {
+    disconnectStartTime = 0;
+    isAPMode = false;
+    blinkLED(3, 150);
+    showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+  });
+  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
+    if (!isAPMode) {
+      if (disconnectStartTime == 0) disconnectStartTime = millis();
+      WiFi.reconnect();
+    }
+  });
+  #endif
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
 }
 
 bool loadWifiConfig() {
@@ -2070,6 +2141,7 @@ void handleSave() {
 
 void startConfigPortal() {
   isAPMode = true;
+  disconnectStartTime = 0;
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID);
@@ -2089,6 +2161,7 @@ void setup() {
   digitalWrite(LED_PIN, LED_OFF);
 
   initOLED();
+  initWiFiEvents();
 
   #if defined(ESP8266)
   LittleFS.begin();
@@ -2105,8 +2178,6 @@ void setup() {
       r++;
     }
     if (WiFi.status() == WL_CONNECTED) {
-      blinkLED(3, 150);
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     }
   }
@@ -2128,10 +2199,26 @@ void loop() {
     dnsServer.processNextRequest();
     server.handleClient();
   } else {
-    static unsigned long lastHeartbeat = 0;
-    if (millis() - lastHeartbeat >= 5000) {
-      lastHeartbeat = millis();
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+    if (WiFi.status() != WL_CONNECTED) {
+      if (disconnectStartTime == 0) disconnectStartTime = millis();
+      unsigned long elapsed = millis() - disconnectStartTime;
+      int remainingSec = (elapsed < AP_FALLBACK_TIMEOUT_MS) ? (AP_FALLBACK_TIMEOUT_MS - elapsed) / 1000 : 0;
+      
+      static unsigned long lastOled = 0;
+      if (millis() - lastOled >= 1000) {
+        lastOled = millis();
+        showOledReconnecting(wifiSSID, remainingSec);
+      }
+
+      if (elapsed >= AP_FALLBACK_TIMEOUT_MS) {
+        startConfigPortal();
+      }
+    } else {
+      static unsigned long lastHeartbeat = 0;
+      if (millis() - lastHeartbeat >= 5000) {
+        lastHeartbeat = millis();
+        showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      }
     }
   }
   delay(2);

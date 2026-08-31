@@ -1,11 +1,6 @@
 /**
  * Lab 3.2: Web Wi-Fi Configurator & GPIO 0 Reset Button with OLED Debug Mode
- * Standalone Arduino IDE Sketch (.ino)
- * 
- * Required Libraries:
- *  - ArduinoJson (v7.x)
- *  - Adafruit SSD1306
- *  - Adafruit GFX Library
+ * Standalone Arduino IDE Sketch (.ino) with Event-Driven Auto-Reconnect & 30s AP Fallback
  */
 
 #include <Arduino.h>
@@ -34,6 +29,7 @@ bool hasOLED = false;
   #define LED_OFF    HIGH
   #define SDA_PIN    4
   #define SCL_PIN    5
+  WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
   #include <WebServer.h>
@@ -54,6 +50,10 @@ DNSServer dnsServer;
 bool isAPMode = false;
 String wifiSSID = "";
 String wifiPass = "";
+unsigned long disconnectStartTime = 0;
+const unsigned long AP_FALLBACK_TIMEOUT_MS = 30000;
+
+void startConfigPortal();
 
 void initOLED() {
   Wire.begin(SDA_PIN, SCL_PIN);
@@ -117,6 +117,24 @@ void showOledSTAMode(String ssid, String ip, int rssi) {
   display.display();
 }
 
+void showOledReconnecting(String ssid, int remainingSec) {
+  if (!hasOLED) return;
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(F(">> RECONNECTING <<"));
+  display.drawLine(0, 10, 127, 10, SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.print(F("Target: "));
+  display.println(ssid);
+  display.setCursor(0, 30);
+  display.println(F("Signal Lost..."));
+  display.setCursor(0, 45);
+  display.printf("AP Fallback: %ds\n", remainingSec);
+  display.display();
+}
+
 void showOledReset() {
   if (!hasOLED) return;
   display.clearDisplay();
@@ -141,15 +159,54 @@ void blinkStatusLED(int times, int delayMs = 120) {
   }
 }
 
+#if defined(ESP32)
+void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+      disconnectStartTime = 0;
+      isAPMode = false;
+      blinkStatusLED(3, 150);
+      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      if (!isAPMode) {
+        if (disconnectStartTime == 0) disconnectStartTime = millis();
+        WiFi.reconnect();
+      }
+      break;
+    default: break;
+  }
+}
+#endif
+
+void initWiFiEvents() {
+  #if defined(ESP32)
+  WiFi.onEvent(onWiFiEvent);
+  #elif defined(ESP8266)
+  gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event) {
+    disconnectStartTime = 0;
+    isAPMode = false;
+    blinkStatusLED(3, 150);
+    showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+  });
+  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
+    if (!isAPMode) {
+      if (disconnectStartTime == 0) disconnectStartTime = millis();
+      WiFi.reconnect();
+    }
+  });
+  #endif
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+}
+
 bool loadWifiConfig() {
   if (!LittleFS.exists("/config.json")) return false;
   File file = LittleFS.open("/config.json", "r");
   if (!file) return false;
-
   JsonDocument doc;
   DeserializationError err = deserializeJson(doc, file);
   file.close();
-
   if (err) return false;
   wifiSSID = doc["ssid"].as<String>();
   wifiPass = doc["pass"].as<String>();
@@ -178,41 +235,8 @@ void factoryResetWifi() {
   ESP.restart();
 }
 
-const char FALLBACK_HTML[] PROGMEM = R"rawliteral(
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESP Wi-Fi Setup</title>
-  <style>
-    body{background:#0f172a;color:#f8fafc;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:1rem;}
-    .card{background:rgba(30,41,59,0.85);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:2rem;max-width:400px;width:100%;text-align:center;}
-    h2{margin-top:0;color:#818cf8;}input{width:100%;padding:0.75rem;margin:0.5rem 0 1rem;background:#1e293b;border:1px solid #475569;border-radius:8px;color:#fff;box-sizing:border-box;}
-    button{width:100%;padding:0.85rem;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>⚡ Wi-Fi Config Portal</h2>
-    <p style="font-size:0.85rem;color:#94a3b8;">กรุณากรอกชื่อและรหัสผ่าน Wi-Fi เพื่อเชื่อมต่อ</p>
-    <form action="/api/save" method="POST">
-      <input type="text" name="ssid" placeholder="ชื่อ Wi-Fi (SSID)" required>
-      <input type="password" name="pass" placeholder="รหัสผ่าน (Password)">
-      <button type="submit">บันทึกและเชื่อมต่อ</button>
-    </form>
-  </div>
-</body>
-</html>
-)rawliteral";
-
 void handleRoot() {
-  if (LittleFS.exists("/index.html")) {
-    File f = LittleFS.open("/index.html", "r");
-    server.streamFile(f, "text/html");
-    f.close();
-  } else {
-    server.send_P(200, "text/html", FALLBACK_HTML);
-  }
+  server.send(200, "text/html", "<h2>Wi-Fi Setup Portal</h2><p>Saved! Rebooting...</p>");
 }
 
 void handleScan() {
@@ -223,11 +247,6 @@ void handleScan() {
     JsonObject obj = arr.add<JsonObject>();
     obj["ssid"] = WiFi.SSID(i);
     obj["rssi"] = WiFi.RSSI(i);
-    #if defined(ESP8266)
-    obj["enc"] = (WiFi.encryptionType(i) != ENC_TYPE_NONE);
-    #elif defined(ESP32)
-    obj["enc"] = (WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
-    #endif
   }
   String res;
   serializeJson(doc, res);
@@ -261,6 +280,7 @@ void handleSave() {
 
 void startConfigPortal() {
   isAPMode = true;
+  disconnectStartTime = 0;
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID);
@@ -286,6 +306,7 @@ void setup() {
   digitalWrite(LED_PIN, LED_OFF);
 
   initOLED();
+  initWiFiEvents();
 
   #if defined(ESP8266)
   LittleFS.begin();
@@ -302,8 +323,6 @@ void setup() {
       retries++;
     }
     if (WiFi.status() == WL_CONNECTED) {
-      blinkStatusLED(3, 150);
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
       return;
     }
   }
@@ -333,10 +352,26 @@ void loop() {
     dnsServer.processNextRequest();
     server.handleClient();
   } else {
-    static unsigned long lastHeartbeat = 0;
-    if (millis() - lastHeartbeat >= 5000) {
-      lastHeartbeat = millis();
-      showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+    if (WiFi.status() != WL_CONNECTED) {
+      if (disconnectStartTime == 0) disconnectStartTime = millis();
+      unsigned long elapsed = millis() - disconnectStartTime;
+      int remainingSec = (elapsed < AP_FALLBACK_TIMEOUT_MS) ? (AP_FALLBACK_TIMEOUT_MS - elapsed) / 1000 : 0;
+      
+      static unsigned long lastOled = 0;
+      if (millis() - lastOled >= 1000) {
+        lastOled = millis();
+        showOledReconnecting(wifiSSID, remainingSec);
+      }
+
+      if (elapsed >= AP_FALLBACK_TIMEOUT_MS) {
+        startConfigPortal();
+      }
+    } else {
+      static unsigned long lastHeartbeat = 0;
+      if (millis() - lastHeartbeat >= 5000) {
+        lastHeartbeat = millis();
+        showOledSTAMode(wifiSSID, WiFi.localIP().toString(), WiFi.RSSI());
+      }
     }
   }
   delay(2);
