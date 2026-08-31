@@ -1,12 +1,12 @@
 /**
- * Web App for Lab 3.1: Basic WiFi Connectivity (WiFi Scan & Station Mode)
+ * Web App for Lab 3.1: LittleFS Web Server
  * Designed by Antigravity AI (Auto-Grading Version with Multiple Choice Quiz & Anti-Cheat)
  */
 
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('ใบงานที่ 3.1: การเชื่อมต่อ WiFi เบื้องต้น (WiFi Scan & Station Mode)')
+    .setTitle('ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -14,49 +14,46 @@ function doGet(e) {
 // Auto-grading logic for Lab 3.1
 function gradeSubmission(data) {
   var blankKeywords = [
-    "WIFI_STA|WIFI_MODE_STA",
-    "scanNetworks",
-    "WiFi.SSID|SSID",
-    "WiFi.RSSI|RSSI",
-    "WiFi.channel|channel",
-    "WiFi.begin|begin",
-    "WL_CONNECTED",
-    "WiFi.localIP|localIP",
-    "WiFi.macAddress|macAddress"
+    "LittleFS.begin|begin",
+    "server.onNotFound|onNotFound",
+    "LittleFS.exists|exists",
+    "server.streamFile|streamFile",
+    "server.handleClient|handleClient"
   ];
-
+  
   var challengeKeywords = [
-    "scanNetworks",
-    "WiFi.begin|begin",
-    "WL_CONNECTED",
-    "digitalWrite|blink|LED_PIN"
+    "LittleFS",
+    "getContentType|dataType|mime",
+    "exists",
+    "open|streamFile",
+    "send|404|onNotFound"
   ];
-
+  
   var q1Keywords = [
-    "dbm|เดซิเบล",
-    "ลบ|negative|ต่ำกว่า 1 มิลลิวัตต์|1 mw",
-    "แรง|strength|-50|-65|คุณภาพ"
+    "wear leveling|กระจายการเขียน|ยืดอายุ",
+    "power-loss|ไฟดับ|เสถียร|ทนทาน|ไม่พัง",
+    "directory|โครงสร้างแฟ้ม|ย่อย|แรม|ram"
   ];
-
+  
   var q2Keywords = [
-    "station|sta|ลูกข่าย|client|เกาะ router",
-    "access point|ap|ปล่อยสัญญาณ|โฮสต์|host",
-    "ap_sta|ap+sta|config|portal|ตั้งค่า"
+    "chunk|ก้อน|ทีละส่วน|สตรีม|stream",
+    "ram|heap|หน่วยความจำ|ล้น|overflow",
+    "flash|ตรงจากแฟลช|ไม่พักข้อมูล|ประหยัด"
   ];
-
+  
   var q3Keywords = [
-    "blocking|ค้าง|หยุดรอ|หน่วง",
-    "timeout|millis|non-blocking",
-    "เซ็นเซอร์|รีเลย์|ควบคุมไม่ได้|watchdog|wdt"
+    "mime|content-type|text/plain|text/css",
+    "ไม่แสดงผล|ไม่เรนเดอร์|plain text|ตัวหนังสือเปล่า",
+    "css ไม่ทำงาน|ไม่โหลดสไตล์|เพี้ยน"
   ];
-
+  
   // เฉลยแบบทดสอบแบบเลือกตอบ 5 ข้อ (Quiz Answer Keys)
   var quizKeys = {
-    quiz1: "1c", // ค่า RSSI มีหน่วยเป็น dBm และเป็นค่าติดลบเพราะสัญญาณที่รับได้ต่ำกว่า 1 มิลลิวัตต์ โดย -45 dBm ดีกว่า -85 dBm
-    quiz2: "2b", // Station (STA) ทำหน้าที่เป็น Client ไปเชื่อม Router ส่วน AP ทำหน้าที่เป็นศูนย์กลางปล่อย Wi-Fi
-    quiz3: "3a", // WiFi.scanNetworks() เป็นการสแกนแบบ Synchronous ค้นหา SSID, RSSI, Channel, Security
-    quiz4: "4c", // วนลูปรอให้กระบวนการ Handshake และขอ IP จาก DHCP Server เสร็จสมบูรณ์
-    quiz5: "5b"  // ใช้การตรวจสอบแบบ Non-blocking ด้วย millis() และกำหนด Timeout ป้องกันบอร์ดค้าง
+    quiz1: "1b", // พอร์ต 80 คือค่าเริ่มต้นของ HTTP ใช้สื่อสารแบบ Stateless Request-Response
+    quiz2: "2c", // LittleFS มี Wear Leveling และ Power-loss Resilience ดีกว่า SPIFFS
+    quiz3: "3a", // streamFile ส่งตรงทีละ Chunk จาก Flash ไม่ต้องโหลดทั้งไฟล์เข้า RAM ช่วยป้องกัน Heap Overflow
+    quiz4: "4d", // MIME Type แจ้งบราวเซอร์ให้ประมวลผลไฟล์ถูกต้อง เช่น text/css เพื่อแสดงผลสไตล์
+    quiz5: "5a"  // onNotFound ทำงานเมื่อ URI ที่ Client ร้องขอไม่ตรงกับเส้นทางใดๆ ที่ประกาศไว้ (Catch-all)
   };
 
   var skeletonScore = 0.0;
@@ -71,9 +68,11 @@ function gradeSubmission(data) {
 
   // 1. ตรวจช่องว่างโครงร่างโค้ด (1.5 คะแนน)
   var codeContent = [
-    data.codeBlank1 || '', data.codeBlank2 || '', data.codeBlank3 || '',
-    data.codeBlank4 || '', data.codeBlank5 || '', data.codeBlank6 || '',
-    data.codeBlank7 || '', data.codeBlank8 || '', data.codeBlank9 || ''
+    data.codeBlank1 || '',
+    data.codeBlank2 || '',
+    data.codeBlank3 || '',
+    data.codeBlank4 || '',
+    data.codeBlank5 || ''
   ].join(' ');
 
   if (codeContent.replace(/\s+/g, '').length > 0) {
@@ -123,7 +122,7 @@ function gradeSubmission(data) {
       if (isMatched) matchedChallenge++;
     }
     challengeScore = (matchedChallenge / challengeKeywords.length) * 2.5;
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ WiFi Scan & Connect Indicator " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ LittleFS File Server " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
   } else {
     feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/2.5 คะแนน)");
   }
@@ -144,7 +143,7 @@ function gradeSubmission(data) {
       if (isMatched) matchedQ1++;
     }
     q1Score = (matchedQ1 / q1Keywords.length) * 0.85;
-    feedbackDetails.push("- คำถามข้อ 1 (RSSI & dBm): ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(2) + "/0.85 คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 1 (LittleFS vs SPIFFS): ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(2) + "/0.85 คะแนน)");
   } else {
     feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
@@ -164,7 +163,7 @@ function gradeSubmission(data) {
       if (isMatched) matchedQ2++;
     }
     q2Score = (matchedQ2 / q2Keywords.length) * 0.85;
-    feedbackDetails.push("- คำถามข้อ 2 (WiFi Modes STA/AP/Dual): ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(2) + "/0.85 คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 2 (streamFile vs send): ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(2) + "/0.85 คะแนน)");
   } else {
     feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
@@ -184,7 +183,7 @@ function gradeSubmission(data) {
       if (isMatched) matchedQ3++;
     }
     q3Score = (matchedQ3 / q3Keywords.length) * 0.80;
-    feedbackDetails.push("- คำถามข้อ 3 (Non-blocking & Watchdog): ตรงจุดสำคัญ " + matchedQ3 + "/" + q3Keywords.length + " จุด (+" + q3Score.toFixed(2) + "/0.80 คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 3 (MIME Type Impact): ตรงจุดสำคัญ " + matchedQ3 + "/" + q3Keywords.length + " จุด (+" + q3Score.toFixed(2) + "/0.80 คะแนน)");
   } else {
     feedbackDetails.push("- คำถามข้อ 3: ไม่พบการตอบคำถาม (+0.0/0.80 คะแนน)");
   }
@@ -213,31 +212,33 @@ function submitLabData(data) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = "Lab 3.1 Submissions";
     var sheet = ss.getSheetByName(sheetName);
-
+    
     // Auto-grading calculation
     var grading = gradeSubmission(data);
-
+    
     // Auto-create sheet if it doesn't exist
     if (!sheet) {
       sheet = ss.insertSheet(sheetName);
       var headers = [
         "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
         "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำอธิบายตรรกะควบคุม",
-        "คำตอบ Code ช่องที่ 1-5 (WiFi Scan)", "คำตอบ Code ช่องที่ 6-9 (WiFi Connect)",
-        "Quiz 1 (RSSI & dBm)", "Quiz 2 (STA vs AP Mode)", "Quiz 3 (scanNetworks)", "Quiz 4 (Connection Loop)", "Quiz 5 (Auto-Reconnect)",
-        "คำถามข้อที่ 1 (RSSI & Negative dBm)", "คำถามข้อที่ 2 (WiFi Modes STA/AP/AP+STA)", "คำถามข้อที่ 3 (Blocking loop Pitfalls)",
-        "ลิงก์ไฟล์รูปภาพ Serial Monitor", "ลิงก์ไฟล์โค้ด (.ino/.zip)", "สรุปผลการทดลอง",
+        "คำตอบ Code ช่องที่ 1 (LittleFS.begin)", "คำตอบ Code ช่องที่ 2 (onNotFound)",
+        "คำตอบ Code ช่องที่ 3 (LittleFS.exists)", "คำตอบ Code ช่องที่ 4 (streamFile)", "คำตอบ Code ช่องที่ 5 (handleClient)",
+        "Quiz 1 (HTTP Port & Request)", "Quiz 2 (LittleFS Advantages)", "Quiz 3 (streamFile vs send)", "Quiz 4 (MIME Content-Type)", "Quiz 5 (onNotFound Handler)",
+        "คำถามข้อที่ 1 (LittleFS vs SPIFFS)", "คำถามข้อที่ 2 (streamFile RAM Efficiency)", "คำถามข้อที่ 3 (MIME Type Issues)",
+        "ลิงก์ไฟล์รูปภาพผลการทดลอง", "ลิงก์ไฟล์โค้ด (.ino/.zip)", "สรุปผลการทดลอง",
         "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ"
       ];
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e2e8f0");
       sheet.setFrozenRows(1);
     }
-
+    
     // 2. Handle File Uploads (Drive Storage)
     var screenshotUrl = "ไม่ได้แนบไฟล์";
     var codeFileUrl = "ไม่ได้แนบไฟล์";
-
+    
+    // Auto-create folders for uploads
     var folderName = "Lab 3.1 Attachments";
     var folders = DriveApp.getFoldersByName(folderName);
     var folder;
@@ -246,7 +247,7 @@ function submitLabData(data) {
     } else {
       folder = DriveApp.createFolder(folderName);
     }
-
+    
     // Process screenshot
     if (data.screenshotBase64 && data.screenshotName) {
       var screenshotBlob = Utilities.newBlob(
@@ -258,7 +259,7 @@ function submitLabData(data) {
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       screenshotUrl = file.getUrl();
     }
-
+    
     // Process code file
     if (data.codeBase64 && data.codeFileName) {
       var codeBlob = Utilities.newBlob(
@@ -270,11 +271,8 @@ function submitLabData(data) {
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       codeFileUrl = file.getUrl();
     }
-
+    
     // 3. Log data to Spreadsheet
-    var scanBlanks = [data.codeBlank1, data.codeBlank2, data.codeBlank3, data.codeBlank4, data.codeBlank5].join(', ');
-    var connBlanks = [data.codeBlank6, data.codeBlank7, data.codeBlank8, data.codeBlank9].join(', ');
-
     var rowData = [
       new Date(),
       data.studentName,
@@ -283,8 +281,11 @@ function submitLabData(data) {
       data.labDate,
       data.challengeCode || '',
       data.controlLogic || '',
-      scanBlanks,
-      connBlanks,
+      data.codeBlank1 || '',
+      data.codeBlank2 || '',
+      data.codeBlank3 || '',
+      data.codeBlank4 || '',
+      data.codeBlank5 || '',
       data.quiz1 || '',
       data.quiz2 || '',
       data.quiz3 || '',
@@ -299,14 +300,14 @@ function submitLabData(data) {
       grading.score,
       grading.feedback
     ];
-
+    
     sheet.appendRow(rowData);
-
+    
     return {
       status: "success",
       message: "บันทึกข้อมูลใบงานที่ 3.1 สำเร็จแล้ว! คะแนนประเมินอัตโนมัติ: " + grading.score + "/10.0 คะแนน\n\nรายละเอียดคะแนน:\n" + grading.feedback
     };
-
+    
   } catch (error) {
     return {
       status: "error",

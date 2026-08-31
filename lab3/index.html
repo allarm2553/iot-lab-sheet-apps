@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบงานที่ 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)</title>
+  <title>ใบงานที่ 3: การเชื่อมต่อ WiFi เบื้องต้น (WiFi Scan & Station Mode)</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1121,10 +1121,10 @@
   <!-- Header -->
   <header>
     <div class="logo-container">
-      <i class="fa-solid fa-server logo-icon"></i>
-      <h1>ใบงานที่ 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266</h1>
+      <i class="fa-solid fa-wifi logo-icon"></i>
+      <h1>ใบงานที่ 3: การเชื่อมต่อ WiFi เบื้องต้น</h1>
     </div>
-    <p class="subtitle">การพัฒนา Embedded HTTP Web Server และให้บริการหน้าเว็บด้วยระบบไฟล์ Flash Memory (LittleFS)</p>
+    <p class="subtitle">การค้นหาเครือข่ายไร้สาย (WiFi Scanner) และการเชื่อมต่อเข้าสู่ระบบเครือข่ายในโหมด Station (STA)</p>
     
     <div class="header-badges">
       <div class="course-badge">
@@ -1155,10 +1155,10 @@
         <div class="info-frame">
           <h4><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์การเรียนรู้</h4>
           <ul>
-            <li>เข้าใจสถาปัตยกรรม Client-Server และหลักการทำงานของ HTTP Web Server บนพอร์ต 80</li>
-            <li>สามารถจัดเก็บไฟล์ HTML, CSS, JavaScript ลงใน Flash Memory ด้วยระบบไฟล์ <strong>LittleFS</strong></li>
-            <li>เข้าใจการสตรีมไฟล์ขนาดใหญ่ด้วย <code>server.streamFile()</code> เพื่อป้องกันปัญหา RAM หมด (Heap Overflow)</li>
-            <li>สามารถดักจับและส่งการตอบกลับกรณีไม่พบไฟล์ (404 File Not Found) ได้อย่างถูกต้อง</li>
+            <li>เข้าใจโหมดการทำงานของโมดูล Wi-Fi: <strong>Station (STA)</strong>, <strong>Access Point (AP)</strong> และ <strong>AP+STA</strong></li>
+            <li>สามารถใช้คำสั่ง <code>WiFi.scanNetworks()</code> เพื่อค้นหา SSID, ค่า RSSI (dBm), Channel และประเภทความปลอดภัย</li>
+            <li>สามารถเชื่อมต่อ Access Point ด้วยคำสั่ง <code>WiFi.begin(ssid, pass)</code> และดึง IP Address, Subnet, Gateway, MAC Address</li>
+            <li>สามารถเขียนระบบตรวจสอบการเชื่อมต่อและ Auto-reconnect แบบ Non-blocking พร้อม LED Indicator</li>
           </ul>
         </div>
 
@@ -1183,13 +1183,18 @@
                   <td style="text-align: center;">1 บอร์ด</td>
                 </tr>
                 <tr>
+                  <td>ไฟแสดงสถานะ (Status LED)</td>
+                  <td>LED Onboard (GPIO 2) หรือ LED ภายนอกพร้อมตัวต้านทาน 330Ω</td>
+                  <td style="text-align: center;">1 ชุด</td>
+                </tr>
+                <tr>
                   <td>สายเชื่อมต่อ USB</td>
-                  <td>สาย Micro-USB หรือ USB-C สำหรับ Flash & Data Upload</td>
+                  <td>USB-to-Serial สำหรับ Flash & Serial Monitor</td>
                   <td style="text-align: center;">1 เส้น</td>
                 </tr>
                 <tr>
-                  <td>คอมพิวเตอร์ / เบราว์เซอร์</td>
-                  <td>ติดตั้ง VS Code (PlatformIO) พร้อมปลั๊กอิน LittleFS Upload</td>
+                  <td>ซอฟต์แวร์จำลอง / พัฒนา</td>
+                  <td>VS Code (PlatformIO) / Wokwi Simulator / Arduino IDE</td>
                   <td style="text-align: center;">1 ชุด</td>
                 </tr>
               </tbody>
@@ -1197,45 +1202,36 @@
           </div>
         </div>
 
-        <!-- การเชื่อมต่อวงจรและสถาปัตยกรรมระบบไฟล์ -->
+        <!-- การเชื่อมต่อฮาร์ดแวร์และพิน -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-network-wired" style="color: var(--accent);"></i> โครงสร้างไฟล์และสถาปัตยกรรม LittleFS
+            <i class="fa-solid fa-plug" style="color: var(--accent);"></i> ตำแหน่งขาและการตั้งค่าฮาร์ดแวร์
           </h3>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>พาธของไฟล์ (URI)</th>
-                  <th>ตำแหน่งใน Flash (data/)</th>
-                  <th>Content-Type (MIME)</th>
-                  <th>คำอธิบาย</th>
+                  <th>อุปกรณ์</th>
+                  <th>สัญญาณ</th>
+                  <th>ESP32 (IPST-WiFi)</th>
+                  <th>ESP8266 (AX-WiFi)</th>
+                  <th>หมายเหตุ</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><span class="badge-pin">/</span> หรือ <span class="badge-pin">/index.html</span></td>
-                  <td><code>data/index.html</code></td>
-                  <td><code>text/html</code></td>
-                  <td>หน้าหลัก User Interface สำหรับควบคุมบอร์ด</td>
+                  <td>Status LED</td>
+                  <td>Anode (+)</td>
+                  <td><span class="badge-pin">GPIO 2</span> (Built-in)</td>
+                  <td><span class="badge-pin">GPIO 2 (D4)</span> (SLED)</td>
+                  <td>Active HIGH (ESP32) / Active LOW (ESP8266)</td>
                 </tr>
                 <tr>
-                  <td><span class="badge-pin">/styles.css</span></td>
-                  <td><code>data/styles.css</code></td>
-                  <td><code>text/css</code></td>
-                  <td>ไฟล์ตกแต่งหน้าตาและ Glassmorphism Theme</td>
-                </tr>
-                <tr>
-                  <td><span class="badge-pin">/app.js</span></td>
-                  <td><code>data/app.js</code></td>
-                  <td><code>application/javascript</code></td>
-                  <td>สคริปต์ประมวลผลฝั่ง Client และเชื่อมต่อ API</td>
-                </tr>
-                <tr>
-                  <td><span class="badge-pin">อื่นๆ (URI ที่ไม่มีไฟล์)</span></td>
-                  <td>-</td>
-                  <td><code>text/plain</code></td>
-                  <td>ดักจับด้วย <code>onNotFound</code> ส่ง 404</td>
+                  <td>Serial Monitor</td>
+                  <td>TX / RX</td>
+                  <td><span class="badge-pin">UART0 (115200)</span></td>
+                  <td><span class="badge-pin">UART0 (115200)</span></td>
+                  <td>Baud rate: 115200 bps</td>
                 </tr>
               </tbody>
             </table>
@@ -1245,68 +1241,68 @@
         <!-- โครงร่างโค้ดโปรแกรมพร้อมช่องเติมคำตอบ -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (LittleFS Web Server Skeleton)
+            <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (WiFi Scanner & Station Connect)
           </h3>
           <div class="code-container">
             <div class="code-header">
-              <span>lab3_webserver.ino</span>
+              <span>lab3_1_wifi.ino</span>
               <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
             </div>
             <pre><code>#include &lt;Arduino.h&gt;
 #if defined(ESP8266)
   #include &lt;ESP8266WiFi.h&gt;
-  #include &lt;ESP8266WebServer.h&gt;
-  ESP8266WebServer server(80);
 #elif defined(ESP32)
   #include &lt;WiFi.h&gt;
-  #include &lt;WebServer.h&gt;
-  WebServer server(80);
 #endif
-#include &lt;LittleFS.h&gt;
 
-const char* ssid = "iot_512";
-const char* password = "iot123456";
+const char* TARGET_SSID = "iot_512";  // หรือ "Wokwi-GUEST" สำหรับ Wokwi
+const char* PASSWORD    = "iot123456";
 
-void handleFileRequest() {
-  String path = server.uri();
-  if (path.endsWith("/")) path += "index.html";
-  String dataType = "text/plain";
-  if (path.endsWith(".html")) dataType = "text/html";
-  else if (path.endsWith(".css")) dataType = "text/css";
-  else if (path.endsWith(".js")) dataType = "application/javascript";
+void stepScan() {
+  // 1. ตั้งค่าโหมดเป็น Station ก่อนสแกน
+  WiFi.mode(<input type="text" id="codeBlank1" name="codeBlank1" class="code-blank" placeholder="ช่องที่ 1 (เช่น WIFI_STA)" style="width: 150px;" required>);
+  WiFi.disconnect();
+  delay(100);
 
-  // ตรวจสอบว่ามีไฟล์ในระบบแฟ้มข้อมูลหรือไม่
-  if (<input type="text" id="codeBlank3" name="codeBlank3" class="code-blank" placeholder="ช่องที่ 3 (เช่น LittleFS.exists(path))" style="width: 220px;" required>) {
-    File file = LittleFS.open(path, "r");
-    // สตรีมไฟล์ไปยัง Client โดยตรง
-    <input type="text" id="codeBlank4" name="codeBlank4" class="code-blank" placeholder="ช่องที่ 4 (เช่น server.streamFile(file, dataType))" style="width: 270px;" required>;
-    file.close();
-  } else {
-    server.send(404, "text/plain", "File Not Found");
+  // 2. สั่งสแกนหาเครือข่ายไร้สาย
+  int n = <input type="text" id="codeBlank2" name="codeBlank2" class="code-blank" placeholder="ช่องที่ 2 (เช่น WiFi.scanNetworks())" style="width: 220px;" required>;
+  Serial.printf("พบเครือข่าย: %d\\n", n);
+
+  for (int i = 0; i &lt; n; i++) {
+    // 3. อ่านชื่อ SSID, RSSI, Channel
+    Serial.printf("%s | RSSI: %d dBm | CH: %d\\n",
+      <input type="text" id="codeBlank3" name="codeBlank3" class="code-blank" placeholder="ช่องที่ 3 (WiFi.SSID(i))" style="width: 170px;" required>.c_str(),
+      <input type="text" id="codeBlank4" name="codeBlank4" class="code-blank" placeholder="ช่องที่ 4 (WiFi.RSSI(i))" style="width: 170px;" required>,
+      <input type="text" id="codeBlank5" name="codeBlank5" class="code-blank" placeholder="ช่องที่ 5 (WiFi.channel(i))" style="width: 180px;" required>);
   }
+}
+
+void stepConnect() {
+  // 4. เชื่อมต่อ Access Point
+  <input type="text" id="codeBlank6" name="codeBlank6" class="code-blank" placeholder="ช่องที่ 6 (เช่น WiFi.begin(TARGET_SSID, PASSWORD))" style="width: 320px;" required>;
+
+  // 5. รอตราบใดที่ยังไม่เชื่อมต่อสำเร็จ
+  while (WiFi.status() != <input type="text" id="codeBlank7" name="codeBlank7" class="code-blank" placeholder="ช่องที่ 7 (เช่น WL_CONNECTED)" style="width: 190px;" required>) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  // 6. แสดง IP Address และ MAC Address
+  Serial.println("\\nWiFi Connected!");
+  Serial.print("IP Address: ");
+  Serial.println(<input type="text" id="codeBlank8" name="codeBlank8" class="code-blank" placeholder="ช่องที่ 8 (WiFi.localIP())" style="width: 175px;" required>);
+  Serial.print("MAC Address: ");
+  Serial.println(<input type="text" id="codeBlank9" name="codeBlank9" class="code-blank" placeholder="ช่องที่ 9 (WiFi.macAddress())" style="width: 195px;" required>);
 }
 
 void setup() {
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
-
-  // 1. เมานต์ระบบไฟล์ LittleFS
-  if (!<input type="text" id="codeBlank1" name="codeBlank1" class="code-blank" placeholder="ช่องที่ 1 (เช่น LittleFS.begin(true))" style="width: 210px;" required>) {
-    Serial.println("Mount Failed");
-    return;
-  }
-
-  // 2. กำหนดฟังก์ชันดักรับคำขอไฟล์ที่ไม่ตรงกับ Route อื่น
-  <input type="text" id="codeBlank2" name="codeBlank2" class="code-blank" placeholder="ช่องที่ 2 (เช่น server.onNotFound(handleFileRequest))" style="width: 320px;" required>;
-
-  server.begin();
+  stepScan();
+  stepConnect();
 }
 
 void loop() {
-  // 3. ประมวลผลคำขอจาก Client
-  <input type="text" id="codeBlank5" name="codeBlank5" class="code-blank" placeholder="ช่องที่ 5 (เช่น server.handleClient())" style="width: 210px;" required>;
-  delay(2);
+  delay(1000);
 }</code></pre>
           </div>
         </div>
@@ -1315,7 +1311,7 @@ void loop() {
         <div class="challenge-frame">
           <h4><i class="fa-solid fa-trophy"></i> โจทย์ท้าทาย (Challenge Mission)</h4>
           <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.4rem;">
-            ให้นักศึกษาเขียนหน้าเว็บ <code>index.html</code> ลงในโฟลเดอร์ <code>data/</code> พร้อมเขียนโค้ดเพิ่มฟังก์ชันตอบสนอง Content-Type ครบถ้วน (.html, .css, .js, .png, .ico) และอัปโหลดไฟล์สู่ LittleFS Flash Memory ผ่านคำสั่ง <code>Upload Filesystem Image</code> ให้เว็บเซิร์ฟเวอร์เปิดหน้าเว็บได้จริง
+            ให้นักศึกษาเขียนโค้ดเพิ่มระบบ <strong>LED Blink Indicator</strong> (กะพริบ 3 ครั้งเมื่อเชื่อมต่อสำเร็จ) และสร้างระบบ <strong>Auto-Reconnect</strong> ใน <code>loop()</code> ตรวจสอบสถานะทุก 5 วินาที หากสัญญาณหลุดให้เชื่อมต่อใหม่และกะพริบ LED 2 ครั้งโดยไม่ทำให้ระบบหลักค้าง
           </p>
         </div>
       </div>
@@ -1365,24 +1361,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 1</span>
-              <span>หน้าที่ของหมายเลขพอร์ต 80 และกระบวนการสื่อสารของ HTTP Web Server คือข้อใด?</span>
+              <span>ค่าความแรงสัญญาณ RSSI มีหน่วยเป็น dBm และแสดงผลเป็นค่าติดลบ หมายความว่าอย่างไร?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz1" value="1a" required>
-                <span>ก. พอร์ตสำหรับรับส่งสัญญาณวิทยุ Bluetooth แบบ Point-to-Point</span>
+                <span>ก. สัญญาณ -90 dBm มีความแรงมากกว่า -45 dBm</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz1" value="1b" required>
-                <span>ข. พอร์ตมาตรฐานสำหรับโปรโตคอล HTTP ในการรับส่งคำขอแบบ Stateless Request-Response</span>
+                <span>ข. ค่าติดลบหมายถึงสัญญาณรบกวนภายนอกเท่านั้น</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz1" value="1c" required>
-                <span>ค. พอร์ตสำหรับต่อสาย I2C เชื่อมจอแสดงผล</span>
+                <span>ค. เทียบกำลังงานลอการิทึมกับ 1 มิลลิวัตต์ (0 dBm) โดยสัญญาณที่เข้าใกล้ 0 มากกว่า (เช่น -45 dBm) จะแรงกว่าค่าที่ลบมาก (เช่น -85 dBm)</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz1" value="1d" required>
-                <span>ง. พอร์ตจำเพาะสำหรับดาวน์โหลดเฟิร์มแวร์ผ่าน OTA</span>
+                <span>ง. เป็นค่าแรงดันไฟเลี้ยงตกคร่อมขาแอนเทนนา</span>
               </label>
             </div>
           </div>
@@ -1391,24 +1387,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 2</span>
-              <span>จุดเด่นสำคัญของระบบไฟล์ LittleFS เมื่อเทียบกับ SPIFFS ดั้งเดิมคือข้อใด?</span>
+              <span>ความแตกต่างหลักระหว่างโหมด Station (STA) และ Access Point (AP) คือข้อใด?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz2" value="2a" required>
-                <span>ก. LittleFS ใช้งาน RAM มากกว่า SPIFFS ถึง 10 เท่า</span>
+                <span>ก. โหมด AP รับส่งข้อมูลได้เร็วกว่า STA เสมอ</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz2" value="2b" required>
-                <span>ข. LittleFS ไม่สามารถเก็บไฟล์ประเภท HTML ได้</span>
+                <span>ข. โหมด STA ทำให้อุปกรณ์ทำหน้าที่เป็นลูกข่าย (Client) เกาะ Wi-Fi Router ส่วนโหมด AP ทำให้อุปกรณ์ปล่อยสัญญาณ Wi-Fi ให้เครื่องอื่นเข้ามาเชื่อมต่อ</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz2" value="2c" required>
-                <span>ค. LittleFS มีระบบ Wear Leveling กระจายการเขียน ยืดอายุ Flash และทนทานต่อไฟดับกะทันหัน (Power-loss Resilient)</span>
+                <span>ค. โหมด STA ใช้พลังงานแบตเตอรี่น้อยกว่า 100 เท่า</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz2" value="2d" required>
-                <span>ง. LittleFS ทำงานได้เฉพาะบนไมโครคอมพิวเตอร์ Linux เท่านั้น</span>
+                <span>ง. โหมด AP ทำงานได้เฉพาะเมื่อมีสาย LAN เสียบอยู่เท่านั้น</span>
               </label>
             </div>
           </div>
@@ -1417,24 +1413,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 3</span>
-              <span>เหตุใดการส่งไฟล์หน้าเว็บด้วยคำสั่ง <code>server.streamFile()</code> จึงปลอดภัยต่อหน่วยความจำ RAM ของไมโครคอนโทรลเลอร์มากกว่าการใช้ <code>server.send()</code>?</span>
+              <span>ฟังก์ชัน <code>WiFi.scanNetworks()</code> ทำหน้าที่ใดและส่งค่าผลลัพธ์กลับมาเป็นอะไร?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz3" value="3a" required>
-                <span>ก. เพราะ streamFile อ่านข้อมูลจาก Flash ส่งตรงทีละบล็อก (Chunk) ออกทางเครือข่าย โดยไม่ต้องโหลดไฟล์ทั้งก้อนเข้า RAM</span>
+                <span>ก. สแกนหาคลื่น Wi-Fi ในบริเวณใกล้เคียงและส่งค่ากลับเป็นจำนวนเครือข่ายที่ค้นพบ (จำนวนเต็ม int)</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz3" value="3b" required>
-                <span>ข. เพราะ streamFile จะทำการบีบอัดไฟล์เป็น .zip เสมอก่อนส่ง</span>
+                <span>ข. ส่งชื่อ SSID ที่แรงที่สุดกลับมาเป็น String ตัวเดียว</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz3" value="3c" required>
-                <span>ค. เพราะ streamFile ทำให้เซิร์ฟเวอร์ตัดการเชื่อมต่อ Wi-Fi ทันทีหลังจากส่งเสร็จ</span>
+                <span>ค. ลบประวัติรหัสผ่าน Wi-Fi ทั้งหมดออกจาก Flash Memory</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz3" value="3d" required>
-                <span>ง. เพราะ streamFile ส่งไฟล์เฉพาะบรรทัดแรกของไฟล์ HTML เท่านั้น</span>
+                <span>ง. บังคับเชื่อมต่อกับ Router ที่ไม่มีรหัสผ่านโดยอัตโนมัติ</span>
               </label>
             </div>
           </div>
@@ -1443,24 +1439,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 4</span>
-              <span>การกำหนด Content-Type (MIME Type) เช่น <code>text/html</code> หรือ <code>text/css</code> มีผลสำคัญอย่างไรต่อเบราว์เซอร์ของผู้ใช้งาน?</span>
+              <span>ในกระบวนการเชื่อมต่อ Wi-Fi ลูป <code>while (WiFi.status() != WL_CONNECTED)</code> มีหน้าที่สำคัญอย่างไร?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4a" required>
-                <span>ก. บังคับให้บราวเซอร์รีสตาร์ตเครื่องใหม่ทันที</span>
+                <span>ก. รีเซ็ตความถี่ CPU ของ ESP32 ให้ทำงานช้าลง</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4b" required>
-                <span>ข. ช่วยเพิ่มความเร็วของสัญญาณ Wi-Fi Router ให้เป็น 5 GHz</span>
+                <span>ข. สแกนหาไวรัสในเครือข่ายก่อนใช้งาน</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4c" required>
-                <span>ค. ป้องกันไม่ให้บอร์ด ESP32 เกิดความร้อนสูง</span>
+                <span>ค. หน่วงเวลารอให้การทำ Handshake และขอรับหมายเลข IP Address จาก DHCP Server สำเร็จเรียบร้อย</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4d" required>
-                <span>ง. แจ้งให้เบราว์เซอร์ทราบชนิดของไฟล์ เพื่อเรนเดอร์และประมวลผลไฟล์ได้อย่างถูกต้องตามมาตรฐานเว็บ</span>
+                <span>ง. ลบเฟิร์มแวร์เก่าเพื่อเตรียมรับการอัปเดต</span>
               </label>
             </div>
           </div>
@@ -1469,24 +1465,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 5</span>
-              <span>ฟังก์ชัน <code>server.onNotFound(...)</code> ทำหน้าที่ใดในระบบ Web Server?</span>
+              <span>แนวทางปฏิบัติที่ดีที่สุด (Best Practice) ในการเขียนระบบ Auto-Reconnect ตรวจจับ Wi-Fi หลุดใน <code>loop()</code> คือข้อใด?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5a" required>
-                <span>ก. ทำหน้าที่เป็น Catch-all Handler จัดการคำขอ URI ที่ไม่มี Route เฉพาะเจาะจง หรือตอบกลับ HTTP Status 404</span>
+                <span>ก. ใช้คำสั่ง <code>delay(60000)</code> ทุกรอบเพื่อรอสัญญาณ</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5b" required>
-                <span>ข. ทำหน้าที่ค้นหาสัญญาณ Wi-Fi ที่ซ่อน SSID ไว้</span>
+                <span>ข. ใช้การจับเวลาแบบ Non-blocking ด้วย <code>millis()</code> ตรวจสอบสถานะเป็นระยะ และกำหนด Timeout ป้องกันไม่ให้โปรแกรมหยุดทำงานค้าง</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5c" required>
-                <span>ค. ทำหน้าที่ตัดไฟเลี้ยงเซ็นเซอร์เพื่อประหยัดพลังงาน</span>
+                <span>ค. สั่ง <code>ESP.restart()</code> ทันทีที่สัญญาณ RSSI ลดลงต่ำกว่า -60 dBm</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5d" required>
-                <span>ง. ทำหน้าที่จัดเรียงพาร์ติชัน Flash Memory ใหม่ทุกรอบ loop()</span>
+                <span>ง. สั่งปิดฟังก์ชัน Serial Monitor ทิ้งทั้งหมด</span>
               </label>
             </div>
           </div>
@@ -1498,13 +1494,13 @@ void loop() {
             <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution)</label>
             <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
           </div>
-          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดจริง..." required></textarea>
+          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดหรือ Wokwi..." required></textarea>
         </div>
 
         <!-- คำอธิบายตรรกะควบคุม -->
         <div class="form-group">
-          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของ Web Server และการสตรีมไฟล์</label>
-          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่ผู้ใช้เปิด URL บนเบราว์เซอร์ จนถึงการอ่านไฟล์จาก LittleFS และสตรีมข้อมูลกลับ..." required></textarea>
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของระบบ Scan, Connect และ Auto-reconnect</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนการค้นหา SSID เป้าหมาย การตรวจสอบสถานะใน loop() และการกระพริบ LED แจ้งเตือน..." required></textarea>
         </div>
 
         <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
@@ -1514,17 +1510,17 @@ void loop() {
           </h3>
 
           <div class="form-group">
-            <label for="question1">1. ระบบแฟ้มข้อมูล LittleFS มีข้อดีอย่างไรเมื่อเทียบกับระบบ SPIFFS รุ่นเก่า และช่วยยืดอายุ Flash Memory ได้อย่างไร?</label>
+            <label for="question1">1. ค่าความแรงสัญญาณ RSSI มีหน่วยเป็นอะไร เหตุใดจึงแสดงผลเป็นค่าติดลบ และค่าใดถือเป็นระดับสัญญาณที่ดีสำหรับการใช้งาน IoT?</label>
             <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label for="question2">2. เหตุใดการใช้คำสั่ง <code>server.streamFile()</code> จึงป้องกันปัญหา Heap Overflow (RAM ไม่พอ) เมื่อให้บริการไฟล์ขนาดใหญ่ได้?</label>
+            <label for="question2">2. โหมด Station (STA), Access Point (AP) และ AP+STA แตกต่างกันอย่างไรในทางสถาปัตยกรรม และยกตัวอย่างการใช้งานจริง?</label>
             <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label for="question3">3. หากเบราว์เซอร์ร้องขอไฟล์ <code>styles.css</code> แต่เซิร์ฟเวอร์ส่ง Content-Type เป็น <code>text/plain</code> จะเกิดผลกระทบอย่างไรต่อหน้าเว็บ?</label>
+            <label for="question3">3. ในระบบ IoT จริง หากเราใช้ <code>while(WiFi.status() != WL_CONNECTED)</code> ใน <code>loop()</code> โดยไม่มี Timeout จะส่งผลเสียต่อการทำงานของเซ็นเซอร์และระบบควบคุมอย่างไร?</label>
             <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
         </div>
@@ -1532,7 +1528,7 @@ void loop() {
         <!-- แนบไฟล์ผลการทดลอง -->
         <div class="form-group-row">
           <div class="form-group">
-            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอการเปิดหน้าเว็บจาก ESP32</label>
+            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ Serial Monitor ผลการ Scan & Connect</label>
             <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
               <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
               <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
@@ -1546,7 +1542,7 @@ void loop() {
             <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
             <div class="upload-area" onclick="document.getElementById('codeFile').click()">
               <i class="fa-solid fa-file-zipper upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์โค้ดหรือ data folder มาวางที่นี่</div>
+              <div class="upload-text">คลิกหรือลากไฟล์โค้ดมาวางที่นี่</div>
               <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
               <div id="codeFileBadge" class="file-badge"></div>
             </div>
@@ -1556,7 +1552,7 @@ void loop() {
         <!-- สรุปผลการทดลอง -->
         <div class="form-group">
           <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
-          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Web Server ไปต่อยอดในงาน IoT..." required></textarea>
+          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Wi-Fi ไปประยุกต์ใช้ในระบบ IoT..." required></textarea>
         </div>
 
         <!-- Submit & Print Button Group with Pre-check Score Button -->
@@ -1582,60 +1578,61 @@ void loop() {
 <div class="modal-overlay" id="theoryModal">
   <div class="theory-modal-content">
     <div class="theory-modal-header">
-      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Embedded Web Server & LittleFS</h2>
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: การเชื่อมต่อ WiFi บน ESP32 / ESP8266</h2>
       <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="theory-modal-body">
       <!-- Tabs -->
       <div class="theory-tab-bar">
-        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. สถาปัตยกรรม HTTP Server</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS vs SPIFFS</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. File Streaming & MIME Types</button>
+        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. โหมดการทำงานของ Wi-Fi</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. การสแกนเครือข่าย & RSSI</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. DHCP, MAC & Auto-Reconnect</button>
       </div>
 
       <!-- Tab 1 -->
       <div class="theory-tab-panel active" id="theory-tab-tab1">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-network-wired"></i> 1.1 วงจรคำขอ-ตอบกลับ (HTTP Request-Response Cycle)</h4>
+          <h4><i class="fa-solid fa-tower-broadcast"></i> 1.1 โหมด Station (STA) และ Access Point (AP)</h4>
           <p>
-            HTTP (HyperText Transfer Protocol) ทำงานบนพอร์ตมาตรฐาน <strong>Port 80</strong> ด้วยสถาปัตยกรรมแบบ Stateless Client-Server เมื่อผู้ใช้พิมพ์ IP Address ของบอร์ด ESP32 ลงในเบราว์เซอร์ เบราว์เซอร์จะส่งคำขอ <code>GET / HTTP/1.1</code> เข้ามายังไมโครคอนโทรลเลอร์ เซิร์ฟเวอร์จะประมวลผลและส่ง HTTP Status Code (เช่น <code>200 OK</code> หรือ <code>404 Not Found</code>) พร้อมทั้งข้อมูลไฟล์กลับไป
+            ชิป ESP32 และ ESP8266 มีตัวรับส่งสัญญาณ Wi-Fi มาตรฐาน IEEE 802.11 b/g/n ความถี่ 2.4 GHz สามารถทำงานได้ 3 โหมดหลัก:
           </p>
-          <div class="theory-formula">
-            Client Browser  --- [ GET /index.html HTTP/1.1 ] --->  ESP32 Web Server<br>
-            Client Browser  &lt;-- [ HTTP/1.1 200 OK + HTML ] ---  ESP32 Web Server
-          </div>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem;">
+            <li><strong>Station Mode (WIFI_STA):</strong> บอร์ดทำหน้าที่เป็นลูกข่าย (Client) ไปเชื่อมต่อ Wi-Fi Router หลัก เพื่อส่งข้อมูลเซ็นเซอร์ขึ้น Cloud หรือ Local Server</li>
+            <li><strong>Access Point Mode (WIFI_AP):</strong> บอร์ดทำหน้าที่เป็นศูนย์กลางปล่อยสัญญาณ Wi-Fi ของตัวเองออกมา (เช่น SSID: ESP32_Setup) ให้สมาร์ตโฟนหรือคอมพิวเตอร์เข้ามาเชื่อมต่อโดยตรง</li>
+            <li><strong>Dual Mode (WIFI_AP_STA):</strong> บอร์ดทำงานทั้งสองโหมดพร้อมกัน นิยมใช้ในระบบ **Captive Portal** หรือ **WiFi Provisioning** เพื่อตั้งค่ารหัสผ่าน Router ให้บอร์ดผ่านหน้าเว็บ</li>
+          </ul>
         </div>
       </div>
 
       <!-- Tab 2 -->
       <div class="theory-tab-panel" id="theory-tab-tab2">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-hard-drive"></i> 2.1 ระบบไฟล์ LittleFS สำหรับ Flash Memory</h4>
+          <h4><i class="fa-solid fa-signal"></i> 2.1 ค่าความแรงสัญญาณ RSSI และ Channel</h4>
           <p>
-            <strong>LittleFS</strong> คือระบบแฟ้มข้อมูลขนาดกะทัดรัดที่ถูกออกแบบมาเพื่อชิป Flash Memory ที่มีหน่วยความจำจำกัดโดยเฉพาะ มีข้อดีที่เหนือกว่า SPIFFS เดิมอย่างมาก ได้แก่:
+            <strong>RSSI (Received Signal Strength Indicator)</strong> มีหน่วยเป็น **dBm (Decibel-milliwatts)** ซึ่งเป็นการเทียบค่ากำลังงานที่ภาครับตรวจจับได้กับกำลังส่ง 1 มิลลิวัตต์ตามสูตรลอการิทึม เนื่องจากสัญญาณคลื่นวิทยุมีกำลังต่ำมากในระดับไมโครวัตต์ จึงแสดงผลเป็นค่าติดลบเสมอ:
           </p>
-          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem;">
-            <li><strong>Power-loss Resilience:</strong> ป้องกันข้อมูลเสียหายเมื่อเกิดไฟตกหรือถอดปลั๊กกะทันหัน</li>
-            <li><strong>Dynamic Wear Leveling:</strong> กระจายการเขียนข้อมูลไปยังบล็อกต่างๆ ของ Flash อย่างทั่วถึง ยืดอายุการใช้งานฮาร์ดแวร์</li>
-            <li><strong>Directory Support:</strong> รองรับโครงสร้างโฟลเดอร์ย่อยได้อย่างสมบูรณ์</li>
-            <li><strong>ประหยัด RAM:</strong> ใช้ขนาด Buffer ในการทำงานน้อยมาก</li>
-          </ul>
+          <div class="theory-formula">
+            RSSI &gt;= -50 dBm : สัญญาณดีเยี่ยม (Excellent)<br>
+            RSSI &gt;= -65 dBm : สัญญาณดี เหมาะสำหรับงาน IoT ทั่วไป (Good)<br>
+            RSSI &gt;= -75 dBm : สัญญาณพอใช้ (Fair)<br>
+            RSSI &lt; -80 dBm : สัญญาณอ่อน อาจเกิด Packet Loss หรือหลุดบ่อย (Poor)
+          </div>
         </div>
       </div>
 
       <!-- Tab 3 -->
       <div class="theory-tab-panel" id="theory-tab-tab3">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-bolt"></i> 3.1 การสตรีมไฟล์ขนาดใหญ่ด้วย server.streamFile()</h4>
+          <h4><i class="fa-solid fa-arrows-rotate"></i> 3.1 การทำงานแบบ Non-blocking และ Auto-reconnect</h4>
           <p>
-            เนื่องจากไมโครคอนโทรลเลอร์มีหน่วยความจำ RAM (Heap) จำกัด หากเราอ่านไฟล์ทั้งไฟล์เข้ามาเก็บในตัวแปร <code>String</code> แล้วสั่ง <code>server.send()</code> ไฟล์ขนาดใหญ่ เช่น รูปภาพหรือไฟล์สไตล์ CSS จะทำให้ RAM หมดและบอร์ดรีสตาร์ตทันที การใช้ <code>server.streamFile(file, contentType)</code> จะทำการอ่านข้อมูลทีละบล็อก (Chunk) แล้วส่งตรงไปยัง Client ทันที ทำให้ประหยัด RAM อย่างมหาศาล
+            ในระบบ IoT ที่ต้องควบคุมรีเลย์หรืออ่านเซ็นเซอร์แบบ Real-time ห้ามใช้ลูป <code>while(WiFi.status() != WL_CONNECTED)</code> ที่ค้างรอแบบไม่มี Timeout ในฟังก์ชัน <code>loop()</code> เพราะหาก Wi-Fi หลุด ตัวควบคุมจะไม่สามารถตัดไฟรีเลย์หรือรับคำสั่งจากปุ่มกดได้ และอาจถูก Watchdog Timer (WDT) รีเซ็ตบอร์ด แนวทางที่ถูกต้องคือการใช้ฟังก์ชัน <code>millis()</code> ตรวจสอบสถานะและสั่ง <code>WiFi.reconnect()</code> เป็นระยะ
           </p>
           <div class="theory-formula">
-            // ตัวอย่างการใช้งาน streamFile<br>
-            File file = LittleFS.open("/index.html", "r");<br>
-            server.streamFile(file, "text/html");<br>
-            file.close();
+            if (millis() - lastCheck &gt;= 5000) {<br>
+            &nbsp;&nbsp;lastCheck = millis();<br>
+            &nbsp;&nbsp;if (WiFi.status() != WL_CONNECTED) WiFi.reconnect();<br>
+            }
           </div>
         </div>
       </div>
@@ -1761,61 +1758,65 @@ void loop() {
 
   // ── 3. Smart Code Copy with Injected Blanks ──
   function copySkeletonCode() {
-    const b1 = document.getElementById('codeBlank1')?.value.trim() || 'LittleFS.begin(true)';
-    const b2 = document.getElementById('codeBlank2')?.value.trim() || 'server.onNotFound(handleFileRequest)';
-    const b3 = document.getElementById('codeBlank3')?.value.trim() || 'LittleFS.exists(path)';
-    const b4 = document.getElementById('codeBlank4')?.value.trim() || 'server.streamFile(file, dataType)';
-    const b5 = document.getElementById('codeBlank5')?.value.trim() || 'server.handleClient()';
+    const b1 = document.getElementById('codeBlank1')?.value.trim() || 'WIFI_STA';
+    const b2 = document.getElementById('codeBlank2')?.value.trim() || 'WiFi.scanNetworks()';
+    const b3 = document.getElementById('codeBlank3')?.value.trim() || 'WiFi.SSID(i)';
+    const b4 = document.getElementById('codeBlank4')?.value.trim() || 'WiFi.RSSI(i)';
+    const b5 = document.getElementById('codeBlank5')?.value.trim() || 'WiFi.channel(i)';
+    const b6 = document.getElementById('codeBlank6')?.value.trim() || 'WiFi.begin(TARGET_SSID, PASSWORD)';
+    const b7 = document.getElementById('codeBlank7')?.value.trim() || 'WL_CONNECTED';
+    const b8 = document.getElementById('codeBlank8')?.value.trim() || 'WiFi.localIP()';
+    const b9 = document.getElementById('codeBlank9')?.value.trim() || 'WiFi.macAddress()';
 
     const codeText = `#include <Arduino.h>
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
-  #include <ESP8266WebServer.h>
-  ESP8266WebServer server(80);
 #elif defined(ESP32)
   #include <WiFi.h>
-  #include <WebServer.h>
-  WebServer server(80);
 #endif
-#include <LittleFS.h>
 
-const char* ssid = "iot_512";
-const char* password = "iot123456";
+const char* TARGET_SSID = "iot_512";
+const char* PASSWORD    = "iot123456";
 
-void handleFileRequest() {
-  String path = server.uri();
-  if (path.endsWith("/")) path += "index.html";
-  String dataType = "text/plain";
-  if (path.endsWith(".html")) dataType = "text/html";
-  else if (path.endsWith(".css")) dataType = "text/css";
-  else if (path.endsWith(".js")) dataType = "application/javascript";
+void stepScan() {
+  WiFi.mode(${b1});
+  WiFi.disconnect();
+  delay(100);
 
-  if (${b3}) {
-    File file = LittleFS.open(path, "r");
-    ${b4};
-    file.close();
-  } else {
-    server.send(404, "text/plain", "File Not Found");
+  int n = ${b2};
+  Serial.printf("พบเครือข่าย: %d\\n", n);
+
+  for (int i = 0; i < n; i++) {
+    Serial.printf("%s | RSSI: %d dBm | CH: %d\\n",
+      ${b3}.c_str(),
+      ${b4},
+      ${b5});
   }
+}
+
+void stepConnect() {
+  ${b6};
+
+  while (WiFi.status() != ${b7}) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\\nWiFi Connected!");
+  Serial.print("IP Address: ");
+  Serial.println(${b8});
+  Serial.print("MAC Address: ");
+  Serial.println(${b9});
 }
 
 void setup() {
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
-
-  if (!${b1}) {
-    Serial.println("Mount Failed");
-    return;
-  }
-
-  ${b2};
-  server.begin();
+  stepScan();
+  stepConnect();
 }
 
 void loop() {
-  ${b5};
-  delay(2);
+  delay(1000);
 }`;
 
     navigator.clipboard.writeText(codeText).then(() => {
@@ -1829,66 +1830,63 @@ void loop() {
 
   function pasteChallengeTemplate() {
     const template = `/**
- * Lab 3 Challenge Solution: LittleFS Web Server with MIME Handling
+ * Lab 3 Challenge: WiFi Scan, Connect with LED Indicator & Auto-Reconnect
  */
 #include <Arduino.h>
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
-  #include <ESP8266WebServer.h>
-  ESP8266WebServer server(80);
+  #define LED_PIN 2
+  #define LED_ON  LOW
+  #define LED_OFF HIGH
 #elif defined(ESP32)
   #include <WiFi.h>
-  #include <WebServer.h>
-  WebServer server(80);
+  #define LED_PIN 2
+  #define LED_ON  HIGH
+  #define LED_OFF LOW
 #endif
-#include <LittleFS.h>
 
-const char* ssid = "iot_512";
-const char* password = "iot123456";
+const char* TARGET_SSID = "iot_512";  // หรือ "Wokwi-GUEST"
+const char* PASSWORD    = "iot123456";
 
-String getContentType(String path) {
-  if (path.endsWith(".html")) return "text/html";
-  else if (path.endsWith(".css")) return "text/css";
-  else if (path.endsWith(".js")) return "application/javascript";
-  else if (path.endsWith(".png")) return "image/png";
-  else if (path.endsWith(".ico")) return "image/x-icon";
-  return "text/plain";
-}
+unsigned long lastCheck = 0;
 
-void handleFileRequest() {
-  String path = server.uri();
-  if (path.endsWith("/")) path += "index.html";
-  String dataType = getContentType(path);
-
-  if (LittleFS.exists(path)) {
-    File file = LittleFS.open(path, "r");
-    server.streamFile(file, dataType);
-    file.close();
-    Serial.printf("Served: %s\\n", path.c_str());
-  } else {
-    server.send(404, "text/plain", "404: File Not Found");
+void blinkLED(int times, int ms = 150) {
+  for (int i = 0; i < times; i++) {
+    digitalWrite(LED_PIN, LED_ON);
+    delay(ms);
+    digitalWrite(LED_PIN, LED_OFF);
+    if (i < times - 1) delay(ms);
   }
 }
 
 void setup() {
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LED_OFF);
 
-  #if defined(ESP8266)
-  if (!LittleFS.begin()) return;
-  #else
-  if (!LittleFS.begin(true)) return;
-  #endif
-
-  server.onNotFound(handleFileRequest);
-  server.begin();
-  Serial.println("Server started!");
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(TARGET_SSID, PASSWORD);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWiFi Connected! IP: " + WiFi.localIP().toString());
+  blinkLED(3, 200); // Challenge: กะพริบ 3 ครั้งเมื่อต่อสำเร็จ
 }
 
 void loop() {
-  server.handleClient();
-  delay(2);
+  if (millis() - lastCheck >= 5000) {
+    lastCheck = millis();
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("WiFi Disconnected! Reconnecting...");
+      WiFi.reconnect();
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Reconnected successfully!");
+        blinkLED(2, 100);
+      }
+    }
+  }
 }`;
     const ta = document.getElementById('challengeCode');
     if (ta) ta.value = template;
@@ -1994,17 +1992,20 @@ void loop() {
     const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
     const isInfoComplete = !!(nameVal && idVal && groupVal);
 
-    // Code blanks (5 blanks = 1.5 max)
-    const blankIds = ['codeBlank1', 'codeBlank2', 'codeBlank3', 'codeBlank4', 'codeBlank5'];
+    // Code blanks (9 blanks = 1.5 max)
+    const blankIds = [
+      'codeBlank1', 'codeBlank2', 'codeBlank3', 'codeBlank4', 'codeBlank5',
+      'codeBlank6', 'codeBlank7', 'codeBlank8', 'codeBlank9'
+    ];
     let filledBlanks = 0;
     blankIds.forEach(id => {
       const el = document.getElementById(id);
       if (el && el.value.trim().length > 0) filledBlanks++;
     });
-    const blankScore = Number(((filledBlanks / 5) * 1.5).toFixed(1));
+    const blankScore = Number(((filledBlanks / 9) * 1.5).toFixed(1));
 
     // Multiple choice quiz (5 questions = 2.0 max, 0.4 each)
-    const quizKeys = { quiz1: '1b', quiz2: '2c', quiz3: '3a', quiz4: '4d', quiz5: '5a' };
+    const quizKeys = { quiz1: '1c', quiz2: '2b', quiz3: '3a', quiz4: '4c', quiz5: '5b' };
     let answeredQuiz = 0, correctQuiz = 0;
     for (const qKey in quizKeys) {
       const selected = document.querySelector(`input[name="${qKey}"]:checked`);
@@ -2067,8 +2068,8 @@ void loop() {
       </div>
       <div class="score-item-row">
         <div class="score-item-info">
-          <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=1.5?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโครงร่างโค้ด (LittleFS Server)</div>
-          <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/5 ช่อง</div>
+          <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=1.5?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ด (WiFi Scan & Connect)</div>
+          <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/9 ช่อง</div>
         </div>
         <div class="score-item-points">${blankScore.toFixed(1)} / 1.5</div>
       </div>
@@ -2081,7 +2082,7 @@ void loop() {
       </div>
       <div class="score-item-row">
         <div class="score-item-info">
-          <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
+          <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (LED Indicator & Reconnect)</div>
           <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้เรียบร้อย' : '⚠️ ยังไม่ได้วางโค้ดหรือโค้ดสั้นเกินไป'}</div>
         </div>
         <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
@@ -2096,7 +2097,7 @@ void loop() {
       <div class="score-item-row">
         <div class="score-item-info">
           <div class="score-item-title"><i class="fa-solid fa-paperclip" style="color:${attachScore>=1?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> ไฟล์แนบหลักฐานการทดลอง</div>
-          <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพหน้าจอ (0.5)':'✗ ยังไม่แนบภาพหน้าจอ'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
+          <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพ Serial Monitor (0.5)':'✗ ยังไม่แนบภาพ'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
         </div>
         <div class="score-item-points">${attachScore.toFixed(1)} / 1.0</div>
       </div>
@@ -2190,6 +2191,10 @@ void loop() {
       codeBlank3: document.getElementById('codeBlank3')?.value.trim() || '',
       codeBlank4: document.getElementById('codeBlank4')?.value.trim() || '',
       codeBlank5: document.getElementById('codeBlank5')?.value.trim() || '',
+      codeBlank6: document.getElementById('codeBlank6')?.value.trim() || '',
+      codeBlank7: document.getElementById('codeBlank7')?.value.trim() || '',
+      codeBlank8: document.getElementById('codeBlank8')?.value.trim() || '',
+      codeBlank9: document.getElementById('codeBlank9')?.value.trim() || '',
       quiz1: document.querySelector('input[name="quiz1"]:checked')?.value || '',
       quiz2: document.querySelector('input[name="quiz2"]:checked')?.value || '',
       quiz3: document.querySelector('input[name="quiz3"]:checked')?.value || '',
@@ -2240,11 +2245,11 @@ void loop() {
         lockFormAsSubmitted(nowFormatted);
 
         let correctQuiz = 0;
-        if (formData.quiz1 === '1b') correctQuiz++;
-        if (formData.quiz2 === '2c') correctQuiz++;
+        if (formData.quiz1 === '1c') correctQuiz++;
+        if (formData.quiz2 === '2b') correctQuiz++;
         if (formData.quiz3 === '3a') correctQuiz++;
-        if (formData.quiz4 === '4d') correctQuiz++;
-        if (formData.quiz5 === '5a') correctQuiz++;
+        if (formData.quiz4 === '4c') correctQuiz++;
+        if (formData.quiz5 === '5b') correctQuiz++;
         
         const quizPts = (correctQuiz / 5.0) * 2.0;
         const msg = `[โหมดจำลองออฟไลน์]\nบันทึกข้อมูลใบงานที่ 3 เรียบร้อยแล้ว!\n\nคะแนนแบบทดสอบปรนัย: ${correctQuiz}/5 ข้อ (+${quizPts.toFixed(1)}/2.0 คะแนน)\n(เมื่อเชื่อมต่อกับ Google Apps Script ระบบจะประเมินคะแนนเต็ม 10.0 พร้อมบันทึกลง Google Sheets และ Google Drive โดยอัตโนมัติ)`;
