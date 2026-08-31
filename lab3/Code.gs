@@ -45,18 +45,18 @@ function gradeSubmission(data) {
   ];
 
   var q3Keywords = [
-    "blocking|ค้าง|หยุดรอ|หน่วง",
-    "timeout|millis|non-blocking",
-    "เซ็นเซอร์|รีเลย์|ควบคุมไม่ได้|watchdog|wdt"
+    "event|callback|onevent|wifievent",
+    "asynchronous|background|เบื้องหลัง|ไม่บล็อก|non-blocking",
+    "cpu|polling|วนลูป|เสียรอบ|delay|เสถียร|กู้คืนเร็ว"
   ];
 
   // เฉลยแบบทดสอบแบบเลือกตอบ 5 ข้อ (Quiz Answer Keys)
   var quizKeys = {
-    quiz1: "1c", // ค่า RSSI มีหน่วยเป็น dBm และเป็นค่าติดลบเพราะสัญญาณที่รับได้ต่ำกว่า 1 มิลลิวัตต์ โดย -45 dBm ดีกว่า -85 dBm
+    quiz1: "1c", // ค่า RSSI มีหน่วยเป็น dBm เป็นค่าติดลบเทียบกับ 1 mW โดย -45 dBm ดีกว่า -85 dBm
     quiz2: "2b", // Station (STA) ทำหน้าที่เป็น Client ไปเชื่อม Router ส่วน AP ทำหน้าที่เป็นศูนย์กลางปล่อย Wi-Fi
-    quiz3: "3a", // WiFi.scanNetworks() เป็นการสแกนแบบ Synchronous ค้นหา SSID, RSSI, Channel, Security
-    quiz4: "4c", // วนลูปรอให้กระบวนการ Handshake และขอ IP จาก DHCP Server เสร็จสมบูรณ์
-    quiz5: "5b"  // ใช้การตรวจสอบแบบ Non-blocking ด้วย millis() และกำหนด Timeout ป้องกันบอร์ดค้าง
+    quiz3: "3a", // WiFi.scanNetworks() สแกนหาเครือข่ายและคืนค่าเป็นจำนวนเครือข่ายที่พบ
+    quiz4: "4c", // WL_CONNECTED มีค่าคงที่ตัวเลขเท่ากับ 3 หมายถึงเชื่อมต่อสำเร็จและได้รับ IP เรียบร้อย
+    quiz5: "5b"  // Event-Driven Callback (WiFi.onEvent) เชื่อมต่อใหม่อัตโนมัติใน Background โดยไม่บล็อก loop()
   };
 
   var skeletonScore = 0.0;

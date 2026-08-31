@@ -1,39 +1,94 @@
-# 📶 ใบงานที่ 3: การตรวจหา WiFi และการเชื่อมต่อ Station Mode (WiFi Scan & Connect)
+# 📶 ใบงานที่ 3: การตรวจหา WiFi, พารามิเตอร์สถานะ และระบบ Auto-Reconnect แบบ Event-Driven
 
-คู่มือการทดลองสั่งงานโมดูล Wi-Fi ของ ESP32 และ ESP8266 ในการสแกนหาเครือข่ายไร้สาย (WiFi Scanner) และการเชื่อมต่อเข้าสู่ระบบเครือข่ายอินเทอร์เน็ตในโหมด **Station (STA)**
-
----
-
-## 🎯 วัตถุประสงค์การเรียนรู้ (Objectives)
-
-1. เข้าใจโหมดการทำงานของ Wi-Fi บนไมโครคอนโทรลเลอร์ ได้แก่ **Station Mode (WIFI_STA)**, **Access Point Mode (WIFI_AP)** และ **AP+STA Mode (WIFI_AP_STA)**
-2. สามารถใช้คำสั่ง `WiFi.scanNetworks()` เพื่อค้นหา SSID, ค่าความแรงสัญญาณ (RSSI), หมายเลขช่องสัญญาณ (Channel) และระบบความปลอดภัย (Security Type)
-3. สามารถเชื่อมต่อเครือข่าย Wi-Fi ด้วยคำสั่ง `WiFi.begin(ssid, password)` และดึงหมายเลข IP Address, Subnet Mask, Gateway และ MAC Address
-4. สามารถเขียนระบบกะพริบไฟ LED แจ้งสถานะการเชื่อมต่อ และการเชื่อมต่อเครือข่ายใหม่อัตโนมัติ (Auto-reconnect) แบบ Non-blocking เมื่อสัญญาณหลุด
+คู่มือการทดลองสั่งงานโมดูล Wi-Fi ของ ESP32 และ ESP8266 ในการสแกนหาเครือข่ายไร้สาย (WiFi Scanner), การวิเคราะห์พารามิเตอร์เครือข่าย (IP, MAC, RSSI, Status Constants), และการใช้ฟังก์ชันพิเศษ **Event-Driven Auto-Reconnect** ดักจับเหตุการณ์สัญญาณหลุดโดยไม่ต้องวนลูปตรวจสอบ
 
 ---
 
-## ⚡ การจำลองวงจรบน Wokwi Simulator & ฮาร์ดแวร์จริง
+## 🎯 1. วัตถุประสงค์การเรียนรู้ (Objectives)
 
-### 1. การจำลองผ่าน Wokwi Simulator
-- บอร์ด ESP32 DevKit v1 ต่อ LED แสดงสถานะบน **GPIO 2** ผ่านตัวต้านทาน 330Ω ลง GND
-- ใน Wokwi ให้กำหนด SSID เป้าหมายเป็น `"Wokwi-GUEST"` และ Password เป็น `""` (ไม่มีรหัสผ่าน)
-- สามารถรันจำลองได้ทันทีผ่าน VS Code Wokwi Extension หรือ Wokwi Web Simulator
-
-### 2. ข้อมูลขาเชื่อมต่อฮาร์ดแวร์ (Hardware Pin Mapping)
-
-| อุปกรณ์ | สัญญาณ | ESP32 (IPST-WiFi) | ESP8266 (AX-WiFi) | หมายเหตุ |
-| :--- | :--- | :--- | :--- | :--- |
-| **Status LED** | Anode (+) | `GPIO 2` (Onboard LED) | `GPIO 2 (D4)` (SLED) | Active HIGH (ESP32) / Active LOW (ESP8266) |
-| **Serial Monitor** | TX / RX | `UART0 (115200)` | `UART0 (115200)` | Baud rate: 115200 bps |
+1. เข้าใจโหมดการทำงานของ Wi-Fi ได้แก่ **Station Mode (WIFI_STA)**, **Access Point Mode (WIFI_AP)** และ **AP+STA Mode (WIFI_AP_STA)**
+2. เข้าใจและสามารถอ่านค่า **รหัสสถานะการเชื่อมต่อ Wi-Fi (`wl_status_t`)** เช่น `WL_CONNECTED`, `WL_DISCONNECTED`, `WL_CONNECT_FAILED`
+3. สามารถดึงพารามิเตอร์เครือข่ายสำคัญ ได้แก่ **Local IP, Subnet Mask, Gateway, DNS, MAC Address, BSSID และ RSSI (dBm)**
+4. เข้าใจข้อจำกัดของการ Polling สถานะใน `loop()` และสามารถประยุกต์ใช้ **Event-Driven Callback Architecture**:
+   - **ESP32:** `WiFi.onEvent()` ดักจับ `ARDUINO_EVENT_WIFI_STA_DISCONNECTED` และ `GOT_IP`
+   - **ESP8266:** `WiFiEventHandler` ดักจับ `onStationModeDisconnected()` และ `onStationModeGotIP()`
+   เพื่อเชื่อมต่อเครือข่ายใหม่อัตโนมัติในระดับ System Task โดยไม่บล็อกการทำงานของ Main Loop
 
 ---
 
-## 📁 โครงสร้างโปรเจกต์ (Project Structure)
+## 📊 2. ทฤษฎีพารามิเตอร์และการแปลความหมายสถานะ Wi-Fi
+
+### 2.1 ตารางรหัสสถานะ `WiFi.status()` (`wl_status_t`)
+
+ฟังก์ชัน `WiFi.status()` จะคืนค่าเป็นตัวเลข Enumeration เพื่อบอกสถานะปัจจุบันของโมดูล Wi-Fi:
+
+| รหัสตัวเลข | ค่าคงที่ Enum | ความหมาย | สถานะการทำงาน |
+| :---: | :--- | :--- | :--- |
+| **3** | `WL_CONNECTED` | เชื่อมต่อสำเร็จและได้รับ IP Address จากเราเตอร์แล้ว | ใช้งานเครือข่าย/ส่งข้อมูลได้ทันที |
+| **6** | `WL_DISCONNECTED` | หลุดการเชื่อมต่อ หรือถูกสั่งตัดการเชื่อมต่อจาก AP | เกิดขึ้นเมื่อ Access Point ปิดตัว หรือสัญญาณหลุด |
+| **4** | `WL_CONNECT_FAILED` | การเชื่อมต่อล้มเหลว | มักเกิดจาก **รหัสผ่าน Wi-Fi ผิด** หรือ AP ปฏิเสธ |
+| **1** | `WL_NO_SSID_AVAIL` | ไม่พบชื่อ SSID เป้าหมาย | เกิดขึ้นเมื่อตั้งชื่อ Wi-Fi ผิด หรืออยู่นอกระยะสัญญาณ |
+| **5** | `WL_CONNECTION_LOST` | สัญญาณขาดหายระหว่างการเชื่อมต่อ | สัญญาณอ่อนมาก (RSSI ต่ำกว่า -85 dBm) |
+| **0** | `WL_IDLE_STATUS` | อยู่ในสถานะพัก / กำลังสลับโหมด | ค่าชั่วคราวระหว่างรอคำสั่งใหม่ |
+| **2** | `WL_SCAN_COMPLETED` | สแกนหาเครือข่ายเสร็จสมบูรณ์ | พร้อมเรียกดูรายการเครือข่ายที่พบ |
+| **255** | `WL_NO_SHIELD` | ไม่พบชิป Wi-Fi | ฮาร์ดแวร์ขัดข้องหรือไม่รองรับ |
+
+---
+
+### 2.2 ตารางพารามิเตอร์เครือข่ายและการใช้งาน (Network Parameters)
+
+| คำสั่ง API | เลเยอร์ (OSI Model) | ตัวอย่างค่าที่ได้รับ | ประโยชน์ในการพัฒนาระบบ IoT |
+| :--- | :--- | :--- | :--- |
+| `WiFi.localIP()` | Network (Layer 3) | `192.168.1.145` | หมายเลข IP บนวง LAN สำหรับเปิดหน้าเว็บหรือรับคำสั่ง |
+| `WiFi.subnetMask()` | Network (Layer 3) | `255.255.255.0` | กำหนดขอบเขตขนาดของเครือข่าย Local Subnet |
+| `WiFi.gatewayIP()` | Network (Layer 3) | `192.168.1.1` | IP ของเราเตอร์หลักที่ใช้ส่งข้อมูลออกสู่อินเทอร์เน็ต |
+| `WiFi.dnsIP()` | Application (Layer 7) | `8.8.8.8` | เซิร์ฟเวอร์แปลงชื่อโดเมน (เช่น Google DNS) |
+| `WiFi.RSSI()` | Physical (Layer 1) | `-58 dBm` | ความแรงสัญญาณวิทยุ (ยิ่งเข้าใกล้ 0 ยิ่งแรง) |
+| `WiFi.macAddress()` | Data Link (Layer 2) | `24:0A:C4:58:3B:1C` | Hardware ID ไม่ซ้ำกันในโลก ใช้เป็น Device UUID ใน Cloud |
+| `WiFi.BSSIDstr()` | Data Link (Layer 2) | `A4:2B:B0:E3:71:00` | MAC Address ของ Access Point ที่เราเกาะอยู่ |
+| `WiFi.channel()` | Physical (Layer 1) | `6` (ช่อง 1–13) | ช่องความถี่วิทยุ 2.4 GHz เพื่อหลีกเลี่ยงสัญญาณรบกวน |
+
+---
+
+## ⚡ 3. สถาปัตยกรรม Event-Driven vs Status Polling
+
+```text
+[วิธีแบบเดิม: Status Polling ใน loop]
+loop() ──> เช็ค if (WiFi.status() != WL_CONNECTED) ──> สั่ง delay(500) ──> สั่ง reconnect ──> [CPU เสียรอบการทำงาน]
+
+[วิธีขั้นสูง: Event-Driven Callback Handler]
+WiFi Stack (เบื้องหลัง) ── [เกิด Event หลุดสัญญาณ] ──> เรียก Interrupt Callback อัตโนมัติ ──> reconnect ทันที
+loop()                  ── [ทำงานเซนเซอร์ / หน้าจอ / ควบคุม Relay ได้ต่อเนื่อง ไม่ต้องเสียเวลาเช็คสถานะ]
+```
+
+### การเขียนโค้ด Event-Driven:
+1. **ESP32:**
+   ```cpp
+   WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+     if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+       Serial.println("[Event] สัญญาณหลุด! เชื่อมต่อใหม่ใน Background...");
+       WiFi.reconnect();
+     } else if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
+       Serial.print("[Event] ได้รับ IP: ");
+       Serial.println(WiFi.localIP());
+     }
+   });
+   ```
+2. **ESP8266:**
+   ```cpp
+   WiFiEventHandler disconnectHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& evt) {
+     Serial.println("[Event] Disconnected! Reconnecting...");
+     WiFi.reconnect();
+   });
+   ```
+
+---
+
+## 📁 4. โครงสร้างโปรเจกต์ (Project Structure)
 
 ```text
 lab3/
- ├── platformio.ini         (การตั้งค่า PlatformIO พร้อม src_dir = solution/src)
+ ├── platformio.ini         (การตั้งค่า PlatformIO)
  ├── diagram.json           (ไดอะแกรมวงจรจำลอง Wokwi)
  ├── wokwi.toml             (การตั้งค่า Wokwi Simulator Runner)
  ├── index.html             (เว็บแอปพลิเคชันใบงานออนไลน์พร้อมระบบ Auto-Grader)
@@ -50,63 +105,21 @@ lab3/
 
 ---
 
-## ✍️ เฉลยคำตอบและแนวคิดในใบงาน (Worksheet Answers)
+## 🧠 5. เฉลยแบบทดสอบปรนัย (Quiz Answer Keys)
 
-### 1. เฉลยโค้ดเติมคำตอบ (Skeleton Code Blanks)
-
-| ช่องที่ | ฟังก์ชัน / คำตอบ | คำอธิบาย |
-| :---: | :--- | :--- |
-| **ช่องที่ 1** | `WIFI_STA` | กำหนดโหมด Wi-Fi เป็น Station Mode |
-| **ช่องที่ 2** | `WiFi.scanNetworks()` | สแกนหาเครือข่าย Wi-Fi ทั้งหมดในบริเวณใกล้เคียง |
-| **ช่องที่ 3** | `WiFi.SSID(i)` | อ่านชื่อ SSID ของเครือข่ายลำดับที่ `i` |
-| **ช่องที่ 4** | `WiFi.RSSI(i)` | อ่านค่าความแรงสัญญาณ RSSI (dBm) ของเครือข่ายลำดับที่ `i` |
-| **ช่องที่ 5** | `WiFi.channel(i)` | อ่านหมายเลขช่องสัญญาณ (Channel) ของเครือข่ายลำดับที่ `i` |
-| **ช่องที่ 6** | `WiFi.begin(TARGET_SSID, PASSWORD)` | เริ่มต้นเชื่อมต่อ Access Point |
-| **ช่องที่ 7** | `WL_CONNECTED` | สถานะการเชื่อมต่อ Wi-Fi สำเร็จ |
-| **ช่องที่ 8** | `WiFi.localIP()` | ดึงค่า IP Address ที่ได้รับจาก DHCP Server |
-| **ช่องที่ 9** | `WiFi.macAddress()` | ดึงค่าฮาร์ดแวร์ MAC Address ประจำชิป |
+* **ข้อที่ 1 (ตอบ ก - 1a):** โหมด `WIFI_STA` ทำหน้าที่เป็น Client เชื่อมต่อเข้ากับ Access Point ที่มีอยู่แล้วเพื่อออกสู่อินเทอร์เน็ต
+* **ข้อที่ 2 (ตอบ ค - 2c):** สัญญาณ `-50 dBm` มีความแรงสูงกว่า `-85 dBm` (เนื่องจากค่า dBm ยิ่งมีค่าติดลบน้อย จะยิ่งมีกำลังส่งสูง)
+* **ข้อที่ 3 (ตอบ ข - 3b):** ค่าคงที่ `WL_CONNECTED` มีค่าเป็นตัวเลขเท่ากับ 3 ซึ่งหมายความว่าบอร์ดเชื่อมต่อสำเร็จและได้รับ IP จาก DHCP แล้ว
+* **ข้อที่ 4 (ตอบ ง - 4d):** สถาปัตยกรรมแบบ **Event-Driven (Callback)** ช่วยให้ระบบดักจับการหลุดของสัญญาณและเชื่อมต่อใหม่ได้ในระดับเบื้องหลังทันที โดยไม่ต้องให้ฟังก์ชัน `loop()` เสียเวลาคอยเช็คสถานะ
+* **ข้อที่ 5 (ตอบ ข - 5b):** `WiFi.macAddress()` คือหมายเลขประจำตัวฮาร์ดแวร์ระดับ Layer 2 (Data Link) ไม่ซ้ำกันในโลก นิยมใช้เป็น Device ID ระบุตัวตนบอร์ด IoT บน Cloud
 
 ---
 
-### 2. เฉลยแบบทดสอบปรนัย 5 ข้อ (Multiple Choice Quiz Keys)
+## ✍️ 6. เฉลยคำถามวิเคราะห์เชิงลึก
 
-| ข้อที่ | หัวข้อคำถาม | คำตอบที่ถูกต้อง | เหตุผลทางเทคนิค |
-| :---: | :--- | :---: | :--- |
-| **1** | ค่า RSSI และหน่วย dBm | **ค (1c)** | เทียบกำลังงานลอการิทึมกับ 1 มิลลิวัตต์ โดยค่าที่เข้าใกล้ 0 มากกว่า (เช่น -45 dBm) จะแรงกว่าค่าที่ลบมาก (เช่น -85 dBm) |
-| **2** | ความแตกต่างระหว่าง STA และ AP Mode | **ข (2b)** | โหมด STA เป็นลูกข่ายไปเกาะ Router ส่วนโหมด AP ปล่อย Wi-Fi ของตัวเองให้เครื่องอื่นเข้ามาเกาะ |
-| **3** | ฟังก์ชัน `WiFi.scanNetworks()` | **ก (3a)** | สแกนหาคลื่น Wi-Fi และคืนค่าเป็นจำนวนเครือข่ายที่ค้นพบ (integer) |
-| **4** | หน้าที่ของ `while(WiFi.status() != WL_CONNECTED)` | **ค (4c)** | หน่วงเวลารอให้กระบวนการทำ 4-way Handshake และรับ IP จาก DHCP Server สำเร็จ |
-| **5** | Best Practice สำหรับ Auto-Reconnect | **ข (5b)** | ใช้การจับเวลาแบบ Non-blocking ด้วย `millis()` และกำหนด Timeout ป้องกันไม่ให้บอร์ดค้าง |
-
----
-
-### 3. เฉลยคำถามวิเคราะห์เชิงลึก (Analytical Questions)
-
-**คำถามที่ 1: ค่าความแรงสัญญาณ RSSI มีหน่วยเป็นอะไร เหตุใดจึงแสดงผลเป็นค่าติดลบ และค่าใดถือเป็นระดับสัญญาณที่ดีสำหรับการใช้งาน IoT?**
-> **แนวคำตอบ:** RSSI มีหน่วยเป็น **dBm (Decibel-milliwatts)** ซึ่งเทียบกับกำลังส่งอ้างอิง 1 มิลลิวัตต์ ($0\text{ dBm}$) เนื่องจากสัญญาณคลื่นวิทยุไร้สายที่เดินทางมาถึงเสาอากาศภาครับมีกำลังต่ำมากในระดับไมโครวัตต์หรือนาโนวัตต์ เมื่อคำนวณตามสูตรลอการิทึม $10 \log_{10}(P / 1\text{mW})$ จึงได้ค่าเป็นลบเสมอ โดยระดับสัญญาณที่เหมาะสมสำหรับงาน IoT คือ **$\ge -65\text{ dBm}$ (สัญญาณดี)** หรือ $\ge -50\text{ dBm}$ (สัญญาณดีเยี่ยม) หากต่ำกว่า $-75\text{ dBm}$ อาจเริ่มมีปัญหาแพ็กเก็ตสูญหาย
-
-**คำถามที่ 2: โหมด Station (STA), Access Point (AP) และ AP+STA แตกต่างกันอย่างไรในทางสถาปัตยกรรม และยกตัวอย่างการใช้งานจริง?**
-> **แนวคำตอบ:** 
-> 1. **Station (STA):** บอร์ดทำหน้าที่เป็น Client เชื่อมต่อ Wi-Fi Router หลักเพื่อส่งข้อมูลขึ้น Cloud หรือฐานข้อมูลภายนอก (เช่น ส่งข้อมูลเซ็นเซอร์ขึ้น LINE/Dashboard)
-> 2. **Access Point (AP):** บอร์ดทำหน้าที่เป็น Master ปล่อย SSID ของตัวเองออกมาให้โทรศัพท์หรือคอมพิวเตอร์เชื่อมต่อโดยตรงโดยไม่ต้องมี Router ภายนอก (เช่น การควบคุมหุ่นยนต์หรือเครื่องจักรแบบ Standalone)
-> 3. **Dual Mode (AP+STA):** บอร์ดทำงานทั้งสองโหมดพร้อมกัน นิยมใช้ในระบบ **WiFi Provisioning / Captive Portal** เพื่อให้ผู้ใช้เกาะ Wi-Fi บอร์ดผ่านมือถือแล้วพิมพ์รหัสผ่าน Router บ้าน จากนั้นบอร์ดจะนำรหัสนั้นไปเชื่อมต่อ Router ในโหมด STA โดยไม่ต้องฮาร์ดโค้ดรหัสผ่านลงในโปรแกรม
-
-**คำถามที่ 3: ในระบบ IoT จริง หากเราใช้ `while(WiFi.status() != WL_CONNECTED)` ใน `loop()` โดยไม่มี Timeout จะส่งผลเสียต่อการทำงานของเซ็นเซอร์และระบบควบคุมอย่างไร?**
-> **แนวคำตอบ:** หากเกิดเหตุการณ์ Wi-Fi Router ดับ สัญญาณหลุด หรือเปลี่ยนรหัสผ่าน การใช้ลูป `while` ที่บล็อกการทำงาน (Blocking loop) จะทำให้ CPU ติดค้างอยู่ในลูปนั้นตลอดไป ส่งผลให้:
-> 1. ฟังก์ชันการอ่านค่าเซ็นเซอร์ฉุกเฉิน (เช่น แก๊สรั่ว, อุณหภูมิเกิน) หยุดทำงานทั้งหมด
-> 2. การควบคุมสั่งการรีเลย์ พัดลม หรือปั๊มน้ำค้างอยู่ในสถานะเดิม ไม่สามารถตัดไฟหรือควบคุมความปลอดภัยได้
-> 3. อาจเกิดปัญหา Watchdog Timer Reset (WDT Reset) รีบูตบอร์ดวนซ้ำไม่รู้จบ แนวทางที่ถูกต้องคือการใช้ Non-blocking Timer ด้วย `millis()` ในการตรวจสอบและพยายามเชื่อมต่อใหม่เป็นระยะ
-
----
-
-## 🔍 การแก้ไขปัญหาที่พบบ่อย (Troubleshooting Guide)
-
-1. **สแกน Wi-Fi ไม่พบเครือข่าย (`0 networks found`):**
-   - ตรวจสอบว่าชิป Wi-Fi รองรับเฉพาะคลื่น **2.4 GHz** (ไม่รองรับ 5 GHz)
-   - ตรวจสอบว่าได้เรียก `WiFi.mode(WIFI_STA)` และ `WiFi.disconnect()` ก่อนเริ่มสแกน
-2. **ขึ้น `.` วนลูปไม่สิ้นสุดขณะเชื่อมต่อ:**
-   - ตรวจสอบชื่อ SSID และ Password (Case-sensitive ตัวพิมพ์เล็ก-ใหญ่มีผล)
-   - หากใช้โปรแกรมจำลอง Wokwi ให้ตั้งค่า SSID เป็น `"Wokwi-GUEST"` และ Password เป็น `""`
-3. **LED แสดงสถานะไม่ติดเมื่อต่อสำเร็จ:**
-   - บนบอร์ด ESP32 DevKit ขา GPIO 2 เป็น Active HIGH (`digitalWrite(2, HIGH)`)
-   - บนบอร์ด AX-WiFi (ESP8266) ขา SLED GPIO 2 เป็น Active LOW (`digitalWrite(2, LOW)`)
+1. **ค่า RSSI คืออะไร และมีผลอย่างไรต่อการติดตั้งอุปกรณ์ IoT?**
+   > RSSI (Received Signal Strength Indication) มีหน่วยเป็น dBm เป็นค่ากำลังของคลื่นวิทยุที่บอร์ดรับได้ ยิ่งติดลบน้อย (เช่น -40 ถึง -60 dBm) ยิ่งเสถียร หากค่าต่ำกว่า -80 dBm แพ็กเก็ตข้อมูลจะเริ่มสูญหาย (Packet Loss) ทำให้อุปกรณ์หลุดบ่อย จึงต้องติดตั้งอุปกรณ์ในจุดที่มี RSSI ไม่ต่ำกว่า -70 dBm
+2. **ทำไมระบบ Event-Driven Auto-Reconnect จึงมีประสิทธิภาพสูงกว่าการเขียนคำสั่ง polling ตรวจสอบสถานะใน loop()?**
+   > การ Polling ใน `loop()` ทำให้สูญเสียรอบประมวลผล CPU และหากมีคำสั่ง `delay()` อื่นๆ ขวางอยู่ จะทำให้การตรวจจับสัญญาณหลุดล่าช้า ขณะที่ Event-Driven ทำงานแบบ Asynchronous ขับเคลื่อนด้วย System Event Callback ทันทีที่เกิดเหตุการณ์ ทำให้กู้คืนสัญญาณได้เร็วกว่าและไม่กระทบการทำงานหลักของโปรแกรม
+3. **การดึง MAC Address มีประโยชน์อย่างไรในการพัฒนาระบบ IoT เชิงพาณิชย์?**
+   > MAC Address เป็นค่าประจำตัวฮาร์ดแวร์ชิปที่ถูกกำหนดจากโรงงานและไม่ซ้ำกันในโลก ทำให้สามารถนำมาใช้เป็น **Unique Client ID / Device Serial Number** ในการลงทะเบียนบนระบบคลาวด์ (เช่น MQTT Client ID, Firebase Node ID) โดยไม่ต้องสร้างรหัสขึ้นมาเอง

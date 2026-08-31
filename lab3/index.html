@@ -1124,7 +1124,7 @@
       <i class="fa-solid fa-wifi logo-icon"></i>
       <h1>ใบงานที่ 3: การเชื่อมต่อ WiFi เบื้องต้น</h1>
     </div>
-    <p class="subtitle">การค้นหาเครือข่ายไร้สาย (WiFi Scanner) และการเชื่อมต่อเข้าสู่ระบบเครือข่ายในโหมด Station (STA)</p>
+    <p class="subtitle">การวิเคราะห์พารามิเตอร์เครือข่าย (IP, MAC, RSSI, Status Enum) และระบบ Event-Driven Auto-Reconnect โดยไม่ใช้การ Polling ใน loop</p>
     
     <div class="header-badges">
       <div class="course-badge">
@@ -1156,9 +1156,9 @@
           <h4><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์การเรียนรู้</h4>
           <ul>
             <li>เข้าใจโหมดการทำงานของโมดูล Wi-Fi: <strong>Station (STA)</strong>, <strong>Access Point (AP)</strong> และ <strong>AP+STA</strong></li>
-            <li>สามารถใช้คำสั่ง <code>WiFi.scanNetworks()</code> เพื่อค้นหา SSID, ค่า RSSI (dBm), Channel และประเภทความปลอดภัย</li>
-            <li>สามารถเชื่อมต่อ Access Point ด้วยคำสั่ง <code>WiFi.begin(ssid, pass)</code> และดึง IP Address, Subnet, Gateway, MAC Address</li>
-            <li>สามารถเขียนระบบตรวจสอบการเชื่อมต่อและ Auto-reconnect แบบ Non-blocking พร้อม LED Indicator</li>
+            <li>เข้าใจรหัสสถานะการเชื่อมต่อ <code>WiFi.status()</code> เช่น <code>WL_CONNECTED (3)</code>, <code>WL_DISCONNECTED (6)</code>, <code>WL_CONNECT_FAILED (4)</code></li>
+            <li>สามารถดึงพารามิเตอร์เครือข่ายสำคัญ: <code>localIP()</code>, <code>subnetMask()</code>, <code>gatewayIP()</code>, <code>dnsIP()</code>, <code>macAddress()</code>, <code>BSSIDstr()</code>, <code>RSSI()</code></li>
+            <li>สามารถประยุกต์ใช้ <strong>Event-Driven Callback Architecture</strong> (<code>WiFi.onEvent()</code> หรือ <code>WiFiEventHandler</code>) สำหรับ Auto-Reconnect ใน Background โดยไม่ต้องวนลูปตรวจสอบใน <code>loop()</code></li>
           </ul>
         </div>
 
@@ -1439,24 +1439,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 4</span>
-              <span>ในกระบวนการเชื่อมต่อ Wi-Fi ลูป <code>while (WiFi.status() != WL_CONNECTED)</code> มีหน้าที่สำคัญอย่างไร?</span>
+              <span>ฟังก์ชัน <code>WiFi.status()</code> ส่งคืนค่า <code>WL_CONNECTED</code> หมายถึงสภาวะใด และมีค่าคงที่ตัวเลขเท่ากับเท่าใด?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4a" required>
-                <span>ก. รีเซ็ตความถี่ CPU ของ ESP32 ให้ทำงานช้าลง</span>
+                <span>ก. บอร์ดกำลังอยู่ในโหมด Access Point (ค่าตัวเลข 0)</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4b" required>
-                <span>ข. สแกนหาไวรัสในเครือข่ายก่อนใช้งาน</span>
+                <span>ข. บอร์ดกำลังสั่งปิดโมดูล Wi-Fi (ค่าตัวเลข 255)</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4c" required>
-                <span>ค. หน่วงเวลารอให้การทำ Handshake และขอรับหมายเลข IP Address จาก DHCP Server สำเร็จเรียบร้อย</span>
+                <span>ค. บอร์ดเชื่อมต่อกับ Access Point สำเร็จและได้รับหมายเลข IP Address จาก DHCP เรียบร้อยแล้ว (ค่าตัวเลข 3)</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz4" value="4d" required>
-                <span>ง. ลบเฟิร์มแวร์เก่าเพื่อเตรียมรับการอัปเดต</span>
+                <span>ง. รหัสผ่าน Wi-Fi ไม่ถูกต้อง (ค่าตัวเลข 4)</span>
               </label>
             </div>
           </div>
@@ -1465,24 +1465,24 @@ void loop() {
           <div class="quiz-card">
             <div class="quiz-q-title">
               <span class="quiz-q-badge">ข้อที่ 5</span>
-              <span>แนวทางปฏิบัติที่ดีที่สุด (Best Practice) ในการเขียนระบบ Auto-Reconnect ตรวจจับ Wi-Fi หลุดใน <code>loop()</code> คือข้อใด?</span>
+              <span>แนวทางปฏิบัติระดับวิศวกรรม (Best Practice) ในการกู้คืนการเชื่อมต่อ Wi-Fi หลุดโดยไม่ทำให้ฟังก์ชัน <code>loop()</code> ค้างคือข้อใด?</span>
             </div>
             <div class="quiz-options-grid">
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5a" required>
-                <span>ก. ใช้คำสั่ง <code>delay(60000)</code> ทุกรอบเพื่อรอสัญญาณ</span>
+                <span>ก. ใช้คำสั่ง <code>delay(60000)</code> เพื่อรอสัญญาณกลับมา</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5b" required>
-                <span>ข. ใช้การจับเวลาแบบ Non-blocking ด้วย <code>millis()</code> ตรวจสอบสถานะเป็นระยะ และกำหนด Timeout ป้องกันไม่ให้โปรแกรมหยุดทำงานค้าง</span>
+                <span>ข. ใช้สถาปัตยกรรม <strong>Event-Driven Callback</strong> (เช่น <code>WiFi.onEvent()</code> บน ESP32 หรือ <code>WiFiEventHandler</code> บน ESP8266) เพื่อให้ระบบเชื่อมต่อใหม่อัตโนมัติในระดับ Background Task</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5c" required>
-                <span>ค. สั่ง <code>ESP.restart()</code> ทันทีที่สัญญาณ RSSI ลดลงต่ำกว่า -60 dBm</span>
+                <span>ค. สั่งตัดไฟเลี้ยงบอร์ดทันที</span>
               </label>
               <label class="quiz-option-label">
                 <input type="radio" name="quiz5" value="5d" required>
-                <span>ง. สั่งปิดฟังก์ชัน Serial Monitor ทิ้งทั้งหมด</span>
+                <span>ง. ลบเฟิร์มแวร์ออกจาก Flash Memory</span>
               </label>
             </div>
           </div>
@@ -1520,7 +1520,7 @@ void loop() {
           </div>
 
           <div class="form-group">
-            <label for="question3">3. ในระบบ IoT จริง หากเราใช้ <code>while(WiFi.status() != WL_CONNECTED)</code> ใน <code>loop()</code> โดยไม่มี Timeout จะส่งผลเสียต่อการทำงานของเซ็นเซอร์และระบบควบคุมอย่างไร?</label>
+            <label for="question3">3. เหตุใดสถาปัตยกรรมแบบ Event-Driven Callback (เช่น <code>WiFi.onEvent()</code> หรือ <code>WiFiEventHandler</code>) จึงมีประสิทธิภาพและความเสถียรสูงกว่าการเขียนคำสั่ง Status Polling ใน <code>loop()</code> เพื่อตรวจจับ Wi-Fi หลุด?</label>
             <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
         </div>
@@ -1578,29 +1578,31 @@ void loop() {
 <div class="modal-overlay" id="theoryModal">
   <div class="theory-modal-content">
     <div class="theory-modal-header">
-      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: การเชื่อมต่อ WiFi บน ESP32 / ESP8266</h2>
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: WiFi Parameters, Status Enum & Event-Driven Architecture</h2>
       <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="theory-modal-body">
       <!-- Tabs -->
       <div class="theory-tab-bar">
-        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. โหมดการทำงานของ Wi-Fi</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. การสแกนเครือข่าย & RSSI</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. DHCP, MAC & Auto-Reconnect</button>
+        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. พารามิเตอร์เครือข่าย (IP/MAC/RSSI)</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. รหัสสถานะ WiFi.status()</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. Event-Driven Auto-Reconnect</button>
       </div>
 
       <!-- Tab 1 -->
       <div class="theory-tab-panel active" id="theory-tab-tab1">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-tower-broadcast"></i> 1.1 โหมด Station (STA) และ Access Point (AP)</h4>
+          <h4><i class="fa-solid fa-network-wired"></i> 1.1 พารามิเตอร์เครือข่ายสำคัญในการเชื่อมต่อ Wi-Fi</h4>
           <p>
-            ชิป ESP32 และ ESP8266 มีตัวรับส่งสัญญาณ Wi-Fi มาตรฐาน IEEE 802.11 b/g/n ความถี่ 2.4 GHz สามารถทำงานได้ 3 โหมดหลัก:
+            เมื่ออุปกรณ์ IoT เชื่อมต่อเข้ากับเครือข่าย เราสามารถดึงค่าคุณสมบัติสำคัญผ่านไลบรารี <code>WiFi</code> ดังนี้:
           </p>
-          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem;">
-            <li><strong>Station Mode (WIFI_STA):</strong> บอร์ดทำหน้าที่เป็นลูกข่าย (Client) ไปเชื่อมต่อ Wi-Fi Router หลัก เพื่อส่งข้อมูลเซ็นเซอร์ขึ้น Cloud หรือ Local Server</li>
-            <li><strong>Access Point Mode (WIFI_AP):</strong> บอร์ดทำหน้าที่เป็นศูนย์กลางปล่อยสัญญาณ Wi-Fi ของตัวเองออกมา (เช่น SSID: ESP32_Setup) ให้สมาร์ตโฟนหรือคอมพิวเตอร์เข้ามาเชื่อมต่อโดยตรง</li>
-            <li><strong>Dual Mode (WIFI_AP_STA):</strong> บอร์ดทำงานทั้งสองโหมดพร้อมกัน นิยมใช้ในระบบ **Captive Portal** หรือ **WiFi Provisioning** เพื่อตั้งค่ารหัสผ่าน Router ให้บอร์ดผ่านหน้าเว็บ</li>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.75rem;">
+            <li><code>WiFi.localIP()</code>: หมายเลข IP (Layer 3) ที่ได้รับจาก DHCP Server เพื่อใช้อ้างอิงในวง LAN</li>
+            <li><code>WiFi.subnetMask()</code> &amp; <code>WiFi.gatewayIP()</code>: ขอบเขต Subnet และ IP เราเตอร์สำหรับออกสู่อินเทอร์เน็ต</li>
+            <li><code>WiFi.dnsIP()</code>: เซิร์ฟเวอร์แปลงชื่อโดเมน (เช่น <code>8.8.8.8</code>)</li>
+            <li><code>WiFi.macAddress()</code>: Hardware Address ประจำตัวชิป (Layer 2) ไม่ซ้ำกันในโลก เหมาะใช้เป็น <strong>Unique Device ID</strong> บนคลาวด์</li>
+            <li><code>WiFi.RSSI()</code>: ความแรงสัญญาณวิทยุ (dBm) ยิ่งใกล้ 0 ยิ่งแรง (เช่น <code>-50 dBm</code> ดีกว่า <code>-85 dBm</code>)</li>
           </ul>
         </div>
       </div>
@@ -1608,15 +1610,19 @@ void loop() {
       <!-- Tab 2 -->
       <div class="theory-tab-panel" id="theory-tab-tab2">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-signal"></i> 2.1 ค่าความแรงสัญญาณ RSSI และ Channel</h4>
+          <h4><i class="fa-solid fa-list-ol"></i> 2.1 รหัสสถานะการเชื่อมต่อ (wl_status_t Enum)</h4>
           <p>
-            <strong>RSSI (Received Signal Strength Indicator)</strong> มีหน่วยเป็น **dBm (Decibel-milliwatts)** ซึ่งเป็นการเทียบค่ากำลังงานที่ภาครับตรวจจับได้กับกำลังส่ง 1 มิลลิวัตต์ตามสูตรลอการิทึม เนื่องจากสัญญาณคลื่นวิทยุมีกำลังต่ำมากในระดับไมโครวัตต์ จึงแสดงผลเป็นค่าติดลบเสมอ:
+            ฟังก์ชัน <code>WiFi.status()</code> ส่งคืนค่าเป็นตัวเลข Enumeration เพื่อบอกสภาวะปัจจุบันของ Wi-Fi Interface:
           </p>
           <div class="theory-formula">
-            RSSI &gt;= -50 dBm : สัญญาณดีเยี่ยม (Excellent)<br>
-            RSSI &gt;= -65 dBm : สัญญาณดี เหมาะสำหรับงาน IoT ทั่วไป (Good)<br>
-            RSSI &gt;= -75 dBm : สัญญาณพอใช้ (Fair)<br>
-            RSSI &lt; -80 dBm : สัญญาณอ่อน อาจเกิด Packet Loss หรือหลุดบ่อย (Poor)
+            • WL_CONNECTED (3)       : เชื่อมต่อสำเร็จและได้รับ IP เรียบร้อย<br>
+            • WL_DISCONNECTED (6)    : หลุดการเชื่อมต่อ หรือถูกตัดการเชื่อมต่อจาก AP<br>
+            • WL_CONNECT_FAILED (4)  : เชื่อมต่อล้มเหลว (เช่น ใส่รหัสผ่านผิด)<br>
+            • WL_NO_SSID_AVAIL (1)   : ไม่พบชื่อ SSID เป้าหมายในระยะสัญญาณ<br>
+            • WL_CONNECTION_LOST (5) : สัญญาณขาดหายระหว่างเชื่อมต่อ<br>
+            • WL_IDLE_STATUS (0)     : อยู่ในสถานะพัก / กำลังสลับโหมด<br>
+            • WL_SCAN_COMPLETED (2)  : สแกนหาเครือข่ายเสร็จสมบูรณ์<br>
+            • WL_NO_SHIELD (255)     : ไม่พบโมดูล Wi-Fi หรือฮาร์ดแวร์ขัดข้อง
           </div>
         </div>
       </div>
@@ -1624,15 +1630,20 @@ void loop() {
       <!-- Tab 3 -->
       <div class="theory-tab-panel" id="theory-tab-tab3">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-arrows-rotate"></i> 3.1 การทำงานแบบ Non-blocking และ Auto-reconnect</h4>
+          <h4><i class="fa-solid fa-bolt"></i> 3.1 สถาปัตยกรรม Event-Driven Callback vs Polling ใน loop()</h4>
           <p>
-            ในระบบ IoT ที่ต้องควบคุมรีเลย์หรืออ่านเซ็นเซอร์แบบ Real-time ห้ามใช้ลูป <code>while(WiFi.status() != WL_CONNECTED)</code> ที่ค้างรอแบบไม่มี Timeout ในฟังก์ชัน <code>loop()</code> เพราะหาก Wi-Fi หลุด ตัวควบคุมจะไม่สามารถตัดไฟรีเลย์หรือรับคำสั่งจากปุ่มกดได้ และอาจถูก Watchdog Timer (WDT) รีเซ็ตบอร์ด แนวทางที่ถูกต้องคือการใช้ฟังก์ชัน <code>millis()</code> ตรวจสอบสถานะและสั่ง <code>WiFi.reconnect()</code> เป็นระยะ
+            การเขียน <code>if (WiFi.status() != WL_CONNECTED)</code> วนลูปเช็คใน <code>loop()</code> เรียกว่า <strong>Status Polling</strong> ซึ่งสิ้นเปลืองรอบ CPU และหากระบบติดคำสั่ง <code>delay()</code> อื่นๆ จะทำให้การตรวจจับสัญญาณหลุดล่าช้า<br><br>
+            <strong>แนวทางวิศวกรรมขั้นสูง (Event-Driven Architecture):</strong> ใช้การลงทะเบียน <strong>Event Handler</strong> ให้ Wi-Fi Stack ของระบบเรียก Callback ทำงานเองในระดับ Background Task ทันทีที่เกิดเหตุการณ์:
           </p>
           <div class="theory-formula">
-            if (millis() - lastCheck &gt;= 5000) {<br>
-            &nbsp;&nbsp;lastCheck = millis();<br>
-            &nbsp;&nbsp;if (WiFi.status() != WL_CONNECTED) WiFi.reconnect();<br>
-            }
+            // สำหรับ ESP32: ใช้ WiFi.onEvent()<br>
+            WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {<br>
+            &nbsp;&nbsp;if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] สัญญาณหลุด! Reconnect ทันที...");<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;WiFi.reconnect();<br>
+            &nbsp;&nbsp;}<br>
+            });<br>
+            WiFi.setAutoReconnect(true);
           </div>
         </div>
       </div>
@@ -1830,14 +1841,16 @@ void loop() {
 
   function pasteChallengeTemplate() {
     const template = `/**
- * Lab 3 Challenge: WiFi Scan, Connect with LED Indicator & Auto-Reconnect
+ * Lab 3 Challenge: WiFi Parameters & Event-Driven Auto-Reconnect (No Polling in loop)
  */
 #include <Arduino.h>
+
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
   #define LED_PIN 2
   #define LED_ON  LOW
   #define LED_OFF HIGH
+  WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
   #define LED_PIN 2
@@ -1848,8 +1861,6 @@ void loop() {
 const char* TARGET_SSID = "iot_512";  // หรือ "Wokwi-GUEST"
 const char* PASSWORD    = "iot123456";
 
-unsigned long lastCheck = 0;
-
 void blinkLED(int times, int ms = 150) {
   for (int i = 0; i < times; i++) {
     digitalWrite(LED_PIN, LED_ON);
@@ -1859,34 +1870,55 @@ void blinkLED(int times, int ms = 150) {
   }
 }
 
+#if defined(ESP32)
+void onWiFiEvent(WiFiEvent_t event) {
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+      Serial.printf("[Event] ได้รับ IP: %s (RSSI: %d dBm)\\n", WiFi.localIP().toString().c_str(), WiFi.RSSI());
+      blinkLED(3, 150);
+      break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      Serial.println("[Event ⚠️] Wi-Fi หลุด! (Event Callback กำลัง Auto-Reconnect ใน Background...)");
+      WiFi.reconnect();
+      break;
+    default: break;
+  }
+}
+#endif
+
 void setup() {
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LED_OFF);
 
+  #if defined(ESP32)
+  WiFi.onEvent(onWiFiEvent);
+  #elif defined(ESP8266)
+  gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event) {
+    Serial.printf("[Event] ได้รับ IP: %s (RSSI: %d dBm)\\n", WiFi.localIP().toString().c_str(), WiFi.RSSI());
+    blinkLED(3, 150);
+  });
+  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
+    Serial.println("[Event ⚠️] Wi-Fi หลุด! (Event Callback กำลัง Auto-Reconnect ใน Background...)");
+    WiFi.reconnect();
+  });
+  #endif
+
+  WiFi.setAutoReconnect(true);
   WiFi.mode(WIFI_STA);
   WiFi.begin(TARGET_SSID, PASSWORD);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\\nWiFi Connected! IP: " + WiFi.localIP().toString());
-  blinkLED(3, 200); // Challenge: กะพริบ 3 ครั้งเมื่อต่อสำเร็จ
+  Serial.println("Starting Connection with Event Handlers registered...");
 }
 
 void loop() {
-  if (millis() - lastCheck >= 5000) {
-    lastCheck = millis();
-    if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("WiFi Disconnected! Reconnecting...");
-      WiFi.reconnect();
-      if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("Reconnected successfully!");
-        blinkLED(2, 100);
-      }
-    }
+  // สังเกตว่าใน loop() ไม่มีคำสั่ง if (WiFi.status() != WL_CONNECTED) เลย
+  // เพราะระบบใช้ Event Callback จัดการ Reconnect ในระดับ System Task เบื้องหลัง
+  static unsigned long lastLog = 0;
+  if (millis() - lastLog >= 10000) {
+    lastLog = millis();
+    Serial.printf("[Main Loop Task] Running freely! Heap: %d Bytes | Status: %d\\n", ESP.getFreeHeap(), (int)WiFi.status());
   }
+  delay(10);
 }`;
     const ta = document.getElementById('challengeCode');
     if (ta) ta.value = template;
