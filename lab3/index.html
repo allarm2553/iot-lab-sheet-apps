@@ -1578,41 +1578,75 @@ void loop() {
 <div class="modal-overlay" id="theoryModal">
   <div class="theory-modal-content">
     <div class="theory-modal-header">
-      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: WiFi Parameters, Status Enum & Event-Driven Architecture</h2>
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Wi-Fi Modes, Network Parameters, Status Enum & Event-Driven Architecture</h2>
       <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="theory-modal-body">
       <!-- Tabs -->
       <div class="theory-tab-bar">
-        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. พารามิเตอร์เครือข่าย (IP/MAC/RSSI)</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. รหัสสถานะ WiFi.status()</button>
-        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. Event-Driven Auto-Reconnect</button>
+        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. โหมดการทำงานของ Wi-Fi</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. การสแกน, RSSI & ความปลอดภัย</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. พารามิเตอร์ & รหัสสถานะ Enum</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)">4. Event-Driven Auto-Reconnect</button>
       </div>
 
-      <!-- Tab 1 -->
+      <!-- Tab 1: Wi-Fi Modes -->
       <div class="theory-tab-panel active" id="theory-tab-tab1">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-network-wired"></i> 1.1 พารามิเตอร์เครือข่ายสำคัญในการเชื่อมต่อ Wi-Fi</h4>
+          <h4><i class="fa-solid fa-tower-broadcast"></i> 1.1 โหมดการทำงานของโมดูล Wi-Fi (Wi-Fi Operational Modes)</h4>
           <p>
-            เมื่ออุปกรณ์ IoT เชื่อมต่อเข้ากับเครือข่าย เราสามารถดึงค่าคุณสมบัติสำคัญผ่านไลบรารี <code>WiFi</code> ดังนี้:
+            ชิปไมโครคอนโทรลเลอร์ ESP32 และ ESP8266 บรรจุตัวรับส่งสัญญาณวิทยุมาตรฐาน IEEE 802.11 b/g/n (ย่านความถี่ 2.4 GHz) ซึ่งสามารถกำหนดโหมดการทำงานผ่านคำสั่ง <code>WiFi.mode()</code> ได้ดังนี้:
           </p>
-          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.75rem;">
-            <li><code>WiFi.localIP()</code>: หมายเลข IP (Layer 3) ที่ได้รับจาก DHCP Server เพื่อใช้อ้างอิงในวง LAN</li>
-            <li><code>WiFi.subnetMask()</code> &amp; <code>WiFi.gatewayIP()</code>: ขอบเขต Subnet และ IP เราเตอร์สำหรับออกสู่อินเทอร์เน็ต</li>
-            <li><code>WiFi.dnsIP()</code>: เซิร์ฟเวอร์แปลงชื่อโดเมน (เช่น <code>8.8.8.8</code>)</li>
-            <li><code>WiFi.macAddress()</code>: Hardware Address ประจำตัวชิป (Layer 2) ไม่ซ้ำกันในโลก เหมาะใช้เป็น <strong>Unique Device ID</strong> บนคลาวด์</li>
-            <li><code>WiFi.RSSI()</code>: ความแรงสัญญาณวิทยุ (dBm) ยิ่งใกล้ 0 ยิ่งแรง (เช่น <code>-50 dBm</code> ดีกว่า <code>-85 dBm</code>)</li>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7;">
+            <li><strong>Station Mode (<code>WIFI_STA</code>):</strong> บอร์ดทำหน้าที่เป็นลูกข่าย (Client/Station) ไปเกาะเชื่อมต่อกับ Access Point หรือ Wi-Fi Router หลัก เพื่อขอรับหมายเลข IP ผ่าน DHCP และส่งข้อมูลขึ้นอินเทอร์เน็ต</li>
+            <li><strong>Access Point Mode (<code>WIFI_AP</code>):</strong> บอร์ดทำหน้าที่เป็นจุดกระจายสัญญาณ Wi-Fi ของตัวเอง (Hotspot) ให้คอมพิวเตอร์หรือมือถือเข้ามาเชื่อมต่อโดยตรง (เช่น ตั้งค่า IP เริ่มต้นเป็น <code>192.168.4.1</code>)</li>
+            <li><strong>Dual Mode (<code>WIFI_AP_STA</code>):</strong> บอร์ดเปิดใช้งานทั้งโหมด AP และ STA พร้อมกัน นิยมใช้ในระบบ **Wi-Fi Provisioning / Captive Portal** เพื่อให้ผู้ใช้เกาะ Hotspot มาตั้งค่า SSID/Password ของบ้าน แล้วบอร์ดสั่งสแกนหาเครือข่ายไปพร้อมกัน</li>
+            <li><strong>Wi-Fi Off (<code>WIFI_OFF</code>):</strong> ปิดภาคส่งสัญญาณวิทยุทั้งหมดเพื่อประหยัดพลังงาน เหมาะสำหรับงานใช้แบตเตอรี่และระบบ Deep Sleep</li>
           </ul>
         </div>
       </div>
 
-      <!-- Tab 2 -->
+      <!-- Tab 2: Scanning, RSSI, Security -->
       <div class="theory-tab-panel" id="theory-tab-tab2">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-list-ol"></i> 2.1 รหัสสถานะการเชื่อมต่อ (wl_status_t Enum)</h4>
+          <h4><i class="fa-solid fa-satellite-dish"></i> 2.1 การสแกนหาเครือข่าย, ค่า RSSI และความปลอดภัย (Security Types)</h4>
           <p>
-            ฟังก์ชัน <code>WiFi.status()</code> ส่งคืนค่าเป็นตัวเลข Enumeration เพื่อบอกสภาวะปัจจุบันของ Wi-Fi Interface:
+            ฟังก์ชัน <code>WiFi.scanNetworks()</code> ทำหน้าที่สั่งให้ภาครับสัญญาณกวาดหาคลื่นความถี่ 2.4 GHz ทั้ง 13 ช่องสัญญาณ (Channels 1–13) เพื่อเก็บข้อมูลเครือข่ายที่อยู่รอบตัว:
+          </p>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7; margin-bottom: 0.75rem;">
+            <li><strong>SSID (Service Set Identifier):</strong> ชื่อของเครือข่าย Wi-Fi ที่ค้นพบ</li>
+            <li><strong>Channel (ช่องสัญญาณ 1–13):</strong> ย่านความถี่กลาง 2412 – 2472 MHz เพื่อหลีกเลี่ยงการกวนกันของคลื่น</li>
+            <li><strong>Security / Encryption Type:</strong> มาตรฐานการเข้ารหัสความปลอดภัย เช่น <code>OPEN</code> (ไม่มีรหัส), <code>WEP</code>, <code>WPA_PSK</code>, <code>WPA2_PSK</code>, และ <code>WPA3_SAE</code></li>
+          </ul>
+          <h4><i class="fa-solid fa-signal"></i> 2.2 หน่วยวัดความแรงสัญญาณ RSSI (dBm)</h4>
+          <p>
+            <strong>RSSI (Received Signal Strength Indicator)</strong> มีหน่วยเป็น <strong>dBm (Decibel-milliwatts)</strong> เป็นการเปรียบเทียบกำลังงานที่รับได้กับกำลังส่ง 1 มิลลิวัตต์ตามสเกลลอการิทึม สัญญาณวิทยุมีกำลังต่ำมากในระดับไมโครวัตต์ จึงแสดงผลเป็นค่าติดลบเสมอ:
+          </p>
+          <div class="theory-formula">
+            • RSSI &gt;= -50 dBm : สัญญาณดีเยี่ยม (Excellent Signal - ใกล้ Router มาก)<br>
+            • RSSI &gt;= -65 dBm : สัญญาณดี เหมาะสำหรับงาน IoT ส่งข้อมูลต่อเนื่อง (Good Signal)<br>
+            • RSSI &gt;= -75 dBm : สัญญาณระดับปานกลาง/พอใช้ (Fair Signal)<br>
+            • RSSI &lt; -80 dBm : สัญญาณอ่อนมาก อาจเกิด Packet Loss หรือหลุดบ่อย (Poor Signal)
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Parameters & Status Enum -->
+      <div class="theory-tab-panel" id="theory-tab-tab3">
+        <div class="theory-card">
+          <h4><i class="fa-solid fa-network-wired"></i> 3.1 พารามิเตอร์สำคัญของระบบเครือข่าย (Network Parameters)</h4>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7; margin-bottom: 0.75rem;">
+            <li><code>WiFi.localIP()</code>: หมายเลข IP Address ประจำตัวบอร์ดบนวง LAN (Layer 3)</li>
+            <li><code>WiFi.subnetMask()</code> &amp; <code>WiFi.gatewayIP()</code>: ซับเน็ตมาสก์และไอพีเราเตอร์สำหรับชี้ทางออกอินเทอร์เน็ต</li>
+            <li><code>WiFi.dnsIP()</code>: เซิร์ฟเวอร์ DNS สำหรับแปลงชื่อ Domain (เช่น <code>8.8.8.8</code>)</li>
+            <li><code>WiFi.macAddress()</code>: หมายเลขประจำตัวฮาร์ดแวร์ชิป (Layer 2 MAC) ไม่ซ้ำกันในโลก เหมาะใช้เป็น <strong>Unique Device ID</strong> บนระบบคลาวด์</li>
+            <li><code>WiFi.BSSIDstr()</code>: หมายเลข MAC Address ของ Access Point ที่บอร์ดเชื่อมต่ออยู่</li>
+          </ul>
+
+          <h4><i class="fa-solid fa-list-check"></i> 3.2 ตารางค่าสถานะการเชื่อมต่อ (wl_status_t Enum)</h4>
+          <p>
+            ฟังก์ชัน <code>WiFi.status()</code> ส่งคืนค่ารหัสตัวเลขบอกสถานะปัจจุบันของ Wi-Fi Interface:
           </p>
           <div class="theory-formula">
             • WL_CONNECTED (3)       : เชื่อมต่อสำเร็จและได้รับ IP เรียบร้อย<br>
@@ -1627,19 +1661,19 @@ void loop() {
         </div>
       </div>
 
-      <!-- Tab 3 -->
-      <div class="theory-tab-panel" id="theory-tab-tab3">
+      <!-- Tab 4: Event-Driven Reconnect -->
+      <div class="theory-tab-panel" id="theory-tab-tab4">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-bolt"></i> 3.1 สถาปัตยกรรม Event-Driven Callback vs Polling ใน loop()</h4>
+          <h4><i class="fa-solid fa-bolt"></i> 4.1 สถาปัตยกรรม Event-Driven Callback vs Polling ใน loop()</h4>
           <p>
-            การเขียน <code>if (WiFi.status() != WL_CONNECTED)</code> วนลูปเช็คใน <code>loop()</code> เรียกว่า <strong>Status Polling</strong> ซึ่งสิ้นเปลืองรอบ CPU และหากระบบติดคำสั่ง <code>delay()</code> อื่นๆ จะทำให้การตรวจจับสัญญาณหลุดล่าช้า<br><br>
-            <strong>แนวทางวิศวกรรมขั้นสูง (Event-Driven Architecture):</strong> ใช้การลงทะเบียน <strong>Event Handler</strong> ให้ Wi-Fi Stack ของระบบเรียก Callback ทำงานเองในระดับ Background Task ทันทีที่เกิดเหตุการณ์:
+            <strong>วิธีแบบเดิม (Status Polling):</strong> เขียน <code>if (WiFi.status() != WL_CONNECTED)</code> วนลูปเช็คใน <code>loop()</code> ซึ่งสิ้นเปลืองรอบ CPU และหากระบบติดคำสั่ง <code>delay()</code> อื่นๆ จะทำให้การตรวจจับสัญญาณหลุดล่าช้า<br><br>
+            <strong>วิธีระดับวิศวกรรม (Event-Driven Architecture):</strong> ลงทะเบียน <strong>Event Callback Function</strong> ให้ Wi-Fi Stack ดักจับและสั่งเชื่อมต่อใหม่แบบ Asynchronous ในระดับ Background Task ทันทีที่สัญญาณหลุด ทำให้ <code>loop()</code> ทำงานเซนเซอร์หรือจอแสดงผลได้อย่างราบรื่น:
           </p>
           <div class="theory-formula">
             // สำหรับ ESP32: ใช้ WiFi.onEvent()<br>
             WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {<br>
             &nbsp;&nbsp;if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] สัญญาณหลุด! Reconnect ทันที...");<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] สัญญาณหลุด! Auto-reconnecting ใน Background...");<br>
             &nbsp;&nbsp;&nbsp;&nbsp;WiFi.reconnect();<br>
             &nbsp;&nbsp;}<br>
             });<br>
