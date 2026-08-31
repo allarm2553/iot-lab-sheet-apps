@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP Wi-Fi Setup Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="icon-circle"><i class="fa-solid fa-wifi"></i></div>
+      <h2>Wi-Fi Setup Dashboard</h2>
+      <p class="subtitle">ระบบตั้งค่าการเชื่อมต่อเครือข่ายสำหรับอุปกรณ์ IoT</p>
+    </div>
+
+    <div id="statusAlert" class="alert-box" style="display:none;"></div>
+
+    <div class="section-title">
+      <i class="fa-solid fa-tower-broadcast"></i> เลือกเครือข่าย Wi-Fi ที่ค้นพบ
+      <button type="button" class="btn-refresh" id="scanBtn" onclick="scanNetworks()">
+        <i class="fa-solid fa-rotate"></i> สแกนใหม่
+      </button>
+    </div>
+
+    <div class="network-list" id="networkList">
+      <div class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาเครือข่าย Wi-Fi ในบริเวณใกล้เคียง...
+      </div>
+    </div>
+
+    <form id="configForm" onsubmit="handleSave(event)">
+      <div class="form-group">
+        <label for="ssidInput"><i class="fa-solid fa-network-wired"></i> ชื่อเครือข่าย (SSID)</label>
+        <input type="text" id="ssidInput" name="ssid" placeholder="เลือกจากรายการด้านบนหรือพิมพ์เอง" required>
+      </div>
+
+      <div class="form-group">
+        <label for="passInput"><i class="fa-solid fa-key"></i> รหัสผ่าน (Password)</label>
+        <div class="pass-wrapper">
+          <input type="password" id="passInput" name="pass" placeholder="กรอกรหัสผ่าน Wi-Fi (ถ้ามี)">
+          <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility()">
+            <i class="fa-solid fa-eye" id="passToggleIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" id="saveBtn" class="btn-primary">
+        <i class="fa-solid fa-floppy-disk"></i> บันทึกและเชื่อมต่อเครือข่าย
+      </button>
+    </form>
+
+    <div class="footer-tips">
+      <i class="fa-solid fa-circle-info"></i> <strong>คำแนะนำ:</strong> หากต้องการรีเซ็ตการตั้งค่า Wi-Fi ให้กดปุ่ม <strong>GPIO 0 (SW1/FLASH)</strong> บนบอร์ดค้างไว้ 3 วินาที
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
