@@ -1310,27 +1310,84 @@ void loop() {
 
   <script>
     // ===== PRE-SUBMISSION SCORE CHECK =====
+    
+    // ===== REGEX EVALUATION ENGINES (LAB 3.2) =====
+    function evaluateLab32Challenge(code) {
+      if (!code || code.trim().length === 0) {
+        return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+      }
+      let score = 0.0;
+      let matched = [];
+
+      // Criterion 1: REST API JSON Relay Control & deserialize (+1.0)
+      if (/handleSetRelay|deserializeJson|relay|action/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ มีฟังก์ชันประมวลผล JSON REST API และสั่งงานรีเลย์');
+      } else {
+        matched.push('✗ ขาดการถอดรหัส JSON POST เพื่อควบคุมรีเลย์ (deserializeJson / relay)');
+      }
+
+      // Criterion 2: OLED Status Display & Hardware Debounce (+1.0)
+      if (/(display\.(clearDisplay|print|display)|SSD1306)/i.test(code) || /(digitalRead.*0|millis)/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ มีการแสดงผลสถานะบนจอ OLED หรือเขียนตรรกะสวิตช์ปุ่มกดกายภาพ');
+      } else {
+        matched.push('✗ ขาดการส่งค่าแสดงผลจอ OLED หรือตรวจจับปุ่มกด GPIO 0');
+      }
+
+      // Criterion 3: JSON response & CORS / Endpoint registration (+1.0)
+      if (/serializeJson|server\.send.*200|Access-Control-Allow-Origin/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ เข้ารหัส JSON ส่งกลับและรองรับ CORS Header ครบถ้วน');
+      } else {
+        matched.push('✗ ขาดคำสั่ง serializeJson() หรือส่งผลลัพธ์ผ่าน server.send(200)');
+      }
+
+      return {
+        score: Number(score.toFixed(1)),
+        feedback: matched.join('<br>')
+      };
+    }
+
+    function evaluateLab32Blanks() {
+      const b1 = (document.getElementById('codeBlank1')?.value || '').trim();
+      const b2 = (document.getElementById('codeBlank2')?.value || '').trim();
+      const b3 = (document.getElementById('codeBlank3')?.value || '').trim();
+      const b4 = (document.getElementById('codeBlank4')?.value || '').trim();
+      const b5 = (document.getElementById('codeBlank5')?.value || '').trim();
+
+      const b1Ok = /server\.on.*api\/data.*HTTP_GET/i.test(b1);
+      const b2Ok = /server\.on.*api\/relay.*HTTP_POST/i.test(b2);
+      const b3Ok = /serializeJson/i.test(b3);
+      const b4Ok = /server\.send.*200/i.test(b4);
+      const b5Ok = /deserializeJson/i.test(b5);
+
+      let correct = 0;
+      if (b1Ok) correct++;
+      if (b2Ok) correct++;
+      if (b3Ok) correct++;
+      if (b4Ok) correct++;
+      if (b5Ok) correct++;
+
+      const score = Number(((correct / 5) * 2.0).toFixed(1));
+      return { score, correctCount: correct, totalCount: 5 };
+    }
+
     function checkPreSubmissionScore() {
       // Student info
       const nameVal = (document.getElementById('studentName')?.value || '').trim();
       const idVal = (document.getElementById('studentId')?.value || '').trim();
-      const groupVal = (document.getElementById('studentClass')?.value || '').trim();
+      const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
       const isInfoComplete = !!(nameVal && idVal && groupVal);
 
-      // Code blanks — count filled ones
-      const blankIds = ['codeBlank1','codeBlank2','codeBlank3','codeBlank4','codeBlank5',
-                        'blank1','blank2','blank3','blank4','blank5'];
-      let filledBlanks = 0, totalBlanks = 0;
-      blankIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { totalBlanks++; if (el.value.trim().length > 0) filledBlanks++; }
-      });
-      const blankScore = totalBlanks > 0 ? Number(((filledBlanks / totalBlanks) * 2).toFixed(1)) : 2.0;
+      // Code blanks — evaluated via Regex Engine
+      const blanksResult = evaluateLab32Blanks();
+      const blankScore = blanksResult.score;
 
-      // Challenge code
-      const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
-      const hasChallenge = challengeCode.length > 20;
-      const chScore = hasChallenge ? 3.0 : 0.0;
+      // Challenge code — evaluated via Regex Engine
+      const rawCode = (document.getElementById('challengeCode')?.value || '').trim();
+      const chEval = evaluateLab32Challenge(rawCode);
+      const chScore = chEval.score;
 
       // Questions
       const questionIds = ['question1','question2','question3','question4','question5'];
@@ -1341,16 +1398,34 @@ void loop() {
       });
       const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
 
-      // Attachments — handle both old and new variable naming
+      // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
-      const hasScreenshot = !!(window.uploadedScreenshotBase64 || (window.filesData && window.filesData.screenshotBase64));
-      const hasCodeFile = !!(window.uploadedCodeBase64 || (window.filesData && window.filesData.codeBase64));
+      const screenshotInput = document.getElementById('screenshotInput') || document.getElementById('proofFile');
+      const codeInput = document.getElementById('codeInput');
+      const hasScreenshot = !!(
+        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
+        (typeof screenshotBase64 !== 'undefined' && screenshotBase64) ||
+        (window.uploadedScreenshotBase64) ||
+        (window.screenshotBase64) ||
+        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
+        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.screenshotBase64 || window.filesData.screenshot))
+      );
+      const hasCodeFile = !!(
+        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
+        (typeof codeBase64 !== 'undefined' && codeBase64) ||
+        (window.uploadedCodeBase64) ||
+        (window.codeBase64) ||
+        (codeInput && codeInput.files && codeInput.files.length > 0) ||
+        (document.getElementById('codePreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.codeBase64 || window.filesData.code))
+      );
       if (hasScreenshot) attachScore += 0.5;
       if (hasCodeFile) attachScore += 0.5;
 
       // Conclusion
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
-      const hasConclusion = conclusion.length > 5;
+      const hasConclusion = conclusion.length > 100;
 
       // Total
       const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
@@ -1376,17 +1451,17 @@ void loop() {
           </div>
           <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
         </div>
-        ${totalBlanks > 0 ? `<div class="score-item-row">
+        ${blanksResult.totalCount > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม</div>
-            <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/${totalBlanks} ช่อง</div>
+            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
+            <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
           </div>
           <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
         </div>` : ''}
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
-            <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้' : '⚠️ ยังไม่ได้เขียนโค้ดหรือโค้ดสั้นเกินไป'}</div>
+            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex REST API & OLED Engine)</div>
+            <div class="score-item-desc">${chEval.feedback}</div>
           </div>
           <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
         </div>` : ''}
@@ -1407,9 +1482,9 @@ void loop() {
         <div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
-            <div class="score-item-desc">${hasConclusion ? 'บันทึกสรุปผลเรียบร้อย' : '⚠️ กรุณาพิมพ์สรุปผลการทดลองด้วยตนเอง'}</div>
+            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'เรียบร้อย':'ยังไม่ระบุ'}</div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
         </div>
       `;
 

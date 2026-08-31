@@ -1688,6 +1688,7 @@ void loop() {
       if (type === 'screenshot') {
         reader.onload = function(e) {
           uploadedScreenshotBase64 = e.target.result;
+          window.uploadedScreenshotBase64 = e.target.result;
           uploadedScreenshotName = file.name;
           uploadedScreenshotType = file.type;
           document.getElementById('screenshotImg').src = e.target.result;
@@ -1700,6 +1701,7 @@ void loop() {
       } else {
         reader.onload = function(e) {
           uploadedCodeBase64 = e.target.result;
+          window.uploadedCodeBase64 = e.target.result;
           uploadedCodeFileName = file.name;
           uploadedCodeFileType = file.type || "application/octet-stream";
           document.getElementById('codeName').textContent = file.name;
@@ -1713,12 +1715,18 @@ void loop() {
 
     function removeFile(type) {
       if (type === 'screenshot') {
-        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        uploadedScreenshotBase64 = null;
+        window.uploadedScreenshotBase64 = null;
+        uploadedScreenshotName = null;
+        uploadedScreenshotType = null;
         document.getElementById('screenshotInput').value = '';
         document.getElementById('screenshotArea').style.display = 'block';
         document.getElementById('screenshotPreview').style.display = 'none';
       } else {
-        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        uploadedCodeBase64 = null;
+        window.uploadedCodeBase64 = null;
+        uploadedCodeFileName = null;
+        uploadedCodeFileType = null;
         document.getElementById('codeInput').value = '';
         document.getElementById('codeArea').style.display = 'block';
         document.getElementById('codePreview').style.display = 'none';
@@ -1954,6 +1962,81 @@ void loop() {
     window.addEventListener('DOMContentLoaded', initAntiCheat);
 
     // ===== PRE-SUBMISSION SCORE CHECK =====
+    // ===== REGEX EVALUATION HELPERS =====
+    function evaluateLab2Challenge(code) {
+      if (!code || code.trim().length === 0) {
+        return { score: 0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+      }
+      const cleanCode = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      let score = 0;
+      let feedback = [];
+
+      // 1. ตรวจสอบการใช้งานคำสั่งควบคุม Frame Buffer ของจอ OLED (clearDisplay + display.display())
+      const oledBasicRegex = /display\s*\.\s*(?:clearDisplay|setCursor|setTextSize|setTextColor)\s*\(/i;
+      const oledRenderRegex = /display\s*\.\s*display\s*\(\s*\)/i;
+      const hasOledBasic = oledBasicRegex.test(cleanCode);
+      const hasOledRender = oledRenderRegex.test(cleanCode);
+
+      if (hasOledBasic && hasOledRender) {
+        score += 1.0;
+        feedback.push('✓ ควบคุม Frame Buffer OLED ถูกต้อง (clearDisplay + display)');
+      } else if (hasOledBasic) {
+        feedback.push('⚠️ พบคำสั่งจอ OLED แต่ยังขาด display.display() เพื่อสั่ง Render');
+      }
+
+      // 2. ตรวจสอบการแสดงผลค่าเซ็นเซอร์ (Temp / Humidity / Analog)
+      const sensorPrintRegex = /display\s*\.\s*(?:print|printf|println)\s*\([^)]*(?:temp|hum|dht|analog|adc|celsius|%)/i;
+      const sensorReadRegex = /(?:readTemperature|readHumidity|analogRead|analogPercent|temperature)/i;
+      const hasSensorPrint = sensorPrintRegex.test(cleanCode) || (sensorReadRegex.test(cleanCode) && /display\s*\.\s*(?:print|printf|println)/i.test(cleanCode));
+
+      if (hasSensorPrint) {
+        score += 1.0;
+        feedback.push('✓ แสดงผลค่าเซ็นเซอร์บนจอ OLED (Temp / Hum / Analog)');
+      } else {
+        feedback.push('⚠️ ยังขาดคำสั่งแสดงผลค่าเซ็นเซอร์ (อุณหภูมิ/ความชื้น/แอนะล็อก)');
+      }
+
+      // 3. ตรวจสอบการแสดงสถานะรีเลย์ หรือจำนวนครั้งกดปุ่ม Toggle
+      const statusPrintRegex = /display\s*\.\s*(?:print|printf|println)\s*\([^)]*(?:relay|state|count|press|toggle|sw|on|off)/i;
+      const statusVarRegex = /(?:relayState|pressCount|toggleCount|count|digitalRead)/i;
+      const hasStatusPrint = statusPrintRegex.test(cleanCode) || (statusVarRegex.test(cleanCode) && /display\s*\.\s*(?:print|printf|println)/i.test(cleanCode));
+
+      if (hasStatusPrint) {
+        score += 1.0;
+        feedback.push('✓ แสดงสถานะ Relay / จำนวนกด Toggle');
+      } else {
+        feedback.push('⚠️ ยังขาดคำสั่งแสดงสถานะ Relay หรือจำนวนการกดปุ่มสวิตช์');
+      }
+
+      if (score === 0) {
+        feedback.push('⚠️ ยังไม่พบตรรกะแสดงผลค่าบนจอ OLED (display.setCursor, display.printf, display.display)');
+      }
+
+      return { score: Number(score.toFixed(1)), feedback: feedback.join(' | ') };
+    }
+
+    function evaluateLab2Blanks() {
+      const blankRules = [
+        { id: 'codeBlank1', pattern: /^\s*(SSD1306_WHITE|WHITE|1)\s*$/i, label: 'ช่อง 1 (OLED Draw Line Color)' },
+        { id: 'codeBlank2', pattern: /^\s*display\s*(\(\s*\))?\s*$/i, label: 'ช่อง 2 (OLED Display Render)' }
+      ];
+
+      let correctCount = 0;
+      let totalCount = 0;
+      blankRules.forEach(rule => {
+        const el = document.getElementById(rule.id);
+        if (el) {
+          totalCount++;
+          if (rule.pattern.test(el.value)) {
+            correctCount++;
+          }
+        }
+      });
+
+      const score = totalCount > 0 ? Number(((correctCount / totalCount) * 2.0).toFixed(1)) : 2.0;
+      return { score, correctCount, totalCount };
+    }
+
     function checkPreSubmissionScore() {
       // Student info
       const nameVal = (document.getElementById('studentName')?.value || '').trim();
@@ -1961,20 +2044,14 @@ void loop() {
       const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
       const isInfoComplete = !!(nameVal && idVal && groupVal);
 
-      // Code blanks — count filled ones
-      const blankIds = ['codeBlank1','codeBlank2','codeBlank3','codeBlank4','codeBlank5',
-                        'blank1','blank2','blank3','blank4','blank5'];
-      let filledBlanks = 0, totalBlanks = 0;
-      blankIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { totalBlanks++; if (el.value.trim().length > 0) filledBlanks++; }
-      });
-      const blankScore = totalBlanks > 0 ? Number(((filledBlanks / totalBlanks) * 2).toFixed(1)) : 2.0;
+      // Code blanks — Evaluated via Regex Patterns
+      const blanksResult = evaluateLab2Blanks();
+      const blankScore = blanksResult.score;
 
-      // Challenge code
+      // Challenge code — Evaluated via Regex Logic
       const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
-      const hasChallenge = challengeCode.length > 20;
-      const chScore = hasChallenge ? 3.0 : 0.0;
+      const chEval = evaluateLab2Challenge(challengeCode);
+      const chScore = chEval.score;
 
       // Questions
       const questionIds = ['question1','question2','question3','question4','question5'];
@@ -1985,16 +2062,30 @@ void loop() {
       });
       const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
 
-      // Attachments — handle both old and new variable naming
+      // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
-      const hasScreenshot = !!(window.uploadedScreenshotBase64 || (window.filesData && window.filesData.screenshotBase64));
-      const hasCodeFile = !!(window.uploadedCodeBase64 || (window.filesData && window.filesData.codeBase64));
+      const screenshotInput = document.getElementById('screenshotInput');
+      const codeInput = document.getElementById('codeInput');
+      const hasScreenshot = !!(
+        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
+        (window.uploadedScreenshotBase64) ||
+        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
+        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
+        (window.filesData && window.filesData.screenshotBase64)
+      );
+      const hasCodeFile = !!(
+        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
+        (window.uploadedCodeBase64) ||
+        (codeInput && codeInput.files && codeInput.files.length > 0) ||
+        (document.getElementById('codePreview')?.style.display === 'flex') ||
+        (window.filesData && window.filesData.codeBase64)
+      );
       if (hasScreenshot) attachScore += 0.5;
       if (hasCodeFile) attachScore += 0.5;
 
       // Conclusion
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
-      const hasConclusion = conclusion.length > 5;
+      const hasConclusion = conclusion.length > 100;
 
       // Total
       const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
@@ -2020,17 +2111,17 @@ void loop() {
           </div>
           <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
         </div>
-        ${totalBlanks > 0 ? `<div class="score-item-row">
+        ${blanksResult.totalCount > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม</div>
-            <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/${totalBlanks} ช่อง</div>
+            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
+            <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
           </div>
           <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
         </div>` : ''}
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
-            <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้' : '⚠️ ยังไม่ได้เขียนโค้ดหรือโค้ดสั้นเกินไป'}</div>
+            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex OLED Dashboard Engine)</div>
+            <div class="score-item-desc">${chEval.feedback}</div>
           </div>
           <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
         </div>` : ''}
@@ -2051,9 +2142,9 @@ void loop() {
         <div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
-            <div class="score-item-desc">${hasConclusion ? 'บันทึกสรุปผลเรียบร้อย' : '⚠️ กรุณาพิมพ์สรุปผลการทดลองด้วยตนเอง'}</div>
+            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'เรียบร้อย':'ยังไม่ระบุ'}</div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
         </div>
       `;
 

@@ -1020,6 +1020,9 @@ void loop() {
           });
         });
       });
+    }
+    window.addEventListener('DOMContentLoaded', initAntiCheat);
+
     // ===== PRE-SUBMISSION SCORE CHECK =====
     function checkPreSubmissionScore() {
       // Student info
@@ -1052,16 +1055,36 @@ void loop() {
       });
       const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
 
-      // Attachments — handle both old and new variable naming
+            // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
-      const hasScreenshot = !!(window.uploadedScreenshotBase64 || (window.filesData && window.filesData.screenshotBase64) || window.screenshotBase64);
-      const hasCodeFile = !!(window.uploadedCodeBase64 || (window.filesData && window.filesData.codeBase64) || window.codeBase64);
+      const screenshotInput = document.getElementById('screenshotFile') || document.getElementById('screenshotInput') || document.getElementById('proofFile');
+      const codeInput = document.getElementById('codeFile') || document.getElementById('codeInput');
+      const hasScreenshot = !!(
+        (typeof screenshotBase64 !== 'undefined' && screenshotBase64) ||
+        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
+        (window.screenshotBase64) ||
+        (window.uploadedScreenshotBase64) ||
+        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
+        (document.getElementById('imgPreview')?.querySelector('img')) ||
+        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.screenshotBase64 || window.filesData.screenshot))
+      );
+      const hasCodeFile = !!(
+        (typeof codeBase64 !== 'undefined' && codeBase64) ||
+        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
+        (window.codeBase64) ||
+        (window.uploadedCodeBase64) ||
+        (codeInput && codeInput.files && codeInput.files.length > 0) ||
+        (document.getElementById('codeFilePreview')?.querySelector('span, img')) ||
+        (document.getElementById('codePreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.codeBase64 || window.filesData.code))
+      );
       if (hasScreenshot) attachScore += 0.5;
       if (hasCodeFile) attachScore += 0.5;
 
       // Conclusion
-      const conclusion = (document.getElementById('conclusion')?.value || '').trim();
-      const hasConclusion = conclusion.length > 5;
+      const conclusion = (document.getElementById('conclusion')?.value || document.getElementsByName('conclusion')?.[0]?.value || '').trim();
+      const hasConclusion = conclusion.length > 100;
 
       // Total
       const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
@@ -1118,9 +1141,9 @@ void loop() {
         <div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
-            <div class="score-item-desc">${hasConclusion ? 'บันทึกสรุปผลเรียบร้อย' : '⚠️ กรุณาพิมพ์สรุปผลการทดลองด้วยตนเอง'}</div>
+            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'เรียบร้อย':'ยังไม่ระบุ'}</div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
         </div>
       `;
 

@@ -1749,6 +1749,7 @@ void loop() {
       if (type === 'screenshot') {
         reader.onload = function(e) {
           uploadedScreenshotBase64 = e.target.result;
+          window.uploadedScreenshotBase64 = e.target.result;
           uploadedScreenshotName = file.name;
           uploadedScreenshotType = file.type;
           document.getElementById('screenshotImg').src = e.target.result;
@@ -1761,6 +1762,7 @@ void loop() {
       } else {
         reader.onload = function(e) {
           uploadedCodeBase64 = e.target.result;
+          window.uploadedCodeBase64 = e.target.result;
           uploadedCodeFileName = file.name;
           uploadedCodeFileType = file.type || "application/octet-stream";
           document.getElementById('codeName').textContent = file.name;
@@ -1774,12 +1776,18 @@ void loop() {
 
     function removeFile(type) {
       if (type === 'screenshot') {
-        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        uploadedScreenshotBase64 = null;
+        window.uploadedScreenshotBase64 = null;
+        uploadedScreenshotName = null;
+        uploadedScreenshotType = null;
         document.getElementById('screenshotInput').value = '';
         document.getElementById('screenshotArea').style.display = 'block';
         document.getElementById('screenshotPreview').style.display = 'none';
       } else {
-        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        uploadedCodeBase64 = null;
+        window.uploadedCodeBase64 = null;
+        uploadedCodeFileName = null;
+        uploadedCodeFileType = null;
         document.getElementById('codeInput').value = '';
         document.getElementById('codeArea').style.display = 'block';
         document.getElementById('codePreview').style.display = 'none';
@@ -2114,6 +2122,87 @@ void loop() {
     window.addEventListener('DOMContentLoaded', initAntiCheat);
 
     // ===== PRE-SUBMISSION SCORE CHECK =====
+    // ===== REGEX EVALUATION HELPERS =====
+    function evaluateLab11Challenge(code) {
+      if (!code || code.trim().length === 0) {
+        return { score: 0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+      }
+      const cleanCode = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      let score = 0;
+      let feedback = [];
+
+      // 1. ตรวจการนับ 3 ครั้ง และสั่งเปิด Relay 2
+      const countCondRegex = /(?:count|press|click|toggle)\w*\s*(?:==|>=|%)\s*3/i;
+      const countIncRegex = /(?:count|press|click|toggle)\w*\s*(?:\+\+|\+=\s*1|=\s*\w+\s*\+\s*1)/i;
+      const relay2OnRegex = /digitalWrite\s*\(\s*(?:RELAY2_PIN|RELAY2|RELAY_2|14|[a-zA-Z0-9_]*relay[a-zA-Z0-9_]*2[a-zA-Z0-9_]*)\s*,\s*(?:HIGH|1)\s*\)/i;
+
+      const hasCountCond = countCondRegex.test(cleanCode) || countIncRegex.test(cleanCode);
+      const hasRelay2On = relay2OnRegex.test(cleanCode);
+
+      if (hasCountCond && hasRelay2On) {
+        score += 1.0;
+        feedback.push('✓ นับ 3 ครั้งเปิด Relay 2');
+      } else if (hasCountCond) {
+        feedback.push('⚠️ มีตัวนับกด 3 ครั้ง แต่ยังขาดคำสั่งเปิด Relay 2 (HIGH)');
+      }
+
+      // 2. ตรวจสอบเงื่อนไข Long Press (> 2 วินาที)
+      const longPressCondRegex = /millis\s*\(\s*\)\s*-\s*\w+\s*>\s*(?:2000|longPressDuration|\d{4,})/i;
+      const hasLongPress = longPressCondRegex.test(cleanCode) || /longPressTriggered/i.test(cleanCode);
+
+      if (hasLongPress) {
+        score += 1.0;
+        feedback.push('✓ ตรวจพบเงื่อนไข Long Press (> 2 วินาที)');
+      } else {
+        feedback.push('⚠️ ยังขาดเงื่อนไขตรวจสอบการกดค้าง (millis() - pressTime > 2000)');
+      }
+
+      // 3. ตรวจสอบการสั่งดับรีเลย์ทั้ง 2 ตัวพร้อมกันเมื่อกดค้าง
+      const relay1OffRegex = /digitalWrite\s*\(\s*(?:RELAY_PIN|RELAY1|RELAY_1|18|[a-zA-Z0-9_]*relay[a-zA-Z0-9_]*(?:1)?)\s*,\s*(?:LOW|0)\s*\)/i;
+      const relay2OffRegex = /digitalWrite\s*\(\s*(?:RELAY2_PIN|RELAY2|RELAY_2|14|[a-zA-Z0-9_]*relay[a-zA-Z0-9_]*2[a-zA-Z0-9_]*)\s*,\s*(?:LOW|0)\s*\)/i;
+
+      const hasRelay1Off = relay1OffRegex.test(cleanCode);
+      const hasRelay2Off = relay2OffRegex.test(cleanCode);
+
+      if (hasRelay1Off && hasRelay2Off) {
+        score += 1.0;
+        feedback.push('✓ สั่งปิด Relay ทั้ง 2 ตัวพร้อมกันเมื่อกดค้าง');
+      } else if (hasRelay1Off || hasRelay2Off) {
+        feedback.push('⚠️ ยังสั่งปิด Relay ไม่ครบทั้ง 2 ตัวเมื่อกดค้าง');
+      }
+
+      if (score === 0) {
+        feedback.push('⚠️ ยังไม่พบตรรกะโจทย์ท้าทาย (นับกด 3 ครั้งเปิด Relay 2 + กดค้าง 2 วินาทีปิด Relay ทั้งหมด)');
+      }
+
+      return { score: Number(score.toFixed(1)), feedback: feedback.join(' | ') };
+    }
+
+    function evaluateLab11Blanks() {
+      const blankRules = [
+        { id: 'codeBlank1', pattern: /^\s*INPUT(_PULLUP)?\s*$/i, label: 'ช่อง 1 (BUTTON_PIN pinMode)' },
+        { id: 'codeBlank2', pattern: /^\s*OUTPUT\s*$/i, label: 'ช่อง 2 (RELAY_PIN pinMode)' },
+        { id: 'codeBlank3', pattern: /^\s*(LOW|0|false)\s*$/i, label: 'ช่อง 3 (Button Press State)' },
+        { id: 'codeBlank4', pattern: /^\s*(!relayState|not\s+relayState|1\s*-\s*relayState|relayState\s*\^\s*1)\s*$/i, label: 'ช่อง 4 (Toggle Relay State)' },
+        { id: 'codeBlank5', pattern: /^\s*(LOW|0|false)\s*$/i, label: 'ช่อง 5 (Relay Turn Off)' }
+      ];
+
+      let correctCount = 0;
+      let totalCount = 0;
+      blankRules.forEach(rule => {
+        const el = document.getElementById(rule.id);
+        if (el) {
+          totalCount++;
+          if (rule.pattern.test(el.value)) {
+            correctCount++;
+          }
+        }
+      });
+
+      const score = totalCount > 0 ? Number(((correctCount / totalCount) * 2.0).toFixed(1)) : 2.0;
+      return { score, correctCount, totalCount };
+    }
+
     function checkPreSubmissionScore() {
       // Student info
       const nameVal = (document.getElementById('studentName')?.value || '').trim();
@@ -2121,20 +2210,14 @@ void loop() {
       const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
       const isInfoComplete = !!(nameVal && idVal && groupVal);
 
-      // Code blanks — count filled ones
-      const blankIds = ['codeBlank1','codeBlank2','codeBlank3','codeBlank4','codeBlank5',
-                        'blank1','blank2','blank3','blank4','blank5'];
-      let filledBlanks = 0, totalBlanks = 0;
-      blankIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { totalBlanks++; if (el.value.trim().length > 0) filledBlanks++; }
-      });
-      const blankScore = totalBlanks > 0 ? Number(((filledBlanks / totalBlanks) * 2).toFixed(1)) : 2.0;
+      // Code blanks — Evaluated via Regex Patterns
+      const blanksResult = evaluateLab11Blanks();
+      const blankScore = blanksResult.score;
 
-      // Challenge code
+      // Challenge code — Evaluated via Regex Logic
       const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
-      const hasChallenge = challengeCode.length > 20;
-      const chScore = hasChallenge ? 3.0 : 0.0;
+      const chEval = evaluateLab11Challenge(challengeCode);
+      const chScore = chEval.score;
 
       // Questions
       const questionIds = ['question1','question2','question3','question4','question5'];
@@ -2145,16 +2228,30 @@ void loop() {
       });
       const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
 
-      // Attachments — handle both old and new variable naming
+      // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
-      const hasScreenshot = !!(window.uploadedScreenshotBase64 || (window.filesData && window.filesData.screenshotBase64));
-      const hasCodeFile = !!(window.uploadedCodeBase64 || (window.filesData && window.filesData.codeBase64));
+      const screenshotInput = document.getElementById('screenshotInput');
+      const codeInput = document.getElementById('codeInput');
+      const hasScreenshot = !!(
+        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
+        (window.uploadedScreenshotBase64) ||
+        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
+        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
+        (window.filesData && window.filesData.screenshotBase64)
+      );
+      const hasCodeFile = !!(
+        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
+        (window.uploadedCodeBase64) ||
+        (codeInput && codeInput.files && codeInput.files.length > 0) ||
+        (document.getElementById('codePreview')?.style.display === 'flex') ||
+        (window.filesData && window.filesData.codeBase64)
+      );
       if (hasScreenshot) attachScore += 0.5;
       if (hasCodeFile) attachScore += 0.5;
 
       // Conclusion
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
-      const hasConclusion = conclusion.length > 5;
+      const hasConclusion = conclusion.length > 100;
 
       // Total
       const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
@@ -2180,17 +2277,17 @@ void loop() {
           </div>
           <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
         </div>
-        ${totalBlanks > 0 ? `<div class="score-item-row">
+        ${blanksResult.totalCount > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม</div>
-            <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/${totalBlanks} ช่อง</div>
+            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
+            <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
           </div>
           <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
         </div>` : ''}
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
-            <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้' : '⚠️ ยังไม่ได้เขียนโค้ดหรือโค้ดสั้นเกินไป'}</div>
+            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex Toggle/LongPress Engine)</div>
+            <div class="score-item-desc">${chEval.feedback}</div>
           </div>
           <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
         </div>` : ''}
@@ -2211,9 +2308,9 @@ void loop() {
         <div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
-            <div class="score-item-desc">${hasConclusion ? 'บันทึกสรุปผลเรียบร้อย' : '⚠️ กรุณาพิมพ์สรุปผลการทดลองด้วยตนเอง'}</div>
+            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'เรียบร้อย':'ยังไม่ระบุ'}</div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
         </div>
       `;
 

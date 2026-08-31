@@ -1586,10 +1586,10 @@ function toggleFan(state) {
     }
     // ----------------------------
 
-    let uploadedScreenshotBase64 = null;
+    let uploadedScreenshotBase64 = null; window.uploadedScreenshotBase64 = null;
     let uploadedScreenshotName = null;
     let uploadedScreenshotType = null;
-    let uploadedCodeBase64 = null;
+    let uploadedCodeBase64 = null; window.uploadedCodeBase64 = null;
     let uploadedCodeFileName = null;
     let uploadedCodeFileType = null;
 
@@ -1792,7 +1792,7 @@ function toggleFan(state) {
       const reader = new FileReader();
       if (type === 'screenshot') {
         reader.onload = function(e) {
-          uploadedScreenshotBase64 = e.target.result;
+          uploadedScreenshotBase64 = e.target.result; window.uploadedScreenshotBase64 = e.target.result;
           uploadedScreenshotName = file.name;
           uploadedScreenshotType = file.type;
           document.getElementById('screenshotImg').src = e.target.result;
@@ -1804,7 +1804,7 @@ function toggleFan(state) {
         reader.readAsDataURL(file);
       } else {
         reader.onload = function(e) {
-          uploadedCodeBase64 = e.target.result;
+          uploadedCodeBase64 = e.target.result; window.uploadedCodeBase64 = e.target.result;
           uploadedCodeFileName = file.name;
           uploadedCodeFileType = file.type || "application/octet-stream";
           document.getElementById('codeName').textContent = file.name;
@@ -1818,12 +1818,12 @@ function toggleFan(state) {
 
     function removeFile(type) {
       if (type === 'screenshot') {
-        uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
+        uploadedScreenshotBase64 = null; window.uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
         document.getElementById('screenshotInput').value = '';
         document.getElementById('screenshotArea').style.display = 'block';
         document.getElementById('screenshotPreview').style.display = 'none';
       } else {
-        uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
+        uploadedCodeBase64 = null; window.uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
         document.getElementById('codeInput').value = '';
         document.getElementById('codeArea').style.display = 'block';
         document.getElementById('codePreview').style.display = 'none';
@@ -2044,6 +2044,292 @@ function toggleFan(state) {
       });
     }
     window.addEventListener('DOMContentLoaded', initAntiCheat);
+
+  
+    // ===== PRE-SUBMISSION SCORE CHECK =====
+    
+    // ===== REGEX EVALUATION ENGINES (LAB 4) =====
+    function evaluateLab4Challenge(code) {
+      if (!code || code.trim().length === 0) {
+        return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+      }
+      let score = 0.0;
+      let matched = [];
+
+      // Criterion 1: WebSocket broadcast & JSON structure (+1.0)
+      if (/(webSocket\.(broadcastTXT|sendTXT)|JSON\.stringify|serializeJson)/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ มีคำสั่งกระจายข้อมูลผ่าน WebSocket JSON (broadcastTXT / JSON.stringify)');
+      } else {
+        matched.push('✗ ขาดการกระจายข้อมูล JSON ผ่าน webSocket.broadcastTXT()');
+      }
+
+      // Criterion 2: Multi-sensor payload (Temp, Humidity, Soil, Fan) (+1.0)
+      if (/(temp|temperature).*humidity.*(analog|soil|knob)/i.test(code) || /docs*[s*["'](temp|humidity|soil|fan)["']s*]/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ มีการจัดเตรียมโครงสร้างส่งข้อมูลเซ็นเซอร์ครบ (อุณหภูมิ, ความชื้น, แอนะล็อก)');
+      } else {
+        matched.push('✗ ขาดข้อมูลเซ็นเซอร์แอนะล็อกหรืออุณหภูมิความชื้นใน JSON Payload');
+      }
+
+      // Criterion 3: Button Press Counter & Relay status (+1.0)
+      if (/(buttonPress|pressCount|toggle_fan|digitalRead|press)/i.test(code)) {
+        score += 1.0;
+        matched.push('✓ มีตัวนับการกดปุ่มทางกายภาพหรือสถานะรีเลย์แบบเรียลไทม์');
+      } else {
+        matched.push('✗ ขาดตัวนับจำนวนครั้งการกดสวิตช์ปุ่มกด (Button Press Count)');
+      }
+
+      return {
+        score: Number(score.toFixed(1)),
+        feedback: matched.join('<br>')
+      };
+    }
+
+    function evaluateLab4Blanks() {
+      const b1 = (document.getElementById('codeBlank1')?.value || '').trim();
+      const b2 = (document.getElementById('codeBlank2')?.value || '').trim();
+
+      const b1Ok = /broadcastTXT/i.test(b1);
+      const b2Ok = /msg|payload|data/i.test(b2);
+
+      let correct = 0;
+      if (b1Ok) correct++;
+      if (b2Ok) correct++;
+
+      const score = Number(((correct / 2) * 2.0).toFixed(1));
+      return { score, correctCount: correct, totalCount: 2 };
+    }
+  
+        function checkPreSubmissionScore() {
+      // Student info
+      const nameVal = (document.getElementById('studentName')?.value || '').trim();
+      const idVal = (document.getElementById('studentId')?.value || '').trim();
+      const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
+      const isInfoComplete = !!(nameVal && idVal && groupVal);
+
+      // Code blanks — evaluated via Regex Engine
+      const blanksResult = evaluateLab4Blanks();
+      const blankScore = blanksResult.score;
+
+      // Challenge code — evaluated via Regex Engine
+      const rawCode = (document.getElementById('challengeCode')?.value || '').trim();
+      const chEval = evaluateLab4Challenge(rawCode);
+      const chScore = chEval.score;
+
+      // Questions
+      const questionIds = ['question1','question2','question3','question4','question5'];
+      let answeredQ = 0, totalQ = 0;
+      questionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { totalQ++; if (el.value.trim().length > 10) answeredQ++; }
+      });
+      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
+
+      // Attachments — robust check supporting variable, window property, input files, or preview display
+      let attachScore = 0;
+      const screenshotInput = document.getElementById('screenshotInput') || document.getElementById('proofFile');
+      const codeInput = document.getElementById('codeInput');
+      const hasScreenshot = !!(
+        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
+        (typeof screenshotBase64 !== 'undefined' && screenshotBase64) ||
+        (window.uploadedScreenshotBase64) ||
+        (window.screenshotBase64) ||
+        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
+        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.screenshotBase64 || window.filesData.screenshot))
+      );
+      const hasCodeFile = !!(
+        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
+        (typeof codeBase64 !== 'undefined' && codeBase64) ||
+        (window.uploadedCodeBase64) ||
+        (window.codeBase64) ||
+        (codeInput && codeInput.files && codeInput.files.length > 0) ||
+        (document.getElementById('codePreview')?.style.display === 'flex') ||
+        (window.filesData && (window.filesData.codeBase64 || window.filesData.code))
+      );
+      if (hasScreenshot) attachScore += 0.5;
+      if (hasCodeFile) attachScore += 0.5;
+
+      // Conclusion
+      const conclusion = (document.getElementById('conclusion')?.value || '').trim();
+      const hasConclusion = conclusion.length > 100;
+
+      // Total
+      const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
+      document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
+
+      const badgeEl = document.getElementById('preScoreBadge');
+      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
+        badgeEl.className = 'score-status-badge';
+        badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
+      } else if (totalScore >= 5.0) {
+        badgeEl.className = 'score-status-badge warning';
+        badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> พอใช้ - ควรตรวจเพิ่ม';
+      } else {
+        badgeEl.className = 'score-status-badge danger';
+        badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ยังไม่สมบูรณ์';
+      }
+
+      document.getElementById('preScoreBreakdown').innerHTML = `
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-user-graduate" style="color:${isInfoComplete?'#34d399':'#f87171'};"></i> ข้อมูลผู้ส่งใบงาน</div>
+            <div class="score-item-desc">${isInfoComplete ? `ชื่อ: ${nameVal} (รหัส: ${idVal})` : '⚠️ กรุณากรอกชื่อ, รหัสนักศึกษา และกลุ่มให้ครบถ้วน'}</div>
+          </div>
+          <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
+        </div>
+        ${blanksResult.totalCount > 0 ? `<div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
+            <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
+          </div>
+          <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
+        </div>` : ''}
+        ${document.getElementById('challengeCode') ? `<div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex WebSocket Realtime Engine)</div>
+            <div class="score-item-desc">${chEval.feedback}</div>
+          </div>
+          <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
+        </div>` : ''}
+        ${totalQ > 0 ? `<div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง</div>
+            <div class="score-item-desc">ตอบแล้ว ${answeredQ}/${totalQ} ข้อ</div>
+          </div>
+          <div class="score-item-points">${qScore.toFixed(1)} / 3.0</div>
+        </div>` : ''}
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-paperclip" style="color:${attachScore>=1?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> ไฟล์แนบหลักฐานการทดลอง</div>
+            <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพผลรัน (0.5)':'✗ ยังไม่แนบภาพผลรัน'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
+          </div>
+          <div class="score-item-points">${attachScore.toFixed(1)} / 1.0</div>
+        </div>
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
+            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
+          </div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
+        </div>
+      `;
+
+      document.getElementById('scoreCheckModal').style.display = 'flex';
+    }
+
+    function closeScoreCheckModal() {
+      document.getElementById('scoreCheckModal').style.display = 'none';
+    }
+
+    function submitFromScoreModal() {
+      closeScoreCheckModal();
+      openSubmitConfirmModal();
+    }
+
+    // ===== ONE-TIME SUBMISSION LOCK =====
+    const _LAB_STORAGE_KEY = 'submitted_iot_lab4_';
+
+    function openSubmitConfirmModal() {
+      const nameVal = (document.getElementById('studentName')?.value || '').trim();
+      const idVal = (document.getElementById('studentId')?.value || '').trim();
+      const groupVal = (document.getElementById('studentGroup')?.value || document.getElementById('studentClass')?.value || '').trim();
+
+      if (!nameVal || !idVal || !groupVal) {
+        alert('กรุณากรอกชื่อ-นามสกุล, รหัสนักศึกษา และกลุ่ม/ห้อง ให้ครบถ้วนก่อนส่งใบงาน');
+        return;
+      }
+
+      const storageKey = _LAB_STORAGE_KEY + idVal;
+      const prevSubmitTime = localStorage.getItem(storageKey);
+      if (prevSubmitTime) {
+        alert('รหัสนักศึกษา ' + idVal + ' ได้ส่งใบงานนี้ไปแล้วเมื่อ ' + prevSubmitTime + '\nระบบอนุญาตให้ส่งได้เพียง 1 ครั้งเท่านั้น');
+        lockFormAsSubmitted(prevSubmitTime);
+        return;
+      }
+
+      document.getElementById('confirmStudentName').innerText = nameVal;
+      document.getElementById('confirmStudentId').innerText = idVal;
+      document.getElementById('confirmSubmitModal').style.display = 'flex';
+    }
+
+    function closeSubmitConfirmModal() {
+      document.getElementById('confirmSubmitModal').style.display = 'none';
+    }
+
+    function executeFinalSubmit() {
+      closeSubmitConfirmModal();
+      if (typeof _doActualSubmit === 'function') {
+        _doActualSubmit();
+      } else if (typeof handleFormSubmit === 'function') {
+        handleFormSubmit({ preventDefault: () => {} });
+      }
+    }
+
+    function lockFormAsSubmitted(submitTime) {
+      const form = document.getElementById('labForm');
+      if (!form) return;
+
+      const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), textarea, select');
+      inputs.forEach(el => {
+        el.disabled = true;
+        el.style.opacity = '0.7';
+        el.style.cursor = 'not-allowed';
+      });
+
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.style.background = '#475569';
+        submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> ส่งรายงานผลเรียบร้อยแล้ว (View-Only)';
+      }
+
+      const checkScoreBtn = document.getElementById('checkScoreBtn');
+      if (checkScoreBtn) {
+        checkScoreBtn.innerHTML = '<i class="fa-solid fa-square-poll-vertical"></i> ดูคะแนนประเมินย้อนหลัง';
+      }
+
+      if (!document.getElementById('submissionLockBanner')) {
+        const banner = document.createElement('div');
+        banner.id = 'submissionLockBanner';
+        banner.style.cssText = 'background: rgba(16,185,129,0.15); border: 1px solid #10b981; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; color: #6ee7b7; display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem; font-weight: 500;';
+        banner.innerHTML = `<i class="fa-solid fa-circle-check" style="font-size: 1.4rem; color: #34d399; flex-shrink: 0;"></i>
+          <div>
+            <strong>บันทึกส่งใบงานสำเร็จเรียบร้อยแล้ว</strong>
+            <div style="font-size: 0.8rem; color: #a7f3d0; margin-top: 0.15rem;">บันทึกเมื่อ: ${submitTime || 'ก่อนหน้านี้'} (ระบบล็อกฟอร์มเป็นโหมดอ่านอย่างเดียว ป้องกันการส่งซ้ำ)</div>
+          </div>`;
+        form.insertBefore(banner, form.firstChild);
+      }
+    }
+
+    function checkSubmittedState() {
+      const studentIdInput = document.getElementById('studentId');
+      if (!studentIdInput) return;
+
+      function verify() {
+        const idVal = studentIdInput.value.trim();
+        if (!idVal) return;
+        const prev = localStorage.getItem(_LAB_STORAGE_KEY + idVal);
+        if (prev) {
+          lockFormAsSubmitted(prev);
+        }
+      }
+
+      studentIdInput.addEventListener('blur', verify);
+      studentIdInput.addEventListener('change', verify);
+
+      const savedId = localStorage.getItem('studentId');
+      if (savedId) {
+        const prev = localStorage.getItem(_LAB_STORAGE_KEY + savedId);
+        if (prev) {
+          setTimeout(() => lockFormAsSubmitted(prev), 300);
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', checkSubmittedState);
 
   </script>
 </body>
