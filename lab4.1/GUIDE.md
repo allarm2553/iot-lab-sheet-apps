@@ -1,4 +1,4 @@
-# ⚡ ใบงานที่ 3.2: การควบคุมอุปกรณ์และการอ่านค่าเซ็นเซอร์ผ่าน HTTP GET / POST (Web Server & REST API)
+# ⚡ ใบงานที่ 4.1: การควบคุมอุปกรณ์และการอ่านค่าเซ็นเซอร์ผ่าน HTTP GET / POST (Web Server & REST API)
 
 คู่มือการทดลองสร้าง Web Server บนไมโครคอนโทรลเลอร์ ESP32 / ESP8266 เพื่อให้บริการ REST API ด้วยเมธอด **HTTP GET** สำหรับอ่านค่าเซ็นเซอร์ DHT11 และ **HTTP POST** สำหรับสั่งการเปิด-ปิดรีเลย์ พร้อมเชื่อมโยงการต่อวงจรและพินฮาร์ดแวร์จากใบงานที่ 1 และ 2
 
@@ -88,7 +88,7 @@ sequenceDiagram
 
 ```cpp
 /**
- * Lab 3.2: HTTP GET / POST Web Server & REST API (Complete Solution)
+ * Lab 4.1: HTTP GET / POST Web Server & REST API (Complete Solution)
  */
 #include <Arduino.h>
 #include <Wire.h>

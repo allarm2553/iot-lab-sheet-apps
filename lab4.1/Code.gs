@@ -1,17 +1,17 @@
 /**
- * Web App for Lab 3.2: HTTP GET / POST Web Server & REST API
+ * Web App for Lab 4.1: HTTP GET / POST Web Server & REST API
  * Designed by Antigravity AI (Auto-Grading Version)
  */
 
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('ใบงานที่ 3.2: การควบคุมอุปกรณ์และการอ่านค่าเซ็นเซอร์ผ่าน HTTP GET / POST')
+    .setTitle('ใบงานที่ 4.1: การควบคุมอุปกรณ์และการอ่านค่าเซ็นเซอร์ผ่าน HTTP GET / POST')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// Auto-grading logic for lab3.2
+// Auto-grading logic for lab4.1
 function gradeSubmission(data) {
   var blankKeywords = [
     "handleGetData", 
