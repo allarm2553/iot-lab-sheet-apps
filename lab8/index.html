@@ -1459,32 +1459,70 @@ if (msg.payload === 'ON') {
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tsdb', this)"><i class="fa-solid fa-database"></i> 1. Time-Series DB</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('schema', this)"><i class="fa-solid fa-table"></i> 2. Data Schema</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tsdb', this)"><i class="fa-solid fa-database"></i> 1. Time-Series DB</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('schema', this)"><i class="fa-solid fa-table"></i> 2. Data Schema</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('flux_line', this)"><i class="fa-solid fa-terminal"></i> 3. Line Protocol &amp; Flux Query</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-tsdb">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-database"></i> 1.1 จุดเด่นของ Time-Series Database</h4>
-                <p>ฐานข้อมูลอนุกรมเวลา (TSDB) ถูกออกแบบมาเฉพาะสำหรับข้อมูลที่มีแกนเวลาเป็นหลัก มีคุณสมบัติเด่น:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>High Write Throughput:</strong> รองรับการเขียนข้อมูลความถี่สูงได้หลายแสนจุดต่อวินาที</li>
-                  <li><strong>TSM Compression:</strong> บีบอัดข้อมูลอนุกรมเวลาประหยัดพื้นที่จัดเก็บบนดิสก์ได้มากกว่าฐานข้อมูล RDBMS ถึง 10 เท่า</li>
-                  <li><strong>Time-based Operations:</strong> มีฟังก์ชันการจัดการช่วงเวลาและการลบข้อมูลเก่าตามอายุ (Retention Policy) ในตัว</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-database"></i> 1.1 จุดเด่นของ Time-Series Database</h4>
+            <p>ฐานข้อมูลอนุกรมเวลา (TSDB) ถูกออกแบบมาเฉพาะสำหรับข้อมูลที่มีแกนเวลาเป็นหลัก มีคุณสมบัติเด่น:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>High Write Throughput:</strong> รองรับการเขียนข้อมูลความถี่สูงได้หลายแสนจุดต่อวินาที</li>
+              <li><strong>TSM Compression:</strong> บีบอัดข้อมูลอนุกรมเวลาประหยัดพื้นที่จัดเก็บบนดิสก์ได้มากกว่าฐานข้อมูล RDBMS ถึง 10 เท่า</li>
+              <li><strong>Time-based Operations:</strong> มีฟังก์ชันการจัดการช่วงเวลาและการลบข้อมูลเก่าตามอายุ (Retention Policy) ในตัว</li>
+            </ul>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-schema">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-sitemap"></i> 2.1 องค์ประกอบ Data Schema ใน InfluxDB</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>Bucket:</strong> ภาชนะบรรจุข้อมูลหลัก กำหนดระยะเวลาเก็บรักษา (Retention Period)</li>
-                  <li><strong>Measurement:</strong> ชื่อกลุ่มข้อมูลวัดค่า เช่น <code>climate_sensor</code> (เปรียบเสมือน Table)</li>
-                  <li><strong>Tags:</strong> ฟิลด์ข้อมูลกำกับแบบ Key-Value ที่ถูกทำ Index ช่วยให้การค้นหาและฟิลเตอร์ทำได้รวดเร็ว เช่น <code>device="esp32_01"</code></li>
-                  <li><strong>Fields:</strong> ค่าตัวเลขหรือข้อความที่วัดได้จริงตามเวลา เช่น <code>temperature=29.5</code>, <code>humidity=65</code> (ไม่ทำ Index)</li>
-                  <li><strong>Timestamp:</strong> เวลาจริงที่ข้อมูลเกิดขึ้นระดับนาโนวินาที</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-sitemap"></i> 2.1 องค์ประกอบ Data Schema ใน InfluxDB</h4>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>Bucket:</strong> ภาชนะบรรจุข้อมูลหลัก กำหนดระยะเวลาเก็บรักษา (Retention Period)</li>
+              <li><strong>Measurement:</strong> ชื่อกลุ่มข้อมูลวัดค่า เช่น <code>climate_sensor</code> (เปรียบเสมือน Table)</li>
+              <li><strong>Tags:</strong> ฟิลด์ข้อมูลกำกับแบบ Key-Value ที่ถูกทำ Index ช่วยให้การค้นหาและฟิลเตอร์ทำได้รวดเร็ว เช่น <code>device="esp32_01"</code></li>
+              <li><strong>Fields:</strong> ค่าตัวเลขหรือข้อความที่วัดได้จริงตามเวลา เช่น <code>temperature=29.5</code>, <code>humidity=65</code> (ไม่ทำ Index)</li>
+              <li><strong>Timestamp:</strong> เวลาจริงที่ข้อมูลเกิดขึ้นระดับนาโนวินาที</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: Line Protocol & Flux Query Reference -->
+        <div class="theory-tab-panel" id="theory-tab-flux_line">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 3.1 รูปแบบข้อความ InfluxDB Line Protocol &amp; Flux Query</h4>
+            <p>เมื่อเขียนข้อมูลเข้า InfluxDB หรือคิวรีข้อมูลใน <strong>Data Explorer Message Box</strong> รูปแบบไวยากรณ์มีดังนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ประเภท</th>
+                    <th>ข้อความที่ต้องพิมพ์ใน Message Box / Query Editor</th>
+                    <th>คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>Line Protocol (Write)</b></td>
+                    <td><code>climate,device=esp32_01 temperature=28.5,humidity=65.0,fan=1</code></td>
+                    <td>รูปแบบ: <code>&lt;measurement&gt;,&lt;tag_set&gt; &lt;field_set&gt;</code> (เว้นวรรคระหว่าง Tag กับ Field)</td>
+                  </tr>
+                  <tr>
+                    <td><b>Flux Query (Read)</b></td>
+                    <td><code>from(bucket: "iot_bucket") |&gt; range(start: -1h) |&gt; filter(fn: (r) =&gt; r._measurement == "climate")</code></td>
+                    <td>คิวรีข้อมูลย้อนหลัง 1 ชั่วโมงจาก Measurement <code>climate</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p style="margin-top: 0.8rem; font-size: 0.88rem; color: #cbd5e1;">
+              ⚠️ <strong>ข้อควรระวังใน Line Protocol:</strong> ห้ามเว้นวรรคระหว่าง Tag Key กับ Tag Value เด็ดขาด การเว้นวรรคจะถูกตีความเป็นจุดเริ่มต้นของ Field Set ทันที
+            </p>
+          </div>
         </div>
       </div>
 

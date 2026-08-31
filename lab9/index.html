@@ -1428,36 +1428,71 @@ from(bucket: &quot;esp32_iot_data&quot;)
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('grafana', this)"><i class="fa-solid fa-chart-line"></i> 1. สถาปัตยกรรม Grafana</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('flux', this)"><i class="fa-solid fa-code"></i> 2. ภาษา Flux Query</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('downsample', this)"><i class="fa-solid fa-compress"></i> 3. Downsampling</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('grafana', this)"><i class="fa-solid fa-chart-line"></i> 1. สถาปัตยกรรม Grafana</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('flux', this)"><i class="fa-solid fa-code"></i> 2. ภาษา Flux Query</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('downsample', this)"><i class="fa-solid fa-compress"></i> 3. Downsampling</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('query_editor', this)"><i class="fa-solid fa-terminal"></i> 4. Flux Query Editor Box</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-grafana">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-chart-line"></i> 1.1 จุดเด่นของแพลตฟอร์ม Grafana</h4>
-                <p><strong>Grafana</strong> เป็นแพลตฟอร์ม Data Visualization ระดับองค์กรที่สามารถดึงข้อมูลจากหลาย Data Sources (เช่น InfluxDB, Prometheus, MySQL) มารวมไว้ในแดชบอร์ดเดียวกันเพื่อวิเคราะห์สถิติและแนวโน้มย้อนหลังระยะยาว</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-chart-line"></i> 1.1 จุดเด่นของแพลตฟอร์ม Grafana</h4>
+            <p><strong>Grafana</strong> เป็นแพลตฟอร์ม Data Visualization ระดับองค์กรที่สามารถดึงข้อมูลจากหลาย Data Sources (เช่น InfluxDB, Prometheus, MySQL) มารวมไว้ในแดชบอร์ดเดียวกันเพื่อวิเคราะห์สถิติและแนวโน้มย้อนหลังระยะยาว</p>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-flux">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-terminal"></i> 2.1 ไวยากรณ์ภาษา Flux Query</h4>
-                <p>Flux ใช้โครงสร้างแบบไพพ์ไลน์ (Pipeline Operator <code>|&gt;</code>) ในการส่งผ่านข้อมูลทีละขั้นตอน:</p>
-                <div class="theory-formula">
-                  from(bucket: "iot_bucket")<br>
-                  &nbsp;&nbsp;|&gt; range(start: -24h)<br>
-                  &nbsp;&nbsp;|&gt; filter(fn: (r) =&gt; r["_measurement"] == "climate_sensor")<br>
-                  &nbsp;&nbsp;|&gt; filter(fn: (r) =&gt; r["_field"] == "humidity")<br>
-                  &nbsp;&nbsp;|&gt; aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)<br>
-                  &nbsp;&nbsp;|&gt; yield(name: "mean_humidity")
-                </div>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 2.1 ไวยากรณ์ภาษา Flux Query</h4>
+            <p>Flux ใช้โครงสร้างแบบไพพ์ไลน์ (Pipeline Operator <code>|&gt;</code>) ในการส่งผ่านข้อมูลทีละขั้นตอน:</p>
+            <div class="theory-formula">
+              from(bucket: "iot_bucket")<br>
+              &nbsp;&nbsp;|&gt; range(start: -24h)<br>
+              &nbsp;&nbsp;|&gt; filter(fn: (r) =&gt; r["_measurement"] == "climate_sensor")<br>
+              &nbsp;&nbsp;|&gt; filter(fn: (r) =&gt; r["_field"] == "humidity")<br>
+              &nbsp;&nbsp;|&gt; aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)<br>
+              &nbsp;&nbsp;|&gt; yield(name: "mean_humidity")
+            </div>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-downsample">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-layer-group"></i> 3.1 การลดทอนข้อมูลด้วย aggregateWindow()</h4>
-                <p>ฟังก์ชัน <code>aggregateWindow()</code> ร่วมกับตัวแปร <code>v.windowPeriod</code> ของ Grafana ช่วยจัดกลุ่มข้อมูลตามช่วงเวลาและคำนวณค่าเฉลี่ยตัวแทน เพื่อลดปริมาณจุดข้อมูลที่ต้องวาดลงบนหน้าจอ ทำให้การซูมดูกราฟย้อนหลังหลายเดือน/หลายปีทำได้อย่างรวดเร็วโดยบราวเซอร์ไม่ค้าง</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-layer-group"></i> 3.1 การลดทอนข้อมูลด้วย aggregateWindow()</h4>
+            <p>ฟังก์ชัน <code>aggregateWindow()</code> ร่วมกับตัวแปร <code>v.windowPeriod</code> ของ Grafana ช่วยจัดกลุ่มข้อมูลตามช่วงเวลาและคำนวณค่าเฉลี่ยตัวแทน เพื่อลดปริมาณจุดข้อมูลที่ต้องวาดลงบนหน้าจอ ทำให้การซูมดูกราฟย้อนหลังหลายเดือน/หลายปีทำได้อย่างรวดเร็วโดยบราวเซอร์ไม่ค้าง</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Flux Query Editor Box Reference -->
+        <div class="theory-tab-panel" id="theory-tab-query_editor">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบคำสั่งในกล่องข้อความ Grafana Flux Query Editor</h4>
+            <p>เมื่อพิมพ์คำสั่งคิวรีในกล่องข้อความ <strong>Query Editor</strong> ของ Grafana เพื่อสร้างกราฟแบบกำหนดเอง:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>กราฟที่ต้องการสร้าง</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Query Editor Box</th>
+                    <th>คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>กราฟอุณหภูมิเรียลไทม์</b></td>
+                    <td><code>from(bucket: "iot_bucket") |&gt; range(start: v.timeRangeStart, stop: v.timeRangeStop) |&gt; filter(fn: (r) =&gt; r["_field"] == "temperature")</code></td>
+                    <td>ใช้ตัวแปร <code>v.timeRangeStart</code> ซิงค์กับ Time Picker มุมขวาบน</td>
+                  </tr>
+                  <tr>
+                    <td><b>กราฟเฉลี่ย 5 นาที (Downsampling)</b></td>
+                    <td><code>... |&gt; aggregateWindow(every: 5m, fn: mean, createEmpty: false)</code></td>
+                    <td>จัดกลุ่มทุกๆ 5 นาทีและคำนวณค่าเฉลี่ย</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

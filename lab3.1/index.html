@@ -3,44 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบงานที่ 3.1: การเชื่อมต่อ WiFi เบื้องต้นด้วย ESP32 / ESP8266</title>
+  <title>ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  
   <style>
-    /* =============================================
-       CSS Variables & Design System
-    ============================================= */
+    /* CSS Variables & Design System */
     :root {
       --bg-gradient-start: #0f172a;
       --bg-gradient-end: #020617;
       --card-bg: rgba(30, 41, 59, 0.7);
       --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover-border: rgba(6, 182, 212, 0.4);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent: #06b6d4;       /* cyan – WiFi theme */
-      --accent-alt: #0ea5e9;
-      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --info-frame-bg: rgba(6, 182, 212, 0.08);
-      --info-frame-border: #06b6d4;
+      --info-frame-bg: rgba(59, 130, 246, 0.1);
+      --info-frame-border: #3b82f6;
       --challenge-frame-bg: rgba(245, 158, 11, 0.08);
       --challenge-frame-border: #f59e0b;
-      --exp-frame-bg: rgba(16, 185, 129, 0.08);
-      --exp-frame-border: #10b981;
       --body-font: 'Sarabun', sans-serif;
       --heading-font: 'Outfit', 'Sarabun', sans-serif;
       --mono-font: 'JetBrains Mono', monospace;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
@@ -51,29 +50,11 @@
       padding: 2rem 1rem;
     }
 
-    /* Animated background particles */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.07) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
     .container {
-      max-width: 1440px;
+      max-width: 1400px;
       margin: 0 auto;
-      position: relative;
-      z-index: 1;
     }
 
-    /* =============================================
-       Header
-    ============================================= */
     header {
       text-align: center;
       margin-bottom: 2.5rem;
@@ -90,7 +71,7 @@
 
     .logo-icon {
       font-size: 2.5rem;
-      background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+      background: linear-gradient(135deg, #818cf8, #c084fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: pulse 3s infinite alternate;
@@ -101,7 +82,7 @@
       font-size: 2.25rem;
       font-weight: 700;
       letter-spacing: -0.025em;
-      background: linear-gradient(to right, #f8fafc, #94d8e4);
+      background: linear-gradient(to right, #f8fafc, #cbd5e1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -183,246 +164,193 @@
       100% { transform: scale(0.95); opacity: 0.8; }
     }
 
-    /* WiFi signal animation in header */
-    .wifi-anim {
-      display: inline-flex;
-      gap: 3px;
-      align-items: flex-end;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-
-    .wifi-bar {
-      width: 4px;
-      background: var(--accent);
-      border-radius: 2px;
-      animation: wifiBar 1.4s ease-in-out infinite;
-      opacity: 0.5;
-    }
-
-    .wifi-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
-    .wifi-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
-    .wifi-bar:nth-child(3) { height: 20px; animation-delay: 0.4s; }
-    .wifi-bar:nth-child(4) { height: 26px; animation-delay: 0.6s; }
-
-    @keyframes wifiBar {
-      0%, 100% { opacity: 0.2; }
-      50%       { opacity: 1; }
-    }
-
-    /* =============================================
-       Grid Layout
-    ============================================= */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
+      grid-template-columns: 1.2fr 1fr;
       gap: 2rem;
       margin-bottom: 2rem;
     }
 
-    @media (max-width: 1100px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    /* =============================================
-       Glass Cards
-    ============================================= */
     .glass-card {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      height: fit-content;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.37);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
     .glass-card:hover {
       border-color: var(--card-hover-border);
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 4px;
-      background: linear-gradient(90deg, #06b6d4, #0ea5e9, #38bdf8);
-      opacity: 0.9;
+      box-shadow: 0 10px 35px 0 var(--accent-glow);
     }
 
     .card-title {
       font-family: var(--heading-font);
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      margin-bottom: 1.5rem;
+      color: #fff;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      color: var(--text-main);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
       padding-bottom: 0.75rem;
     }
 
-    .card-title i { color: var(--accent); }
+    .card-title i {
+      color: var(--accent);
+    }
 
-    /* =============================================
-       Content Frames
-    ============================================= */
+    /* Theory Toggle Button */
+    .btn-theory-toggle {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 8px;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.85rem;
+      font-family: var(--body-font);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-theory-toggle:hover {
+      background: rgba(99, 102, 241, 0.35);
+      color: #ffffff;
+      border-color: #818cf8;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
     .info-frame {
       background: var(--info-frame-bg);
       border-left: 4px solid var(--info-frame-border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
+      border-radius: 0 8px 8px 0;
+      padding: 1rem;
+      font-size: 0.95rem;
     }
 
-    .info-frame h3 {
-      font-family: var(--heading-font);
-      color: #67e8f9;
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
+    .info-frame h4 {
+      color: #60a5fa;
+      margin-bottom: 0.35rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
-    .exp-frame {
-      background: var(--exp-frame-bg);
-      border-left: 4px solid var(--exp-frame-border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(16, 185, 129, 0.12);
-      border-left-width: 4px;
+    .info-frame ul {
+      padding-left: 1.25rem;
+      color: #cbd5e1;
     }
 
-    .exp-frame h3 {
-      font-family: var(--heading-font);
-      color: #6ee7b7;
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .info-frame li {
+      margin-bottom: 0.25rem;
     }
 
     .challenge-frame {
       background: var(--challenge-frame-bg);
       border-left: 4px solid var(--challenge-frame-border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(245, 158, 11, 0.12);
-      border-left-width: 4px;
+      border-radius: 0 8px 8px 0;
+      padding: 1rem;
+      font-size: 0.95rem;
     }
 
-    .challenge-frame h3 {
-      font-family: var(--heading-font);
-      color: #fde047;
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
+    .challenge-frame h4 {
+      color: #fbbf24;
+      margin-bottom: 0.35rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
-    h2 {
-      font-family: var(--heading-font);
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-      margin-top: 1.5rem;
-      color: #f1f5f9;
-    }
-
-    h2:first-child { margin-top: 0; }
-
-    p {
-      margin-bottom: 1rem;
+    .challenge-frame ul {
+      padding-left: 1.25rem;
       color: #cbd5e1;
-      font-size: 0.95rem;
     }
 
-    ul, ol {
-      margin-left: 1.5rem;
-      margin-bottom: 1rem;
-      color: #cbd5e1;
-      font-size: 0.95rem;
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
     }
 
-    li { margin-bottom: 0.35rem; }
-
-    /* =============================================
-       Section tabs for experiments
-    ============================================= */
-    .exp-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      padding-bottom: 0.5rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
     }
 
-    .exp-tab {
-      padding: 0.45rem 1rem;
-      border-radius: 6px;
-      font-family: var(--heading-font);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid transparent;
-      background: transparent;
+    th, td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.6);
       color: var(--text-muted);
-      transition: all 0.2s;
+      font-weight: 600;
+      font-family: var(--heading-font);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
     }
 
-    .exp-tab.active {
-      background: rgba(6, 182, 212, 0.12);
-      border-color: rgba(6, 182, 212, 0.35);
-      color: #67e8f9;
+    tr:last-child td {
+      border-bottom: none;
     }
 
-    .exp-tab:hover:not(.active) {
-      background: rgba(255,255,255,0.04);
-      color: var(--text-main);
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
     }
 
-    .exp-panel { display: none; }
-    .exp-panel.active { display: block; }
+    .badge-pin {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+    }
 
-    /* =============================================
-       Code Blocks
-    ============================================= */
+    /* Code Container & Inline Blanks */
     .code-container {
       position: relative;
-      margin-bottom: 1.5rem;
+      background: #090d16;
       border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .code-header {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(255, 255, 255, 0.03);
       padding: 0.5rem 1rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-family: var(--mono-font);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .code-lang-badge {
-      font-size: 0.7rem;
-      padding: 0.15rem 0.5rem;
-      background: rgba(6, 182, 212, 0.15);
-      color: #67e8f9;
-      border-radius: 4px;
-      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
 
     .copy-btn {
@@ -430,20 +358,31 @@
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: color 0.2s;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: color 0.2s ease;
+      font-family: var(--body-font);
     }
 
-    .copy-btn:hover { color: var(--accent); }
+    .copy-btn:hover {
+      color: var(--text-main);
+    }
 
     pre {
-      background: rgba(10, 18, 38, 0.7);
       padding: 1.25rem;
       overflow-x: auto;
-      margin: 0;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: #e2e8f0;
     }
 
-    
+    code {
+      font-family: var(--mono-font);
+    }
+
     .code-blank {
       background: rgba(99, 102, 241, 0.22);
       border: 1px dashed #818cf8;
@@ -475,243 +414,147 @@
       font-size: 0.8rem;
     }
 
-    code {
-      font-family: var(--mono-font);
-      font-size: 0.83rem;
-      line-height: 1.7;
-      color: #7dd3fc;
-    }
-
-    /* Highlighted blanks in code */
-    .blank {
-      display: inline-block;
-      background: rgba(6, 182, 212, 0.18);
-      border: 1px dashed rgba(6, 182, 212, 0.5);
-      border-radius: 4px;
-      padding: 0.05rem 0.4rem;
-      color: #fde68a;
-      font-weight: 600;
-      font-family: var(--mono-font);
-    }
-
-    /* =============================================
-       Equipment Table
-    ============================================= */
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(15, 23, 42, 0.35);
-      margin-bottom: 1.5rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background: rgba(15, 23, 42, 0.7);
-      padding: 0.75rem 1rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      color: #e2e8f0;
-    }
-
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(6, 182, 212, 0.04); }
-
-    /* =============================================
-       WiFi Scan Result Table (interactive demo)
-    ============================================= */
-    .scan-result-table th { color: #67e8f9; }
-
-    .signal-bar-cell {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .signal-bars {
-      display: inline-flex;
-      align-items: flex-end;
-      gap: 2px;
-      height: 16px;
-    }
-
-    .signal-bars span {
-      display: block;
-      width: 4px;
-      background: var(--accent);
-      border-radius: 1px;
-    }
-
-    /* =============================================
-       Form Styling
-    ============================================= */
-    .form-section { margin-bottom: 1.5rem; }
-
-    .form-section-title {
-      font-family: var(--heading-font);
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #94a3b8;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
+    /* Form Elements */
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.5rem;
       margin-bottom: 1.25rem;
     }
 
-    .form-row {
+    .form-group-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
 
     @media (max-width: 640px) {
-      .form-row { grid-template-columns: 1fr; }
+      .form-group-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     label {
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       font-weight: 500;
-      color: #cbd5e1;
-    }
-
-    .input-wrapper { position: relative; display: flex; }
-
-    .input-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
       color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    input[type="text"], input[type="date"], textarea, select {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--text-main);
-      padding: 0.75rem 1rem 0.75rem 2.5rem;
-      font-family: var(--body-font);
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    textarea { padding-left: 1rem; resize: vertical; }
-    select { padding-left: 1rem; cursor: pointer; }
-
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    /* =============================================
-       Skeleton Code Blanks
-    ============================================= */
-    .blank-input-group {
-      background: rgba(15, 23, 42, 0.35);
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      margin-bottom: 1.25rem;
-    }
-
-    .blank-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .blank-row:last-child { margin-bottom: 0; }
-
-    .blank-label {
-      font-family: var(--mono-font);
-      font-size: 0.82rem;
-      color: #67e8f9;
-      width: 90px;
-      flex-shrink: 0;
-    }
-
-    .blank-input { flex-grow: 1; }
-
-    .blank-input input {
-      padding-left: 1rem;
-      font-family: var(--mono-font);
-      font-size: 0.9rem;
-    }
-
-    /* =============================================
-       Result Entry (Scan table fill-in)
-    ============================================= */
-    .scan-entry-group {
-      background: rgba(6, 182, 212, 0.04);
-      border: 1px solid rgba(6, 182, 212, 0.12);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .scan-entry-title {
-      font-family: var(--mono-font);
-      font-size: 0.8rem;
-      color: #67e8f9;
-      margin-bottom: 0.75rem;
       display: flex;
       align-items: center;
       gap: 0.4rem;
     }
 
-    .scan-entry-grid {
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-family: var(--body-font);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 85px;
+    }
+
+    textarea.code-font {
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      min-height: 140px;
+      white-space: pre;
+    }
+
+    /* Quiz Cards */
+    .quiz-card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1.25rem;
+      transition: all 0.25s ease;
+    }
+
+    .quiz-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .quiz-q-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .quiz-q-badge {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 0.1rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: var(--mono-font);
+      white-space: nowrap;
+    }
+
+    .quiz-options-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.75rem;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
     }
 
-    @media (max-width: 640px) {
-      .scan-entry-grid { grid-template-columns: 1fr; }
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.85rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      color: #cbd5e1;
     }
 
-    .scan-entry-grid .form-group { margin-bottom: 0; }
+    .quiz-option-label:hover {
+      background: rgba(99, 102, 241, 0.08);
+      border-color: rgba(99, 102, 241, 0.25);
+      color: #fff;
+    }
 
-    /* =============================================
-       File Upload
-    ============================================= */
+    .quiz-option-label input[type="radio"] {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* File Upload Area */
     .upload-area {
       border: 2px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 1.5rem;
       text-align: center;
-      background: rgba(15, 23, 42, 0.2);
       cursor: pointer;
-      position: relative;
-      transition: border-color 0.3s, background-color 0.3s;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      background: rgba(15, 23, 42, 0.3);
     }
 
     .upload-area:hover, .upload-area.dragover {
       border-color: var(--accent);
-      background: rgba(6, 182, 212, 0.05);
+      background: rgba(99, 102, 241, 0.05);
     }
 
     .upload-icon {
@@ -720,386 +563,230 @@
       margin-bottom: 0.5rem;
     }
 
-    .upload-text { font-size: 0.85rem; color: #cbd5e1; }
-    .upload-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
-    .file-input { display: none; }
+    .upload-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
 
-    .file-preview {
+    .file-badge {
       display: none;
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
       align-items: center;
-      gap: 0.75rem;
-    }
-
-    .preview-thumbnail {
-      width: 50px; height: 50px;
-      border-radius: 4px;
-      object-fit: cover;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .preview-details { flex-grow: 1; min-width: 0; }
-
-    .preview-name {
-      font-size: 0.8rem; color: #f1f5f9;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .preview-size { font-size: 0.7rem; color: var(--text-muted); }
-
-    .remove-file-btn {
-      background: transparent;
-      border: none;
-      color: var(--danger);
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: opacity 0.2s;
-    }
-
-    .remove-file-btn:hover { opacity: 0.8; }
-
-    /* =============================================
-       Buttons
-    ============================================= */
-    .btn {
-      width: 100%;
-      background: linear-gradient(135deg, #06b6d4, #0284c7);
-      color: #ffffff;
-      border: none;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 0.5rem 1rem;
       border-radius: 8px;
-      padding: 0.85rem;
-      font-family: var(--heading-font);
-      font-size: 1.05rem;
-      font-weight: 600;
-      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      font-family: var(--mono-font);
+      word-break: break-all;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      margin-top: 0.75rem;
+      display: none;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Action Buttons & Pre-check Score Button */
+    .btn-check-score {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
-      transition: transform 0.2s, box-shadow 0.3s;
+      padding: 0.85rem 1.25rem;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(13, 148, 136, 0.25));
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #34d399;
+      border-radius: 10px;
+      font-family: var(--heading-font);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      width: 100%;
     }
 
-    .btn:hover {
+    .btn-check-score:hover {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #34d399;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
     }
 
-    .btn:active { transform: translateY(1px); }
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+    }
 
-    .btn:disabled {
+    .btn {
+      flex: 1;
+      padding: 0.875rem 1.5rem;
+      border-radius: 8px;
+      font-family: var(--heading-font);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
     }
 
     .btn-secondary {
       background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
       border: 1px solid var(--card-border);
-      color: var(--text-main);
-      box-shadow: none;
     }
 
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      box-shadow: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
     }
 
-    /* =============================================
-       Modal
-    ============================================= */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(2, 6, 17, 0.8);
-      backdrop-filter: blur(8px);
-      z-index: 9999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    .modal-content {
-      background: #1e293b;
+    .btn-print {
+      background: rgba(30, 41, 59, 0.8);
+      color: #94a3b8;
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      max-width: 500px;
-      width: 100%;
-      padding: 2.25rem 2rem;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @keyframes modalScale {
-      0%   { transform: scale(0.9); opacity: 0; }
-      100% { transform: scale(1);   opacity: 1; }
-    }
-
-    .modal-icon { font-size: 3.5rem; margin-bottom: 1.25rem; display: inline-block; }
-    .modal-icon.success { color: var(--success); animation: bounce 1s; }
-    .modal-icon.error   { color: var(--danger);  animation: shake 0.5s; }
-
-    .modal-title {
-      font-family: var(--heading-font);
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      color: var(--text-main);
-    }
-
-    .modal-text {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.5;
-      white-space: pre-line;
-    }
-
-    .modal-close-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-      border-radius: 8px;
-      padding: 0.6rem 2rem;
-      cursor: pointer;
-    }
-
-    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.1); }
-
-    /* =============================================
-       Animations
-    ============================================= */
-    @keyframes pulse {
-      0%   { transform: scale(1);    filter: drop-shadow(0 0 2px var(--accent-glow)); }
-      100% { transform: scale(1.05); filter: drop-shadow(0 0 10px var(--accent)); }
-    }
-
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-15px); }
-      60% { transform: translateY(-7px); }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-      20%, 40%, 60%, 80% { transform: translateX(5px); }
-    }
-
-    .loading-spinner { animation: spin 1s linear infinite; margin-right: 0.5rem; }
-
-    @keyframes spin {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* =============================================
-       Serial Monitor Display (decorative)
-    ============================================= */
-    .serial-monitor {
-      background: #0a0f1e;
-      border: 1px solid rgba(6, 182, 212, 0.2);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      font-family: var(--mono-font);
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
       font-size: 0.8rem;
-      line-height: 1.8;
-      color: #22d3ee;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .serial-monitor::before {
-      content: '● Serial Monitor  115200 baud';
-      display: block;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .serial-line { margin: 0; }
-    .serial-line.dim { color: #475569; }
-    .serial-line.bright { color: #67e8f9; font-weight: 600; }
-    .serial-line.ok { color: #34d399; }
-    .serial-line.warn { color: #fbbf24; }
-
-    /* =============================================
-       Print Styles
-    ============================================= */
-    @media print {
-      body { background: white !important; color: black !important; padding: 0 !important; }
-      body::before { display: none !important; }
-      .container { max-width: 100% !important; margin: 0 !important; }
-      header, .course-badge, .logo-container, .btn, .upload-area,
-      .remove-file-btn, .modal-overlay, .copy-btn, .code-header,
-      .exp-tabs, .wifi-anim { display: none !important; }
-      .dashboard-grid { display: block !important; }
-      .exp-panel { display: block !important; }
-      .glass-card {
-        background: transparent !important; border: none !important;
-        box-shadow: none !important; padding: 0 !important;
-        margin-bottom: 2rem !important; backdrop-filter: none !important;
-      }
-      .glass-card::before { display: none !important; }
-      .card-title {
-        border-bottom: 2px solid #000 !important; color: #000 !important;
-        margin-bottom: 1rem !important; font-weight: bold !important;
-      }
-      .card-title i { display: none !important; }
-      .info-frame, .exp-frame, .challenge-frame {
-        background: #f8fafc !important; border: 1px solid #cbd5e1 !important;
-        border-left: 4px solid #06b6d4 !important; color: #000 !important;
-      }
-      .challenge-frame { border-left-color: #f59e0b !important; }
-      .exp-frame { border-left-color: #10b981 !important; }
-      .info-frame h3, .exp-frame h3, .challenge-frame h3 { color: #000 !important; }
-      p, li, td, th, label { color: #000 !important; }
-      table { border: 1px solid #cbd5e1 !important; }
-      th, td { border-bottom: 1px solid #cbd5e1 !important; background: transparent !important; }
-      pre { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important;
-            color: #000 !important; white-space: pre-wrap !important; word-break: break-all !important; }
-      code { color: #1e3a5f !important; }
-      .serial-monitor { background: #f8fafc !important; border: 1px solid #cbd5e1 !important;
-                        color: #000 !important; }
-      .serial-monitor::before { color: #000 !important; }
-      .serial-line { color: #000 !important; }
-      input[type="text"], input[type="date"], textarea, select {
-        background: transparent !important; border: none !important;
-        border-bottom: 1px dotted #000 !important; border-radius: 0 !important;
-        color: #000 !important; padding: 0 0 2px 0 !important; box-shadow: none !important;
-      }
-      .input-wrapper i { display: none !important; }
-      input[type="text"], input[type="date"], textarea, select { padding-left: 0 !important; }
-      .blank-input-group { background: transparent !important; border: none !important; padding: 0 !important; }
-      .blank-row { margin-bottom: 0.5rem !important; }
-      .blank-label { color: #000 !important; }
-      .scan-entry-group { background: transparent !important; border: 1px solid #cbd5e1 !important; }
-      .scan-entry-title { color: #000 !important; }
-      .form-section-title { color: #000 !important; padding-bottom: 0.25rem !important; }
-      .form-section-title i { display: none !important; }
-      .file-preview { display: flex !important; background: transparent !important;
-                      border: 1px solid #cbd5e1 !important; }
-      .preview-name, .preview-size { color: #000 !important; }
-    }
-  
-    /* Theory Modal & Button Styling */
-    .btn-theory-toggle {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.25));
-      border: 1px solid rgba(99, 102, 241, 0.45);
-      color: #c7d2fe;
-      padding: 0.45rem 1rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      transition: all 0.25s ease;
-      font-family: inherit;
+      gap: 0.35rem;
+      transition: all 0.2s;
     }
 
-    .btn-theory-toggle:hover {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.4));
-      border-color: #818cf8;
-      color: #ffffff;
-      box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
-      transform: translateY(-1px);
+    .btn-print:hover {
+      color: #fff;
+      border-color: #94a3b8;
+    }
+
+    /* Modal Dialogs */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
     }
 
     .theory-modal-content {
-      background: #0f172a;
-      border: 1px solid var(--card-border, rgba(255,255,255,0.1));
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 16px;
-      max-width: 860px;
-      width: 95%;
+      max-width: 850px;
+      width: 100%;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
-      text-align: left;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       overflow: hidden;
+      animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .theory-modal-header {
-      padding: 1.25rem 1.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(15, 23, 42, 0.5);
     }
 
     .theory-modal-header h2 {
+      font-family: var(--heading-font);
       font-size: 1.25rem;
+      font-weight: 600;
       color: #f8fafc;
-      margin: 0;
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .theory-close-x {
       background: transparent;
       border: none;
-      color: var(--text-muted, #94a3b8);
+      color: var(--text-muted);
       font-size: 1.25rem;
       cursor: pointer;
       padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: color 0.2s;
     }
 
     .theory-close-x:hover {
-      color: #f8fafc;
+      color: #fff;
     }
 
     .theory-modal-body {
-      padding: 1.5rem 1.75rem;
+      padding: 1.5rem;
       overflow-y: auto;
       flex: 1;
-      line-height: 1.7;
     }
 
     .theory-tab-bar {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
       overflow-x: auto;
     }
 
     .theory-tab-btn {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-muted, #94a3b8);
-      padding: 0.45rem 0.9rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
       border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 500;
+      font-family: var(--body-font);
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
       white-space: nowrap;
-      font-family: inherit;
     }
 
-    .theory-tab-btn.active, .theory-tab-btn:hover {
+    .theory-tab-btn.active {
       background: rgba(99, 102, 241, 0.2);
-      border-color: var(--accent, #6366f1);
-      color: #e0e7ff;
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
     .theory-tab-panel {
@@ -1108,193 +795,351 @@
 
     .theory-tab-panel.active {
       display: block;
-      animation: fadeIn 0.3s ease;
     }
 
     .theory-card {
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
       padding: 1.25rem;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1rem;
     }
 
     .theory-card h4 {
-      color: #818cf8;
-      font-size: 1.05rem;
-      margin-bottom: 0.6rem;
+      color: #38bdf8;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
+    }
+
+    .theory-card p {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
     }
 
     .theory-formula {
       background: #090d16;
-      border: 1px dashed rgba(99, 102, 241, 0.4);
-      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
       padding: 0.75rem 1rem;
-      margin: 0.75rem 0;
-      color: #38bdf8;
-      font-family: var(--mono-font, monospace);
-      font-size: 0.9rem;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: #fbbf24;
+      margin: 0.5rem 0;
+      overflow-x: auto;
     }
 
     .theory-modal-footer {
-      padding: 1rem 1.75rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: flex-end;
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.5);
     }
 
-  
-    /* Anti-Cheat Toast Warning */
-    .anti-cheat-toast {
-      position: fixed;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
-      color: #ffffff;
-      padding: 0.75rem 1.5rem;
-      border-radius: 50px;
-      font-family: inherit;
-      font-size: 0.9rem;
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--body-font);
       font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      z-index: 10000;
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
-    }
-    .anti-cheat-toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
+      transition: background 0.2s;
     }
 
-    /* ===== PRE-SUBMISSION SCORE CHECK & ONE-TIME LOCK STYLES ===== */
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Score Check Modal Styling */
     .score-check-modal-content {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
       max-width: 580px !important;
+      width: 100%;
       text-align: left !important;
       padding: 1.75rem !important;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
+
     .score-modal-header {
       display: flex;
       align-items: center;
       gap: 0.85rem;
       margin-bottom: 1.25rem;
       padding-bottom: 0.85rem;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
+
     .score-modal-icon {
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       background: linear-gradient(135deg, #0d9488, #10b981);
       color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem; flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
+
     .score-hero-card {
-      background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,41,59,0.9));
-      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       padding: 1.1rem 1.25rem;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 1.25rem;
     }
+
     .score-big-num {
-      font-family: var(--heading-font, 'Outfit', sans-serif);
-      font-size: 2.2rem; font-weight: 700;
-      color: #38bdf8; line-height: 1;
+      font-family: var(--heading-font);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: 1;
     }
+
     .score-status-badge {
       padding: 0.35rem 0.85rem;
       border-radius: 9999px;
-      font-size: 0.82rem; font-weight: 600;
-      background: rgba(16,185,129,0.15);
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
       color: #34d399;
-      border: 1px solid rgba(16,185,129,0.3);
-      display: inline-flex; align-items: center; gap: 0.4rem;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
     }
-    .score-status-badge.warning { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
-    .score-status-badge.danger { background: rgba(239,68,68,0.15); color: #f87171; border-color: rgba(239,68,68,0.3); }
+
+    .score-status-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .score-status-badge.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
     .score-breakdown-list {
-      overflow-y: auto; flex-grow: 1;
-      display: flex; flex-direction: column; gap: 0.6rem;
-      margin-bottom: 1.25rem; padding-right: 0.25rem;
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+      padding-right: 0.25rem;
     }
+
     .score-item-row {
-      background: rgba(15,23,42,0.5);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 8px; padding: 0.75rem 1rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
     }
-    .score-item-info { display: flex; flex-direction: column; gap: 0.2rem; flex-grow: 1; min-width: 0; }
-    .score-item-title { font-size: 0.88rem; font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 0.4rem; }
-    .score-item-desc { font-size: 0.75rem; color: var(--text-muted, #94a3b8); }
-    .score-item-points { font-family: var(--mono-font, monospace); font-size: 0.95rem; font-weight: 700; color: #38bdf8; white-space: nowrap; text-align: right; }
+
+    .score-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .score-item-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .score-item-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .score-item-points {
+      font-family: var(--mono-font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #38bdf8;
+      white-space: nowrap;
+      text-align: right;
+    }
+
     .score-modal-actions {
-      display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.75rem;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 0.75rem;
       padding-top: 0.85rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .btn-check-score {
-      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-      padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(13,148,136,0.2));
-      border: 1px solid rgba(16,185,129,0.4);
-      color: #34d399; border-radius: 10px;
-      font-family: inherit; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s ease; width: 100%;
+
+    /* Anti-Cheat Toast */
+    .anti-cheat-toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(239, 68, 68, 0.95);
+      color: #ffffff;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      z-index: 2000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: none;
     }
-    .btn-check-score:hover { background: rgba(16,185,129,0.25); border-color: #34d399; }
-    /* ============================================================= */
+
+    .anti-cheat-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Notification Alert Modal */
+    .alert-modal-content {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .alert-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .alert-icon.success { color: var(--success); }
+    .alert-icon.error { color: var(--danger); }
+    .alert-icon.warning { color: var(--warning); }
+
+    .alert-title {
+      font-family: var(--heading-font);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .alert-message {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+
+    /* Print & PDF Export Styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
+      }
+      header, .header-badges, .btn-theory-toggle, .btn-check-score, .btn-submit, .btn-secondary, .btn-print, .upload-area, .modal-overlay, .anti-cheat-toast {
+        display: none !important;
+      }
+      input[type="text"], input[type="date"], select, textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        color: #000000 !important;
+      }
+      .code-container {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+      pre, code {
+        color: #000000 !important;
+      }
+      .code-blank {
+        background: #e2e8f0 !important;
+        border-color: #64748b !important;
+        color: #000000 !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+      }
+      th, td {
+        border: 1px solid #94a3b8 !important;
+        color: #000000 !important;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <div class="container">
-
-    <!-- ============================================================
-         HEADER
-    ============================================================ -->
-    <header>
-      <div class="logo-container">
-        <i class="fa-solid fa-wifi logo-icon"></i>
-        <h1>ใบงานที่ 3.1: การเชื่อมต่อ WiFi เบื้องต้น
-          <span class="wifi-anim">
-            <span class="wifi-bar"></span>
-            <span class="wifi-bar"></span>
-            <span class="wifi-bar"></span>
-            <span class="wifi-bar"></span>
-          </span>
-        </h1>
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <i class="fa-solid fa-server logo-icon"></i>
+      <h1>ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266</h1>
+    </div>
+    <p class="subtitle">การพัฒนา Embedded HTTP Web Server และให้บริการหน้าเว็บด้วยระบบไฟล์ Flash Memory (LittleFS)</p>
+    
+    <div class="header-badges">
+      <div class="course-badge">
+        <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
       </div>
-      <p class="subtitle">(WiFi Scan & Station Mode) — หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
-      <div class="header-badges">
-        <div class="course-badge">
-          <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์
-        </div>
-        <div id="onlineStatusBadge" class="status-badge online">
-          <span class="status-dot"></span>
-          <span id="onlineStatusText">ออนไลน์ (พร้อมส่งรายงาน)</span>
-        </div>
+      <div id="onlineStatusBadge" class="status-badge online">
+        <span class="status-dot"></span>
+        <span id="onlineStatusText">ออนไลน์ (พร้อมส่งรายงาน)</span>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <form id="labForm" onsubmit="event.preventDefault(); openSubmitConfirmModal();">
     <div class="dashboard-grid">
-
-      <!-- ============================================================
-           LEFT COLUMN: Lab Manual
-      ============================================================ -->
+      <!-- ──────────────── LEFT COLUMN: คู่มือใบงาน ──────────────── -->
       <div class="glass-card">
         <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -1306,1323 +1151,1241 @@
           </button>
         </div>
 
-        <!-- Objectives -->
+        <!-- วัตถุประสงค์ -->
         <div class="info-frame">
-          <h3><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</h3>
-          <ol>
-            <li>เพื่อเรียนรู้การใช้งาน WiFi Library บน ESP32 / ESP8266 สำหรับสแกนหาเครือข่ายไร้สายในบริเวณใกล้เคียง</li>
-            <li>เพื่อเข้าใจกระบวนการเชื่อมต่อ WiFi ในโหมด Station (STA) และตรวจสอบสถานะการเชื่อมต่อ</li>
-            <li>เพื่อสามารถอ่านค่า IP Address ที่ได้รับจาก DHCP Server และแสดงผลผ่าน Serial Monitor</li>
-          </ol>
+          <h4><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์การเรียนรู้</h4>
+          <ul>
+            <li>เข้าใจสถาปัตยกรรม Client-Server และหลักการทำงานของ HTTP Web Server บนพอร์ต 80</li>
+            <li>สามารถจัดเก็บไฟล์ HTML, CSS, JavaScript ลงใน Flash Memory ด้วยระบบไฟล์ <strong>LittleFS</strong></li>
+            <li>เข้าใจการสตรีมไฟล์ขนาดใหญ่ด้วย <code>server.streamFile()</code> เพื่อป้องกันปัญหา RAM หมด (Heap Overflow)</li>
+            <li>สามารถดักจับและส่งการตอบกลับกรณีไม่พบไฟล์ (404 File Not Found) ได้อย่างถูกต้อง</li>
+          </ul>
         </div>
 
-        <!-- Equipment Table -->
-        <h2>อุปกรณ์ที่ต้องใช้</h2>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>รายการอุปกรณ์</th>
-                <th>รายละเอียด</th>
-                <th style="text-align: center;">จำนวน</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>บอร์ดไมโครคอนโทรลเลอร์</td>
-                <td>ESP32 DevKitC หรือ ESP8266 NodeMCU / IPST-WiFi / AX-WiFi</td>
-                <td style="text-align: center;">1 บอร์ด</td>
-              </tr>
-              <tr>
-                <td>สาย USB</td>
-                <td>USB-to-Serial (Micro-USB หรือ USB-C ตามรุ่นบอร์ด)</td>
-                <td style="text-align: center;">1 เส้น</td>
-              </tr>
-              <tr>
-                <td>คอมพิวเตอร์ + Arduino IDE</td>
-                <td>ติดตั้ง ESP32 / ESP8266 Board Package เรียบร้อยแล้ว</td>
-                <td style="text-align: center;">1 ชุด</td>
-              </tr>
-              <tr>
-                <td>เครือข่าย WiFi</td>
-                <td>Access Point ที่รู้จัก SSID และ Password เพื่อใช้เชื่อมต่อ</td>
-                <td style="text-align: center;">1 เครือข่าย</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Experiment Tabs -->
-        <h2>การทดลอง</h2>
-        <div class="exp-tabs">
-          <button class="exp-tab active" onclick="showExpPanel('exp1', this)" id="tab-exp1">
-            <i class="fa-solid fa-magnifying-glass"></i> ทดลองที่ 1: WiFi Scan
-          </button>
-          <button class="exp-tab" onclick="showExpPanel('exp2', this)" id="tab-exp2">
-            <i class="fa-solid fa-plug"></i> ทดลองที่ 2: WiFi Connect
-          </button>
-        </div>
-
-        <!-- ============================================================
-             EXPERIMENT 1: WiFi Scan
-        ============================================================ -->
-        <div class="exp-panel active" id="exp1">
-          <div class="exp-frame">
-            <h3><i class="fa-solid fa-magnifying-glass"></i> ทดลองที่ 1 — สแกนหาเครือข่าย WiFi</h3>
-            <p>ในการทดลองนี้ บอร์ดจะทำการสแกนหาเครือข่าย WiFi ทั้งหมดที่อยู่ในบริเวณใกล้เคียง แล้วแสดงรายการ SSID, ช่องสัญญาณ (Channel) และความแรงของสัญญาณ (RSSI) ผ่าน Serial Monitor</p>
+        <!-- รายการอุปกรณ์ -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-microchip" style="color: var(--accent);"></i> รายการอุปกรณ์ที่ต้องใช้
+          </h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>รายการอุปกรณ์</th>
+                  <th>รายละเอียด</th>
+                  <th style="text-align: center;">จำนวน</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>บอร์ดไมโครคอนโทรลเลอร์</td>
+                  <td>ESP32 (IPST-WiFi) หรือ ESP8266 (AX-WiFi / NodeMCU)</td>
+                  <td style="text-align: center;">1 บอร์ด</td>
+                </tr>
+                <tr>
+                  <td>สายเชื่อมต่อ USB</td>
+                  <td>สาย Micro-USB หรือ USB-C สำหรับ Flash & Data Upload</td>
+                  <td style="text-align: center;">1 เส้น</td>
+                </tr>
+                <tr>
+                  <td>คอมพิวเตอร์ / เบราว์เซอร์</td>
+                  <td>ติดตั้ง VS Code (PlatformIO) พร้อมปลั๊กอิน LittleFS Upload</td>
+                  <td style="text-align: center;">1 ชุด</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          <h2 style="margin-top: 0;">โค้ดโครงร่าง (Skeleton Code) — WiFi Scan</h2>
-          <p>ศึกษาโค้ดต่อไปนี้แล้วค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือ:</p>
+        <!-- การเชื่อมต่อวงจรและสถาปัตยกรรมระบบไฟล์ -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-network-wired" style="color: var(--accent);"></i> โครงสร้างไฟล์และสถาปัตยกรรม LittleFS
+          </h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>พาธของไฟล์ (URI)</th>
+                  <th>ตำแหน่งใน Flash (data/)</th>
+                  <th>Content-Type (MIME)</th>
+                  <th>คำอธิบาย</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge-pin">/</span> หรือ <span class="badge-pin">/index.html</span></td>
+                  <td><code>data/index.html</code></td>
+                  <td><code>text/html</code></td>
+                  <td>หน้าหลัก User Interface สำหรับควบคุมบอร์ด</td>
+                </tr>
+                <tr>
+                  <td><span class="badge-pin">/styles.css</span></td>
+                  <td><code>data/styles.css</code></td>
+                  <td><code>text/css</code></td>
+                  <td>ไฟล์ตกแต่งหน้าตาและ Glassmorphism Theme</td>
+                </tr>
+                <tr>
+                  <td><span class="badge-pin">/app.js</span></td>
+                  <td><code>data/app.js</code></td>
+                  <td><code>application/javascript</code></td>
+                  <td>สคริปต์ประมวลผลฝั่ง Client และเชื่อมต่อ API</td>
+                </tr>
+                <tr>
+                  <td><span class="badge-pin">อื่นๆ (URI ที่ไม่มีไฟล์)</span></td>
+                  <td>-</td>
+                  <td><code>text/plain</code></td>
+                  <td>ดักจับด้วย <code>onNotFound</code> ส่ง 404</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
+        <!-- โครงร่างโค้ดโปรแกรมพร้อมช่องเติมคำตอบ -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (LittleFS Web Server Skeleton)
+          </h3>
           <div class="code-container">
             <div class="code-header">
-              <span>wifi_scan.ino</span>
-              <div style="display:flex;gap:0.75rem;align-items:center;">
-                <span class="code-lang-badge">Arduino C++</span>
-                <button type="button" class="copy-btn" onclick="copyCode('scanCode')"><i class="fa-regular fa-copy"></i> Copy</button>
-              </div>
+              <span>lab3_1_webserver.ino</span>
+              <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
             </div>
-<pre id="scanCode"><code>#if defined(ESP8266)
+            <pre><code>#include &lt;Arduino.h&gt;
+#if defined(ESP8266)
   #include &lt;ESP8266WiFi.h&gt;
+  #include &lt;ESP8266WebServer.h&gt;
+  ESP8266WebServer server(80);
 #elif defined(ESP32)
   #include &lt;WiFi.h&gt;
+  #include &lt;WebServer.h&gt;
+  WebServer server(80);
 #endif
+#include &lt;LittleFS.h&gt;
 
-void setup() {
-  Serial.begin(115200);
-  Serial.println("\n=== WiFi Scanner ===");
-
-  // 1. ตั้งค่าโหมด WiFi เป็น Station (STA) Mode
-  WiFi.mode( <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น WIFI_STA)" style="width: 180px;"> );
-
-  Serial.println("กำลังสแกนหาเครือข่าย...");
-}
-
-void loop() {
-  // 2. เริ่มสแกนเครือข่าย และรับจำนวนเครือข่ายที่พบ
-  int n = WiFi.scanNetworks();
-
-  if (n == 0) {
-    Serial.println("ไม่พบเครือข่าย WiFi");
-  } else {
-    Serial.printf("\nพบเครือข่ายทั้งหมด: %d เครือข่าย\n", n);
-    Serial.println("-----------------------------------------------");
-    Serial.printf("%-4s %-30s %-8s %-6s %s\n",
-                  "#", "SSID", "CH", "RSSI", "Security");
-    Serial.println("-----------------------------------------------");
-
-    for (int i = 0; i &lt; n; i++) {
-      // 3. อ่านชื่อ SSID ของเครือข่ายลำดับที่ i
-      String ssid = WiFi.<input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น SSID)" style="width: 150px;">(i);
-
-      // 4. อ่านความแรงสัญญาณ RSSI (dBm)
-      int rssi = WiFi.<input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="ช่องที่ 3 (เช่น RSSI)" style="width: 150px;">(i);
-
-      // 5. อ่านหมายเลขช่องสัญญาณ (Channel)
-      int ch = WiFi.<input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="ช่องที่ 4 (เช่น channel)" style="width: 150px;">(i);
-
-      // 6. ตรวจสอบประเภทความปลอดภัย (ถ้า OPEN ให้แสดง "OPEN" ไม่งั้นแสดง "WPA/WPA2")
-      String security = (WiFi.encryptionType(i) == <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น WIFI_AUTH_OPEN)" style="width: 210px;">) ? "OPEN" : "WPA/WPA2";
-
-      Serial.printf("%-4d %-30s %-8d %-6d %s\n",
-                    i + 1, ssid.c_str(), ch, rssi, security.c_str());
-    }
-    Serial.println("-----------------------------------------------");
-  }
-
-  // ล้างผลการสแกนและรอ 10 วินาทีก่อนสแกนใหม่
-  WiFi.scanDelete();
-  delay(10000);
-}</code></pre>
-          </div>
-
-          <!-- Serial Monitor Expected Output -->
-          <p><strong>ตัวอย่าง Serial Monitor Output ที่ควรได้รับ:</strong></p>
-          <div class="serial-monitor">
-            <p class="serial-line bright">=== WiFi Scanner ===</p>
-            <p class="serial-line dim">กำลังสแกนหาเครือข่าย...</p>
-            <p class="serial-line"> </p>
-            <p class="serial-line ok">พบเครือข่ายทั้งหมด: 5 เครือข่าย</p>
-            <p class="serial-line dim">-----------------------------------------------</p>
-            <p class="serial-line">#    SSID                           CH       RSSI   Security</p>
-            <p class="serial-line dim">-----------------------------------------------</p>
-            <p class="serial-line">1    iot_512                        6        -45    WPA/WPA2</p>
-            <p class="serial-line">2    TRUE_HOME_5G                   1        -62    WPA/WPA2</p>
-            <p class="serial-line">3    FreeWiFi_Airport               11       -71    OPEN</p>
-            <p class="serial-line">4    DTAC_5G_Office                 36       -78    WPA/WPA2</p>
-            <p class="serial-line">5    AndroidAP_TOM                  6        -85    WPA/WPA2</p>
-            <p class="serial-line dim">-----------------------------------------------</p>
-          </div>
-
-          <!-- EncryptionType note -->
-          <div class="info-frame" style="margin-top:0.5rem;">
-            <h3><i class="fa-solid fa-circle-info"></i> หมายเหตุเรื่อง encryptionType</h3>
-            <p>ค่าคงที่ที่ใช้ตรวจสอบประเภทการเข้ารหัส WiFi แตกต่างกันระหว่างชิป:</p>
-            <ul>
-              <li><strong>ESP32:</strong> ใช้ <code>WIFI_AUTH_OPEN</code> เพื่อตรวจสอบเครือข่ายแบบเปิด</li>
-              <li><strong>ESP8266:</strong> ใช้ <code>ENC_TYPE_NONE</code> เพื่อตรวจสอบเครือข่ายแบบเปิด</li>
-            </ul>
-            <p>โดยในโค้ดนี้ช่องที่ 5 คือชื่อค่าคงที่ที่ถูกต้องสำหรับแพลตฟอร์มที่ใช้งาน</p>
-          </div>
-        </div>
-
-        <!-- ============================================================
-             EXPERIMENT 2: WiFi Connect
-        ============================================================ -->
-        <div class="exp-panel" id="exp2">
-          <div class="exp-frame">
-            <h3><i class="fa-solid fa-plug"></i> ทดลองที่ 2 — เชื่อมต่อ WiFi (Station Mode)</h3>
-            <p>ในการทดลองนี้ บอร์ดจะเชื่อมต่อ WiFi ในโหมด Station (STA) โดยระบุ SSID และ Password ของ Access Point ที่ต้องการ จากนั้นรอจนกว่าการเชื่อมต่อสำเร็จ และแสดง IP Address ที่ได้รับ</p>
-          </div>
-
-          <h2 style="margin-top: 0;">โค้ดโครงร่าง (Skeleton Code) — WiFi Connect</h2>
-          <p>ศึกษาโค้ดต่อไปนี้แล้วค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือ:</p>
-
-          <div class="code-container">
-            <div class="code-header">
-              <span>wifi_connect.ino</span>
-              <div style="display:flex;gap:0.75rem;align-items:center;">
-                <span class="code-lang-badge">Arduino C++</span>
-                <button type="button" class="copy-btn" onclick="copyCode('connectCode')"><i class="fa-regular fa-copy"></i> Copy</button>
-              </div>
-            </div>
-<pre id="connectCode"><code>#if defined(ESP8266)
-  #include &lt;ESP8266WiFi.h&gt;
-#elif defined(ESP32)
-  #include &lt;WiFi.h&gt;
-#endif
-
-// กำหนด SSID และ Password ของ Access Point ที่ต้องการเชื่อมต่อ
-const char* ssid     = "iot_512";
+const char* ssid = "iot_512";
 const char* password = "iot123456";
 
+void handleFileRequest() {
+  String path = server.uri();
+  if (path.endsWith("/")) path += "index.html";
+  String dataType = "text/plain";
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js")) dataType = "application/javascript";
+
+  // ตรวจสอบว่ามีไฟล์ในระบบแฟ้มข้อมูลหรือไม่
+  if (<input type="text" id="codeBlank3" name="codeBlank3" class="code-blank" placeholder="ช่องที่ 3 (เช่น LittleFS.exists(path))" style="width: 220px;" required>) {
+    File file = LittleFS.open(path, "r");
+    // สตรีมไฟล์ไปยัง Client โดยตรง
+    <input type="text" id="codeBlank4" name="codeBlank4" class="code-blank" placeholder="ช่องที่ 4 (เช่น server.streamFile(file, dataType))" style="width: 270px;" required>;
+    file.close();
+  } else {
+    server.send(404, "text/plain", "File Not Found");
+  }
+}
+
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n=== WiFi Station Mode ===");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
 
-  // 1. เริ่มต้นการเชื่อมต่อ WiFi ด้วย SSID และ Password
-  WiFi.<input type="text" id="codeBlank6" form="labForm" required class="code-blank" placeholder="ช่องที่ 6 (เช่น begin)" style="width: 150px;">(ssid, password);
-  Serial.print("กำลังเชื่อมต่อกับ ");
-  Serial.print(ssid);
-
-  // 2. รอจนกว่าสถานะ WiFi จะเท่ากับ WL_CONNECTED (เชื่อมต่อสำเร็จ)
-  while (WiFi.status() != <input type="text" id="codeBlank7" form="labForm" required class="code-blank" placeholder="ช่องที่ 7 (เช่น WL_CONNECTED)" style="width: 190px;">) {
-    delay(500);
-    Serial.print(".");
+  // 1. เมานต์ระบบไฟล์ LittleFS
+  if (!<input type="text" id="codeBlank1" name="codeBlank1" class="code-blank" placeholder="ช่องที่ 1 (เช่น LittleFS.begin(true))" style="width: 210px;" required>) {
+    Serial.println("Mount Failed");
+    return;
   }
 
-  Serial.println("\n✓ เชื่อมต่อ WiFi สำเร็จ!");
-  Serial.print("SSID     : ");
-  Serial.println(WiFi.SSID());
+  // 2. กำหนดฟังก์ชันดักรับคำขอไฟล์ที่ไม่ตรงกับ Route อื่น
+  <input type="text" id="codeBlank2" name="codeBlank2" class="code-blank" placeholder="ช่องที่ 2 (เช่น server.onNotFound(handleFileRequest))" style="width: 320px;" required>;
 
-  // 3. แสดง IP Address ที่ได้รับจาก DHCP Server
-  Serial.print("IP Address : ");
-  Serial.println(WiFi.<input type="text" id="codeBlank8" form="labForm" required class="code-blank" placeholder="ช่องที่ 8 (เช่น localIP)" style="width: 160px;">());
-
-  // 4. แสดงความแรงของสัญญาณ RSSI (dBm)
-  Serial.print("RSSI     : ");
-  Serial.print(WiFi.<input type="text" id="codeBlank9" form="labForm" required class="code-blank" placeholder="ช่องที่ 9 (เช่น macAddress)" style="width: 170px;">());
-  Serial.println(" dBm");
-
-  // 5. แสดง MAC Address ของบอร์ด
-  Serial.print("MAC Addr : ");
-  Serial.println(WiFi.<input type="text" id="codeBlank10" form="labForm" required class="code-blank" placeholder="ช่องที่ 10 (เช่น gatewayIP)" style="width: 170px;">());
+  server.begin();
 }
 
 void loop() {
-  // ตรวจสอบสถานะการเชื่อมต่อทุก 5 วินาที
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: " + WiFi.localIP().toString());
-  } else {
-    Serial.println("[!!] WiFi หลุดการเชื่อมต่อ! กำลังพยายามเชื่อมต่อใหม่...");
-    WiFi.reconnect();
-  }
-  delay(5000);
+  // 3. ประมวลผลคำขอจาก Client
+  <input type="text" id="codeBlank5" name="codeBlank5" class="code-blank" placeholder="ช่องที่ 5 (เช่น server.handleClient())" style="width: 210px;" required>;
+  delay(2);
 }</code></pre>
           </div>
-
-          <!-- Serial Monitor Expected Output -->
-          <p><strong>ตัวอย่าง Serial Monitor Output ที่ควรได้รับ:</strong></p>
-          <div class="serial-monitor">
-            <p class="serial-line bright">=== WiFi Station Mode ===</p>
-            <p class="serial-line">กำลังเชื่อมต่อกับ iot_512<span style="color:#94a3b8">........</span></p>
-            <p class="serial-line ok">✓ เชื่อมต่อ WiFi สำเร็จ!</p>
-            <p class="serial-line">SSID     : iot_512</p>
-            <p class="serial-line bright">IP Address : 192.168.1.105</p>
-            <p class="serial-line">RSSI     : -48 dBm</p>
-            <p class="serial-line">MAC Addr : 24:6F:28:AB:CD:EF</p>
-            <p class="serial-line dim">---</p>
-            <p class="serial-line ok">[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: 192.168.1.105</p>
-            <p class="serial-line ok">[OK] WiFi ยังคงเชื่อมต่ออยู่ | IP: 192.168.1.105</p>
-          </div>
         </div>
 
-        <!-- Challenge -->
-        <div class="challenge-frame" style="margin-top: 1.5rem;">
-          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> ปรับปรุงโค้ดให้รวม Scan + Connect ไว้ในโปรแกรมเดียว โดยหลังจาก Scan เสร็จ ให้บอร์ดค้นหาเครือข่าย <code>"iot_512"</code> จากรายการที่สแกนได้ ถ้าพบให้แสดง RSSI ของเครือข่ายนั้น จากนั้นเชื่อมต่อโดยอัตโนมัติ และเมื่อเชื่อมต่อสำเร็จให้ LED สีแดงบนบอร์ดกะพริบ 3 ครั้ง (GPIO 2 บน ESP32 หรือ GPIO 2 บน ESP8266)</p>
+        <!-- โจทย์ท้าทาย -->
+        <div class="challenge-frame">
+          <h4><i class="fa-solid fa-trophy"></i> โจทย์ท้าทาย (Challenge Mission)</h4>
+          <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.4rem;">
+            ให้นักศึกษาเขียนหน้าเว็บ <code>index.html</code> ลงในโฟลเดอร์ <code>data/</code> พร้อมเขียนโค้ดเพิ่มฟังก์ชันตอบสนอง Content-Type ครบถ้วน (.html, .css, .js, .png, .ico) และอัปโหลดไฟล์สู่ LittleFS Flash Memory ผ่านคำสั่ง <code>Upload Filesystem Image</code> ให้เว็บเซิร์ฟเวอร์เปิดหน้าเว็บได้จริง
+          </p>
         </div>
-
       </div>
 
-      <!-- ============================================================
-           RIGHT COLUMN: Submission Form
-      ============================================================ -->
+      <!-- ──────────────── RIGHT COLUMN: ฟอร์มส่งรายงาน ──────────────── -->
       <div class="glass-card">
-        <div class="card-title">
-          <i class="fa-solid fa-paper-plane"></i>
-          <span>ฟอร์มบันทึกและส่งรายงานผล</span>
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>แบบบันทึกผลและส่งรายงานผลการทดลอง</span>
+          </div>
+          <button type="button" class="btn-print" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> พิมพ์ / PDF
+          </button>
         </div>
 
-        <form id="labForm" onsubmit="return false;">
+        <!-- ข้อมูลนักศึกษา -->
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="studentName"><i class="fa-solid fa-user"></i> ชื่อ-นามสกุล นักศึกษา</label>
+            <input type="text" id="studentName" name="studentName" placeholder="เช่น นายสมชาย สายฟ้าแลบ" required>
+          </div>
+          <div class="form-group">
+            <label for="studentId"><i class="fa-solid fa-id-card"></i> รหัสนักศึกษา</label>
+            <input type="text" id="studentId" name="studentId" placeholder="เช่น 66012345678" required>
+          </div>
+        </div>
 
-          <!-- 1. Student Metadata -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งรายงาน
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="studentGroup"><i class="fa-solid fa-users"></i> กลุ่ม / ตอนเรียน (Section)</label>
+            <input type="text" id="studentGroup" name="studentGroup" placeholder="เช่น Sec 1 หรือ กลุ่ม 3" required>
+          </div>
+          <div class="form-group">
+            <label for="labDate"><i class="fa-solid fa-calendar-day"></i> วันที่ทำการทดลอง</label>
+            <input type="date" id="labDate" name="labDate" required>
+          </div>
+        </div>
+
+        <!-- 5-Question Multiple Choice Quiz -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-list-check" style="color: var(--accent);"></i> แบบทดสอบวัดความเข้าใจ (5 ข้อ — 2.0 คะแนน)
+          </h3>
+
+          <!-- Quiz 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q-title">
+              <span class="quiz-q-badge">ข้อที่ 1</span>
+              <span>หน้าที่ของหมายเลขพอร์ต 80 และกระบวนการสื่อสารของ HTTP Web Server คือข้อใด?</span>
             </div>
-
-            <div class="form-group">
-              <label for="studentName">ชื่อ-นามสกุล</label>
-              <div class="input-wrapper">
-                <i class="fa-regular fa-user input-icon"></i>
-                <input type="text" id="studentName" required placeholder="นาย/นางสาว สมชาย ดีใจ">
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="studentId">รหัสนักศึกษา</label>
-                <div class="input-wrapper">
-                  <i class="fa-regular fa-id-card input-icon"></i>
-                  <input type="text" id="studentId" required placeholder="เช่น 64010512">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="studentGroup">กลุ่ม / ห้องเรียน</label>
-                <div class="input-wrapper">
-                  <i class="fa-solid fa-users input-icon"></i>
-                  <input type="text" id="studentGroup" required placeholder="เช่น 4/1">
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="labDate">วันที่ทำการทดลอง</label>
-              <div class="input-wrapper">
-                <i class="fa-regular fa-calendar input-icon"></i>
-                <input type="date" id="labDate" required>
-              </div>
+            <div class="quiz-options-grid">
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz1" value="1a" required>
+                <span>ก. พอร์ตสำหรับรับส่งสัญญาณวิทยุ Bluetooth แบบ Point-to-Point</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz1" value="1b" required>
+                <span>ข. พอร์ตมาตรฐานสำหรับโปรโตคอล HTTP ในการรับส่งคำขอแบบ Stateless Request-Response</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz1" value="1c" required>
+                <span>ค. พอร์ตสำหรับต่อสาย I2C เชื่อมจอแสดงผล</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz1" value="1d" required>
+                <span>ง. พอร์ตจำเพาะสำหรับดาวน์โหลดเฟิร์มแวร์ผ่าน OTA</span>
+              </label>
             </div>
           </div>
 
-          <!-- 2. Code Fill-in-the-blanks Status Notice -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-code"></i> คำตอบในโค้ดโปรแกรม (Interactive Skeleton Code)
+          <!-- Quiz 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q-title">
+              <span class="quiz-q-badge">ข้อที่ 2</span>
+              <span>จุดเด่นสำคัญของระบบไฟล์ LittleFS เมื่อเทียบกับ SPIFFS ดั้งเดิมคือข้อใด?</span>
             </div>
-            <div style="background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.88rem; color: #cbd5e1; display: flex; align-items: center; gap: 0.75rem;">
-              <i class="fa-solid fa-laptop-code" style="color: #38bdf8; font-size: 1.25rem;"></i>
-              <span>พิมพ์คำตอบลงในช่องว่างของ <strong>โค้ดโครงร่าง (ฝั่งซ้าย ทั้ง 2 ตอนการทดลอง)</strong> ได้โดยตรง ระบบจะรวมคำตอบทั้งหมดส่งเข้าสู่ระบบรายงานผลอัตโนมัติ</span>
-            </div>
-          </div>
-
-          <!-- 4. Scan Result Table Entry -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-table"></i> บันทึกผลการสแกน WiFi (อย่างน้อย 3 เครือข่าย)
-            </div>
-
-            <!-- Network 1 -->
-            <div class="scan-entry-group">
-              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 1</div>
-              <div class="scan-entry-grid">
-                <div class="form-group">
-                  <label for="scan1ssid">SSID</label>
-                  <input type="text" id="scan1ssid" placeholder="ชื่อเครือข่าย">
-                </div>
-                <div class="form-group">
-                  <label for="scan1rssi">RSSI (dBm)</label>
-                  <input type="text" id="scan1rssi" placeholder="เช่น -45">
-                </div>
-                <div class="form-group">
-                  <label for="scan1sec">ความปลอดภัย</label>
-                  <input type="text" id="scan1sec" placeholder="เช่น WPA2 / OPEN">
-                </div>
-              </div>
-            </div>
-
-            <!-- Network 2 -->
-            <div class="scan-entry-group">
-              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 2</div>
-              <div class="scan-entry-grid">
-                <div class="form-group">
-                  <label for="scan2ssid">SSID</label>
-                  <input type="text" id="scan2ssid" placeholder="ชื่อเครือข่าย">
-                </div>
-                <div class="form-group">
-                  <label for="scan2rssi">RSSI (dBm)</label>
-                  <input type="text" id="scan2rssi" placeholder="เช่น -62">
-                </div>
-                <div class="form-group">
-                  <label for="scan2sec">ความปลอดภัย</label>
-                  <input type="text" id="scan2sec" placeholder="เช่น WPA2 / OPEN">
-                </div>
-              </div>
-            </div>
-
-            <!-- Network 3 -->
-            <div class="scan-entry-group">
-              <div class="scan-entry-title"><i class="fa-solid fa-wifi"></i> เครือข่ายที่ 3</div>
-              <div class="scan-entry-grid">
-                <div class="form-group">
-                  <label for="scan3ssid">SSID</label>
-                  <input type="text" id="scan3ssid" placeholder="ชื่อเครือข่าย">
-                </div>
-                <div class="form-group">
-                  <label for="scan3rssi">RSSI (dBm)</label>
-                  <input type="text" id="scan3rssi" placeholder="เช่น -71">
-                </div>
-                <div class="form-group">
-                  <label for="scan3sec">ความปลอดภัย</label>
-                  <input type="text" id="scan3sec" placeholder="เช่น WPA2 / OPEN">
-                </div>
-              </div>
-            </div>
-
-            <!-- IP / MAC Result -->
-            <div class="form-row" style="margin-top:0.75rem;">
-              <div class="form-group">
-                <label for="connIP">IP Address ที่ได้รับจากการเชื่อมต่อ</label>
-                <div class="input-wrapper">
-                  <i class="fa-solid fa-network-wired input-icon"></i>
-                  <input type="text" id="connIP" placeholder="เช่น 192.168.1.105">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="connMAC">MAC Address ของบอร์ด</label>
-                <div class="input-wrapper">
-                  <i class="fa-solid fa-microchip input-icon"></i>
-                  <input type="text" id="connMAC" placeholder="เช่น 24:6F:28:AB:CD:EF">
-                </div>
-              </div>
+            <div class="quiz-options-grid">
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz2" value="2a" required>
+                <span>ก. LittleFS ใช้งาน RAM มากกว่า SPIFFS ถึง 10 เท่า</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz2" value="2b" required>
+                <span>ข. LittleFS ไม่สามารถเก็บไฟล์ประเภท HTML ได้</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz2" value="2c" required>
+                <span>ค. LittleFS มีระบบ Wear Leveling กระจายการเขียน ยืดอายุ Flash และทนทานต่อไฟดับกะทันหัน (Power-loss Resilient)</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz2" value="2d" required>
+                <span>ง. LittleFS ทำงานได้เฉพาะบนไมโครคอมพิวเตอร์ Linux เท่านั้น</span>
+              </label>
             </div>
           </div>
 
-          <!-- 5. Challenge Code -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+          <!-- Quiz 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q-title">
+              <span class="quiz-q-badge">ข้อที่ 3</span>
+              <span>เหตุใดการส่งไฟล์หน้าเว็บด้วยคำสั่ง <code>server.streamFile()</code> จึงปลอดภัยต่อหน่วยความจำ RAM ของไมโครคอนโทรลเลอร์มากกว่าการใช้ <code>server.send()</code>?</span>
             </div>
-            <div class="form-group">
-              <label for="challengeCode">เขียนโค้ดภาษา C++ รวม Scan + Connect + LED Blink ตามโจทย์ท้าทาย:</label>
-              <textarea id="challengeCode" rows="8" placeholder="แปะโค้ด Arduino C++ ของโจทย์ท้าทายที่นี่..."></textarea>
-            </div>
-            <div class="form-group">
-              <label for="challengeLogic">อธิบายตรรกะที่ใช้ค้นหาเครือข่ายเป้าหมายจากรายการ Scan และการกะพริบ LED:</label>
-              <textarea id="challengeLogic" rows="3" placeholder="เช่น วนลูปดูชื่อ SSID ที่สแกนได้ทีละตัว ถ้าตรงกันให้บันทึก RSSI และเรียก begin() เชื่อมต่อ..."></textarea>
-            </div>
-          </div>
-
-          <!-- 6. Post-Lab Questions -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
-            </div>
-
-            <div class="form-group">
-              <label for="question1">1. RSSI ย่อมาจากอะไร และค่า RSSI ที่ดีกว่า (แรงกว่า) ควรมีค่าเป็นบวกหรือลบ เพราะเหตุใด?</label>
-              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question2">2. ความแตกต่างระหว่าง WiFi Mode: WIFI_STA, WIFI_AP และ WIFI_AP_STA คืออะไร และแต่ละโหมดเหมาะกับการใช้งานประเภทใด?</label>
-              <textarea id="question2" rows="4" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            <div class="quiz-options-grid">
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz3" value="3a" required>
+                <span>ก. เพราะ streamFile อ่านข้อมูลจาก Flash ส่งตรงทีละบล็อก (Chunk) ออกทางเครือข่าย โดยไม่ต้องโหลดไฟล์ทั้งก้อนเข้า RAM</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz3" value="3b" required>
+                <span>ข. เพราะ streamFile จะทำการบีบอัดไฟล์เป็น .zip เสมอก่อนส่ง</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz3" value="3c" required>
+                <span>ค. เพราะ streamFile ทำให้เซิร์ฟเวอร์ตัดการเชื่อมต่อ Wi-Fi ทันทีหลังจากส่งเสร็จ</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz3" value="3d" required>
+                <span>ง. เพราะ streamFile ส่งไฟล์เฉพาะบรรทัดแรกของไฟล์ HTML เท่านั้น</span>
+              </label>
             </div>
           </div>
 
-          <!-- 7. File Attachments -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+          <!-- Quiz 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q-title">
+              <span class="quiz-q-badge">ข้อที่ 4</span>
+              <span>การกำหนด Content-Type (MIME Type) เช่น <code>text/html</code> หรือ <code>text/css</code> มีผลสำคัญอย่างไรต่อเบราว์เซอร์ของผู้ใช้งาน?</span>
             </div>
-
-            <!-- Screenshot upload -->
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพหลักฐานผล Serial Monitor (ผล Scan + ผล Connect)</label>
-              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
-                <i class="fa-regular fa-images upload-icon"></i>
-                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
-              </div>
-              <div class="file-preview" id="screenshotPreview">
-                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
-                <div class="preview-details">
-                  <div class="preview-name" id="screenshotName">file_name.png</div>
-                  <div class="preview-size" id="screenshotSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-
-            <!-- Code file upload -->
-            <div class="form-group">
-              <label>2. ไฟล์โค้ดการทดลอง (.ino หรือ .zip รวม Scan + Connect + Challenge)</label>
-              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
-                <i class="fa-regular fa-file-code upload-icon"></i>
-                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
-              </div>
-              <div class="file-preview" id="codePreview">
-                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
-                <div class="preview-details">
-                  <div class="preview-name" id="codeName">code_file.ino</div>
-                  <div class="preview-size" id="codeSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
+            <div class="quiz-options-grid">
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz4" value="4a" required>
+                <span>ก. บังคับให้บราวเซอร์รีสตาร์ตเครื่องใหม่ทันที</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz4" value="4b" required>
+                <span>ข. ช่วยเพิ่มความเร็วของสัญญาณ Wi-Fi Router ให้เป็น 5 GHz</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz4" value="4c" required>
+                <span>ค. ป้องกันไม่ให้บอร์ด ESP32 เกิดความร้อนสูง</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz4" value="4d" required>
+                <span>ง. แจ้งให้เบราว์เซอร์ทราบชนิดของไฟล์ เพื่อเรนเดอร์และประมวลผลไฟล์ได้อย่างถูกต้องตามมาตรฐานเว็บ</span>
+              </label>
             </div>
           </div>
 
-          <!-- 8. Conclusion -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+          <!-- Quiz 5 -->
+          <div class="quiz-card">
+            <div class="quiz-q-title">
+              <span class="quiz-q-badge">ข้อที่ 5</span>
+              <span>ฟังก์ชัน <code>server.onNotFound(...)</code> ทำหน้าที่ใดในระบบ Web Server?</span>
             </div>
-            <div class="form-group">
-              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการทั้ง 2 การทดลอง</label>
-              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลการทดลอง Scan WiFi, ผลการเชื่อมต่อ, ค่า RSSI ที่ได้, และผลลัพธ์ของโจทย์ท้าทาย..."></textarea>
+            <div class="quiz-options-grid">
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz5" value="5a" required>
+                <span>ก. ทำหน้าที่เป็น Catch-all Handler จัดการคำขอ URI ที่ไม่มี Route เฉพาะเจาะจง หรือตอบกลับ HTTP Status 404</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz5" value="5b" required>
+                <span>ข. ทำหน้าที่ค้นหาสัญญาณ Wi-Fi ที่ซ่อน SSID ไว้</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz5" value="5c" required>
+                <span>ค. ทำหน้าที่ตัดไฟเลี้ยงเซ็นเซอร์เพื่อประหยัดพลังงาน</span>
+              </label>
+              <label class="quiz-option-label">
+                <input type="radio" name="quiz5" value="5d" required>
+                <span>ง. ทำหน้าที่จัดเรียงพาร์ติชัน Flash Memory ใหม่ทุกรอบ loop()</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- โค้ดโจทย์ท้าทาย -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution)</label>
+            <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
+          </div>
+          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดจริง..." required></textarea>
+        </div>
+
+        <!-- คำอธิบายตรรกะควบคุม -->
+        <div class="form-group">
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของ Web Server และการสตรีมไฟล์</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่ผู้ใช้เปิด URL บนเบราว์เซอร์ จนถึงการอ่านไฟล์จาก LittleFS และสตรีมข้อมูลกลับ..." required></textarea>
+        </div>
+
+        <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-clipboard-question" style="color: var(--accent);"></i> คำถามวิเคราะห์และสรุปผลเชิงลึก (2.5 คะแนน)
+          </h3>
+
+          <div class="form-group">
+            <label for="question1">1. ระบบแฟ้มข้อมูล LittleFS มีข้อดีอย่างไรเมื่อเทียบกับระบบ SPIFFS รุ่นเก่า และช่วยยืดอายุ Flash Memory ได้อย่างไร?</label>
+            <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question2">2. เหตุใดการใช้คำสั่ง <code>server.streamFile()</code> จึงป้องกันปัญหา Heap Overflow (RAM ไม่พอ) เมื่อให้บริการไฟล์ขนาดใหญ่ได้?</label>
+            <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question3">3. หากเบราว์เซอร์ร้องขอไฟล์ <code>styles.css</code> แต่เซิร์ฟเวอร์ส่ง Content-Type เป็น <code>text/plain</code> จะเกิดผลกระทบอย่างไรต่อหน้าเว็บ?</label>
+            <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+        </div>
+
+        <!-- แนบไฟล์ผลการทดลอง -->
+        <div class="form-group-row">
+          <div class="form-group">
+            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอการเปิดหน้าเว็บจาก ESP32</label>
+            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
+              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
+              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
+              <div id="screenshotBadge" class="file-badge"></div>
+              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
             </div>
           </div>
 
-          <!-- Buttons -->
-          <div class="button-group" style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">
-            <button type="button" class="btn-check-score" id="checkScoreBtn" onclick="checkPreSubmissionScore()">
-              <i class="fa-solid fa-list-check"></i> ตรวจสอบคะแนนก่อนส่ง (Pre-check Score)
+          <div class="form-group">
+            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
+            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
+              <i class="fa-solid fa-file-zipper upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์โค้ดหรือ data folder มาวางที่นี่</div>
+              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
+              <div id="codeFileBadge" class="file-badge"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- สรุปผลการทดลอง -->
+        <div class="form-group">
+          <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
+          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Web Server ไปต่อยอดในงาน IoT..." required></textarea>
+        </div>
+
+        <!-- Submit & Print Button Group with Pre-check Score Button -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn-check-score" id="checkScoreBtn" onclick="checkPreSubmissionScore()">
+            <i class="fa-solid fa-list-check"></i> ตรวจสอบคะแนนก่อนส่ง (Pre-check Score)
+          </button>
+          <div class="form-actions">
+            <button type="submit" id="submitBtn" class="btn btn-submit">
+              <i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์
             </button>
-            <div style="display:flex;gap:1rem;">
-              <button type="button" class="btn" id="submitBtn" onclick="openSubmitConfirmModal()" style="flex:1;">
-                <i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;">
-                <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
-              </button>
+            <button type="reset" class="btn btn-secondary" onclick="resetFormState()">
+              <i class="fa-solid fa-rotate-left"></i> ล้างข้อมูล
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ──────────────── Theory Modal (Multi-Tab) ──────────────── -->
+<div class="modal-overlay" id="theoryModal">
+  <div class="theory-modal-content">
+    <div class="theory-modal-header">
+      <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> เนื้อหาทฤษฎี: Embedded Web Server & LittleFS</h2>
+      <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="theory-modal-body">
+      <!-- Tabs -->
+      <div class="theory-tab-bar">
+        <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('tab1', this)">1. สถาปัตยกรรม HTTP Server</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab2', this)">2. LittleFS vs SPIFFS</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab3', this)">3. File Streaming &amp; MIME Types</button>
+        <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('tab4', this)"><i class="fa-solid fa-terminal"></i> 4. REST API &amp; JSON Message Box</button>
+      </div>
+
+      <!-- Tab 1 -->
+      <div class="theory-tab-panel active" id="theory-tab-tab1">
+        <div class="theory-card">
+          <h4><i class="fa-solid fa-network-wired"></i> 1.1 วงจรคำขอ-ตอบกลับ (HTTP Request-Response Cycle)</h4>
+          <p>
+            HTTP (HyperText Transfer Protocol) ทำงานบนพอร์ตมาตรฐาน <strong>Port 80</strong> ด้วยสถาปัตยกรรมแบบ Stateless Client-Server เมื่อผู้ใช้พิมพ์ IP Address ของบอร์ด ESP32 ลงในเบราว์เซอร์ เบราว์เซอร์จะส่งคำขอ <code>GET / HTTP/1.1</code> เข้ามายังไมโครคอนโทรลเลอร์ เซิร์ฟเวอร์จะประมวลผลและส่ง HTTP Status Code (เช่น <code>200 OK</code> หรือ <code>404 Not Found</code>) พร้อมทั้งข้อมูลไฟล์กลับไป
+          </p>
+          <div class="theory-formula">
+            Client Browser  --- [ GET /index.html HTTP/1.1 ] --->  ESP32 Web Server<br>
+            Client Browser  &lt;-- [ HTTP/1.1 200 OK + HTML ] ---  ESP32 Web Server
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div class="theory-tab-panel" id="theory-tab-tab2">
+        <div class="theory-card">
+          <h4><i class="fa-solid fa-hard-drive"></i> 2.1 ระบบไฟล์ LittleFS สำหรับ Flash Memory</h4>
+          <p>
+            <strong>LittleFS</strong> คือระบบแฟ้มข้อมูลขนาดกะทัดรัดที่ถูกออกแบบมาเพื่อชิป Flash Memory ที่มีหน่วยความจำจำกัดโดยเฉพาะ มีข้อดีที่เหนือกว่า SPIFFS เดิมอย่างมาก ได้แก่:
+          </p>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem;">
+            <li><strong>Power-loss Resilience:</strong> ป้องกันข้อมูลเสียหายเมื่อเกิดไฟตกหรือถอดปลั๊กกะทันหัน</li>
+            <li><strong>Dynamic Wear Leveling:</strong> กระจายการเขียนข้อมูลไปยังบล็อกต่างๆ ของ Flash อย่างทั่วถึง ยืดอายุการใช้งานฮาร์ดแวร์</li>
+            <li><strong>Directory Support:</strong> รองรับโครงสร้างโฟลเดอร์ย่อยได้อย่างสมบูรณ์</li>
+            <li><strong>ประหยัด RAM:</strong> ใช้ขนาด Buffer ในการทำงานน้อยมาก</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tab 3 -->
+      <div class="theory-tab-panel" id="theory-tab-tab3">
+        <div class="theory-card">
+          <h4><i class="fa-solid fa-bolt"></i> 3.1 การสตรีมไฟล์ขนาดใหญ่ด้วย server.streamFile()</h4>
+          <p>
+            เนื่องจากไมโครคอนโทรลเลอร์มีหน่วยความจำ RAM (Heap) จำกัด หากเราอ่านไฟล์ทั้งไฟล์เข้ามาเก็บในตัวแปร <code>String</code> แล้วสั่ง <code>server.send()</code> ไฟล์ขนาดใหญ่ เช่น รูปภาพหรือไฟล์สไตล์ CSS จะทำให้ RAM หมดและบอร์ดรีสตาร์ตทันที การใช้ <code>server.streamFile(file, contentType)</code> จะทำการอ่านข้อมูลทีละบล็อก (Chunk) แล้วส่งตรงไปยัง Client ทันที ทำให้ประหยัด RAM อย่างมหาศาล
+          </p>
+          <div class="theory-formula">
+            // ตัวอย่างการใช้งาน streamFile<br>
+            File file = LittleFS.open("/index.html", "r");<br>
+            server.streamFile(file, "text/html");<br>
+            file.close();
+          </div>
+        </div>
+
+        <!-- Tab 4: REST API & JSON Message Box Reference -->
+        <div class="theory-tab-panel" id="theory-tab-tab4">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 4.1 รูปแบบข้อความ JSON ใน REST API &amp; Request Body</h4>
+            <p>เมื่อผู้ใช้หรือเว็บแอปส่งคำสั่งผ่าน <strong>HTTP Request Body / Test Console</strong> ข้อมูลจะต้องอยู่ในรูปแบบ JSON ที่ถูกต้อง:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Endpoint &amp; Method</th>
+                    <th>สิ่งที่ต้องพิมพ์ใน Request Body</th>
+                    <th>ผลตอบกลับจาก ESP32 / ESP8266</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>GET /api/status</code></td>
+                    <td><i>(ไม่มี Body)</i></td>
+                    <td><code>{"temp": 28.5, "led": false, "heap": 215400}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>POST /api/led</code></td>
+                    <td><code>{"state": true}</code></td>
+                    <td>เปิด Onboard LED, ตอบกลับ <code>{"success": true, "led": true}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>POST /api/relay</code></td>
+                    <td><code>{"relay": true, "timer": 10}</code></td>
+                    <td>สั่งเปิดรีเลย์ 10 วินาที, ตอบกลับ <code>{"success": true}</code></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+
+            <p style="margin-top: 0.8rem; font-size: 0.88rem; color: #cbd5e1;">
+              ⚠️ <strong>ข้อควรระวังเรื่องไวยากรณ์ JSON (JSON Syntax Rules):</strong>
+            </p>
+            <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;">
+              <li>Key ต้องอยู่ในเครื่องหมาย Double Quotes <code>"..."</code> เท่านั้น (ห้ามใช้ Single Quote <code>'...'</code>)</li>
+              <li>ค่า Boolean ต้องพิมพ์ <code>true</code> หรือ <code>false</code> (ตัวพิมพ์เล็ก ไม่มีเครื่องหมายคำพูด)</li>
+              <li>ค่าตัวเลข เช่น <code>28.5</code> ไม่ต้องใส่เครื่องหมายคำพูด</li>
+            </ul>
           </div>
+        </div>
 
-        </form>
       </div>
     </div>
-  </div>
 
-  <!-- Alert Modal -->
-  
-  <!-- Theory Content Modal -->
-  <div class="modal-overlay" id="theoryModal" style="display: none;">
-    <div class="theory-modal-content">
-      <div class="theory-modal-header">
-        <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent, #6366f1);"></i> ทฤษฎีที่เกี่ยวข้อง: การตรวจหา WiFi และการเชื่อมต่อ Station Mode (WiFi Scan & Connect)</h2>
-        <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="theory-modal-body">
-        <!-- Theory Navigation Tabs -->
-        <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('modes', this)"><i class="fa-solid fa-wifi"></i> 1. โหมด Wi-Fi</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('rssi', this)"><i class="fa-solid fa-signal"></i> 2. ความแรงสัญญาณ RSSI</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dhcp', this)"><i class="fa-solid fa-network-wired"></i> 3. การรับ IP & Auto Reconnect</button>
-        </div>
-
-        <div class="theory-tab-panel active" id="theory-tab-modes">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-tower-broadcast"></i> 1.1 โหมดการทำงานของ Wi-Fi บนไมโครคอนโทรลเลอร์</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>Station Mode (WIFI_STA):</strong> ESP ทำหน้าที่เป็นลูกข่าย (Client) เพื่อเกาะเข้ากับ Wi-Fi Router หลักสำหรับการสื่อสารออกสู่อินเทอร์เน็ต</li>
-                  <li><strong>Access Point Mode (WIFI_AP):</strong> ESP ทำหน้าที่เป็นตัวปล่อยสัญญาณ Wi-Fi ของตนเองให้อุปกรณ์อื่นเข้ามาเชื่อมต่อโดยตรง</li>
-                  <li><strong>AP + STA Mode (WIFI_AP_STA):</strong> ทำงานทั้งสองโหมดพร้อมกัน สามารถปล่อย AP พร้อมสแกนค้นหาเครือข่ายรอบข้างได้</li>
-                </ul>
-              </div>
-        </div>
-
-        <div class="theory-tab-panel" id="theory-tab-rssi">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-chart-simple"></i> 2.1 หน่วยวัดความแรงสัญญาณ RSSI (dBm)</h4>
-                <p><strong>RSSI (Received Signal Strength Indicator)</strong> มีหน่วยเป็น <strong>dBm (เดซิเบลมิลลิวัตต์)</strong> มีค่าเป็นลบเสมอเนื่องจากสัญญาณคลื่นวิทยุมีกำลังต่ำมากในระดับไมโครวัตต์:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><code>-30 ถึง -50 dBm</code> : สัญญาณแรงดีเยี่ยม (อยู่ใกล้เราเตอร์มาก)</li>
-                  <li><code>-51 ถึง -67 dBm</code> : สัญญาณแรงดี เหมาะสำหรับการใช้งานทั่วไป</li>
-                  <li><code>-68 ถึง -75 dBm</code> : สัญญาณพอใช้ เริ่มมีความเสี่ยงข้อมูลสูญหาย</li>
-                  <li><code>-80 dBm ขึ้นไป</code> : สัญญาณอ่อนมาก มีโอกาสหลุดการเชื่อมต่อสูง</li>
-                </ul>
-              </div>
-        </div>
-
-        <div class="theory-tab-panel" id="theory-tab-dhcp">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-arrows-rotate"></i> 3.1 การรับ IP Address และระบบกู้คืนสัญญาณ</h4>
-                <p>เมื่อเชื่อมต่อสำเร็จ Router จะแจก <strong>Local IP Address</strong>, <strong>Gateway</strong>, และ <strong>Subnet Mask</strong> ผ่านโพรโทคอล DHCP หากสัญญาณหลุด โค้ดใน <code>loop()</code> สามารถตรวจจับผ่าน <code>WiFi.status() != WL_CONNECTED</code> เพื่อเรียกคำสั่ง <code>WiFi.reconnect()</code> เชื่อมต่อใหม่โดยอัตโนมัติ</p>
-              </div>
-        </div>
-      </div>
-
-      <div class="theory-modal-footer">
-        <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
-      </div>
+    <div class="theory-modal-footer">
+      <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
     </div>
   </div>
+</div>
 
-  <!-- Pre-submission Score Check Modal -->
-  <div class="modal-overlay" id="scoreCheckModal" style="display:none;">
-    <div class="modal-content score-check-modal-content">
-      <div class="score-modal-header">
-        <div class="score-modal-icon"><i class="fa-solid fa-chart-pie"></i></div>
-        <div>
-          <h3 class="modal-title" style="text-align:left;margin-bottom:0.15rem;font-size:1.25rem;">ผลการประเมินคะแนนเบื้องต้น</h3>
-          <p style="font-size:0.8rem;color:var(--text-muted,#94a3b8);text-align:left;margin:0;">ตรวจสอบความสมบูรณ์และคะแนนประเมินก่อนส่งใบงานจริง</p>
-        </div>
-      </div>
-      <div class="score-hero-card">
-        <div class="score-big-num" id="preScoreTotal">0.0 <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span></div>
-        <div class="score-status-badge" id="preScoreBadge">กำลังประเมิน...</div>
-      </div>
-      <div class="score-breakdown-list" id="preScoreBreakdown"></div>
-      <div class="score-modal-actions">
-        <button type="button" class="btn btn-secondary" onclick="closeScoreCheckModal()">
-          <i class="fa-solid fa-pen-to-square"></i> กลับไปแก้ไข
-        </button>
-        <button type="button" class="btn" id="modalSubmitBtn" onclick="submitFromScoreModal()">
-          <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งใบงาน
-        </button>
+<!-- ──────────────── Pre-submission Score Check Modal ──────────────── -->
+<div class="modal-overlay" id="scoreCheckModal" style="display:none;">
+  <div class="score-check-modal-content">
+    <div class="score-modal-header">
+      <div class="score-modal-icon"><i class="fa-solid fa-chart-pie"></i></div>
+      <div>
+        <h3 class="modal-title" style="text-align:left;margin-bottom:0.15rem;font-size:1.25rem;color:#fff;">ผลการประเมินคะแนนเบื้องต้น</h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);text-align:left;margin:0;">ตรวจสอบความสมบูรณ์และคะแนนประเมินก่อนส่งใบงานจริง</p>
       </div>
     </div>
-  </div>
-
-  <!-- Submission Confirmation Modal -->
-  <div class="modal-overlay" id="confirmSubmitModal" style="display:none;">
-    <div class="modal-content" style="max-width:500px;text-align:left;padding:1.75rem;">
-      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:0.75rem;">
-        <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <div>
-          <h3 class="modal-title" style="margin:0;font-size:1.2rem;text-align:left;">ยืนยันการส่งใบงานขั้นสุดท้าย</h3>
-          <p style="margin:0;font-size:0.8rem;color:var(--text-muted,#94a3b8);">กรุณาตรวจสอบความถูกต้องก่อนยืนยัน</p>
-        </div>
-      </div>
-      <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:0.85rem 1rem;color:#fde047;font-size:0.88rem;line-height:1.5;margin-bottom:1.25rem;">
-        <i class="fa-solid fa-circle-exclamation"></i> <strong>คำเตือน:</strong> ใบงานนี้สามารถส่งได้ <u>เพียง 1 ครั้งเท่านั้น</u> และจะไม่สามารถแก้ไขได้อีกหลังจากกดยืนยัน
-      </div>
-      <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:1.5rem;line-height:1.6;">
-        คุณต้องการยืนยันการส่งใบงานของ <strong><span id="confirmStudentName">-</span></strong> (รหัส <strong><span id="confirmStudentId">-</span></strong>) ใช่หรือไม่?
-      </p>
-      <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:0.75rem;">
-        <button type="button" class="btn btn-secondary" onclick="closeSubmitConfirmModal()">
-          <i class="fa-solid fa-pen-to-square"></i> กลับไปตรวจอีกครั้ง
-        </button>
-        <button type="button" class="btn" style="background:linear-gradient(135deg,#10b981,#059669);" onclick="executeFinalSubmit()">
-          <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งงาน
-        </button>
-      </div>
+    <div class="score-hero-card">
+      <div class="score-big-num" id="preScoreTotal">0.0 <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span></div>
+      <div class="score-status-badge" id="preScoreBadge">กำลังประเมิน...</div>
+    </div>
+    <div class="score-breakdown-list" id="preScoreBreakdown"></div>
+    <div class="score-modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeScoreCheckModal()">
+        <i class="fa-solid fa-pen-to-square"></i> กลับไปแก้ไข
+      </button>
+      <button type="button" class="btn btn-submit" id="modalSubmitBtn" onclick="submitFromScoreModal()">
+        <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งใบงาน
+      </button>
     </div>
   </div>
+</div>
 
-  <div class="modal-overlay" id="alertModal">
-    <div class="modal-content">
-      <div class="modal-icon success" id="modalIcon"><i class="fa-regular fa-circle-check"></i></div>
-      <div class="modal-title" id="modalTitle">ส่งใบงานสำเร็จ</div>
-      <div class="modal-text" id="modalText">รายละเอียดของข้อความระบบจะแสดงตรงนี้</div>
-      <button type="button" class="modal-close-btn" onclick="closeModal()">ตกลง</button>
+<!-- ──────────────── Submission Confirmation Modal ──────────────── -->
+<div class="modal-overlay" id="confirmSubmitModal" style="display:none;">
+  <div class="alert-modal-content" style="max-width:500px;text-align:left;padding:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:0.75rem;">
+      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <h3 class="modal-title" style="margin:0;font-size:1.2rem;text-align:left;color:#fff;">ยืนยันการส่งใบงานขั้นสุดท้าย</h3>
+        <p style="margin:0;font-size:0.8rem;color:var(--text-muted);">กรุณาตรวจสอบความถูกต้องก่อนยืนยัน</p>
+      </div>
+    </div>
+    <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:0.85rem 1rem;color:#fde047;font-size:0.88rem;line-height:1.5;margin-bottom:1.25rem;">
+      <i class="fa-solid fa-circle-exclamation"></i> <strong>คำเตือน:</strong> ใบงานนี้สามารถส่งได้ <u>เพียง 1 ครั้งเท่านั้น</u> และจะไม่สามารถแก้ไขได้อีกหลังจากกดยืนยัน
+    </div>
+    <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:1.5rem;line-height:1.6;">
+      คุณต้องการยืนยันการส่งใบงานของ <strong><span id="confirmStudentName">-</span></strong> (รหัส <strong><span id="confirmStudentId">-</span></strong>) ใช่หรือไม่?
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:0.75rem;">
+      <button type="button" class="btn btn-secondary" onclick="closeSubmitConfirmModal()">
+        <i class="fa-solid fa-pen-to-square"></i> กลับไปตรวจอีกครั้ง
+      </button>
+      <button type="button" class="btn" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;" onclick="executeFinalSubmit()">
+        <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งงาน
+      </button>
     </div>
   </div>
+</div>
 
-  <script>
+<!-- ──────────────── Anti-Cheat Warning Toast ──────────────── -->
+<div id="antiCheatToast" class="anti-cheat-toast">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>
+</div>
 
-    // --- THEORY MODAL HELPERS ---
-    function openTheoryModal() {
-      const m = document.getElementById('theoryModal');
-      if (m) m.style.display = 'flex';
+<!-- ──────────────── Notification Alert Modal ──────────────── -->
+<div class="modal-overlay" id="customAlertModal">
+  <div class="alert-modal-content">
+    <div id="alertIcon" class="alert-icon success"><i class="fa-solid fa-circle-check"></i></div>
+    <h3 id="alertTitle" class="alert-title">แจ้งเตือน</h3>
+    <p id="alertMessage" class="alert-message">ข้อความแจ้งเตือน</p>
+    <button type="button" class="btn btn-submit" style="width: 100%;" onclick="closeAlertModal()">ตกลง</button>
+  </div>
+</div>
+
+<script>
+  // ── 1. Online / Offline Status Indicator ──
+  function initOnlineStatus() {
+    const badge = document.getElementById('onlineStatusBadge');
+    const text = document.getElementById('onlineStatusText');
+    if (!badge || !text) return;
+
+    function update() {
+      if (navigator.onLine) {
+        badge.className = 'status-badge online';
+        text.textContent = 'ออนไลน์ (พร้อมส่งรายงาน)';
+      } else {
+        badge.className = 'status-badge offline';
+        text.textContent = 'ออฟไลน์ (ไม่มีการเชื่อมต่อเครือข่าย)';
+      }
     }
 
-    function closeTheoryModal() {
-      const m = document.getElementById('theoryModal');
-      if (m) m.style.display = 'none';
-    }
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    update();
+  }
 
-    function switchTheoryTab(tabKey, btn) {
-      document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
-      
-      if (btn) btn.classList.add('active');
-      const panel = document.getElementById('theory-tab-' + tabKey);
-      if (panel) panel.classList.add('active');
-    }
-    // ----------------------------
+  // ── 2. Theory Modal Controller ──
+  function openTheoryModal() {
+    const m = document.getElementById('theoryModal');
+    if (m) m.style.display = 'flex';
+  }
 
-    // =============================================
-    //  State
-    // =============================================
-    let uploadedScreenshotBase64 = null; window.uploadedScreenshotBase64 = null;
-    let uploadedScreenshotName   = null;
-    let uploadedScreenshotType   = null;
-    let uploadedCodeBase64 = null; window.uploadedCodeBase64 = null;
-    let uploadedCodeFileName     = null;
-    let uploadedCodeFileType     = null;
+  function closeTheoryModal() {
+    const m = document.getElementById('theoryModal');
+    if (m) m.style.display = 'none';
+  }
 
-    // =============================================
-    //  Init
-    // =============================================
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('labDate').value = new Date().toISOString().split('T')[0];
+  function switchTheoryTab(tabKey, btn) {
+    document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const panel = document.getElementById('theory-tab-' + tabKey);
+    if (panel) panel.classList.add('active');
+  }
 
-      ['studentName', 'studentId', 'studentGroup'].forEach(key => {
-        const val = localStorage.getItem(key);
-        if (val) document.getElementById(key).value = val;
-      });
+  // ── 3. Smart Code Copy with Injected Blanks ──
+  function copySkeletonCode() {
+    const b1 = document.getElementById('codeBlank1')?.value.trim() || 'LittleFS.begin(true)';
+    const b2 = document.getElementById('codeBlank2')?.value.trim() || 'server.onNotFound(handleFileRequest)';
+    const b3 = document.getElementById('codeBlank3')?.value.trim() || 'LittleFS.exists(path)';
+    const b4 = document.getElementById('codeBlank4')?.value.trim() || 'server.streamFile(file, dataType)';
+    const b5 = document.getElementById('codeBlank5')?.value.trim() || 'server.handleClient()';
 
-      initDragAndDrop();
+    const codeText = `#include <Arduino.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+  #include <ESP8266WebServer.h>
+  ESP8266WebServer server(80);
+#elif defined(ESP32)
+  #include <WiFi.h>
+  #include <WebServer.h>
+  WebServer server(80);
+#endif
+#include <LittleFS.h>
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+
+void handleFileRequest() {
+  String path = server.uri();
+  if (path.endsWith("/")) path += "index.html";
+  String dataType = "text/plain";
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js")) dataType = "application/javascript";
+
+  if (${b3}) {
+    File file = LittleFS.open(path, "r");
+    ${b4};
+    file.close();
+  } else {
+    server.send(404, "text/plain", "File Not Found");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+
+  if (!${b1}) {
+    Serial.println("Mount Failed");
+    return;
+  }
+
+  ${b2};
+  server.begin();
+}
+
+void loop() {
+  ${b5};
+  delay(2);
+}`;
+
+    navigator.clipboard.writeText(codeText).then(() => {
+      const copyBtn = document.querySelector('.copy-btn');
+      if (copyBtn) {
+        copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
+        setTimeout(() => copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy Code', 2000);
+      }
     });
+  }
 
-    // =============================================
-    //  Experiment Tabs
-    // =============================================
-    function showExpPanel(panelId, btn) {
-      document.querySelectorAll('.exp-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.exp-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(panelId).classList.add('active');
-      btn.classList.add('active');
+  function pasteChallengeTemplate() {
+    const template = `/**
+ * Lab 3.1 Challenge Solution: LittleFS Web Server with MIME Handling
+ */
+#include <Arduino.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+  #include <ESP8266WebServer.h>
+  ESP8266WebServer server(80);
+#elif defined(ESP32)
+  #include <WiFi.h>
+  #include <WebServer.h>
+  WebServer server(80);
+#endif
+#include <LittleFS.h>
+
+const char* ssid = "iot_512";
+const char* password = "iot123456";
+
+String getContentType(String path) {
+  if (path.endsWith(".html")) return "text/html";
+  else if (path.endsWith(".css")) return "text/css";
+  else if (path.endsWith(".js")) return "application/javascript";
+  else if (path.endsWith(".png")) return "image/png";
+  else if (path.endsWith(".ico")) return "image/x-icon";
+  return "text/plain";
+}
+
+void handleFileRequest() {
+  String path = server.uri();
+  if (path.endsWith("/")) path += "index.html";
+  String dataType = getContentType(path);
+
+  if (LittleFS.exists(path)) {
+    File file = LittleFS.open(path, "r");
+    server.streamFile(file, dataType);
+    file.close();
+    Serial.printf("Served: %s\\n", path.c_str());
+  } else {
+    server.send(404, "text/plain", "404: File Not Found");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+
+  #if defined(ESP8266)
+  if (!LittleFS.begin()) return;
+  #else
+  if (!LittleFS.begin(true)) return;
+  #endif
+
+  server.onNotFound(handleFileRequest);
+  server.begin();
+  Serial.println("Server started!");
+}
+
+void loop() {
+  server.handleClient();
+  delay(2);
+}`;
+    const ta = document.getElementById('challengeCode');
+    if (ta) ta.value = template;
+  }
+
+  // ── 4. Anti-Cheat & Plagiarism Prevention ──
+  function initAntiCheat() {
+    const protectedFields = document.querySelectorAll('textarea[data-protected="true"]');
+    const toast = document.getElementById('antiCheatToast');
+    let toastTimeout;
+
+    function showWarningToast() {
+      if (!toast) return;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
     }
 
-    // =============================================
-    //  Copy Code
-    // =============================================
-    function copyCode(preId) {
-      const el = document.getElementById(preId);
-      // Strip HTML tags to get plain text
-      const text = el.innerText || el.textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btns = document.querySelectorAll('.copy-btn');
-        btns.forEach(b => {
-          b.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-          setTimeout(() => {
-            b.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
-          }, 2000);
-        });
+    protectedFields.forEach(el => {
+      el.addEventListener('paste', e => {
+        e.preventDefault();
+        showWarningToast();
+      });
+      el.addEventListener('copy', e => {
+        e.preventDefault();
+        showWarningToast();
+      });
+      el.addEventListener('cut', e => {
+        e.preventDefault();
+        showWarningToast();
+      });
+      el.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        showWarningToast();
+      });
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        showWarningToast();
+      });
+    });
+  }
+
+  // ── 5. File Upload Handling ──
+  let screenshotData = { base64: null, name: null, type: null };
+  let codeFileData = { base64: null, name: null, type: null };
+
+  function handleScreenshotUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    screenshotData.name = file.name;
+    screenshotData.type = file.type;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      screenshotData.base64 = evt.target.result;
+      const preview = document.getElementById('screenshotPreview');
+      const badge = document.getElementById('screenshotBadge');
+      if (preview) {
+        preview.src = evt.target.result;
+        preview.style.display = 'block';
+      }
+      if (badge) {
+        badge.innerHTML = `<i class="fa-solid fa-check"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        badge.style.display = 'inline-flex';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleCodeFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    codeFileData.name = file.name;
+    codeFileData.type = file.type || 'text/plain';
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      codeFileData.base64 = evt.target.result;
+      const badge = document.getElementById('codeFileBadge');
+      if (badge) {
+        badge.innerHTML = `<i class="fa-solid fa-file-code"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        badge.style.display = 'inline-flex';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetFormState() {
+    screenshotData = { base64: null, name: null, type: null };
+    codeFileData = { base64: null, name: null, type: null };
+    const p = document.getElementById('screenshotPreview');
+    const b1 = document.getElementById('screenshotBadge');
+    const b2 = document.getElementById('codeFileBadge');
+    if (p) p.style.display = 'none';
+    if (b1) b1.style.display = 'none';
+    if (b2) b2.style.display = 'none';
+  }
+
+  // ── 6. Pre-Submission Score Check System ──
+  
+  // ===== REGEX EVALUATION ENGINE (LAB 3.1) =====
+  function evaluateLab31Challenge(code) {
+    if (!code || code.trim().length === 0) {
+      return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+    }
+    let score = 0.0;
+    let matched = [];
+
+    // Criterion 1: Scan & target SSID search (+1.0)
+    if (/(scanNetworks|WiFi\.SSID\(i\)|iot_512)/i.test(code)) {
+      score += 1.0;
+      matched.push('✓ มีการค้นหาเครือข่ายเป้าหมาย "iot_512" จากรายการที่สแกน');
+    } else {
+      matched.push('✗ ขาดการสแกนและค้นหาชื่อเครือข่าย "iot_512"');
+    }
+
+    // Criterion 2: Extract RSSI & auto connect (+0.8)
+    if (/(WiFi\.RSSI|RSSI)/i.test(code) && /(WiFi\.begin|begin\s*\()/i.test(code)) {
+      score += 0.8;
+      matched.push('✓ อ่านค่า RSSI และสั่งเชื่อมต่ออัตโนมัติ (WiFi.begin)');
+    } else {
+      matched.push('✗ ขาดการอ่านค่าความแรงสัญญาณ (RSSI) หรือคำสั่ง WiFi.begin()');
+    }
+
+    // Criterion 3: Blink LED 3 times on GPIO 2 (+0.7)
+    if (/(for|while).*3/i.test(code) || /digitalWrite\s*\(\s*(2|LED_PIN|LED_BUILTIN)/i.test(code)) {
+      score += 0.7;
+      matched.push('✓ มีตรรกะสั่งให้ไฟ LED กะพริบ 3 ครั้งเมื่อเชื่อมต่อสำเร็จ');
+    } else {
+      matched.push('✗ ขาดคำสั่งกะพริบไฟ LED (GPIO 2) 3 ครั้ง');
+    }
+
+    return {
+      score: Number(Math.min(2.5, score).toFixed(1)),
+      feedback: matched.join('<br>')
+    };
+  }
+
+  function checkPreSubmissionScore() {
+    const nameVal = (document.getElementById('studentName')?.value || '').trim();
+    const idVal = (document.getElementById('studentId')?.value || '').trim();
+    const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
+    const isInfoComplete = !!(nameVal && idVal && groupVal);
+
+    // Code blanks (5 blanks = 1.5 max)
+    const blankIds = ['codeBlank1', 'codeBlank2', 'codeBlank3', 'codeBlank4', 'codeBlank5'];
+    let filledBlanks = 0;
+    blankIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value.trim().length > 0) filledBlanks++;
+    });
+    const blankScore = Number(((filledBlanks / 5) * 1.5).toFixed(1));
+
+    // Multiple choice quiz (5 questions = 2.0 max, 0.4 each)
+    const quizKeys = { quiz1: '1b', quiz2: '2c', quiz3: '3a', quiz4: '4d', quiz5: '5a' };
+    let answeredQuiz = 0, correctQuiz = 0;
+    for (const qKey in quizKeys) {
+      const selected = document.querySelector(`input[name="${qKey}"]:checked`);
+      if (selected) {
+        answeredQuiz++;
+        if (selected.value === quizKeys[qKey]) correctQuiz++;
+      }
+    }
+    const quizScore = Number(((correctQuiz / 5) * 2.0).toFixed(1));
+
+    // Challenge code (2.5 max)
+    const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
+    const chEval = evaluateLab31Challenge(challengeCode);
+    const chScore = chEval.score;
+
+    // Questions 1-3 (2.5 max)
+    const questionIds = ['question1', 'question2', 'question3'];
+    let answeredQ = 0;
+    questionIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value.trim().length > 10) answeredQ++;
+    });
+    const qScore = Number(((answeredQ / 3) * 2.5).toFixed(1));
+
+    // Attachments (1.0 max: 0.5 each)
+    let attachScore = 0;
+    const hasScreenshot = !!(screenshotData?.base64 || window.uploadedScreenshotBase64 || (document.getElementById("screenshotInput")?.files?.length > 0) || (document.getElementById("screenshotPreview")?.style.display === "flex"));
+    const hasCodeFile = !!(codeFileData?.base64 || window.uploadedCodeBase64 || (document.getElementById("codeInput")?.files?.length > 0) || (document.getElementById("codePreview")?.style.display === "flex"));
+    if (hasScreenshot) attachScore += 0.5;
+    if (hasCodeFile) attachScore += 0.5;
+
+    // Conclusion (0.5 max)
+    const conclusion = (document.getElementById('conclusion')?.value || '').trim();
+    const hasConclusion = conclusion.length > 100;
+    const conclScore = hasConclusion ? 0.5 : 0.0;
+
+    // Total Score
+    const totalScore = Number((blankScore + quizScore + chScore + qScore + attachScore + conclScore).toFixed(1));
+    document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
+
+    const badgeEl = document.getElementById('preScoreBadge');
+    if (totalScore >= 8.0 && isInfoComplete && hasConclusion && answeredQuiz === 5) {
+      badgeEl.className = 'score-status-badge';
+      badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
+    } else if (totalScore >= 5.0) {
+      badgeEl.className = 'score-status-badge warning';
+      badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> พอใช้ - ควรตรวจเพิ่ม';
+    } else {
+      badgeEl.className = 'score-status-badge danger';
+      badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ยังไม่สมบูรณ์';
+    }
+
+    document.getElementById('preScoreBreakdown').innerHTML = `
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-user-graduate" style="color:${isInfoComplete?'#34d399':'#f87171'};"></i> ข้อมูลผู้ส่งใบงาน</div>
+          <div class="score-item-desc">${isInfoComplete ? `ชื่อ: ${nameVal} (รหัส: ${idVal})` : '⚠️ กรุณากรอกชื่อ, รหัสนักศึกษา และกลุ่มให้ครบถ้วน'}</div>
+        </div>
+        <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=1.5?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโครงร่างโค้ด (LittleFS Server)</div>
+          <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/5 ช่อง</div>
+        </div>
+        <div class="score-item-points">${blankScore.toFixed(1)} / 1.5</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-square-check" style="color:${quizScore>=1.6?'#34d399':(answeredQuiz>0?'#fbbf24':'#f87171')};"></i> แบบทดสอบปรนัย (Quiz 5 ข้อ)</div>
+          <div class="score-item-desc">ตอบแล้ว ${answeredQuiz}/5 ข้อ (ถูกต้อง ${correctQuiz}/5 ข้อ)</div>
+        </div>
+        <div class="score-item-points">${quizScore.toFixed(1)} / 2.0</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
+          <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้เรียบร้อย' : '⚠️ ยังไม่ได้วางโค้ดหรือโค้ดสั้นเกินไป'}</div>
+        </div>
+        <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2.0?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง 3 ข้อ</div>
+          <div class="score-item-desc">ตอบแล้ว ${answeredQ}/3 ข้อ</div>
+        </div>
+        <div class="score-item-points">${qScore.toFixed(1)} / 2.5</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-paperclip" style="color:${attachScore>=1?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> ไฟล์แนบหลักฐานการทดลอง</div>
+          <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพหน้าจอ (0.5)':'✗ ยังไม่แนบภาพหน้าจอ'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
+        </div>
+        <div class="score-item-points">${attachScore.toFixed(1)} / 1.0</div>
+      </div>
+      <div class="score-item-row">
+        <div class="score-item-info">
+          <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
+          <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
+        </div>
+        <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'0.5 / 0.5':'0.0 / 0.5'}</div>
+      </div>
+    `;
+
+    document.getElementById('scoreCheckModal').style.display = 'flex';
+  }
+
+  function closeScoreCheckModal() {
+    document.getElementById('scoreCheckModal').style.display = 'none';
+  }
+
+  function submitFromScoreModal() {
+    closeScoreCheckModal();
+    openSubmitConfirmModal();
+  }
+
+  // ── 7. One-time Submission Lock & Confirm Modal ──
+  const _LAB_STORAGE_KEY = 'submitted_iot_lab3_1_';
+
+  function openSubmitConfirmModal() {
+    const nameVal = (document.getElementById('studentName')?.value || '').trim();
+    const idVal = (document.getElementById('studentId')?.value || '').trim();
+    const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
+
+    if (!nameVal || !idVal || !groupVal) {
+      alert('กรุณากรอกชื่อ-นามสกุล, รหัสนักศึกษา และกลุ่ม/ห้อง ให้ครบถ้วนก่อนส่งใบงาน');
+      return;
+    }
+
+    const storageKey = _LAB_STORAGE_KEY + idVal;
+    const prevSubmitTime = localStorage.getItem(storageKey);
+    if (prevSubmitTime) {
+      alert('รหัสนักศึกษา ' + idVal + ' ได้ส่งใบงานนี้ไปแล้วเมื่อ ' + prevSubmitTime + '\nระบบอนุญาตให้ส่งได้เพียง 1 ครั้งเท่านั้น');
+      lockFormAsSubmitted(prevSubmitTime);
+      return;
+    }
+
+    document.getElementById('confirmStudentName').innerText = nameVal;
+    document.getElementById('confirmStudentId').innerText = idVal;
+    document.getElementById('confirmSubmitModal').style.display = 'flex';
+  }
+
+  function closeSubmitConfirmModal() {
+    document.getElementById('confirmSubmitModal').style.display = 'none';
+  }
+
+  function executeFinalSubmit() {
+    closeSubmitConfirmModal();
+    _doActualSubmit();
+  }
+
+  function lockFormAsSubmitted(submittedTime) {
+    const form = document.getElementById('labForm');
+    if (form) {
+      form.querySelectorAll('input, textarea, select, button[type="submit"], .upload-area, .remove-file-btn').forEach(el => {
+        if (el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary')) {
+          el.disabled = true;
+          el.style.opacity = '0.65';
+        }
       });
     }
-
-    // =============================================
-    //  Drag & Drop
-    // =============================================
-    function initDragAndDrop() {
-      const dropAreas = [
-        { id: 'screenshotArea', type: 'screenshot', inputId: 'screenshotInput' },
-        { id: 'codeArea',       type: 'code',       inputId: 'codeInput' }
-      ];
-      dropAreas.forEach(area => {
-        const element = document.getElementById(area.id);
-        const input   = document.getElementById(area.inputId);
-
-        ['dragenter', 'dragover'].forEach(evt => {
-          element.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); element.classList.add('dragover'); }, false);
-        });
-        ['dragleave', 'drop'].forEach(evt => {
-          element.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); element.classList.remove('dragover'); }, false);
-        });
-        element.addEventListener('drop', e => {
-          const files = e.dataTransfer.files;
-          if (files.length > 0) { input.files = files; handleFileSelect(input, area.type); }
-        }, false);
-      });
-    }
-
-    // =============================================
-    //  File Select
-    // =============================================
-    function handleFileSelect(input, type) {
-      const file = input.files[0];
-      if (!file) return;
-      if (file.size > 5 * 1024 * 1024) {
-        showModal('ขนาดไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB', false);
-        input.value = '';
-        return;
-      }
-      const reader = new FileReader();
-      if (type === 'screenshot') {
-        reader.onload = e => {
-          uploadedScreenshotBase64 = e.target.result; window.uploadedScreenshotBase64 = e.target.result;
-          uploadedScreenshotName   = file.name;
-          uploadedScreenshotType   = file.type;
-          document.getElementById('screenshotImg').src          = e.target.result;
-          document.getElementById('screenshotName').textContent = file.name;
-          document.getElementById('screenshotSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-          document.getElementById('screenshotArea').style.display    = 'none';
-          document.getElementById('screenshotPreview').style.display = 'flex';
-        };
-        reader.readAsDataURL(file);
-      } else {
-        reader.onload = e => {
-          uploadedCodeBase64 = e.target.result; window.uploadedCodeBase64 = e.target.result;
-          uploadedCodeFileName  = file.name;
-          uploadedCodeFileType  = file.type || 'application/octet-stream';
-          document.getElementById('codeName').textContent = file.name;
-          document.getElementById('codeSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-          document.getElementById('codeArea').style.display    = 'none';
-          document.getElementById('codePreview').style.display = 'flex';
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function removeFile(type) {
-      if (type === 'screenshot') {
-        uploadedScreenshotBase64 = null; window.uploadedScreenshotBase64 = null; uploadedScreenshotName = null; uploadedScreenshotType = null;
-        document.getElementById('screenshotInput').value = '';
-        document.getElementById('screenshotArea').style.display    = 'block';
-        document.getElementById('screenshotPreview').style.display = 'none';
-      } else {
-        uploadedCodeBase64 = null; window.uploadedCodeBase64 = null; uploadedCodeFileName = null; uploadedCodeFileType = null;
-        document.getElementById('codeInput').value = '';
-        document.getElementById('codeArea').style.display    = 'block';
-        document.getElementById('codePreview').style.display = 'none';
-      }
-    }
-
-    // =============================================
-    //  Form Submit
-    // =============================================
-    function _doActualSubmit() {
-      const submitBtn = document.getElementById('submitBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner loading-spinner"></i> กำลังส่งข้อมูล...';
+      submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> ส่งใบงานเรียบร้อยแล้ว (' + submittedTime + ')';
+      submitBtn.style.background = '#64748b';
+    }
+  }
 
-      const get = id => document.getElementById(id).value.trim();
+  // ── 8. Actual Form Submission ──
+  function _doActualSubmit() {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกและส่งรายงาน...';
 
-      const studentName  = get('studentName');
-      const studentId    = get('studentId');
-      const studentGroup = get('studentGroup');
-      const labDate      = get('labDate');
+    const formData = {
+      studentName: document.getElementById('studentName').value.trim(),
+      studentId: document.getElementById('studentId').value.trim(),
+      studentGroup: document.getElementById('studentGroup').value.trim(),
+      labDate: document.getElementById('labDate').value,
+      codeBlank1: document.getElementById('codeBlank1')?.value.trim() || '',
+      codeBlank2: document.getElementById('codeBlank2')?.value.trim() || '',
+      codeBlank3: document.getElementById('codeBlank3')?.value.trim() || '',
+      codeBlank4: document.getElementById('codeBlank4')?.value.trim() || '',
+      codeBlank5: document.getElementById('codeBlank5')?.value.trim() || '',
+      quiz1: document.querySelector('input[name="quiz1"]:checked')?.value || '',
+      quiz2: document.querySelector('input[name="quiz2"]:checked')?.value || '',
+      quiz3: document.querySelector('input[name="quiz3"]:checked')?.value || '',
+      quiz4: document.querySelector('input[name="quiz4"]:checked')?.value || '',
+      quiz5: document.querySelector('input[name="quiz5"]:checked')?.value || '',
+      challengeCode: document.getElementById('challengeCode')?.value.trim() || '',
+      controlLogic: document.getElementById('controlLogic')?.value.trim() || '',
+      question1: document.getElementById('question1')?.value.trim() || '',
+      question2: document.getElementById('question2')?.value.trim() || '',
+      question3: document.getElementById('question3')?.value.trim() || '',
+      conclusion: document.getElementById('conclusion')?.value.trim() || '',
+      screenshotBase64: screenshotData.base64,
+      screenshotName: screenshotData.name,
+      screenshotType: screenshotData.type,
+      codeBase64: codeFileData.base64,
+      codeFileName: codeFileData.name,
+      codeFileType: codeFileData.type
+    };
 
-      // Cache student metadata
-      localStorage.setItem('studentName',  studentName);
-      localStorage.setItem('studentId',    studentId);
-      localStorage.setItem('studentGroup', studentGroup);
-
-      const payload = {
-        studentName, studentId, studentGroup, labDate,
-        codeBlank1:  get('codeBlank1'),
-        codeBlank2:  get('codeBlank2'),
-        codeBlank3:  get('codeBlank3'),
-        codeBlank4:  get('codeBlank4'),
-        codeBlank5:  get('codeBlank5'),
-        codeBlank6:  get('codeBlank6'),
-        codeBlank7:  get('codeBlank7'),
-        codeBlank8:  get('codeBlank8'),
-        codeBlank9:  get('codeBlank9'),
-        codeBlank10: get('codeBlank10'),
-        scan1ssid: get('scan1ssid'), scan1rssi: get('scan1rssi'), scan1sec: get('scan1sec'),
-        scan2ssid: get('scan2ssid'), scan2rssi: get('scan2rssi'), scan2sec: get('scan2sec'),
-        scan3ssid: get('scan3ssid'), scan3rssi: get('scan3rssi'), scan3sec: get('scan3sec'),
-        connIP:  get('connIP'),
-        connMAC: get('connMAC'),
-        challengeCode:  get('challengeCode'),
-        challengeLogic: get('challengeLogic'),
-        question1:  get('question1'),
-        question2:  get('question2'),
-        conclusion: get('conclusion'),
-        screenshotBase64: uploadedScreenshotBase64,
-        screenshotName:   uploadedScreenshotName,
-        screenshotType:   uploadedScreenshotType,
-        codeBase64:    uploadedCodeBase64,
-        codeFileName:  uploadedCodeFileName,
-        codeFileType:  uploadedCodeFileType,
-      };
-
-      const resetBtn = () => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
-      };
-
-      const onSuccess = response => {
-        resetBtn();
-        if (response.status === 'success') {
-          showModal('ส่งใบงานสำเร็จ', response.message, true);
-          ['challengeCode','challengeLogic','question1','question2','conclusion',
-           'scan1ssid','scan1rssi','scan1sec','scan2ssid','scan2rssi','scan2sec',
-           'scan3ssid','scan3rssi','scan3sec','connIP','connMAC'].forEach(id => {
-            document.getElementById(id).value = '';
-          });
-          removeFile('screenshot');
-          removeFile('code');
-          
-          const idVal = document.getElementById('studentId')?.value.trim() || '';
-          if (idVal) {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+          if (response.status === 'success') {
             const nowFormatted = new Date().toLocaleString('th-TH');
-            localStorage.setItem('submitted_iot_lab3_1_' + idVal, nowFormatted);
+            localStorage.setItem(_LAB_STORAGE_KEY + formData.studentId, nowFormatted);
             lockFormAsSubmitted(nowFormatted);
+            showAlertModal('ส่งรายงานสำเร็จ!', response.message, 'success');
+          } else {
+            showAlertModal('เกิดข้อผิดพลาด', response.message, 'error');
           }
-        } else {
-          showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
-        }
-      };
-
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(onSuccess)
-          .withFailureHandler(err => { resetBtn(); showModal('เกิดข้อผิดพลาด', err.toString(), false); })
-          .submitLabData(payload);
-      } else {
-        fetch('/api/submit/lab3.1', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(onSuccess)
-        .catch(err => {
-           // Fallback to simulate success when offline API fails
-           resetBtn(); 
-           showModal('โหมดจำลอง (Local Preview)', 'ฟังก์ชันจำลองสำเร็จแล้ว!', true);
-           const idVal = document.getElementById('studentId')?.value.trim() || '';
-           if (idVal) {
-             const nowFormatted = new Date().toLocaleString('th-TH');
-             localStorage.setItem('submitted_iot_lab3_1_' + idVal, nowFormatted);
-             lockFormAsSubmitted(nowFormatted);
-           }
-        });
-      }
-    }
-
-    // =============================================
-    //  Modal helpers
-    // =============================================
-    function showModal(title, text, isSuccess) {
-      const modal = document.getElementById('alertModal');
-      const icon  = document.getElementById('modalIcon');
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalText').textContent  = text;
-      if (isSuccess) {
-        icon.className = 'modal-icon success';
-        icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
-      } else {
-        icon.className = 'modal-icon error';
-        icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
-      }
-      modal.style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('alertModal').style.display = 'none';
-    }
-  
-    // --- TEXTAREA AUTO-RESIZE & PRINT BUGFIX ---
-    function initTextareaAutoResize() {
-      // Inject print styles dynamically to hide scrollbars and prevent manual resize
-      if (!document.getElementById('textarea-print-style')) {
-        const style = document.createElement('style');
-        style.id = 'textarea-print-style';
-        style.textContent = `
-          @media print {
-            textarea {
-              overflow: hidden !important;
-              overflow-y: hidden !important;
-              resize: none !important;
-            }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-
-      const textareas = document.querySelectorAll('textarea');
-      textareas.forEach(textarea => {
-        const resize = () => {
-          textarea.style.height = 'auto';
-          textarea.style.height = (textarea.scrollHeight + 4) + 'px';
-        };
-        textarea.addEventListener('input', resize);
-        if (!textarea.classList.contains('auto-resize-initialized')) {
-          textarea.classList.add('auto-resize-initialized');
-          setTimeout(resize, 100);
-          window.addEventListener('beforeprint', resize);
-        }
-      });
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initTextareaAutoResize);
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+          showAlertModal('เกิดข้อผิดพลาด', err.toString(), 'error');
+        })
+        .submitLabData(formData);
     } else {
-      initTextareaAutoResize();
+      // Offline Mock Handler
+      setTimeout(function() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+
+        const nowFormatted = new Date().toLocaleString('th-TH');
+        localStorage.setItem(_LAB_STORAGE_KEY + formData.studentId, nowFormatted);
+        lockFormAsSubmitted(nowFormatted);
+
+        let correctQuiz = 0;
+        if (formData.quiz1 === '1b') correctQuiz++;
+        if (formData.quiz2 === '2c') correctQuiz++;
+        if (formData.quiz3 === '3a') correctQuiz++;
+        if (formData.quiz4 === '4d') correctQuiz++;
+        if (formData.quiz5 === '5a') correctQuiz++;
+        
+        const quizPts = (correctQuiz / 5.0) * 2.0;
+        const msg = `[โหมดจำลองออฟไลน์]\nบันทึกข้อมูลใบงานที่ 3.1 เรียบร้อยแล้ว!\n\nคะแนนแบบทดสอบปรนัย: ${correctQuiz}/5 ข้อ (+${quizPts.toFixed(1)}/2.0 คะแนน)\n(เมื่อเชื่อมต่อกับ Google Apps Script ระบบจะประเมินคะแนนเต็ม 10.0 พร้อมบันทึกลง Google Sheets และ Google Drive โดยอัตโนมัติ)`;
+        showAlertModal('บันทึกข้อมูลเรียบร้อย (ออฟไลน์)', msg, 'success');
+      }, 800);
     }
-    window.addEventListener('load', initTextareaAutoResize);
-    // -----------------------------------
+  }
 
-    // --- ONLINE/OFFLINE STATUS INDICATOR ---
-    function initOnlineStatus() {
-      const badge = document.getElementById('onlineStatusBadge');
-      const text = document.getElementById('onlineStatusText');
-      if (!badge || !text) return;
-      function update() {
-        if (navigator.onLine) {
-          badge.className = 'status-badge online';
-          text.textContent = 'ออนไลน์ (พร้อมส่งรายงาน)';
-        } else {
-          badge.className = 'status-badge offline';
-          text.textContent = 'ออฟไลน์ (ไม่มีการเชื่อมต่อเครือข่าย)';
-        }
-      }
-      window.addEventListener('online', update);
-      window.addEventListener('offline', update);
-      update();
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initOnlineStatus);
-    } else {
-      initOnlineStatus();
-    }
-    window.addEventListener('load', initOnlineStatus);
-    // ----------------------------------------
+  // ── 9. Alert Modal ──
+  function showAlertModal(title, msg, type = 'success') {
+    const modal = document.getElementById('customAlertModal');
+    const icon = document.getElementById('alertIcon');
+    const titleEl = document.getElementById('alertTitle');
+    const msgEl = document.getElementById('alertMessage');
 
+    if (!modal) return;
+    icon.className = 'alert-icon ' + type;
+    icon.innerHTML = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' :
+                     type === 'error' ? '<i class="fa-solid fa-triangle-exclamation"></i>' :
+                     '<i class="fa-solid fa-circle-info"></i>';
+    titleEl.textContent = title;
+    msgEl.textContent = msg;
+    modal.style.display = 'flex';
+  }
 
-    // Anti-Cheat System (Prohibit Copy/Paste/Cut/Drop in Questions & Conclusion)
-    function initAntiCheat() {
-      const protectedSelectors = [
-        '#question1', '#question2', '#question3', '#question4', '#question5',
-        '#conclusion', '#discussion', '#answer1', '#answer2', '#answer3',
-        'textarea:not(#challengeCode)'
-      ];
-      
-      let toast = document.getElementById('antiCheatToast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'antiCheatToast';
-        toast.className = 'anti-cheat-toast';
-        toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>';
-        document.body.appendChild(toast);
-      }
+  function closeAlertModal() {
+    const m = document.getElementById('customAlertModal');
+    if (m) m.style.display = 'none';
+  }
 
-      let toastTimeout = null;
-      function triggerWarning(msg) {
-        if (msg) {
-          toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>${msg}</span>`;
-        }
-        toast.classList.add('show');
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          toast.classList.remove('show');
-        }, 2800);
-      }
-
-      protectedSelectors.forEach(sel => {
-        document.querySelectorAll(sel).forEach(el => {
-          if (el.id === 'challengeCode') return;
-
-          el.addEventListener('paste', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ห้ามวางข้อความ (Paste)! กรุณาพิมพ์คำตอบและวิเคราะห์ผลด้วยตนเอง');
-          });
-
-          el.addEventListener('copy', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ห้ามคัดลอกข้อความ (Copy) จากส่วนนี้');
-          });
-
-          el.addEventListener('cut', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ไม่อนุญาตให้ตัดข้อความ (Cut)');
-          });
-
-          el.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ปิดการใช้งานเมนูคลิกขวาในส่วนคำตอบ');
-          });
-
-          el.addEventListener('drop', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ไม่อนุญาตให้ลากวางข้อความ (Drag & Drop)');
-          });
-        });
-      });
-    }
-    window.addEventListener('DOMContentLoaded', initAntiCheat);
-
-    // ===== PRE-SUBMISSION SCORE CHECK =====
+  // ── 10. Initialize on Page Load ──
+  window.addEventListener('DOMContentLoaded', () => {
+    initOnlineStatus();
+    initAntiCheat();
     
-    // ===== REGEX EVALUATION ENGINES (LAB 3.1) =====
-    function evaluateLab31Challenge(code) {
-      if (!code || code.trim().length === 0) {
-        return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
-      }
-      let score = 0.0;
-      let matched = [];
-
-      // Criterion 1: Scan & target SSID search (+1.0)
-      if (/(scanNetworks|WiFi\.SSID\(i\)|iot_512)/i.test(code)) {
-        score += 1.0;
-        matched.push('✓ มีการค้นหาเครือข่ายเป้าหมาย "iot_512" จากรายการที่สแกน');
-      } else {
-        matched.push('✗ ขาดการสแกนและค้นหาชื่อเครือข่าย "iot_512"');
-      }
-
-      // Criterion 2: Extract RSSI & auto connect (+1.0)
-      if (/(WiFi\.RSSI|RSSI)/i.test(code) && /(WiFi\.begin|begin\s*\()/i.test(code)) {
-        score += 1.0;
-        matched.push('✓ อ่านค่า RSSI และสั่งเชื่อมต่ออัตโนมัติ (WiFi.begin)');
-      } else {
-        matched.push('✗ ขาดการอ่านค่าความแรงสัญญาณ (RSSI) หรือคำสั่ง WiFi.begin()');
-      }
-
-      // Criterion 3: Blink LED 3 times on GPIO 2 (+1.0)
-      if (/(for|while).*3/i.test(code) || /digitalWrite\s*\(\s*(2|LED_PIN|LED_BUILTIN)/i.test(code)) {
-        score += 1.0;
-        matched.push('✓ มีตรรกะสั่งให้ไฟ LED กะพริบ 3 ครั้งเมื่อเชื่อมต่อสำเร็จ');
-      } else {
-        matched.push('✗ ขาดคำสั่งกะพริบไฟ LED (GPIO 2) 3 ครั้ง');
-      }
-
-      return {
-        score: Number(score.toFixed(1)),
-        feedback: matched.join('<br>')
-      };
+    // Set default date to today
+    const dateInput = document.getElementById('labDate');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
     }
 
-    function evaluateLab31Blanks() {
-      const answers = [
-        { id: 'codeBlank1', pattern: /WIFI_STA/i },
-        { id: 'codeBlank2', pattern: /SSID/i },
-        { id: 'codeBlank3', pattern: /RSSI/i },
-        { id: 'codeBlank4', pattern: /channel/i },
-        { id: 'codeBlank5', pattern: /WIFI_AUTH_OPEN|encryptionType|AUTH/i },
-        { id: 'codeBlank6', pattern: /begin/i },
-        { id: 'codeBlank7', pattern: /WL_CONNECTED/i },
-        { id: 'codeBlank8', pattern: /localIP/i },
-        { id: 'codeBlank9', pattern: /macAddress/i },
-        { id: 'codeBlank10', pattern: /gatewayIP/i }
-      ];
-
-      let correct = 0;
-      answers.forEach(a => {
-        const val = (document.getElementById(a.id)?.value || '').trim();
-        if (a.pattern.test(val)) correct++;
-      });
-
-      const score = Number(((correct / answers.length) * 2.0).toFixed(1));
-      return { score, correctCount: correct, totalCount: answers.length };
-    }
-  
-        function checkPreSubmissionScore() {
-      // Student info
-      const nameVal = (document.getElementById('studentName')?.value || '').trim();
-      const idVal = (document.getElementById('studentId')?.value || '').trim();
-      const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
-      const isInfoComplete = !!(nameVal && idVal && groupVal);
-
-      // Code blanks — evaluated via Regex Engine
-      const blanksResult = evaluateLab31Blanks();
-      const blankScore = blanksResult.score;
-
-      // Challenge code — evaluated via Regex Engine
-      const rawCode = (document.getElementById('challengeCode')?.value || '').trim();
-      const chEval = evaluateLab31Challenge(rawCode);
-      const chScore = chEval.score;
-
-      // Questions
-      const questionIds = ['question1','question2','question3','question4','question5'];
-      let answeredQ = 0, totalQ = 0;
-      questionIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { totalQ++; if (el.value.trim().length > 10) answeredQ++; }
-      });
-      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
-
-      // Attachments — robust check supporting variable, window property, input files, or preview display
-      let attachScore = 0;
-      const screenshotInput = document.getElementById('screenshotInput') || document.getElementById('proofFile');
-      const codeInput = document.getElementById('codeInput');
-      const hasScreenshot = !!(
-        (typeof uploadedScreenshotBase64 !== 'undefined' && uploadedScreenshotBase64) ||
-        (typeof screenshotBase64 !== 'undefined' && screenshotBase64) ||
-        (window.uploadedScreenshotBase64) ||
-        (window.screenshotBase64) ||
-        (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) ||
-        (document.getElementById('screenshotPreview')?.style.display === 'flex') ||
-        (window.filesData && (window.filesData.screenshotBase64 || window.filesData.screenshot))
-      );
-      const hasCodeFile = !!(
-        (typeof uploadedCodeBase64 !== 'undefined' && uploadedCodeBase64) ||
-        (typeof codeBase64 !== 'undefined' && codeBase64) ||
-        (window.uploadedCodeBase64) ||
-        (window.codeBase64) ||
-        (codeInput && codeInput.files && codeInput.files.length > 0) ||
-        (document.getElementById('codePreview')?.style.display === 'flex') ||
-        (window.filesData && (window.filesData.codeBase64 || window.filesData.code))
-      );
-      if (hasScreenshot) attachScore += 0.5;
-      if (hasCodeFile) attachScore += 0.5;
-
-      // Conclusion
-      const conclusion = (document.getElementById('conclusion')?.value || '').trim();
-      const hasConclusion = conclusion.length > 100;
-
-      // Total
-      const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
-      document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
-
-      const badgeEl = document.getElementById('preScoreBadge');
-      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
-        badgeEl.className = 'score-status-badge';
-        badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
-      } else if (totalScore >= 5.0) {
-        badgeEl.className = 'score-status-badge warning';
-        badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> พอใช้ - ควรตรวจเพิ่ม';
-      } else {
-        badgeEl.className = 'score-status-badge danger';
-        badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ยังไม่สมบูรณ์';
-      }
-
-      document.getElementById('preScoreBreakdown').innerHTML = `
-        <div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-user-graduate" style="color:${isInfoComplete?'#34d399':'#f87171'};"></i> ข้อมูลผู้ส่งใบงาน</div>
-            <div class="score-item-desc">${isInfoComplete ? `ชื่อ: ${nameVal} (รหัส: ${idVal})` : '⚠️ กรุณากรอกชื่อ, รหัสนักศึกษา และกลุ่มให้ครบถ้วน'}</div>
-          </div>
-          <div class="score-item-points" style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'ครบถ้วน':'ไม่ครบ'}</div>
-        </div>
-        ${blanksResult.totalCount > 0 ? `<div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
-            <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
-          </div>
-          <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
-        </div>` : ''}
-        ${document.getElementById('challengeCode') ? `<div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex Wi-Fi Auto Connect Engine)</div>
-            <div class="score-item-desc">${chEval.feedback}</div>
-          </div>
-          <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
-        </div>` : ''}
-        ${totalQ > 0 ? `<div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง</div>
-            <div class="score-item-desc">ตอบแล้ว ${answeredQ}/${totalQ} ข้อ</div>
-          </div>
-          <div class="score-item-points">${qScore.toFixed(1)} / 3.0</div>
-        </div>` : ''}
-        <div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-paperclip" style="color:${attachScore>=1?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> ไฟล์แนบหลักฐานการทดลอง</div>
-            <div class="score-item-desc">${hasScreenshot?'✓ แนบภาพผลรัน (0.5)':'✗ ยังไม่แนบภาพผลรัน'}, ${hasCodeFile?'✓ แนบไฟล์โค้ด (0.5)':'✗ ยังไม่แนบไฟล์โค้ด'}</div>
-          </div>
-          <div class="score-item-points">${attachScore.toFixed(1)} / 1.0</div>
-        </div>
-        <div class="score-item-row">
-          <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
-            <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
-          </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
-        </div>
-      `;
-
-      document.getElementById('scoreCheckModal').style.display = 'flex';
-    }
-
-    function closeScoreCheckModal() {
-      document.getElementById('scoreCheckModal').style.display = 'none';
-    }
-
-    function submitFromScoreModal() {
-      closeScoreCheckModal();
-      openSubmitConfirmModal();
-    }
-
-    // ===== ONE-TIME SUBMISSION LOCK =====
-    const _LAB_STORAGE_KEY = 'submitted_iot_lab3_1_';
-
-    function openSubmitConfirmModal() {
-      const nameVal = (document.getElementById('studentName')?.value || '').trim();
-      const idVal = (document.getElementById('studentId')?.value || '').trim();
-      const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
-
-      if (!nameVal || !idVal || !groupVal) {
-        alert('กรุณากรอกชื่อ-นามสกุล, รหัสนักศึกษา และกลุ่ม/ห้อง ให้ครบถ้วนก่อนส่งใบงาน');
-        return;
-      }
-
-      const storageKey = _LAB_STORAGE_KEY + idVal;
-      const prevSubmitTime = localStorage.getItem(storageKey);
-      if (prevSubmitTime) {
-        alert('รหัสนักศึกษา ' + idVal + ' ได้ส่งใบงานนี้ไปแล้วเมื่อ ' + prevSubmitTime + '\\nระบบอนุญาตให้ส่งได้เพียง 1 ครั้งเท่านั้น');
-        lockFormAsSubmitted(prevSubmitTime);
-        return;
-      }
-
-      document.getElementById('confirmStudentName').innerText = nameVal;
-      document.getElementById('confirmStudentId').innerText = idVal;
-      document.getElementById('confirmSubmitModal').style.display = 'flex';
-    }
-
-    function closeSubmitConfirmModal() {
-      document.getElementById('confirmSubmitModal').style.display = 'none';
-    }
-
-    function executeFinalSubmit() {
-      closeSubmitConfirmModal();
-      _doActualSubmit();
-    }
-
-    function lockFormAsSubmitted(submittedTime) {
-      const form = document.getElementById('labForm');
-      if (form) {
-        form.querySelectorAll('input, textarea, select, button[type="submit"], .upload-area, .remove-file-btn').forEach(el => {
-          if (el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary')) {
-            el.disabled = true;
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = true;
-          }
-        });
-      }
-
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.style.background = 'linear-gradient(135deg, #059669, #047857)';
-        submitBtn.style.cursor = 'default';
-        submitBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> ส่งงานเรียบร้อยแล้ว (${submittedTime})`;
-      }
-
-      const form2 = document.getElementById('labForm');
-      if (form2) {
-        let notice = document.getElementById('submittedNoticeBanner');
-        if (!notice) {
-          notice = document.createElement('div');
-          notice.id = 'submittedNoticeBanner';
-          notice.style.cssText = 'background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.4);color:#34d399;padding:0.85rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;font-weight:500;';
-          const firstSection = form2.querySelector('.form-section, .section-card, .glass-card, div');
-          if (firstSection) form2.insertBefore(notice, firstSection);
-          else form2.prepend(notice);
-        }
-        notice.innerHTML = `<i class="fa-solid fa-lock" style="font-size:1.1rem;"></i> <span>ใบงานนี้ถูกส่งเรียบร้อยแล้วเมื่อ <strong>${submittedTime}</strong> (โหมดดูอย่างเดียว / View-Only) สามารถกดปุ่มพิมพ์ PDF เพื่อบันทึกเป็นหลักฐานได้</span>`;
-      }
-    }
-    // ====================================
-
-    window.addEventListener('DOMContentLoaded', () => {
-      // Check if already submitted
-      const _storedId = localStorage.getItem('studentId') || '';
-      if (_storedId) {
-        const _prevTime = localStorage.getItem(_LAB_STORAGE_KEY + _storedId);
-        if (_prevTime) lockFormAsSubmitted(_prevTime);
-      }
-      // Also watch studentId changes
-      document.getElementById('studentId')?.addEventListener('change', function() {
-        const _sId = this.value.trim();
-        if (_sId) {
-          const _prevT = localStorage.getItem(_LAB_STORAGE_KEY + _sId);
-          if (_prevT) lockFormAsSubmitted(_prevT);
+    // Check if previously submitted
+    const idInput = document.getElementById('studentId');
+    if (idInput) {
+      idInput.addEventListener('blur', () => {
+        const idVal = idInput.value.trim();
+        if (idVal) {
+          const prev = localStorage.getItem(_LAB_STORAGE_KEY + idVal);
+          if (prev) lockFormAsSubmitted(prev);
         }
       });
-    });
-
-  </script>
+    }
+  });
+</script>
 
 </body>
 </html>

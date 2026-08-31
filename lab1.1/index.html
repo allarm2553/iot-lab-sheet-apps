@@ -501,6 +501,103 @@
       gap: 0.5rem;
     }
 
+    /* Multiple Choice Quiz Styles */
+    .quiz-card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+    }
+    .quiz-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .quiz-q-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .quiz-q-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 6px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .quiz-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .quiz-option-label:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+    .quiz-option-label input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #64748b;
+      border-radius: 50%;
+      outline: none;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .quiz-option-label input[type="radio"]:checked {
+      border-color: #38bdf8;
+      background: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+    .quiz-option-label input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      background: #0f172a;
+      border-radius: 50%;
+    }
+    .quiz-option-label:has(input[type="radio"]:checked) {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: #38bdf8;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -1399,7 +1496,7 @@ void loop() {
             </div>
           </div>
 
-                    <!-- 2. Code Fill-in-the-blanks Status Notice -->
+          <!-- 2. Code Fill-in-the-blanks Status Notice -->
           <div class="form-section">
             <div class="form-section-title">
               <i class="fa-solid fa-code"></i> คำตอบในโค้ดโปรแกรม (Interactive Skeleton Code)
@@ -1409,6 +1506,142 @@ void loop() {
               <span>พิมพ์คำตอบลงในช่องว่างของ <strong>โค้ดโครงร่าง (ฝั่งซ้าย)</strong> ได้โดยตรง ระบบจะรวมคำตอบทั้งหมดส่งเข้าสู่ระบบรายงานผลอัตโนมัติ</span>
             </div>
           </div>
+
+          <!-- 3. Multiple Choice Quiz (5 Questions) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-square-check"></i> แบบทดสอบวัดความรู้ความเข้าใจ (Multiple Choice Quiz - 5 ข้อ)
+            </div>
+
+            <!-- Quiz Q1 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 1</span>
+                <span>เมื่อกำหนดโหมดขาพินด้วยคำสั่ง <code>pinMode(pin, INPUT_PULLUP);</code> สถานะลอจิกและระดับแรงดันขณะยังไม่กดปุ่ม และขณะกดปุ่มต่อลงกราวด์ (GND) เป็นอย่างไร?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1a" form="labForm" required>
+                  <span>ก. ยังไม่กดเป็น LOW (0V), เมื่อกดเป็น HIGH (3.3V)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1b" form="labForm" required>
+                  <span>ข. ยังไม่กดเป็น Floating (ลอย), เมื่อกดเป็น LOW (0V)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1c" form="labForm" required>
+                  <span>ค. ยังไม่กดเป็น HIGH (3.3V), เมื่อกดเป็น LOW (0V) (Active-LOW Logic)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1d" form="labForm" required>
+                  <span>ง. อ่านค่าได้ HIGH (3.3V) ตลอดเวลาไม่ว่าจะกดหรือไม่กดปุ่ม</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q2 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 2</span>
+                <span>ปรากฏการณ์ Contact Bouncing (การกระดอนของหน้าสัมผัส) เกิดขึ้นจากสาเหตุใด และส่งผลกระทบต่อไมโครคอนโทรลเลอร์อย่างไร?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2a" form="labForm" required>
+                  <span>ก. เกิดจากแผ่นโลหะสปริงตัวเด้งสั่นช่วง 5–20ms ทำให้ไมโครคอนโทรลเลอร์ตรวจจับว่ากดปุ่มซ้ำหลายครั้ง</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2b" form="labForm" required>
+                  <span>ข. เกิดจากสัญญาณรบกวนของคลื่นความถี่ WiFi 2.4GHz ทำให้กระแสไฟฟ้าย้อนกลับ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2c" form="labForm" required>
+                  <span>ค. เกิดจากหน่วยความจำ RAM ของไมโครคอนโทรลเลอร์เต็มชั่วขณะ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2d" form="labForm" required>
+                  <span>ง. เกิดจากแรงดันตกคร่อมตัวต้านทาน 220 โอห์มของหลอดไฟ LED</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q3 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 3</span>
+                <span>ข้อเสียร้ายแรงของการใช้คำสั่ง <code>delay(50)</code> เพื่อแก้ปัญหา Switch Bouncing เมื่อเทียบกับการใช้ <code>millis()</code> คืออะไร?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3a" form="labForm" required>
+                  <span>ก. ทำให้ความละเอียดของตัวแปลงสัญญาณ ADC ลดลง</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3b" form="labForm" required>
+                  <span>ข. เป็น Blocking Code ที่หยุดการทำงานของ CPU ทั้งหมด ทำให้ระบบไม่สามารถอ่านเซ็นเซอร์หรือสื่อสารเครือข่ายอื่นได้</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3c" form="labForm" required>
+                  <span>ค. ทำให้ขารีเลย์จ่ายแรงดันไฟกระชากสูงเกิน 5V</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3d" form="labForm" required>
+                  <span>ง. เกิดข้อผิดพลาดคอมไพล์ไม่ผ่านบนชิป ESP32</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q4 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 4</span>
+                <span>ในการเขียนโค้ดตรวจสอบสัญญาณขอบขาลง (Falling Edge Detection) ที่แสดงว่าผู้ใช้เพิ่งกดปุ่มลง จะต้องตรวจสอบเงื่อนไขใด?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4a" form="labForm" required>
+                  <span>ก. สถานะก่อนหน้าเป็น <code>LOW</code> และสถานะปัจจุบันเป็น <code>HIGH</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4b" form="labForm" required>
+                  <span>ข. สถานะก่อนหน้าเป็น <code>HIGH</code> และสถานะปัจจุบันเปลี่ยนเป็น <code>LOW</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4c" form="labForm" required>
+                  <span>ค. ค่าแอนะล็อกที่อ่านได้มีค่ามากกว่า 2048</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4d" form="labForm" required>
+                  <span>ง. ตัวแปร <code>millis() == 0</code></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q5 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 5</span>
+                <span>ในการตรวจจับการกดปุ่มค้าง (Long Press) เหตุใดเราจึงต้องมีตัวแปรสถานะ Flag เช่น <code>longPressTriggered</code>?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5a" form="labForm" required>
+                  <span>ก. เพื่อแปลงค่าเวลาจากมิลลิวินาทีเป็นวินาที</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5b" form="labForm" required>
+                  <span>ข. เพื่อบันทึกประวัติการกดปุ่มลงในหน่วยความจำ EEPROM</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5c" form="labForm" required>
+                  <span>ค. เพื่อสลับโหมดการทำงานของรีเลย์จาก Active-LOW เป็น Active-HIGH</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5d" form="labForm" required>
+                  <span>ง. เพื่อล็อคไม่ให้คำสั่ง Reset ถูกประมวลผลซ้ำๆ ทุกรอบลูปในขณะที่ผู้ใช้ยังกดปุ่มแช่ค้างอยู่</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <!-- Challenge Code Box -->
@@ -1422,24 +1655,29 @@ void loop() {
             </div>
             <div class="form-group">
               <label for="controlLogic">อธิบายกระบวนการนับจำนวนครั้งการ Toggle และการใช้เงื่อนไขตรวจเช็ค Reset ควบคุมสองเอาต์พุต:</label>
-              <textarea id="controlLogic" rows="3" required placeholder="เช่น ตัวแปรเก็บจำนวนครั้งจะบวก 1 ทุกครั้งที่ปุ่มถูกกดลง เมื่อหารลงตัว/เท่ากับ 3 จะเปิดพัดลม/ปั๊ม..."></textarea>
+              <textarea id="controlLogic" rows="3" required placeholder="เช่น ตัวแปรเก็บจำนวนครั้งจะบวก 1 ทุกครั้งที่ปุ่มถูกกดลง เมื่อเท่ากับ 3 จะเปิดพัดลม/ปั๊ม และเมื่อกดค้าง 2 วินาทีจะสั่ง Reset..."></textarea>
             </div>
           </div>
 
-          <!-- 3. Post-Lab Questions -->
+          <!-- 4. Post-Lab Questions & Fault Diagnosis -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
             </div>
 
             <div class="form-group">
-              <label for="question1">1. วงจร Pull-up แบบภายใน (Internal Pull-up) และ Pull-down แบบภายนอก มีความแตกต่างกันอย่างไรในแง่ของระดับแรงดันเมื่อสวิตช์ไม่ได้ถูกกด?</label>
-              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+              <label for="question1">1. [Spot the Bug 1: Floating Input] นักศึกษาคนหนึ่งเขียนโค้ด <code>pinMode(BUTTON_PIN, INPUT);</code> โดยต่อสวิตช์ปุ่มกดระหว่าง GPIO 0 กับ GND โดยตรง พบว่าสถานะพัดลมสลับเปิด-ปิดเองอย่างรวดเร็วแม้มือไม่ได้สัมผัสปุ่ม จงวิเคราะห์ว่าเกิดจากสาเหตุใด และต้องแก้ไขโค้ดอย่างไร?</label>
+              <textarea id="question1" rows="3" required placeholder="อธิบายสภาวะสัญญาณลอย (Floating State) คลื่นแม่เหล็กรบกวน และการใช้ INPUT_PULLUP..."></textarea>
             </div>
 
             <div class="form-group">
-              <label for="question2">2. ปัญหา Switch Bouncing (การสั่นของหน้าสัมผัสสวิตช์) เกิดจากอะไร และวิธีการแก้ปัญหาด้วยซอฟต์แวร์ (Debounce) ในโค้ดทำงานอย่างไร?</label>
-              <textarea id="question2" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+              <label for="question2">2. [Debounce Architecture: Non-blocking vs Blocking] จงเปรียบเทียบความแตกต่างระหว่างการแก้ปัญหา Bouncing ด้วยคำสั่ง <code>delay(50)</code> กับการใช้ตัวจับเวลา <code>millis()</code> ในแง่ประสิทธิภาพของระบบ IoT ที่ต้องรับส่งข้อมูลผ่าน WiFi ตลอดเวลา?</label>
+              <textarea id="question2" rows="3" required placeholder="อธิบายข้อจำกัดของ Blocking delay, Watchdog Timer, การตอบสนอง และข้อดีของ Non-blocking timer..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [Fail-Safe &amp; Edge-Triggered State Machine] เหตุใดในระบบควบคุมทางอุตสาหกรรม การสั่งงานด้วยปุ่มกดจึงต้องใช้การตรวจจับขอบสัญญาณ (Edge-Triggered) แทนการตรวจจับระดับสัญญาณ (Level-Triggered) และการกดปุ่มค้าง 2 วินาทีเพื่อ Reset ช่วยป้องกันอุบัติเหตุได้อย่างไร?</label>
+              <textarea id="question3" rows="3" required placeholder="อธิบายการป้องกันคำสั่งรันซ้ำซ้อน และประโยชน์ของการกดค้างเพื่อป้องกันการเผลอโดนปุ่มโดยไม่ตั้งใจ (Accidental Touch)..."></textarea>
             </div>
           </div>
 
@@ -1535,53 +1773,152 @@ void loop() {
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('pullup', this)"><i class="fa-solid fa-toggle-on"></i> 1. วงจร Pull-up</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('bounce', this)"><i class="fa-solid fa-wave-square"></i> 2. ปัญหา Bouncing</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('debounce', this)"><i class="fa-solid fa-clock"></i> 3. Software Debounce</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('longpress', this)"><i class="fa-solid fa-stopwatch"></i> 4. การกดปุ่มค้าง</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('pullup', this)"><i class="fa-solid fa-toggle-on"></i> 1. วงจร Pull-up</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('bounce', this)"><i class="fa-solid fa-wave-square"></i> 2. ปัญหา Bouncing</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('debounce', this)"><i class="fa-solid fa-clock"></i> 3. Software Debounce</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('longpress', this)"><i class="fa-solid fa-stopwatch"></i> 4. การกดปุ่มค้าง</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshooting', this)"><i class="fa-solid fa-triangle-exclamation"></i> 5. ตรวจวินิจฉัยและแก้ปัญหา</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('commands', this)"><i class="fa-solid fa-terminal"></i> 6. คำสั่ง Interactive Message &amp; Serial</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-pullup">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-bolt"></i> 1.1 วงจร Internal Pull-up Resistor</h4>
-                <p>เมื่อเราต่อสวิตช์ปุ่มกดเข้ากับขาไมโครคอนโทรลเลอร์ หากไม่ต่อตัวต้านทานดึงแรงดัน ขาพินจะอยู่ในสภาวะ <strong>สัญญาณลอย (Floating State)</strong> ซึ่งไวต่อคลื่นแม่เหล็กไฟฟ้ารบกวนทำให้อ่านค่าสับสนระหว่าง 0 กับ 1</p>
-                <p style="margin-top: 0.5rem;">การใช้คำสั่ง <code>pinMode(pin, INPUT_PULLUP);</code> จะเปิดวงจรตัวต้านทานภายในดึงขาเข้าสู่ไฟ 3.3V:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>ยังไม่กดปุ่ม:</strong> อ่านค่าได้ลอจิก <code>HIGH (1)</code></li>
-                  <li><strong>กดปุ่ม (ต่อลงกราวด์ GND):</strong> อ่านค่าได้ลอจิก <code>LOW (0)</code> (Active LOW Logic)</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-bolt"></i> 1.1 วงจร Internal Pull-up Resistor</h4>
+            <p>เมื่อเราต่อสวิตช์ปุ่มกดเข้ากับขาไมโครคอนโทรลเลอร์ หากไม่ต่อตัวต้านทานดึงแรงดัน ขาพินจะอยู่ในสภาวะ <strong>สัญญาณลอย (Floating State)</strong> ซึ่งไวต่อคลื่นแม่เหล็กไฟฟ้ารบกวนทำให้อ่านค่าสับสนระหว่าง 0 กับ 1</p>
+            <p style="margin-top: 0.5rem;">การใช้คำสั่ง <code>pinMode(pin, INPUT_PULLUP);</code> จะเปิดวงจรตัวต้านทานภายในดึงขาเข้าสู่ไฟ 3.3V:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>ยังไม่กดปุ่ม:</strong> อ่านค่าได้ลอจิก <code>HIGH (1)</code> (แรงดัน 3.3V)</li>
+              <li><strong>กดปุ่ม (ต่อลงกราวด์ GND):</strong> อ่านค่าได้ลอจิก <code>LOW (0)</code> (Active-LOW Logic)</li>
+            </ul>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-bounce">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-triangle-exclamation"></i> 2.1 ปรากฏการณ์ Contact Bouncing</h4>
-                <p>หน้าสัมผัสโลหะของสวิตช์เชิงกล เมื่อถูกกดหรือปล่อย แผ่นโลหะจะสปริงตัวเด้งสั่นไปมาหลายครั้งในช่วงเวลา 5–20 มิลลิวินาที ส่งผลให้ไมโครคอนโทรลเลอร์ที่มีความเร็วสูงอ่านค่าผิดพลาดว่ามีการกดปุ่มซ้ำๆ หลายครั้งในการกดเพียงครั้งเดียว</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-triangle-exclamation"></i> 2.1 ปรากฏการณ์ Contact Bouncing</h4>
+            <p>หน้าสัมผัสโลหะของสวิตช์เชิงกล เมื่อถูกกดหรือปล่อย แผ่นโลหะจะสปริงตัวเด้งสั่นไปมาหลายครั้งในช่วงเวลา 5–20 มิลลิวินาที ส่งผลให้ไมโครคอนโทรลเลอร์ที่มีความเร็วสูงอ่านค่าผิดพลาดว่ามีการกดปุ่มซ้ำๆ หลายครั้งในการกดเพียงครั้งเดียว</p>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-debounce">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-shield-halved"></i> 3.1 การแก้ปัญหาการสั่นด้วยฟังก์ชัน millis()</h4>
-                <p>การใช้ <code>millis()</code> หน่วงเวลาตรวจสอบสัญญาณให้นิ่ง (เช่น 50ms) โดยไม่ใช้ <code>delay()</code> ทำให้ CPU ไม่ถูกบล็อกการทำงาน:</p>
-                <div class="theory-formula">
-                  int reading = digitalRead(BUTTON_PIN);<br>
-                  if (reading != lastButtonState) {<br>
-                  &nbsp;&nbsp;lastDebounceTime = millis(); // บันทึกเวลาที่พบการเปลี่ยนสถานะ<br>
-                  }<br>
-                  if ((millis() - lastDebounceTime) &gt; 50) {<br>
-                  &nbsp;&nbsp;if (reading != currentButtonState) {<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;currentButtonState = reading;<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;if (currentButtonState == LOW) { /* ตรวจพบการกดปุ่มสมบูรณ์ */ }<br>
-                  &nbsp;&nbsp;}<br>
-                  }
-                </div>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-shield-halved"></i> 3.1 การแก้ปัญหาการสั่นด้วยฟังก์ชัน millis()</h4>
+            <p>การใช้ <code>millis()</code> หน่วงเวลาตรวจสอบสัญญาณให้นิ่ง (เช่น 50ms) โดยไม่ใช้ <code>delay()</code> ทำให้ CPU ไม่ถูกบล็อกการทำงาน:</p>
+            <div class="theory-formula">
+              int reading = digitalRead(BUTTON_PIN);<br>
+              if (reading != lastButtonState) {<br>
+              &nbsp;&nbsp;lastDebounceTime = millis(); // บันทึกเวลาที่พบการเปลี่ยนสถานะ<br>
+              }<br>
+              if ((millis() - lastDebounceTime) &gt; 50) {<br>
+              &nbsp;&nbsp;if (reading != currentButtonState) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;currentButtonState = reading;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;if (currentButtonState == LOW) { /* ตรวจพบการกดปุ่มสมบูรณ์ (Falling Edge) */ }<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-longpress">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-fingerprint"></i> 4.1 การตรวจจับการกดปุ่มค้าง (Long Press Detection)</h4>
-                <p>บันทึกเวลา <code>buttonPressTime = millis();</code> ทันทีที่เริ่มกดปุ่ม (สถานะเปลี่ยนเป็น LOW) จากนั้นในลูปตรวจสอบว่าหากปุ่มยังถูกกดค้างอยู่และ <code>millis() - buttonPressTime &gt; 2000</code> ให้สั่งรีเซ็ตระบบหรือเข้าสู่โหมดพิเศษทันที</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-fingerprint"></i> 4.1 การตรวจจับการกดปุ่มค้าง (Long Press Detection)</h4>
+            <p>บันทึกเวลา <code>buttonPressTime = millis();</code> ทันทีที่เริ่มกดปุ่ม (สถานะเปลี่ยนเป็น LOW) จากนั้นในลูปตรวจสอบว่าหากปุ่มยังถูกกดค้างอยู่และ <code>millis() - buttonPressTime &gt; 2000</code> พร้อมตั้งค่า Flag เช่น <code>longPressTriggered = true</code> เพื่อป้องกันการทำงานซ้ำในขณะที่ยังกดค้างอยู่</p>
+          </div>
         </div>
+
+        <div class="theory-tab-panel" id="theory-tab-troubleshooting">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-toolbox"></i> 5.1 ตารางตรวจวินิจฉัยและแก้ปัญหาอินพุตสวิตช์และรีเลย์ (Troubleshooting Matrix)</h4>
+            <div class="table-container" style="margin-top: 0.75rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>อาการผิดปกติ (Symptom)</th>
+                    <th>สาเหตุที่เป็นไปได้ (Root Cause)</th>
+                    <th>วิธีตรวจวินิจฉัยและแก้ไข (Solution)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong style="color:#f87171;">ปุ่มกดไม่เสถียร สลับสถานะเองแม้ไม่แตะปุ่ม</strong></td>
+                    <td>ไม่ได้เปิดวงจร Pull-up (ใช้ <code>pinMode(pin, INPUT)</code> ธรรมดา) ทำให้ขาอยู่ในสถานะสัญญาณลอย (Floating)</td>
+                    <td>เปลี่ยนการประกาศขาเป็น <code>pinMode(pin, INPUT_PULLUP);</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#fbbf24;">กดปุ่ม 1 ครั้ง แต่ระบบนับว่ากด 2-3 ครั้ง</strong></td>
+                    <td>เกิด Contact Bouncing โดยไม่มี Software Debounce หรือตั้งค่าหน่วงเวลาน้อยเกินไป</td>
+                    <td>เพิ่มกลไก Debounce ด้วย <code>millis()</code> และกำหนดช่วงเวลาตรวจสอบ <code>debounceDelay = 50ms</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#f87171;">ใช้ <code>delay(50)</code> ทำ debounce แล้ว WiFi หลุด / หน่วง</strong></td>
+                    <td>คำสั่ง <code>delay()</code> บล็อก CPU ขัดขวาง Background Process ของ WiFi และเซ็นเซอร์อื่น</td>
+                    <td>เปลี่ยนไปใช้ Non-blocking Timer ด้วย <code>millis()</code> ทั้งหมด</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#38bdf8;">กดปุ่มค้างแล้วระบบ Trigger คำสั่งวนซ้ำไม่หยุด</strong></td>
+                    <td>ไม่มี Flag ป้องกันการทำงานซ้ำ (Missing Long-Press Lock Flag)</td>
+                    <td>ประกาศตัวแปร <code>bool longPressTriggered</code> เมื่อทำงานแล้วให้ตั้งเป็น <code>true</code> และรีเซ็ตเป็น <code>false</code> เมื่อปล่อยปุ่ม</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 6: Interactive Message Box & Serial Commands -->
+        <div class="theory-tab-panel" id="theory-tab-commands">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 6.1 คำสั่งจำลองปุ่มกดและตั้งค่าผ่าน Message Box</h4>
+            <p>นอกจากการกดปุ่มสวิตช์กายภาพแล้ว นักศึกษาสามารถส่งคำสั่งทดสอบผ่าน <strong>Serial Monitor / Message Box</strong> เพื่อทดสอบการทำงานของ State Machine และการ Debounce:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>การตอบสนองของไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>จำลองการกดปุ่มสลับรีเลย์</b></td>
+                    <td><code>PRESS_BUTTON</code></td>
+                    <td>สลับสถานะรีเลย์, เพิ่มตัวนับ <code>toggleCount++</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>รีเซ็ตตัวนับการกดปุ่ม</b></td>
+                    <td><code>RESET_COUNT</code></td>
+                    <td>ตั้งค่า <code>toggleCount = 0</code>, ตอบกลับ <code>[OK] Count reset</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเวลา Debounce (ms)</b></td>
+                    <td><code>SET_DEBOUNCE=50</code></td>
+                    <td>ตั้งค่า <code>debounceDelay = 50ms</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเวลา Long-Press (ms)</b></td>
+                    <td><code>SET_LONGPRESS=3000</code></td>
+                    <td>ตั้งค่า <code>longPressThreshold = 3000ms</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // การแยกแยะคำสั่งใน C++:<br>
+              if (Serial.available()) {<br>
+              &nbsp;&nbsp;String input = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;input.trim();<br>
+              &nbsp;&nbsp;if (input == "RESET_COUNT") {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;toggleCount = 0;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[OK] Counter has been reset to 0");<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="theory-modal-footer">
@@ -1882,9 +2219,15 @@ void loop() {
       const codeBlank4 = document.getElementById('codeBlank4').value.trim();
       const codeBlank5 = document.getElementById('codeBlank5').value.trim();
       const challengeCode = document.getElementById('challengeCode').value.trim();
-      const controlLogic = document.getElementById('controlLogic').value.trim();
+      const controlLogic = document.getElementById('controlLogic') ? document.getElementById('controlLogic').value.trim() : '';
+      const quiz1 = document.querySelector('input[name="quiz1"]:checked')?.value || '';
+      const quiz2 = document.querySelector('input[name="quiz2"]:checked')?.value || '';
+      const quiz3 = document.querySelector('input[name="quiz3"]:checked')?.value || '';
+      const quiz4 = document.querySelector('input[name="quiz4"]:checked')?.value || '';
+      const quiz5 = document.querySelector('input[name="quiz5"]:checked')?.value || '';
       const question1 = document.getElementById('question1').value.trim();
       const question2 = document.getElementById('question2').value.trim();
+      const question3 = document.getElementById('question3') ? document.getElementById('question3').value.trim() : '';
       const conclusion = document.getElementById('conclusion').value.trim();
 
       // Cache metadata
@@ -1895,8 +2238,9 @@ void loop() {
       const payload = {
         studentName, studentId, studentGroup, labDate,
         codeBlank1, codeBlank2, codeBlank3, codeBlank4, codeBlank5,
+        quiz1, quiz2, quiz3, quiz4, quiz5,
         challengeCode, controlLogic,
-        question1, question2,
+        question1, question2, question3,
         screenshotBase64: uploadedScreenshotBase64,
         screenshotName: uploadedScreenshotName,
         screenshotType: uploadedScreenshotType,
@@ -1921,9 +2265,11 @@ void loop() {
               }
               removeFile('screenshot'); removeFile('code');
               document.getElementById('challengeCode').value = '';
-              document.getElementById('controlLogic').value = '';
+              if (document.getElementById('controlLogic')) document.getElementById('controlLogic').value = '';
+              document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
               document.getElementById('question1').value = '';
               document.getElementById('question2').value = '';
+              if (document.getElementById('question3')) document.getElementById('question3').value = '';
               document.getElementById('conclusion').value = '';
             } else {
               showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
@@ -1937,38 +2283,30 @@ void loop() {
           .submitLabData(payload);
       } else {
         // Local Server mode simulation call
-        fetch('/api/submit/lab1.1', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(response => {
+        setTimeout(() => {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
-          if (response.status === 'success') {
-            showModal('ส่งใบงานสำเร็จ (Local Server)', response.message, true);
-            const idVal = document.getElementById('studentId')?.value.trim() || '';
-            if (idVal) {
-              const nowFormatted = new Date().toLocaleString('th-TH');
-              localStorage.setItem('submitted_iot_lab1_1_' + idVal, nowFormatted);
-              lockFormAsSubmitted(nowFormatted);
-            }
-            removeFile('screenshot'); removeFile('code');
-            document.getElementById('challengeCode').value = '';
-            document.getElementById('controlLogic').value = '';
-            document.getElementById('question1').value = '';
-            document.getElementById('question2').value = '';
-            document.getElementById('conclusion').value = '';
-          } else {
-            showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
+          console.log("Submitted Payload:", payload);
+          showModal(
+            'โหมดจำลอง (Local Preview Mode)',
+            'ฟังก์ชันเชื่อมต่อกับ Google Sheet สำเร็จแล้ว! เมื่อนำโค้ดไปวางใน Google Apps Script หน้าเว็บจะทำหน้าที่ส่งประวัติและไฟล์เข้า Drive + Spreadsheet โดยอัตโนมัติ',
+            true
+          );
+          const idVal = document.getElementById('studentId')?.value.trim() || '';
+          if (idVal) {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem('submitted_iot_lab1_1_' + idVal, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
           }
-        })
-        .catch(err => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
-          showModal('เกิดข้อผิดพลาด (Local Sim)', err.toString(), false);
-        });
+          removeFile('screenshot'); removeFile('code');
+          document.getElementById('challengeCode').value = '';
+          if (document.getElementById('controlLogic')) document.getElementById('controlLogic').value = '';
+          document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+          document.getElementById('question1').value = '';
+          document.getElementById('question2').value = '';
+          if (document.getElementById('question3')) document.getElementById('question3').value = '';
+          document.getElementById('conclusion').value = '';
+        }, 800);
       }
     }
 
@@ -2214,19 +2552,21 @@ void loop() {
       const blanksResult = evaluateLab11Blanks();
       const blankScore = blanksResult.score;
 
+
       // Challenge code — Evaluated via Regex Logic
       const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
       const chEval = evaluateLab11Challenge(challengeCode);
       const chScore = chEval.score;
 
-      // Questions
-      const questionIds = ['question1','question2','question3','question4','question5'];
+
+      // Questions (3 questions)
+      const questionIds = ['question1','question2','question3'];
       let answeredQ = 0, totalQ = 0;
       questionIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) { totalQ++; if (el.value.trim().length > 10) answeredQ++; }
       });
-      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
+      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 2.5).toFixed(1)) : 2.5;
 
       // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
@@ -2253,12 +2593,13 @@ void loop() {
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
       const hasConclusion = conclusion.length > 100;
 
+
       // Total
-      const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
+      const totalScore = Number((blankScore + quizScore + chScore + qScore + attachScore + conclScore).toFixed(1));
       document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
 
       const badgeEl = document.getElementById('preScoreBadge');
-      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
+      if (totalScore >= 8.0 && isInfoComplete && hasConclusion && answeredQuiz === 5) {
         badgeEl.className = 'score-status-badge';
         badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
       } else if (totalScore >= 5.0) {
@@ -2281,22 +2622,30 @@ void loop() {
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
             <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
+
           </div>
-          <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
+          <div class="score-item-points">${blankScore.toFixed(1)} / 1.5</div>
         </div>` : ''}
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-square-check" style="color:${quizScore>=1.6?'#34d399':(answeredQuiz>0?'#fbbf24':'#f87171')};"></i> แบบทดสอบแบบเลือกตอบ</div>
+            <div class="score-item-desc">ตอบแล้ว ${answeredQuiz}/5 ข้อ (ถูกต้อง ${correctQuiz}/5 ข้อ)</div>
+          </div>
+          <div class="score-item-points">${quizScore.toFixed(1)} / 2.0</div>
+        </div>
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex Toggle/LongPress Engine)</div>
             <div class="score-item-desc">${chEval.feedback}</div>
           </div>
-          <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         ${totalQ > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง</div>
+            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2.0?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง & วิเคราะห์</div>
             <div class="score-item-desc">ตอบแล้ว ${answeredQ}/${totalQ} ข้อ</div>
           </div>
-          <div class="score-item-points">${qScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${qScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         <div class="score-item-row">
           <div class="score-item-info">
@@ -2311,6 +2660,7 @@ void loop() {
             <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
           <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
+
         </div>
       `;
 

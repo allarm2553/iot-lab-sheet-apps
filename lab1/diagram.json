@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "author": "IoT Lab Team",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht", "top": -150, "left": -130, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot", "top": -150, "left": 120, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "fan_relay", "top": 160, "left": -130, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "mist_relay", "top": 160, "left": 120, "attrs": {} },
+    { "type": "wokwi-led", "id": "alert_led", "top": -10, "left": 230, "attrs": { "color": "red" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 60, "left": 230, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "esp:GND.1", "dht:GND", "black", [ "v0" ] ],
+    [ "esp:3V3", "dht:VCC", "red", [ "v0" ] ],
+    [ "esp:33", "dht:SDA", "green", [ "v0" ] ],
+
+    [ "esp:GND.1", "pot:GND", "black", [ "v0" ] ],
+    [ "esp:3V3", "pot:VCC", "red", [ "v0" ] ],
+    [ "esp:VP", "pot:SIG", "orange", [ "v0" ] ],
+
+    [ "esp:GND.2", "fan_relay:GND", "black", [ "v0" ] ],
+    [ "esp:5V", "fan_relay:VCC", "red", [ "v0" ] ],
+    [ "esp:5", "fan_relay:IN", "blue", [ "v0" ] ],
+
+    [ "esp:GND.2", "mist_relay:GND", "black", [ "v0" ] ],
+    [ "esp:5V", "mist_relay:VCC", "red", [ "v0" ] ],
+    [ "esp:23", "mist_relay:IN", "purple", [ "v0" ] ],
+
+    [ "esp:18", "alert_led:A", "red", [ "v0" ] ],
+    [ "alert_led:C", "r1:1", "black", [ "v0" ] ],
+    [ "r1:2", "esp:GND.2", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

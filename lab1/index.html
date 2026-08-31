@@ -422,6 +422,103 @@
       gap: 0.5rem;
     }
 
+    /* Multiple Choice Quiz Styles */
+    .quiz-card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+    }
+    .quiz-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .quiz-q-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .quiz-q-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 6px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .quiz-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .quiz-option-label:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+    .quiz-option-label input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #64748b;
+      border-radius: 50%;
+      outline: none;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .quiz-option-label input[type="radio"]:checked {
+      border-color: #38bdf8;
+      background: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+    .quiz-option-label input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      background: #0f172a;
+      border-radius: 50%;
+    }
+    .quiz-option-label:has(input[type="radio"]:checked) {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: #38bdf8;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -1353,8 +1450,13 @@ void loop() {
         </div>
 
         <div class="challenge-frame">
-          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> เพื่อป้องกันปัญหาไฟกระชากหรือการสลับสถานะของรีเลย์ถี่เกินไป (Relay Clicking) ให้นักเรียนปรับปรุงตรรกะในข้อ 4 ให้มีระบบ <strong>Hysteresis</strong> (เช่น เมื่ออุณหภูมิเกิน 30 &deg;C ให้พัดลมเริ่มทำงาน แต่จะปิดลงก็ต่อเมื่ออุณหภูมิลดต่ำกว่า 29.5 &deg;C เป็นต้น)</p>
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Grand Challenge with Fail-Safe)</h3>
+          <p><strong>โจทย์:</strong> พัฒนาระบบควบคุมสภาพแวดล้อมอัจฉริยะแบบทนทานต่อข้อผิดพลาด (Fault-Tolerant &amp; Fail-Safe Smart Climate Controller):</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem; font-size: 0.9rem; line-height: 1.6;">
+            <li><strong>1. ระบบควบคุมพัดลมแบบ Hysteresis:</strong> สั่งเปิดพัดลมเมื่ออุณหภูมิ &ge; 30.0 &deg;C และปิดเมื่ออุณหภูมิ &le; 29.5 &deg;C เพื่อป้องกันรีเลย์กระตุก (Relay Chatter)</li>
+            <li><strong>2. ระบบควบคุมความชื้น:</strong> สั่งเปิดปั๊มพ่นหมอกเมื่อความชื้น &le; 50% และปิดเมื่อความชื้น &ge; 60%</li>
+            <li><strong>3. ระบบ Fail-Safe Protection (ความปลอดภัย):</strong> ใช้คำสั่ง <code>isnan()</code> ตรวจสอบค่า หากอ่านเซ็นเซอร์ผิดพลาดต่อเนื่อง ให้สั่งตัดการทำงานของพัดลมและปั๊มหมอกทันที (Safe State) พร้อมแจ้งเตือนผ่าน Serial Monitor</li>
+          </ul>
         </div>
       </div>
 
@@ -1419,20 +1521,162 @@ void loop() {
             </div>
           </div>
 
-          <!-- 3. Post-Lab Questions -->
+          <!-- 3. Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+              <i class="fa-solid fa-square-check"></i> แบบทดสอบวัดความรู้ความเข้าใจ (Multiple Choice Quiz - 5 ข้อ)
+            </div>
+
+            <!-- Quiz Q1 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 1</span>
+                <span>วงจรแปลงสัญญาณ ADC บนบอร์ด ESP32 มีความละเอียดกี่บิต และแปลงแรงดัน 0–3.3V เป็นค่าดิจิทัลดิบ (Raw Value) ในช่วงใด?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1a" form="labForm" required>
+                  <span>ก. ความละเอียด 8-bit (ช่วงค่า 0 ถึง 255)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1b" form="labForm" required>
+                  <span>ข. ความละเอียด 10-bit (ช่วงค่า 0 ถึง 1023)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1c" form="labForm" required>
+                  <span>ค. ความละเอียด 12-bit (ช่วงค่า 0 ถึง 4095)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1d" form="labForm" required>
+                  <span>ง. ความละเอียด 16-bit (ช่วงค่า 0 ถึง 65535)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q2 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 2</span>
+                <span>หากเขียนโค้ด <code>float percent = (rawAnalog / 4095) * 100;</code> โดยที่ <code>rawAnalog = 2048</code> ผลลัพธ์ในตัวแปร <code>percent</code> จะเป็นเท่าใด เพราะเหตุใด?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2a" form="labForm" required>
+                  <span>ก. <code>50.0%</code> เพราะตัวแปร percent เป็นชนิด float ระบบจะแปลงให้อัตโนมัติ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2b" form="labForm" required>
+                  <span>ข. <code>0.0%</code> เพราะเกิด Integer Division (หารจำนวนเต็ม) ผลลัพธ์จึงถูกปัดเศษทิ้งเป็น 0 ก่อนคูณ 100</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2c" form="labForm" required>
+                  <span>ค. <code>20.48%</code> เพราะคอมไพเลอร์เลื่อนจุดทศนิยมจากตัวหาร</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2d" form="labForm" required>
+                  <span>ง. เกิด Syntax Error คอมไพล์โปรแกรมไม่ผ่าน</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q3 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 3</span>
+                <span>การสื่อสารข้อมูลระหว่างไมโครคอนโทรลเลอร์กับเซ็นเซอร์ DHT11/DHT22 ใช้สายสัญญาณกี่เส้น และส่งข้อมูลครั้งละกี่บิต?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3a" form="labForm" required>
+                  <span>ก. ระบบ I2C Bus (สาย SDA/SCL) ส่งข้อมูล 16 บิต</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3b" form="labForm" required>
+                  <span>ข. ระบบ SPI Bus (สาย MOSI/MISO/SCK) ส่งข้อมูล 32 บิต</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3c" form="labForm" required>
+                  <span>ค. ระบบ Single-Bus (สาย DATA เส้นเดียว) ส่งข้อมูล 40 บิต (5 ไบต์)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3d" form="labForm" required>
+                  <span>ง. ระบบ Analog Signal (สายแอนะล็อก) ส่งแรงดัน 0-5V ต่อเนื่อง</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q4 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 4</span>
+                <span>หากใช้งานโมดูลรีเลย์ชนิด <strong>Active-LOW</strong> คำสั่งใดในภาษา C/C++ ที่ใช้สั่งให้รีเลย์ดูดหน้าสัมผัสเพื่อเปิดพัดลมทำงาน?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4a" form="labForm" required>
+                  <span>ก. <code>digitalWrite(FAN_RELAY_PIN, HIGH);</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4b" form="labForm" required>
+                  <span>ข. <code>digitalWrite(FAN_RELAY_PIN, LOW);</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4c" form="labForm" required>
+                  <span>ค. <code>pinMode(FAN_RELAY_PIN, INPUT_PULLUP);</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4d" form="labForm" required>
+                  <span>ง. <code>analogWrite(FAN_RELAY_PIN, 255);</code></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q5 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 5</span>
+                <span>การประยุกต์ใช้การควบคุมแบบ <strong>Hysteresis</strong> ร่วมกับการตรวจสอบค่า <strong><code>isnan()</code></strong> มีประโยชน์หลักอย่างไรในระบบ IoT?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5a" form="labForm" required>
+                  <span>ก. เพื่อเพิ่มความเร็วในการประมวลผลของ CPU ให้ทำงานเร็วขึ้น 2 เท่า</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5b" form="labForm" required>
+                  <span>ข. เพื่อลดสัญญาณรบกวนของคลื่น WiFi และลดการใช้พลังงานของเสาอากาศ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5c" form="labForm" required>
+                  <span>ค. เพื่อป้องกันปัญหารีเลย์ตัด-ต่อถี่เกินไป (Chatter) และตัดโหลดเข้าสู่ Safe State เมื่อเซ็นเซอร์ขัดข้อง</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5d" form="labForm" required>
+                  <span>ง. เพื่อให้เซ็นเซอร์อ่านค่าอุณหภูมิได้ละเอียดระดับทศนิยม 4 ตำแหน่ง</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
             </div>
 
             <div class="form-group">
-              <label for="question1">1. สัญญาณ ADC ของบอร์ดที่เลือกใช้ (ESP32 หรือ ESP8266) มีความละเอียดกี่บิต และแปลงค่าแรงดันได้ในช่วงระดับตัวเลขอ้างอิงเท่าใด?</label>
-              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+              <label for="question1">1. [Spot the Bug 1: ADC Integer Division] นักศึกษาคนหนึ่งเขียนโค้ด <code>int raw = analogRead(36); float percent = (raw / 4095) * 100;</code> แต่ค่าที่ได้แสดงเป็น <code>0.0%</code> เสมอแม้จะหมุนปรับค่า VR จงวิเคราะห์ว่าเกิดจากสาเหตุใด และต้องแก้ไขโค้ดอย่างไรให้ถูกต้อง?</label>
+              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุเชิงสถาปัตยกรรมคอมไพเลอร์ และวิธีแก้ไขโค้ดที่ถูกต้อง..."></textarea>
             </div>
 
             <div class="form-group">
-              <label for="question2">2. เหตุใดเราจึงต่อขา 3.3V ของบอร์ดไมโครคอนโทรลเลอร์ (ESP32 หรือ ESP8266) กับขาควบคุม (IN) ของโมดูลรีเลย์ 5V ได้โดยตรง บอร์ดจะได้รับความเสียหายหรือไม่?</label>
-              <textarea id="question2" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+              <label for="question2">2. [Relay Control &amp; Inverted Logic] เหตุใดเราจึงต้องใช้โมดูลรีเลย์ในการขับพัดลม/ปั๊มน้ำแทนการต่อตรงกับขา GPIO และหากโมดูลรีเลย์ที่ใช้เป็นชนิด Active-LOW เราต้องเขียนคำสั่งควบคุมให้เปิดและปิดโหลดอย่างไร?</label>
+              <textarea id="question2" rows="3" required placeholder="อธิบายการแยกสัญญาณ Optocoupler กระแสไฟฟ้า และคำสั่งควบคุม Active-LOW..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [Fail-Safe Design: Sensor Disconnection] หากสายสัญญาณ DATA ของเซ็นเซอร์ DHT11 หลุดระหว่างทำงาน โค้ดที่ไม่มีการดักจับค่าด้วยฟังก์ชัน <code>isnan()</code> จะส่งผลกระทบต่อการตัดสินใจของรีเลย์อย่างไร และแนวทางการเขียนระบบความปลอดภัย (Fail-Safe Action) ที่ดีควรเป็นอย่างไร?</label>
+              <textarea id="question3" rows="3" required placeholder="อธิบายพฤติกรรมเมื่ออ่านได้ค่า NaN และการสั่งตัดโหลดเพื่อความปลอดภัย..."></textarea>
             </div>
           </div>
 
@@ -1541,6 +1785,8 @@ void loop() {
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('adc', this)"><i class="fa-solid fa-chart-line"></i> 2. ระบบแปลงสัญญาณ ADC</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dht', this)"><i class="fa-solid fa-temperature-half"></i> 3. เซ็นเซอร์ DHT11</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)"><i class="fa-solid fa-sliders"></i> 4. Hysteresis Control</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshoot', this)"><i class="fa-solid fa-wrench"></i> 5. การตรวจวินิจฉัยและแก้ปัญหา</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('commands', this)"><i class="fa-solid fa-terminal"></i> 6. คำสั่ง Interactive Message &amp; Serial</button>
         </div>
 
         <!-- Panel 1: GPIO & Relays -->
@@ -1656,6 +1902,130 @@ void loop() {
               }<br>
               digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
             </div>
+          </div>
+        </div>
+
+        <!-- Panel 5: Diagnostics & Troubleshooting -->
+        <div class="theory-tab-panel" id="theory-tab-troubleshoot">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> 5.1 การดักจับความผิดพลาดของเซ็นเซอร์ด้วย <code>isnan()</code> และ Fail-Safe Action</h4>
+            <p>เมื่อสายสัญญาณเซ็นเซอร์ DHT11 หลุด หลวม หรืออ่านค่าถี่เกิน 2 วินาที ฟังก์ชัน <code>dht.readTemperature()</code> จะคืนค่าเป็น <strong>NaN (Not a Number)</strong> หากเรานำค่า NaN ไปเปรียบเทียบใน <code>if (temperature &gt; 30)</code> จะได้ผลลัพธ์เป็น <strong>false เสมอ</strong> ทำให้ระบบไม่สั่งเปิดพัดลมแม้เครื่องจักรจะร้อนจัด!</p>
+            <p style="margin-top: 0.5rem;"><strong>แนวทางแก้ไข (Safe State):</strong> ต้องตรวจสอบด้วยฟังก์ชัน <code>isnan()</code> หากอ่านค่าไม่ได้ ให้ตัดการทำงานของโหลดกำลังสูง (Relay) ทันทีและส่งข้อความเตือน:</p>
+            <div class="theory-formula">
+              if (isnan(temperature) || isnan(humidity)) {<br>
+              &nbsp;&nbsp;Serial.println("[ERROR] ไม่สามารถอ่านค่า DHT11 ได้! ตัดการทำงานของโหลดเพื่อความปลอดภัย");<br>
+              &nbsp;&nbsp;digitalWrite(FAN_RELAY_PIN, LOW);&nbsp;&nbsp;// เข้าสู่ Fail-Safe State<br>
+              &nbsp;&nbsp;digitalWrite(MIST_RELAY_PIN, LOW);<br>
+              &nbsp;&nbsp;return;&nbsp;&nbsp;// ข้ามลูปการประมวลผลรอบนี้<br>
+              }
+            </div>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-bug" style="color: var(--danger);"></i> 5.2 ปัญหา Integer Division ในการคำนวณ ADC</h4>
+            <p>ในภาษา C/C++ หากนำจำนวนเต็ม (<code>int</code>) มาหารด้วยจำนวนเต็ม เช่น <code>(rawAnalog / 4095) * 100</code> คอมไพเลอร์จะปัดเศษทศนิยมทิ้งทันที ทำให้ได้ผลลัพธ์เป็น <code>0</code> เสมอ (ยกเว้นเมื่อ <code>rawAnalog == 4095</code> ที่ได้ 1)</p>
+            <p style="margin-top: 0.5rem;"><strong>วิธีแก้ที่ถูกต้อง:</strong> ต้องใช้ตัวหารที่เป็นเลขทศนิยม (Floating-point) เช่น <code>4095.0</code> หรือใช้ Type Casting <code>(float)rawAnalog</code></p>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-code-compare"></i> 5.3 Active-HIGH vs Active-LOW Relays</h4>
+            <p>โมดูลรีเลย์ส่วนใหญ่ในท้องตลาดทำงานแบบ <strong>Active-LOW</strong> ซึ่งต้องการแรงดัน 0V (<code>LOW</code>) ที่ขา IN เพื่อสั่งให้รีเลย์ดูดหน้าสัมผัส (เปิดโหลด) และต้องการ 3.3V (<code>HIGH</code>) เพื่อสั่งดับ</p>
+            <p style="margin-top: 0.5rem;"><strong>ข้อแนะนำระดับมืออาชีพ:</strong> ควรใช้ Macro นิยามความหมายไว้ที่ส่วนหัวของโค้ด เพื่อป้องกันการสับสน:</p>
+            <div class="theory-formula">
+              #define RELAY_ON   HIGH  // หรือ LOW หากใช้บอร์ดรีเลย์ Active-LOW<br>
+              #define RELAY_OFF  LOW   // หรือ HIGH หากใช้บอร์ดรีเลย์ Active-LOW<br><br>
+              digitalWrite(FAN_RELAY_PIN, RELAY_ON);  // โค้ดจะอ่านเข้าใจง่าย ไม่สับสน
+            </div>
+          </div>
+
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-list-check"></i> 5.4 ตารางการสืบค้นและวินิจฉัยปัญหา (Troubleshooting Decision Matrix)</h4>
+            <div class="table-container" style="margin-top: 0.5rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>อาการผิดปกติ</th>
+                    <th>สาเหตุที่เป็นไปได้</th>
+                    <th>วิธีแก้ไข</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Serial Monitor แสดง <code>nan</code> หรือ <code>Failed to read</code></td>
+                    <td>อ่านค่าเซ็นเซอร์เร็วกว่า 2 วินาที หรือสาย DATA หลวม</td>
+                    <td>เพิ่ม Delay/Non-blocking interval เป็น 2000ms+ และตรวจสายต่อขา 33</td>
+                  </tr>
+                  <tr>
+                    <td>เปิดเครื่องแล้วพัดลมหมุนทันทีทั้งที่อุณหภูมิปกติ</td>
+                    <td>โมดูลรีเลย์เป็นแบบ Active-LOW</td>
+                    <td>ปรับค่าเริ่มต้นใน <code>setup()</code> เป็น <code>HIGH</code> และสลับคำสั่งเปิด/ปิด</td>
+                  </tr>
+                  <tr>
+                    <td>ค่า ADC อ่านได้ 0 ถึง 4095 ไม่สม่ำเสมอ หรือเต็มเร็วมาก</td>
+                    <td>ไม่ได้ตั้งค่า ADC Attenuation 11dB บน ESP32</td>
+                    <td>เพิ่มคำสั่ง <code>analogSetPinAttenuation(36, ADC_11db);</code> ใน <code>setup()</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 6: Interactive Message Box & Serial Commands -->
+        <div class="theory-tab-panel" id="theory-tab-commands">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 6.1 รูปแบบคำสั่งใน Serial Monitor / Message Box</h4>
+            <p>ไมโครคอนโทรลเลอร์สามารถรับข้อความคำสั่งจาก <strong>Serial Monitor Input Box (Baud rate 115200)</strong> หรือกล่องข้อความบนแดชบอร์ด เพื่อควบคุมและตั้งค่าพารามิเตอร์แบบทันที:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัตถุประสงค์</th>
+                    <th>คำสั่งที่ต้องพิมพ์ใน Message Box</th>
+                    <th>การตอบสนองของไมโครคอนโทรลเลอร์</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>สั่งเปิดพัดลม</b></td>
+                    <td><code>FAN_ON</code></td>
+                    <td>จ่ายไฟ GPIO 5 = HIGH, ตอบกลับ <code>[OK] Fan turned ON</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>สั่งปิดพัดลม</b></td>
+                    <td><code>FAN_OFF</code></td>
+                    <td>จ่ายไฟ GPIO 5 = LOW, ตอบกลับ <code>[OK] Fan turned OFF</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>ปรับเกณฑ์อุณหภูมิ</b></td>
+                    <td><code>SET_TEMP=32.0</code></td>
+                    <td>อัปเดต <code>tempThreshold = 32.0</code>, ตอบกลับ <code>[OK] Threshold updated</code></td>
+                  </tr>
+                  <tr>
+                    <td><b>อ่านสถานะระบบ</b></td>
+                    <td><code>STATUS</code></td>
+                    <td>ส่งข้อความสรุปค่าเซ็นเซอร์และสถานะรีเลย์ปัจจุบัน</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างโค้ดภาษา C++ ในการถอดรหัสข้อความจาก Serial Box:<br>
+              if (Serial.available() > 0) {<br>
+              &nbsp;&nbsp;String cmd = Serial.readStringUntil('\n');<br>
+              &nbsp;&nbsp;cmd.trim(); // ตัดช่องว่างและตัวขึ้นบรรทัดใหม่ออก<br>
+              &nbsp;&nbsp;if (cmd == "FAN_ON") { digitalWrite(FAN_PIN, HIGH); }<br>
+              &nbsp;&nbsp;else if (cmd.startsWith("SET_TEMP=")) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;tempThreshold = cmd.substring(9).toFloat();<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+
+            <p style="margin-top: 0.6rem; font-size: 0.85rem; color: #fbbf24;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>ข้อควรระวัง:</strong> ตรวจสอบการตั้งค่า Line Ending ใน Serial Monitor ให้ตรงกับ <code>Newline</code> (<code>\n</code>) และตั้ง Baud Rate เป็น <code>115200</code> เสมอ
+            </p>
           </div>
         </div>
 
@@ -1960,6 +2330,12 @@ void loop() {
       const codeBlank5 = document.getElementById('codeBlank5').value.trim();
       const question1 = document.getElementById('question1').value.trim();
       const question2 = document.getElementById('question2').value.trim();
+      const question3 = document.getElementById('question3') ? document.getElementById('question3').value.trim() : '';
+      const quiz1 = document.querySelector('input[name="quiz1"]:checked')?.value || '';
+      const quiz2 = document.querySelector('input[name="quiz2"]:checked')?.value || '';
+      const quiz3 = document.querySelector('input[name="quiz3"]:checked')?.value || '';
+      const quiz4 = document.querySelector('input[name="quiz4"]:checked')?.value || '';
+      const quiz5 = document.querySelector('input[name="quiz5"]:checked')?.value || '';
       const conclusion = document.getElementById('conclusion').value.trim();
 
       // Save credentials locally
@@ -1978,8 +2354,14 @@ void loop() {
         codeBlank3,
         codeBlank4,
         codeBlank5,
+        quiz1,
+        quiz2,
+        quiz3,
+        quiz4,
+        quiz5,
         question1,
         question2,
+        question3,
         screenshotBase64: uploadedScreenshotBase64,
         screenshotName: uploadedScreenshotName,
         screenshotType: uploadedScreenshotType,
@@ -2013,8 +2395,10 @@ void loop() {
               document.getElementById('codeBlank3').value = '';
               document.getElementById('codeBlank4').value = '';
               document.getElementById('codeBlank5').value = '';
+              document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
               document.getElementById('question1').value = '';
               document.getElementById('question2').value = '';
+              if (document.getElementById('question3')) document.getElementById('question3').value = '';
               document.getElementById('conclusion').value = '';
             } else {
               showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
@@ -2293,19 +2677,21 @@ void loop() {
       const blanksResult = evaluateLab1Blanks();
       const blankScore = blanksResult.score;
 
+
       // Challenge code — Evaluated via Regex Logic
       const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
       const chEval = evaluateLab1Challenge(challengeCode);
       const chScore = chEval.score;
 
-      // Questions
-      const questionIds = ['question1','question2','question3','question4','question5'];
+
+      // Post-Lab Questions (3 questions)
+      const questionIds = ['question1','question2','question3'];
       let answeredQ = 0, totalQ = 0;
       questionIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) { totalQ++; if (el.value.trim().length > 10) answeredQ++; }
       });
-      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
+      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 2.5).toFixed(1)) : 2.5;
 
       // Attachments — robust check supporting variable, window property, input files, or preview display
       let attachScore = 0;
@@ -2332,12 +2718,13 @@ void loop() {
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
       const hasConclusion = conclusion.length > 100;
 
+
       // Total
-      const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
+      const totalScore = Number((blankScore + quizScore + chScore + qScore + attachScore + conclScore).toFixed(1));
       document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
 
       const badgeEl = document.getElementById('preScoreBadge');
-      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
+      if (totalScore >= 8.0 && isInfoComplete && hasConclusion && answeredQuiz === 5) {
         badgeEl.className = 'score-status-badge';
         badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
       } else if (totalScore >= 5.0) {
@@ -2360,22 +2747,30 @@ void loop() {
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม (Regex Checked)</div>
             <div class="score-item-desc">ถูกต้องตามรูปแบบไวยากรณ์ ${blanksResult.correctCount}/${blanksResult.totalCount} ช่อง</div>
+
           </div>
-          <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
+          <div class="score-item-points">${blankScore.toFixed(1)} / 1.5</div>
         </div>` : ''}
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-square-check" style="color:${quizScore>=1.6?'#34d399':(answeredQuiz>0?'#fbbf24':'#f87171')};"></i> แบบทดสอบแบบเลือกตอบ</div>
+            <div class="score-item-desc">ตอบแล้ว ${answeredQuiz}/5 ข้อ (ถูกต้อง ${correctQuiz}/5 ข้อ)</div>
+          </div>
+          <div class="score-item-points">${quizScore.toFixed(1)} / 2.0</div>
+        </div>
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-code" style="color:${chScore>=3?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> โค้ดโจทย์ท้าทาย (Regex Hysteresis Engine)</div>
             <div class="score-item-desc">${chEval.feedback}</div>
           </div>
-          <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         ${totalQ > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง</div>
+            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2.0?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง & วิเคราะห์</div>
             <div class="score-item-desc">ตอบแล้ว ${answeredQ}/${totalQ} ข้อ</div>
           </div>
-          <div class="score-item-points">${qScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${qScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         <div class="score-item-row">
           <div class="score-item-info">
@@ -2390,6 +2785,7 @@ void loop() {
             <div class="score-item-desc">${hasConclusion ? ('บันทึกสรุปผลเรียบร้อย (' + conclusion.length + ' ตัวอักษร)') : ('⚠️ กรุณาพิมพ์สรุปผลการทดลองมากกว่า 100 ตัวอักษร (ปัจจุบัน ' + conclusion.length + ' ตัวอักษร)')}</div>
           </div>
           <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน (< 100 ตัวอักษร)'}</div>
+
         </div>
       `;
 

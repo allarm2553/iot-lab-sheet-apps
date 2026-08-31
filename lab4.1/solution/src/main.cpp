@@ -1,5 +1,5 @@
 /**
- * Lab 3.2: HTTP GET / POST Web Server & REST API (Complete Solution)
+ * Lab 4.1: HTTP GET / POST Web Server & REST API (Complete Solution)
  * Features:
  *  - Serves REST API via WebServer (Port 80)
  *  - Handles HTTP GET "/api/data" -> returns Temperature, Humidity, Relay State, and Press Count in JSON

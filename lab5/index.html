@@ -1404,36 +1404,87 @@ void loop() {
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('pubsub', this)"><i class="fa-solid fa-cloud"></i> 1. สถาปัตยกรรม MQTT</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('topics', this)"><i class="fa-solid fa-tags"></i> 2. Topic Hierarchy & QoS</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('pubsub', this)"><i class="fa-solid fa-cloud"></i> 1. สถาปัตยกรรม MQTT</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('topics', this)"><i class="fa-solid fa-tags"></i> 2. Topic Hierarchy &amp; QoS</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('payloads', this)"><i class="fa-solid fa-terminal"></i> 3. MQTT Message Box &amp; Payload Reference</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-pubsub">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-share-nodes"></i> 1.1 หลักการทำงานของ Publish / Subscribe</h4>
-                <p><strong>MQTT (Message Queuing Telemetry Transport)</strong> เป็นโปรโตคอลมาตรฐานสำหรับ IoT แบบ Lightweight ที่ทำงานผ่านตัวกลางเรียกว่า <strong>Broker</strong>:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>Publisher:</strong> อุปกรณ์ที่ส่งข้อมูลขึ้นหัวข้อ (Topic) เช่น บอร์ด ESP32 ส่งค่าอุณหภูมิ</li>
-                  <li><strong>Subscriber:</strong> อุปกรณ์ที่รอรับข้อมูลจากหัวข้อที่สนใจ เช่น Dashboard หรือแอปพลิเคชันมือถือ</li>
-                  <li><strong>Broker:</strong> เซิร์ฟเวอร์ทำหน้าที่คัดแยกและกระจายข้อความ (เช่น <code>broker.emqx.io</code>)</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-share-nodes"></i> 1.1 หลักการทำงานของ Publish / Subscribe</h4>
+            <p><strong>MQTT (Message Queuing Telemetry Transport)</strong> เป็นโปรโตคอลมาตรฐานสำหรับ IoT แบบ Lightweight ที่ทำงานผ่านตัวกลางเรียกว่า <strong>Broker</strong>:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>Publisher:</strong> อุปกรณ์ที่ส่งข้อมูลขึ้นหัวข้อ (Topic) เช่น บอร์ด ESP32 ส่งค่าอุณหภูมิ</li>
+              <li><strong>Subscriber:</strong> อุปกรณ์ที่รอรับข้อมูลจากหัวข้อที่สนใจ เช่น Dashboard หรือแอปพลิเคชันมือถือ</li>
+              <li><strong>Broker:</strong> เซิร์ฟเวอร์ทำหน้าที่คัดแยกและกระจายข้อความ (เช่น <code>broker.emqx.io</code>)</li>
+            </ul>
+          </div>
         </div>
 
         <div class="theory-tab-panel" id="theory-tab-topics">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-sitemap"></i> 2.1 โครงสร้างหัวข้อ (Topic) และระดับคุณภาพ (QoS)</h4>
-                <p>การตั้งชื่อ Topic นิยมแบ่งระดับชั้นด้วยเครื่องหมาย Slash <code>/</code> เช่น:</p>
-                <div class="theory-formula">
-                  esp32-climate-node/sensor/temperature<br>
-                  esp32-climate-node/switch/cooling_fan_relay/command
-                </div>
-                <p style="margin-top: 0.5rem;"><strong>ระดับ QoS (Quality of Service):</strong></p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><code>QoS 0</code> : At most once (ส่งครั้งเดียว ไม่มีการยืนยัน เร็วที่สุด)</li>
-                  <li><code>QoS 1</code> : At least once (ส่งซ้ำจนกว่าจะได้รับข้อความยืนยัน มั่นใจว่าถึงแน่นอน)</li>
-                  <li><code>QoS 2</code> : Exactly once (การันตีถึงแน่นอนและได้รับเพียงครั้งเดียวเท่านั้น)</li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-sitemap"></i> 2.1 โครงสร้างหัวข้อ (Topic) และระดับคุณภาพ (QoS)</h4>
+            <p>การตั้งชื่อ Topic นิยมแบ่งระดับชั้นด้วยเครื่องหมาย Slash <code>/</code> เช่น:</p>
+            <div class="theory-formula">
+              esp32-climate-node/sensor/temperature<br>
+              esp32-climate-node/switch/cooling_fan_relay/command
+            </div>
+            <p style="margin-top: 0.5rem;"><strong>ระดับ QoS (Quality of Service):</strong></p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><code>QoS 0</code> : At most once (ส่งครั้งเดียว ไม่มีการยืนยัน เร็วที่สุด)</li>
+              <li><code>QoS 1</code> : At least once (ส่งซ้ำจนกว่าจะได้รับข้อความยืนยัน มั่นใจว่าถึงแน่นอน)</li>
+              <li><code>QoS 2</code> : Exactly once (การันตีถึงแน่นอนและได้รับเพียงครั้งเดียวเท่านั้น)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: MQTT Message Box & Payload Reference -->
+        <div class="theory-tab-panel" id="theory-tab-payloads">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-terminal"></i> 3.1 รูปแบบข้อความใน MQTT Message Box &amp; MQTT Explorer</h4>
+            <p>เมื่อทดสอบส่งข้อความผ่าน <strong>MQTT Explorer / Dashboard Message Box / HiveMQ Web Client</strong> จะต้องระบุ Topic และ Payload ดังนี้:</p>
+            
+            <div class="table-container" style="margin-top: 0.6rem;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Topic (หัวข้อ)</th>
+                    <th>ข้อความ Payload ที่ต้องพิมพ์ใน Message Box</th>
+                    <th>ผลลัพธ์บนอุปกรณ์ IoT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>iot/[student_id]/cmd/fan</code></td>
+                    <td><code>{"state": "ON"}</code> หรือ <code>1</code></td>
+                    <td>สั่งเปิดรีเลย์พัดลม GPIO 5</td>
+                  </tr>
+                  <tr>
+                    <td><code>iot/[student_id]/cmd/threshold</code></td>
+                    <td><code>{"temp_threshold": 32.0}</code></td>
+                    <td>ปรับเกณฑ์อุณหภูมิควบคุมพัดลมอัตโนมัติ</td>
+                  </tr>
+                  <tr>
+                    <td><code>iot/[student_id]/status</code></td>
+                    <td><i>(ESP32 เป็นผู้ Publish ส่งออก)</i></td>
+                    <td><code>{"temp": 28.5, "hum": 65.0, "fan": 1}</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="theory-formula" style="margin-top: 0.8rem;">
+              // ตัวอย่างการ Subscribe และถอดรหัสใน C++ (PubSubClient):<br>
+              void callback(char* topic, byte* payload, unsigned int length) {<br>
+              &nbsp;&nbsp;JsonDocument doc;<br>
+              &nbsp;&nbsp;deserializeJson(doc, payload, length);<br>
+              &nbsp;&nbsp;if (doc.containsKey("state")) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;bool s = (doc["state"] == "ON");<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;digitalWrite(FAN_PIN, s ? HIGH : LOW);<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 /**
  * Web App for Lab 1: GPIO, ADC & Relays
- * Designed by Antigravity AI (Auto-Grading Version)
+ * Designed by Antigravity AI (Auto-Grading Version with Multiple Choice Quiz & Troubleshooting)
  */
 
 function doGet(e) {
@@ -12,51 +12,65 @@ function doGet(e) {
 }
 
 // Auto-grading logic for Lab 1
-// Auto-grading logic for lab1
-// Auto-grading logic for lab1
 function gradeSubmission(data) {
   var blankKeywords = ["OUTPUT", "OUTPUT", "4095|1023", "HIGH", "LOW"];
-  var challengeKeywords = ["temperature", "30|29.5", "digitalWrite", "FAN_RELAY_PIN|fanState|MIST_RELAY_PIN|mistState", "5|13|d7|fan", "23|14|16|d0|d5|mist"];
-  var q1Keywords = ["12-bit|10-bit|12บิต|10บิต", "4095|1023", "ความละเอียด|ละเอียด|resolution"];
-  var q2Keywords = ["ทรานซิสเตอร์|transistor", "3.3V|3.3", "5V|5", "กระแส|ขับ", "relay|รีเลย์"];
+  var challengeKeywords = ["temperature|temp", "30|29.5", "isnan|nan|failsafe|safe", "digitalWrite", "FAN_RELAY_PIN|fanState|MIST_RELAY_PIN|mistState", "5|13|d7|fan", "23|14|16|d0|d5|mist"];
+  var q1Keywords = ["integer division|จำนวนเต็ม|ปัดเศษ", "4095.0|float|ทศนิยม", "0|0.0|0%"];
+  var q2Keywords = ["optocoupler|แยกวงจร|กระแส|back emf|เหนี่ยวนำ", "active-low|low|0v", "high|3.3v|ดับ|ปิด"];
+  var q3Keywords = ["nan|not a number|false", "safe state|ตัดโหลด|ตัดการทำงาน|ปิดพัดลม|ปิดปั๊ม", "isnan|เตือน|alert"];
   
+  // เฉลยแบบทดสอบแบบเลือกตอบ (Quiz Answer Keys)
+  var quizKeys = {
+    quiz1: "1c", // 12-bit (0-4095)
+    quiz2: "2b", // 0.0% จาก Integer division
+    quiz3: "3c", // Single-Bus 40 บิต (5 ไบต์)
+    quiz4: "4b", // digitalWrite LOW
+    quiz5: "5c"  // ป้องกัน Relay Chatter และเข้าสู่ Safe State
+  };
+
+  var skeletonScore = 0.0;
+  var quizScore = 0.0;
   var challengeScore = 0.0;
   var q1Score = 0.0;
   var q2Score = 0.0;
+  var q3Score = 0.0;
   var attachmentScore = 0.0;
   var feedbackDetails = [];
 
-  // 1. Grade Code / Challenge (4.0 points max)
-  // 1.1 Grade Skeleton Blanks (1.5 points max if blanks exist, otherwise challenge gets full 4.0 points)
-  var hasBlanks = blankKeywords && blankKeywords.length > 0;
-  var skeletonScore = 0.0;
-  
-  if (hasBlanks) {
-    var codeContent = (data.codeBlank1 || '') + ' ' + (data.codeBlank2 || '') + ' ' + (data.codeBlank3 || '') + ' ' + (data.codeBlank4 || '') + ' ' + (data.codeBlank5 || '');
-    if (codeContent.replace(/\s+/g, '').length > 0) {
-      var matchedBlanks = 0;
-      for (var i = 0; i < blankKeywords.length; i++) {
-        var subKws = blankKeywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (codeContent.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedBlanks++;
+  // 1. ตรวจช่องว่างโครงร่างโค้ด (1.5 คะแนน)
+  var codeContent = (data.codeBlank1 || '') + ' ' + (data.codeBlank2 || '') + ' ' + (data.codeBlank3 || '') + ' ' + (data.codeBlank4 || '') + ' ' + (data.codeBlank5 || '');
+  if (codeContent.replace(/\s+/g, '').length > 0) {
+    var matchedBlanks = 0;
+    for (var i = 0; i < blankKeywords.length; i++) {
+      var subKws = blankKeywords[i].split('|');
+      var isMatched = false;
+      for (var j = 0; j < subKws.length; j++) {
+        if (codeContent.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
+          break;
         }
       }
-      skeletonScore = (matchedBlanks / blankKeywords.length) * 1.5;
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น " + matchedBlanks + "/" + blankKeywords.length + " ส่วนหลัก (+" + skeletonScore.toFixed(1) + "/1.5 คะแนน)");
-    } else {
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ไม่พบการส่งคำตอบ (+0.0/1.5 คะแนน)");
+      if (isMatched) matchedBlanks++;
     }
+    skeletonScore = (matchedBlanks / blankKeywords.length) * 1.5;
+    feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น " + matchedBlanks + "/" + blankKeywords.length + " ส่วนหลัก (+" + skeletonScore.toFixed(1) + "/1.5 คะแนน)");
+  } else {
+    feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ไม่พบการส่งคำตอบ (+0.0/1.5 คะแนน)");
   }
 
-  // 1.2 Grade Pasted Challenge Code (2.5 points max if blanks exist, otherwise 4.0 points max)
-  var challengeMax = hasBlanks ? 2.5 : 4.0;
+  // 2. ตรวจแบบทดสอบแบบเลือกตอบ (2.0 คะแนน: ข้อละ 0.4)
+  var correctQuizCount = 0;
+  var quizAnswers = [data.quiz1, data.quiz2, data.quiz3, data.quiz4, data.quiz5];
+  var expectedKeys = [quizKeys.quiz1, quizKeys.quiz2, quizKeys.quiz3, quizKeys.quiz4, quizKeys.quiz5];
+  for (var k = 0; k < expectedKeys.length; k++) {
+    if (quizAnswers[k] && quizAnswers[k].trim() === expectedKeys[k]) {
+      correctQuizCount++;
+    }
+  }
+  quizScore = (correctQuizCount / 5.0) * 2.0;
+  feedbackDetails.push("- แบบทดสอบแบบเลือกตอบ: ถูกต้อง " + correctQuizCount + "/5 ข้อ (+" + quizScore.toFixed(1) + "/2.0 คะแนน)");
+
+  // 3. ตรวจโค้ดโจทย์ท้าทาย (2.5 คะแนน)
   var challengeCodeText = data.challengeCode || '';
   if (challengeCodeText.trim().length > 0) {
     var matchedChallenge = 0;
@@ -69,20 +83,16 @@ function gradeSubmission(data) {
           break;
         }
       }
-      if (isMatched) {
-        matchedChallenge++;
-      }
+      if (isMatched) matchedChallenge++;
     }
-    challengeScore = (matchedChallenge / challengeKeywords.length) * challengeMax;
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/" + challengeMax.toFixed(1) + " คะแนน)");
+    challengeScore = (matchedChallenge / challengeKeywords.length) * 2.5;
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ & Fail-Safe " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/2.5 คะแนน)");
   } else {
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/" + challengeMax.toFixed(1) + " คะแนน)");
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/2.5 คะแนน)");
   }
 
-  // 2. Grade Question 1 (2.0 points, or 4.0 points if Q2 does not exist)
+  // 4. ตรวจคำถามท้ายการทดลอง 3 ข้อ (2.5 คะแนน)
   var q1Text = data.question1 || '';
-  var hasQ2 = q2Keywords && q2Keywords.length > 0;
-  var q1Max = hasQ2 ? 2.0 : 4.0;
   if (q1Text.trim().length > 0) {
     var matchedQ1 = 0;
     for (var i = 0; i < q1Keywords.length; i++) {
@@ -94,48 +104,65 @@ function gradeSubmission(data) {
           break;
         }
       }
-      if (isMatched) {
-        matchedQ1++;
-      }
+      if (isMatched) matchedQ1++;
     }
-    q1Score = (matchedQ1 / q1Keywords.length) * q1Max;
-    feedbackDetails.push("- คำถามข้อ 1: ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(1) + "/" + q1Max.toFixed(1) + " คะแนน)");
+    q1Score = (matchedQ1 / q1Keywords.length) * 0.85;
+    feedbackDetails.push("- คำถามข้อ 1 (Spot the bug - ADC): ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(2) + "/0.85 คะแนน)");
   } else {
-    feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/" + q1Max.toFixed(1) + " คะแนน)");
+    feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
 
-  // 3. Grade Question 2 (2.0 points max)
-  if (hasQ2) {
-    var q2Text = data.question2 || '';
-    if (q2Text.trim().length > 0) {
-      var matchedQ2 = 0;
-      for (var i = 0; i < q2Keywords.length; i++) {
-        var subKws = q2Keywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (q2Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedQ2++;
+  var q2Text = data.question2 || '';
+  if (q2Text.trim().length > 0) {
+    var matchedQ2 = 0;
+    for (var i = 0; i < q2Keywords.length; i++) {
+      var subKws = q2Keywords[i].split('|');
+      var isMatched = false;
+      for (var j = 0; j < subKws.length; j++) {
+        if (q2Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
+          break;
         }
       }
-      q2Score = (matchedQ2 / q2Keywords.length) * 2.0;
-      feedbackDetails.push("- คำถามข้อ 2: ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(1) + "/2.0 คะแนน)");
-    } else {
-      feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/2.0 คะแนน)");
+      if (isMatched) matchedQ2++;
     }
+    q2Score = (matchedQ2 / q2Keywords.length) * 0.85;
+    feedbackDetails.push("- คำถามข้อ 2 (Relay Control): ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(2) + "/0.85 คะแนน)");
+  } else {
+    feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/0.85 คะแนน)");
   }
 
-  // 4. Attachments (2.0 points max)
-  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 1.0 : 0.0;
-  var codeOk = (data.codeBase64 && data.codeFileName) ? 1.0 : 0.0;
-  attachmentScore = screenshotOk + codeOk;
-  feedbackDetails.push("- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") + ", แนบไฟล์โค้ด " + (codeOk ? "แล้ว" : "ไม่พบ") + " (+" + attachmentScore.toFixed(1) + "/2.0 คะแนน)");
+  var q3Text = data.question3 || '';
+  if (q3Text.trim().length > 0) {
+    var matchedQ3 = 0;
+    for (var i = 0; i < q3Keywords.length; i++) {
+      var subKws = q3Keywords[i].split('|');
+      var isMatched = false;
+      for (var j = 0; j < subKws.length; j++) {
+        if (q3Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
+          isMatched = true;
+          break;
+        }
+      }
+      if (isMatched) matchedQ3++;
+    }
+    q3Score = (matchedQ3 / q3Keywords.length) * 0.80;
+    feedbackDetails.push("- คำถามข้อ 3 (Fail-Safe & isnan): ตรงจุดสำคัญ " + matchedQ3 + "/" + q3Keywords.length + " จุด (+" + q3Score.toFixed(2) + "/0.80 คะแนน)");
+  } else {
+    feedbackDetails.push("- คำถามข้อ 3: ไม่พบการตอบคำถาม (+0.0/0.80 คะแนน)");
+  }
 
-  var finalScore = parseFloat((skeletonScore + challengeScore + q1Score + q2Score + attachmentScore).toFixed(1));
+  // 5. ตรวจไฟล์แนบ (1.0 คะแนน)
+  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 0.5 : 0.0;
+  var codeOk = (data.codeBase64 && data.codeFileName) ? 0.5 : 0.0;
+  attachmentScore = screenshotOk + codeOk;
+  feedbackDetails.push("- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") + ", แนบไฟล์โค้ด " + (codeOk ? "แล้ว" : "ไม่พบ") + " (+" + attachmentScore.toFixed(1) + "/1.0 คะแนน)");
+
+  // 6. สรุปผลการทดลอง (0.5 คะแนน)
+  var conclusionScore = (data.conclusion && data.conclusion.trim().length > 10) ? 0.5 : 0.0;
+  feedbackDetails.push("- สรุปผลการทดลอง: " + (conclusionScore > 0 ? "สมบูรณ์ (+0.5/0.5 คะแนน)" : "ไม่พบ (+0.0/0.5 คะแนน)"));
+
+  var finalScore = parseFloat((skeletonScore + quizScore + challengeScore + q1Score + q2Score + q3Score + attachmentScore + conclusionScore).toFixed(1));
 
   return {
     score: finalScore,
@@ -158,9 +185,10 @@ function submitLabData(data) {
       sheet = ss.insertSheet(sheetName);
       var headers = [
         "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
-        "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำอธิบายตรรกะ (controlLogic)", "คำอธิบายโจทย์ท้าทาย (challengeLogic)",
+        "โค้ดโจทย์ท้าทาย (Challenge Code)",
         "คำตอบ Code ช่องที่ 1", "คำตอบ Code ช่องที่ 2", "คำตอบ Code ช่องที่ 3", "คำตอบ Code ช่องที่ 4", "คำตอบ Code ช่องที่ 5",
-        "คำถามข้อที่ 1 (ADC Resolution)", "คำถามข้อที่ 2 (Relay 3.3V to 5V)",
+        "Quiz 1 (ADC)", "Quiz 2 (Integer Div)", "Quiz 3 (DHT Bus)", "Quiz 4 (Active-LOW)", "Quiz 5 (Hysteresis & Safe)",
+        "คำถามข้อที่ 1 (ADC Integer Division)", "คำถามข้อที่ 2 (Relay Control & Inverted Logic)", "คำถามข้อที่ 3 (Fail-Safe & isnan)",
         "ลิงก์ไฟล์รูปภาพผลการทดลอง", "ลิงก์ไฟล์โค้ด (.ino/.zip)", "สรุปผลการทดลอง",
         "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ"
       ];
@@ -215,15 +243,19 @@ function submitLabData(data) {
       data.studentGroup,
       data.labDate,
       data.challengeCode || '',
-      data.controlLogic || '',
-      data.challengeLogic || '',
       data.codeBlank1,
       data.codeBlank2,
       data.codeBlank3,
       data.codeBlank4,
       data.codeBlank5,
+      data.quiz1 || '',
+      data.quiz2 || '',
+      data.quiz3 || '',
+      data.quiz4 || '',
+      data.quiz5 || '',
       data.question1,
       data.question2,
+      data.question3 || '',
       screenshotUrl,
       codeFileUrl,
       data.conclusion,
