@@ -1661,22 +1661,75 @@ void loop() {
         </div>
       </div>
 
-      <!-- Tab 4: Event-Driven Reconnect -->
+      <!-- Tab 4: Event-Driven Reconnect vs Polling -->
       <div class="theory-tab-panel" id="theory-tab-tab4">
         <div class="theory-card">
-          <h4><i class="fa-solid fa-bolt"></i> 4.1 สถาปัตยกรรม Event-Driven Callback vs Polling ใน loop()</h4>
+          <h4><i class="fa-solid fa-scale-unbalanced-flip"></i> 4.1 เปรียบเทียบ: Status Polling ใน loop() vs Event-Driven Callback</h4>
           <p>
-            <strong>วิธีแบบเดิม (Status Polling):</strong> เขียน <code>if (WiFi.status() != WL_CONNECTED)</code> วนลูปเช็คใน <code>loop()</code> ซึ่งสิ้นเปลืองรอบ CPU และหากระบบติดคำสั่ง <code>delay()</code> อื่นๆ จะทำให้การตรวจจับสัญญาณหลุดล่าช้า<br><br>
-            <strong>วิธีระดับวิศวกรรม (Event-Driven Architecture):</strong> ลงทะเบียน <strong>Event Callback Function</strong> ให้ Wi-Fi Stack ดักจับและสั่งเชื่อมต่อใหม่แบบ Asynchronous ในระดับ Background Task ทันทีที่สัญญาณหลุด ทำให้ <code>loop()</code> ทำงานเซนเซอร์หรือจอแสดงผลได้อย่างราบรื่น:
+            ในการกู้คืนการเชื่อมต่อเมื่อสัญญาณ Wi-Fi หลุด มี 2 แนวทางหลัก ซึ่งมีความแตกต่างกันอย่างมากในแง่ประสิทธิภาพและความเสถียร:
           </p>
-          <div class="theory-formula">
-            // สำหรับ ESP32: ใช้ WiFi.onEvent()<br>
+
+          <div class="table-container" style="margin: 0.75rem 0;">
+            <table>
+              <thead>
+                <tr>
+                  <th>มิติการเปรียบเทียบ</th>
+                  <th>🔴 Status Polling ใน loop()</th>
+                  <th>🟢 Event-Driven Callback</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>สถาปัตยกรรม</strong></td>
+                  <td>Synchronous Polling (คอยถามซ้ำๆ)</td>
+                  <td>Asynchronous / Interrupt-driven (แจ้งเมื่อมีเหตุ)</td>
+                </tr>
+                <tr>
+                  <td><strong>ภาระ CPU</strong></td>
+                  <td>สิ้นเปลืองรอบ CPU ในการเรียก <code>WiFi.status()</code> ซ้ำๆ</td>
+                  <td>Zero CPU Overhead ใน Main Loop ทำงานเมื่อสถานะเปลี่ยนจริง</td>
+                </tr>
+                <tr>
+                  <td><strong>ความเร็วในการกู้คืน</strong></td>
+                  <td>ช้ากว่า ขึ้นกับรอบเวลา (เช่น ทุก 5-10 วินาที) หรือติด Delay</td>
+                  <td>รวดเร็วทันทีระดับ Real-time (หลักมิลลิวินาที)</td>
+                </tr>
+                <tr>
+                  <td><strong>ความเสี่ยงระบบค้าง</strong></td>
+                  <td>เสี่ยงสูง หากติด <code>while</code> หรือ <code>delay</code> งานหลักจะสะดุด</td>
+                  <td>ปลอดภัย 100% (Non-blocking) ทำงานใน System Background</td>
+                </tr>
+                <tr>
+                  <td><strong>ความสะอาดของโค้ด</strong></td>
+                  <td>โค้ดใน <code>loop()</code> ปะปนระหว่างงานควบคุมกับ Network</td>
+                  <td>โค้ดใน <code>loop()</code> สะอาดมาก แยกส่วน Network ไว้ใน <code>setup()</code></td>
+                </tr>
+                <tr>
+                  <td><strong>การนำไปใช้งานจริง</strong></td>
+                  <td>เหมาะสำหรับศึกษาพื้นฐานเบื้องต้น</td>
+                  <td><strong>มาตรฐานสำหรับอุปกรณ์ IoT เชิงพาณิชย์ (Production)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4><i class="fa-solid fa-code-compare"></i> 4.2 ตัวอย่างโค้ดเปรียบเทียบการใช้งานจริง</h4>
+          <div class="theory-formula" style="font-size: 0.82rem; line-height: 1.6;">
+            // 🟢 แบบ Event-Driven: ลงทะเบียนใน setup() แล้วปล่อยให้ loop() ทำงานเซนเซอร์ได้อย่างอิสระ<br>
+            #if defined(ESP32)<br>
             WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {<br>
             &nbsp;&nbsp;if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] สัญญาณหลุด! Auto-reconnecting ใน Background...");<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] Wi-Fi หลุด! สั่ง Reconnect ใน Background ทันที...");<br>
             &nbsp;&nbsp;&nbsp;&nbsp;WiFi.reconnect();<br>
+            &nbsp;&nbsp;} else if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] ได้รับ IP: " + WiFi.localIP().toString());<br>
             &nbsp;&nbsp;}<br>
             });<br>
+            #elif defined(ESP8266)<br>
+            WiFiEventHandler dHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected&amp; e) {<br>
+            &nbsp;&nbsp;WiFi.reconnect();<br>
+            });<br>
+            #endif<br>
             WiFi.setAutoReconnect(true);
           </div>
         </div>
