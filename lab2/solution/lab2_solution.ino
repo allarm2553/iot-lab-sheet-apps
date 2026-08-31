@@ -1,5 +1,5 @@
 /**
- * Lab 2: OLED SSD1306 Display & Multi-Sensor Dashboard (Complete Solution)
+ * Lab 2: OLED SSD1306 Display & Multi-Sensor Dashboard (Arduino Sketch Solution)
  * 
  * Features:
  *  - Interfacing SSD1306 0.96" OLED via I2C (128x64 Pixels, Address 0x3C).

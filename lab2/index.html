@@ -1019,6 +1019,82 @@
       font-size: 0.9rem;
     }
 
+    /* Multiple Choice Quiz Styles */
+    .quiz-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.15rem;
+      margin-bottom: 1.15rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .quiz-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .quiz-q-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 0.85rem;
+      line-height: 1.5;
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+    .quiz-q-badge {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .quiz-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      transition: all 0.2s;
+    }
+    .quiz-option-label:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+    }
+    .quiz-option-label input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 17px;
+      height: 17px;
+      border: 2px solid #64748b;
+      border-radius: 50%;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .quiz-option-label input[type="radio"]:checked {
+      border-color: #6366f1;
+      background: #6366f1;
+      box-shadow: inset 0 0 0 3px #0f172a;
+    }
+
     .theory-modal-footer {
       padding: 1rem 1.75rem;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1311,7 +1387,7 @@ void loop() {
             </div>
           </div>
 
-                    <!-- 2. Code Fill-in-the-blanks Status Notice -->
+          <!-- 2. Code Fill-in-the-blanks Status Notice -->
           <div class="form-section">
             <div class="form-section-title">
               <i class="fa-solid fa-code"></i> คำตอบในโค้ดโปรแกรม (Interactive Skeleton Code)
@@ -1321,34 +1397,178 @@ void loop() {
               <span>พิมพ์คำตอบลงในช่องว่างของ <strong>โค้ดโครงร่าง (ฝั่งซ้าย)</strong> ได้โดยตรง ระบบจะรวมคำตอบทั้งหมดส่งเข้าสู่ระบบรายงานผลอัตโนมัติ</span>
             </div>
           </div>
-          </div>
 
-          <!-- 3. Post-Lab Questions -->
+          <!-- 3. Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง
+              <i class="fa-solid fa-square-check"></i> แบบทดสอบวัดความรู้ความเข้าใจ (Multiple Choice Quiz - 5 ข้อ)
             </div>
 
-            <div class="form-group">
-              <label for="question1">1. ขา SDA และ SCL ในโปรโตคอล I2C ย่อมาจากอะไร และทำหน้าที่อะไรในวงจร?</label>
-              <textarea id="question1" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            <!-- Quiz Q1 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 1</span>
+                <span>สายสัญญาณ SDA และ SCL ในระบบบัส I2C ทำหน้าที่อะไร และจอแสดงผล OLED SSD1306 นิยมใช้ I2C 7-bit Address ใดเป็นค่ามาตรฐานเริ่มต้น?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1a" form="labForm" required>
+                  <span>ก. SDA ส่งสัญญาณนาฬิกา, SCL ส่งข้อมูลไบนารี, ใช้แอดเดรส <code>0x77</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1b" form="labForm" required>
+                  <span>ข. SDA ส่งข้อมูล (Data), SCL ส่งสัญญาณนาฬิกา (Clock), ใช้แอดเดรส <code>0x3C</code> (หรือ <code>0x3D</code>)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1c" form="labForm" required>
+                  <span>ค. SDA จ่ายไฟเลี้ยง 5V, SCL ต่อลงกราวด์ GND, ใช้แอดเดรส <code>0x00</code></span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1d" form="labForm" required>
+                  <span>ง. SDA และ SCL เป็นสายสัญญาณแอนะล็อกรับค่าจาก VR, ใช้แอดเดรส <code>0xFF</code></span>
+                </label>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="question2">2. ฟังก์ชัน display.display() มีหน้าที่อะไร? หากไม่ใช้ คำสั่งก่อนหน้าจะแสดงผลบนจอภาพหรือไม่?</label>
-              <textarea id="question2" rows="3" required placeholder="เขียนคำตอบที่นี่..."></textarea>
+            <!-- Quiz Q2 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 2</span>
+                <span>สถาปัตยกรรม Frame Buffer ของจอ SSD1306 บน RAM มีขนาดเท่าใดสำหรับจอ 128x64 ขาวดำ และเหตุใดคำสั่ง <code>display.print()</code> จึงไม่แสดงผลบนจอทันทีจนกว่าจะเรียกใช้ <code>display.display()</code>?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2a" form="labForm" required>
+                  <span>ก. บัฟเฟอร์มีขนาด 1,024 ไบต์ (1KB) โดยคำสั่ง <code>print()</code> จะวาดข้อมูลลงในแรมก่อน เมื่อสั่ง <code>display.display()</code> จึงส่งข้อมูลทั้งก้อนรวดเดียวผ่าน I2C เพื่อป้องกันจอกระพริบ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2b" form="labForm" required>
+                  <span>ข. บัฟเฟอร์มีขนาด 64KB เพื่อเก็บภาพสี RGB 16 บิต และต้องรอให้ระบบแปลงสัญญาณแอนะล็อกก่อน</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2c" form="labForm" required>
+                  <span>ค. คำสั่ง <code>display.display()</code> มีหน้าที่เปิดไฟแบ็คไลท์ LED ของหน้าจอ OLED ให้สว่างขึ้น</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2d" form="labForm" required>
+                  <span>ง. เพื่อหน่วงเวลาให้ CPU รอ 1,000 มิลลิวินาที</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q3 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 3</span>
+                <span>ระบบพิกัด (Coordinate System) ของจอ OLED SSD1306 ขนาด 128x64 พิกเซล จุดมุมบนซ้ายสุดคือพิกัดใด และขอบเขตค่าพิกัดตามแนวนอน (X) และแนวตั้ง (Y) มีค่าตั้งแต่เท่าใดถึงเท่าใด?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3a" form="labForm" required>
+                  <span>ก. จุดบนซ้ายคือ (1, 1), แนวนอน X = 1..128, แนวตั้ง Y = 1..64</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3b" form="labForm" required>
+                  <span>ข. จุดบนซ้ายคือ (0, 0), แนวนอน X = 0..127, แนวตั้ง Y = 0..63</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3c" form="labForm" required>
+                  <span>ค. จุดบนซ้ายคือ (128, 64), แนวนอน X = 0..255, แนวตั้ง Y = 0..1023</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3d" form="labForm" required>
+                  <span>ง. จุดบนซ้ายคือ (0, 63), แนวนอน X = -64..64, แนวตั้ง Y = -32..32</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q4 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 4</span>
+                <span>หากรันโปรแกรมแล้วใน Serial Monitor แสดงข้อผิดพลาด <code>"SSD1306 allocation failed"</code> และหน้าจอไม่ติด ข้อใด <strong>ไม่ใช่</strong> สาเหตุที่เป็นไปได้ของปัญหานี้?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4a" form="labForm" required>
+                  <span>ก. ต่อสาย SDA หรือ SCL หลวม หรือต่อสลับขากันระหว่าง GPIO 21 กับ GPIO 22</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4b" form="labForm" required>
+                  <span>ข. กำหนด I2C Address ไม่ถูกต้อง (เช่น จอจริงเป็น <code>0x3C</code> แต่ในโค้ดระบุ <code>0x3D</code>)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4c" form="labForm" required>
+                  <span>ค. ไมโครคอนโทรลเลอร์หน่วยความจำ RAM เต็ม ทำให้จัดสรร Frame Buffer ไม่สำเร็จ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4d" form="labForm" required>
+                  <span>ง. ลืมประกาศฟังก์ชัน <code>pinMode(DHTPIN, INPUT);</code> ของเซ็นเซอร์วัดอุณหภูมิ</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q5 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 5</span>
+                <span>ในระบบ IoT การเขียนโค้ดเรียกคำสั่ง <code>updateOLED()</code> และ <code>display.display()</code> ทุกๆ รอบลูปอย่างต่อเนื่องโดยไม่มีการหน่วงเวลา (<code>millis()</code> interval) จะส่งผลเสียอย่างไรต่อระบบ?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5a" form="labForm" required>
+                  <span>ก. ไม่มีผลเสียใดๆ ยิ่งรีเฟรชบ่อย จอยิ่งแสดงผลได้คมชัดและประหยัดพลังงานขึ้น</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5b" form="labForm" required>
+                  <span>ข. ทำให้แบนด์วิดท์ของบัส I2C ถูกแย่งใช้งานตลอดเวลา ส่งผลให้ CPU ตอบสนองต่อปุ่มกดและงานเครือข่าย WiFi ช้าลงอย่างมาก</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5c" form="labForm" required>
+                  <span>ค. ทำให้ความละเอียดของตัวแปลงสัญญาณ ADC เพิ่มขึ้นเป็น 16 บิต</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5d" form="labForm" required>
+                  <span>ง. ทำให้เซ็นเซอร์ DHT11 อ่านค่าอุณหภูมิได้เร็วขึ้นเป็น 100 ครั้งต่อวินาที</span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <!-- 4. Result File Uploads -->
-          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <!-- Challenge Code Box -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
             </div>
             <div class="form-group">
-              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
-              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+              <label for="challengeCode">เขียนโค้ดภาษา C++ นำค่าเซ็นเซอร์ทั้งหมดและสถานะรีเลย์/ปุ่มกดมาจัดวางบนจอ OLED (128x64):</label>
+              <textarea id="challengeCode" rows="8" required placeholder="แปะโค้ด C++ สำหรับโจทย์ท้าทายที่นี่..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="controlLogic">อธิบายการจัดวางพิกัด UI บนหน้าจอ OLED และการใช้ฟังก์ชันวาดกราฟิก:</label>
+              <textarea id="controlLogic" rows="3" required placeholder="เช่น บรรทัดบนใช้ drawRect วาดแถบ Header, บรรทัดกลางพิมพ์ Temp/Hum, บรรทัดล่างวาด Progress Bar แสดงค่า ADC และสถานะ Relay..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Post-Lab Questions & Fault Diagnosis -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. [Spot the Bug 1: Missing Frame Buffer Flush] นักศึกษาคนหนึ่งเขียนโค้ด <code>setup()</code> และ <code>loop()</code> โดยเรียกคำสั่ง <code>display.clearDisplay(); display.setCursor(0,0); display.print("IoT Lab 2");</code> แต่ปรากฏว่าหน้าจอ OLED ดำสนิทไม่มีข้อความใดๆ ปรากฏขึ้นเลย จงวิเคราะห์ว่าขาดคำสั่งใด และอธิบายหลักการทำงานของ Frame Buffer?</label>
+              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุว่าขาด display.display() และอธิบายการทำงานของ Frame Buffer ในแรม..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. [I2C Bus Collision &amp; Multi-device Architecture] หากในอนาคตต้องการต่อเซ็นเซอร์ตรวจวัดความดันบรรยากาศ (BMP280 - I2C) และเซ็นเซอร์วัดความเข้มแสง (BH1750 - I2C) เพิ่มเติมเข้ากับบอร์ด ESP32 จะต้องต่อสายสัญญาณอย่างไร และระบบแยกแยะอุปกรณ์แต่ละตัวได้อย่างไรโดยที่สายสัญญาณไม่ชนกัน?</label>
+              <textarea id="question2" rows="3" required placeholder="อธิบายการต่อขนานสาย SDA/SCL ร่วมกันบนบัส I2C และการใช้ I2C Address แยกแยะอุปกรณ์..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [UI/UX &amp; Frame Rate Optimization] จงอธิบายเหตุผลว่าทำไมในการพัฒนาอุปกรณ์ IoT ทางอุตสาหกรรม เราจึงควรใช้ตัวจับเวลา Non-blocking (<code>millis()</code>) กำหนดอัตราการรีเฟรชหน้าจอ OLED (เช่น 2–5 Hz หรือทุกๆ 200–500ms) แทนการอัปเดตหน้าจอทุกรอบลูป และมีเทคนิคอย่างไรในการป้องกันปัญหา Screen Burn-in บนจอ OLED?</label>
+              <textarea id="question3" rows="3" required placeholder="อธิบายข้อดีของการลดภาระบัส I2C, การตอบสนองของระบบ และเทคนิคป้องกัน Burn-in (เช่น Auto-dimming / Screen Timeout / Pixel Shifting)..."></textarea>
             </div>
           </div>
 
@@ -1441,41 +1661,124 @@ void loop() {
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('i2c', this)"><i class="fa-solid fa-network-wired"></i> 1. บัส I2C</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('buffer', this)"><i class="fa-solid fa-memory"></i> 2. Frame Buffer</button> <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('gfx', this)"><i class="fa-solid fa-pen-ruler"></i> 3. Adafruit_GFX</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('i2c', this)"><i class="fa-solid fa-network-wired"></i> 1. บัส I2C</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('buffer', this)"><i class="fa-solid fa-memory"></i> 2. Frame Buffer</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('gfx', this)"><i class="fa-solid fa-pen-ruler"></i> 3. Adafruit_GFX</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('dashboard', this)"><i class="fa-solid fa-gauge-high"></i> 4. Dashboard UI</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('troubleshooting', this)"><i class="fa-solid fa-triangle-exclamation"></i> 5. ตรวจวินิจฉัยและแก้ปัญหา</button>
         </div>
 
+        <!-- Tab 1: I2C Bus Protocol -->
         <div class="theory-tab-panel active" id="theory-tab-i2c">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-network-wired"></i> 1.1 โปรโตคอลการสื่อสารแบบ I2C (Inter-Integrated Circuit)</h4>
-                <p>I2C เป็นระบบบัสสื่อสารแบบอนุกรมความเร็วสูงที่ใช้สายสัญญาณเพียง 2 เส้นในการเชื่อมต่ออุปกรณ์ได้หลายตัวพร้อมกัน:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                  <li><strong>SDA (Serial Data):</strong> สายรับส่งบิตข้อมูลระหว่าง Master (ESP) และ Slave (OLED)</li>
-                  <li><strong>SCL (Serial Clock):</strong> สายสัญญาณนาฬิกากำหนดจังหวะการรับส่งข้อมูล</li>
-                  <li><strong>Device Address:</strong> อุปกรณ์แต่ละตัวระบุตัวตนด้วยแอดเดรส เช่น จอ OLED SSD1306 ใช้ <code>0x3C</code></li>
-                </ul>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-network-wired"></i> 1.1 โปรโตคอลการสื่อสารแบบ I2C (Inter-Integrated Circuit)</h4>
+            <p>I2C เป็นระบบบัสสื่อสารแบบอนุกรมความเร็วสูง (Serial Synchronous Bus) ที่พัฒนาโดย Philips ซึ่งใช้สายสัญญาณเพียง 2 เส้นในการเชื่อมต่ออุปกรณ์ได้หลายสิบตัวพร้อมกัน:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+              <li><strong>SDA (Serial Data):</strong> สายรับส่งข้อมูลแบบสองทิศทาง (Bidirectional) ระหว่าง Master (ESP) และ Slave (OLED)</li>
+              <li><strong>SCL (Serial Clock):</strong> สายส่งสัญญาณนาฬิกากำหนดจังหวะความเร็วในการส่งข้อมูล (Standard Mode 100 kHz, Fast Mode 400 kHz)</li>
+              <li><strong>I2C 7-bit Address:</strong> อุปกรณ์ทุกตัวบนบัสต้องมีที่อยู่ระบุตัวตนไม่ซ้ำกัน โดยจอ OLED SSD1306 นิยมใช้ <code>0x3C</code> (หรือ <code>0x3D</code>)</li>
+            </ul>
+          </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-microchip"></i> 1.2 การกำหนดขาพินฮาร์ดแวร์ I2C บน ESP32 และ ESP8266</h4>
+            <p>ไมโครคอนโทรลเลอร์แต่ละรุ่นมีขาฮาร์ดแวร์ I2C เริ่มต้นแตกต่างกัน:</p>
+            <div class="theory-formula">
+              // สำหรับ ESP32 (IPST-WiFi / NodeMCU-32S)<br>
+              Wire.begin(21, 22); // SDA = GPIO 21, SCL = GPIO 22<br><br>
+              // สำหรับ ESP8266 (AX-WiFi / NodeMCU v2)<br>
+              Wire.begin(4, 5);   // SDA = GPIO 4 (D2), SCL = GPIO 5 (D1)
+            </div>
+          </div>
         </div>
 
+        <!-- Tab 2: Frame Buffer Architecture -->
         <div class="theory-tab-panel" id="theory-tab-buffer">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-layer-group"></i> 2.1 สถาปัตยกรรม Frame Buffer ในหน่วยความจำ RAM</h4>
-                <p>จอภาพ OLED ขนาด 128&times;64 พิกเซล แบบ Monochrome (1 บิตต่อพิกเซล) ใช้บัฟเฟอร์ในแรมขนาด: <code>(128 &times; 64) / 8 = 1,024 ไบต์ (1 KB)</code></p>
-                <p style="margin-top: 0.5rem;">คำสั่งวาดภาพ เช่น <code>display.print()</code> หรือ <code>display.drawLine()</code> จะเขียนข้อมูลลงบัฟเฟอร์ในแรมก่อน และเมื่อเรียกใช้คำสั่ง <code>display.display()</code> ข้อมูลทั้งเฟรมจะถูกส่งผ่านบัส I2C ขึ้นสู่หน้าจอจริงในครั้งเดียว ช่วยป้องกันอาการจอกะพริบ</p>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-layer-group"></i> 2.1 สถาปัตยกรรม Frame Buffer ในหน่วยความจำ RAM</h4>
+            <p>จอแสดงผล OLED ชนิด Monochrome ขนาด 128&times;64 พิกเซล (1 บิตต่อพิกเซล: 0=มืด, 1=สว่าง) ทำงานร่วมกับหน่วยความจำบัฟเฟอร์ในแรมของไมโครคอนโทรลเลอร์ขนาด:</p>
+            <div class="theory-formula">
+              Frame Buffer Size = (128 &times; 64 พิกเซล) &divide; 8 บิต/ไบต์ = 1,024 ไบต์ (1 KB)
+            </div>
+            <p style="margin-top: 0.5rem;">ทุกคำสั่งวาดภาพ เช่น <code>display.print()</code>, <code>display.drawRect()</code>, หรือ <code>display.drawLine()</code> จะแก้ไขบิตแมพใน RAM ชั่วคราวก่อน โดยยังไม่มีการส่งข้อมูลออกทางสาย I2C ทำให้วาดภาพได้รวดเร็วและไม่กระตุก</p>
+          </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-arrows-rotate"></i> 2.2 บทบาทของคำสั่ง <code>display.display()</code></h4>
+            <p>เมื่อเตรียมภาพและข้อความใน Frame Buffer เสร็จเรียบร้อย จึงเรียกใช้คำสั่ง <code>display.display()</code> เพื่อสั่งให้ชิปส่งข้อมูลทั้งก้อน 1,024 ไบต์ผ่านบัส I2C ไปยังชิปไดรเวอร์ SSD1306 ในคราวเดียว ช่วยให้หน้าจอไม่เกิดการกะพริบ (Flicker-Free Rendering)</p>
+          </div>
         </div>
 
+        <!-- Tab 3: Adafruit_GFX Library -->
         <div class="theory-tab-panel" id="theory-tab-gfx">
-<div class="theory-card">
-                <h4><i class="fa-solid fa-code"></i> 3.1 คำสั่งสำคัญในไลบรารี Adafruit_GFX</h4>
-                <div class="theory-formula">
-                  display.clearDisplay();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ล้างบัฟเฟอร์จอภาพ<br>
-                  display.setTextSize(1);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// กำหนดขนาดตัวอักษร (1=6x8 px, 2=12x16 px)<br>
-                  display.setTextColor(SSD1306_WHITE); // กำหนดสีตัวอักษรเป็นสีขาว<br>
-                  display.setCursor(0, 10);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// กำหนดพิกัดเริ่มต้น (X=0, Y=10)<br>
-                  display.print("Temp: "); display.print(temp);<br>
-                  display.display();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// สั่งเรนเดอร์ภาพขึ้นจอจริง
-                </div>
-              </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-code"></i> 3.1 ฟังก์ชันและคำสั่งพื้นฐานใน Adafruit_GFX</h4>
+            <div class="theory-formula">
+              display.clearDisplay();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ล้างพิกเซลทั้งหมดในบัฟเฟอร์ให้เป็น 0<br>
+              display.setTextSize(1);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ขนาดฟอนต์มาตรฐาน (1=6x8 px, 2=12x16 px)<br>
+              display.setTextColor(SSD1306_WHITE);&nbsp;&nbsp;&nbsp;// สีตัวอักษรเป็นสีขาว (พิกเซลสว่าง)<br>
+              display.setCursor(0, 0);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// กำหนดจุดเริ่มต้นเขียนข้อความ (X=0..127, Y=0..63)<br>
+              display.printf("Temp: %.1f C", temp);&nbsp;&nbsp;// พิมพ์ข้อความพร้อมฟอร์แมตทศนิยม<br>
+              display.drawLine(0, 10, 128, 10, SSD1306_WHITE); // วาดเส้นตรงแนวนอน
+            </div>
+          </div>
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-compass-drafting"></i> 3.2 ระบบพิกัดหน้าจอ (128x64 Coordinate Grid)</h4>
+            <p>พิกัดเริ่มต้นมุมบนซ้ายสุดคือ <code>(0, 0)</code> โดยแกน X มีค่าตั้งแต่ <code>0 ถึง 127</code> (แนวนอน) และแกน Y มีค่าตั้งแต่ <code>0 ถึง 63</code> (แนวตั้ง)</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Dashboard UI Design -->
+        <div class="theory-tab-panel" id="theory-tab-dashboard">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-palette"></i> 4.1 เทคนิคการออกแบบ UI สไตล์ Inverted Header &amp; Gauge</h4>
+            <p>เพื่อให้อุปกรณ์ IoT ดูสวยงามและอ่านข้อมูลง่าย สามารถใช้เทคนิคข้อความกลับสี (Inverted Text) และหลอดเกจแสดงผลแบบกราฟิก:</p>
+            <div class="theory-formula">
+              // วาดแถบหัวข้อสีขาวพาดเต็มขอบบน (Inverted Title Bar)<br>
+              display.fillRect(0, 0, 128, 12, SSD1306_WHITE);<br>
+              display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);<br>
+              display.setCursor(4, 2); display.print("SMART IoT NODE");<br><br>
+              // วาดหลอด Progress Bar แสดงระดับแรงดัน ADC 0-100%<br>
+              display.drawRect(0, 40, 128, 7, SSD1306_WHITE); // กรอบนอก<br>
+              display.fillRect(2, 42, barWidth, 3, SSD1306_WHITE); // แถบระดับพลังงาน
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Troubleshooting Matrix -->
+        <div class="theory-tab-panel" id="theory-tab-troubleshooting">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-wrench"></i> 5.1 ตารางการตรวจวินิจฉัยและแก้ปัญหา (Troubleshooting Matrix)</h4>
+            <table style="width:100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.86rem;">
+              <thead>
+                <tr style="background: rgba(99, 102, 241, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <th style="padding: 0.5rem; text-align: left;">อาการที่พบ (Symptom)</th>
+                  <th style="padding: 0.5rem; text-align: left;">สาเหตุที่แท้จริง (Root Cause)</th>
+                  <th style="padding: 0.5rem; text-align: left;">แนวทางแก้ไข (Solution)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                  <td style="padding: 0.5rem; color: #f87171;"><code>SSD1306 allocation failed</code></td>
+                  <td style="padding: 0.5rem;">สาย SDA/SCL หลวม หรือระบุ I2C Address ผิด (เช่น <code>0x3D</code>)</td>
+                  <td style="padding: 0.5rem;">ตรวจสอบการต่อสายพิน I2C ให้ตรง และเปลี่ยนแอดเดรสเป็น <code>0x3C</code></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                  <td style="padding: 0.5rem; color: #fbbf24;">โค้ดรันปกติแต่จอดำสนิท</td>
+                  <td style="padding: 0.5rem;">ลืมเรียกคำสั่ง <code>display.display();</code> หรือลืมจ่ายไฟเลี้ยง VCC 3.3V</td>
+                  <td style="padding: 0.5rem;">เพิ่มคำสั่ง <code>display.display();</code> ท้ายบล็อกการวาดภาพเสมอ</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                  <td style="padding: 0.5rem; color: #fbbf24;">ตัวอักษรและภาพซ้อนทับกันเละ</td>
+                  <td style="padding: 0.5rem;">ไม่ได้ล้าง Frame Buffer ก่อนวาดภาพเฟรมใหม่</td>
+                  <td style="padding: 0.5rem;">เรียก <code>display.clearDisplay();</code> ทุกครั้งก่อนเริ่มวาดข้อมูลใหม่</td>
+                </tr>
+                <tr>
+                  <td style="padding: 0.5rem; color: #38bdf8;">ระบบหน่วง ปุ่มกดตอบสนองช้า</td>
+                  <td style="padding: 0.5rem;">สั่ง <code>display.display()</code> ทุกรอบลูป ทำให้ I2C ติดคอขวด</td>
+                  <td style="padding: 0.5rem;">ใช้ Non-blocking Timer <code>millis()</code> รีเฟรชจอที่ความถี่ 2–5 Hz (200–500ms)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -1736,8 +2039,16 @@ void loop() {
       const labDate = document.getElementById('labDate').value;
       const codeBlank1 = document.getElementById('codeBlank1').value.trim();
       const codeBlank2 = document.getElementById('codeBlank2').value.trim();
+      const quiz1 = document.querySelector('input[name="quiz1"]:checked')?.value || '';
+      const quiz2 = document.querySelector('input[name="quiz2"]:checked')?.value || '';
+      const quiz3 = document.querySelector('input[name="quiz3"]:checked')?.value || '';
+      const quiz4 = document.querySelector('input[name="quiz4"]:checked')?.value || '';
+      const quiz5 = document.querySelector('input[name="quiz5"]:checked')?.value || '';
+      const challengeCode = document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '';
+      const controlLogic = document.getElementById('controlLogic') ? document.getElementById('controlLogic').value.trim() : '';
       const question1 = document.getElementById('question1').value.trim();
       const question2 = document.getElementById('question2').value.trim();
+      const question3 = document.getElementById('question3') ? document.getElementById('question3').value.trim() : '';
       const conclusion = document.getElementById('conclusion').value.trim();
 
       localStorage.setItem('studentName', studentName);
@@ -1745,10 +2056,11 @@ void loop() {
       localStorage.setItem('studentGroup', studentGroup);
 
       const payload = {
-        challengeCode: document.getElementById('challengeCode') ? document.getElementById('challengeCode').value.trim() : '',
         studentName, studentId, studentGroup, labDate,
         codeBlank1, codeBlank2,
-        question1, question2,
+        quiz1, quiz2, quiz3, quiz4, quiz5,
+        challengeCode, controlLogic,
+        question1, question2, question3,
         screenshotBase64: uploadedScreenshotBase64,
         screenshotName: uploadedScreenshotName,
         screenshotType: uploadedScreenshotType,
@@ -1764,13 +2076,16 @@ void loop() {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
             if (response.status === 'success') {
-              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
               showModal('ส่งใบงานสำเร็จ', response.message, true);
               removeFile('screenshot'); removeFile('code');
               document.getElementById('codeBlank1').value = '';
               document.getElementById('codeBlank2').value = '';
+              document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+              if (document.getElementById('controlLogic')) document.getElementById('controlLogic').value = '';
               document.getElementById('question1').value = '';
               document.getElementById('question2').value = '';
+              if (document.getElementById('question3')) document.getElementById('question3').value = '';
               document.getElementById('conclusion').value = '';
               
               const idVal = document.getElementById('studentId')?.value.trim() || '';
@@ -1793,7 +2108,12 @@ void loop() {
         setTimeout(() => {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
-          showModal('โหมดจำลอง (Local Preview)', 'ฟังก์ชันจำลองสำเร็จแล้ว!', true);
+          console.log("Submitted Payload:", payload);
+          showModal(
+            'โหมดจำลอง (Local Preview Mode)',
+            'ฟังก์ชันเชื่อมต่อกับ Google Sheet สำเร็จแล้ว! เมื่อนำโค้ดไปวางใน Google Apps Script หน้าเว็บจะทำหน้าที่ส่งประวัติและไฟล์เข้า Drive + Spreadsheet โดยอัตโนมัติ',
+            true
+          );
           
           const idVal = document.getElementById('studentId')?.value.trim() || '';
           if (idVal) {
@@ -1801,7 +2121,17 @@ void loop() {
             localStorage.setItem('submitted_iot_lab2_' + idVal, nowFormatted);
             lockFormAsSubmitted(nowFormatted);
           }
-        }, 1500);
+          removeFile('screenshot'); removeFile('code');
+          document.getElementById('codeBlank1').value = '';
+          document.getElementById('codeBlank2').value = '';
+          document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+          if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+          if (document.getElementById('controlLogic')) document.getElementById('controlLogic').value = '';
+          document.getElementById('question1').value = '';
+          document.getElementById('question2').value = '';
+          if (document.getElementById('question3')) document.getElementById('question3').value = '';
+          document.getElementById('conclusion').value = '';
+        }, 800);
       }
     }
 
@@ -1962,30 +2292,41 @@ void loop() {
       const isInfoComplete = !!(nameVal && idVal && groupVal);
 
       // Code blanks — count filled ones
-      const blankIds = ['codeBlank1','codeBlank2','codeBlank3','codeBlank4','codeBlank5',
-                        'blank1','blank2','blank3','blank4','blank5'];
+      const blankIds = ['codeBlank1','codeBlank2'];
       let filledBlanks = 0, totalBlanks = 0;
       blankIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) { totalBlanks++; if (el.value.trim().length > 0) filledBlanks++; }
       });
-      const blankScore = totalBlanks > 0 ? Number(((filledBlanks / totalBlanks) * 2).toFixed(1)) : 2.0;
+      const blankScore = totalBlanks > 0 ? Number(((filledBlanks / totalBlanks) * 1.5).toFixed(1)) : 1.5;
+
+      // Multiple choice quiz (5 questions, 0.4 each = 2.0 max)
+      const quizKeys = { quiz1: '1b', quiz2: '2a', quiz3: '3b', quiz4: '4d', quiz5: '5b' };
+      let answeredQuiz = 0, correctQuiz = 0;
+      for (const qKey in quizKeys) {
+        const selected = document.querySelector(`input[name="${qKey}"]:checked`);
+        if (selected) {
+          answeredQuiz++;
+          if (selected.value === quizKeys[qKey]) correctQuiz++;
+        }
+      }
+      const quizScore = Number(((correctQuiz / 5) * 2.0).toFixed(1));
 
       // Challenge code
       const challengeCode = (document.getElementById('challengeCode')?.value || '').trim();
       const hasChallenge = challengeCode.length > 20;
-      const chScore = hasChallenge ? 3.0 : 0.0;
+      const chScore = hasChallenge ? 2.5 : 0.0;
 
-      // Questions
-      const questionIds = ['question1','question2','question3','question4','question5'];
+      // Questions (3 questions)
+      const questionIds = ['question1','question2','question3'];
       let answeredQ = 0, totalQ = 0;
       questionIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) { totalQ++; if (el.value.trim().length > 10) answeredQ++; }
       });
-      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 3).toFixed(1)) : 3.0;
+      const qScore = totalQ > 0 ? Number(((answeredQ / totalQ) * 2.5).toFixed(1)) : 2.5;
 
-      // Attachments — handle both old and new variable naming
+      // Attachments
       let attachScore = 0;
       const hasScreenshot = !!(window.uploadedScreenshotBase64 || (window.filesData && window.filesData.screenshotBase64));
       const hasCodeFile = !!(window.uploadedCodeBase64 || (window.filesData && window.filesData.codeBase64));
@@ -1995,13 +2336,14 @@ void loop() {
       // Conclusion
       const conclusion = (document.getElementById('conclusion')?.value || '').trim();
       const hasConclusion = conclusion.length > 5;
+      const conclScore = hasConclusion ? 0.5 : 0.0;
 
       // Total
-      const totalScore = Number((blankScore + chScore + qScore + attachScore).toFixed(1));
+      const totalScore = Number((blankScore + quizScore + chScore + qScore + attachScore + conclScore).toFixed(1));
       document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10</span>`;
 
       const badgeEl = document.getElementById('preScoreBadge');
-      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
+      if (totalScore >= 8.0 && isInfoComplete && hasConclusion && answeredQuiz === 5) {
         badgeEl.className = 'score-status-badge';
         badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
       } else if (totalScore >= 5.0) {
@@ -2022,24 +2364,31 @@ void loop() {
         </div>
         ${totalBlanks > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=2?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม</div>
+            <div class="score-item-title"><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=1.5?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> ช่องว่างโค้ดโปรแกรม</div>
             <div class="score-item-desc">กรอกแล้ว ${filledBlanks}/${totalBlanks} ช่อง</div>
           </div>
-          <div class="score-item-points">${blankScore.toFixed(1)} / 2.0</div>
+          <div class="score-item-points">${blankScore.toFixed(1)} / 1.5</div>
         </div>` : ''}
+        <div class="score-item-row">
+          <div class="score-item-info">
+            <div class="score-item-title"><i class="fa-solid fa-square-check" style="color:${quizScore>=1.6?'#34d399':(answeredQuiz>0?'#fbbf24':'#f87171')};"></i> แบบทดสอบแบบเลือกตอบ</div>
+            <div class="score-item-desc">ตอบแล้ว ${answeredQuiz}/5 ข้อ (ถูกต้อง ${correctQuiz}/5 ข้อ)</div>
+          </div>
+          <div class="score-item-points">${quizScore.toFixed(1)} / 2.0</div>
+        </div>
         ${document.getElementById('challengeCode') ? `<div class="score-item-row">
           <div class="score-item-info">
             <div class="score-item-title"><i class="fa-solid fa-code" style="color:${hasChallenge?'#34d399':'#f87171'};"></i> โค้ดโจทย์ท้าทาย (Challenge Code)</div>
             <div class="score-item-desc">${hasChallenge ? 'มีโค้ดที่เขียนไว้' : '⚠️ ยังไม่ได้เขียนโค้ดหรือโค้ดสั้นเกินไป'}</div>
           </div>
-          <div class="score-item-points">${chScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${chScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         ${totalQ > 0 ? `<div class="score-item-row">
           <div class="score-item-info">
-            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง</div>
+            <div class="score-item-title"><i class="fa-solid fa-circle-question" style="color:${qScore>=2.0?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> คำถามท้ายการทดลอง & วิเคราะห์</div>
             <div class="score-item-desc">ตอบแล้ว ${answeredQ}/${totalQ} ข้อ</div>
           </div>
-          <div class="score-item-points">${qScore.toFixed(1)} / 3.0</div>
+          <div class="score-item-points">${qScore.toFixed(1)} / 2.5</div>
         </div>` : ''}
         <div class="score-item-row">
           <div class="score-item-info">
@@ -2053,7 +2402,7 @@ void loop() {
             <div class="score-item-title"><i class="fa-solid fa-comment-dots" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> สรุปผลการทดลอง</div>
             <div class="score-item-desc">${hasConclusion ? 'บันทึกสรุปผลเรียบร้อย' : '⚠️ กรุณาพิมพ์สรุปผลการทดลองด้วยตนเอง'}</div>
           </div>
-          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'เรียบร้อย':'ยังไม่ระบุ'}</div>
+          <div class="score-item-points" style="color:${hasConclusion?'#34d399':'#f87171'};">${hasConclusion?'0.5 / 0.5':'0.0 / 0.5'}</div>
         </div>
       `;
 
