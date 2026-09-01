@@ -7,6 +7,7 @@
 ---
 
 ## 📁 โครงสร้างโปรเจกต์
+- [GIT_WORKFLOW_GUIDE.md](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/GIT_WORKFLOW_GUIDE.md) - **คู่มือการใช้งาน Git & GitHub และมาตรฐานการจัดการโค้ดใบงาน IoT**
 - [WOKWI_SIMULATION_GUIDE.md](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/WOKWI_SIMULATION_GUIDE.md) - **คู่มือการจำลองการทำงาน IoT (ESP32/ESP8266) ด้วย Wokwi Simulator บน VS Code**
 - [lab-basic/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab-basic) - ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32
 - [lab1/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab1) - ใบงานที่ 1: การอ่านค่าเซ็นเซอร์และการควบคุมเอาต์พุต (GPIO, ADC & Relays)

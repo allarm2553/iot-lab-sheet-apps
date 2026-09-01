@@ -475,4 +475,36 @@ To support seamless online simulation alongside physical hardware:
      }
      ```
 
+---
 
+## 11. Real-time Regex Evaluation & 10.0-Point Pre-check Score Engine
+
+All worksheets implement client-side pre-submission grading to give students immediate feedback before final submission.
+
+### Standard 10.0-Point Scoring Rubric
+
+| Component | Assessment Engine | Weight | Success Criteria |
+| :--- | :--- | :---: | :--- |
+| **1. Code Blanks** | Regex Pattern Matching (`evaluateLabXBlanks`) | **1.5 pts** | Syntax & keyword exact matching |
+| **2. Quiz (5 MCQs)** | Multiple-Choice Quiz Engine | **2.0 pts** | 5 questions (0.4 pt each) |
+| **3. Challenge Code** | Syntax & Logic Evaluator (`evaluateLabXChallenge`) | **2.5 pts** | Regex logic, fail-safe, and pin definitions |
+| **4. Post-Lab Questions** | Content & Analysis (3 questions) | **2.5 pts** | Minimum text length > 10 chars each |
+| **5. Attachments** | Multi-layer File Check | **1.0 pt** | Screenshot (0.5 pt) + Code File (0.5 pt) |
+| **6. Conclusion** | Analytical Depth Check | **0.5 pt** | Minimum text length **> 100 characters** |
+| **Total** | | **10.0 pts** | Score $\ge$ 8.0 = Ready for Submission |
+
+---
+
+## 12. Single-Submission Lock & Shared Station Reset Protocol
+
+To prevent accidental double submissions while supporting shared laboratory computers across student rotations:
+
+1. **Submission Lock (`lockFormAsSubmitted`):**
+   - Disables all form inputs and submit button upon successful submission.
+   - Displays a glassmorphic confirmation banner (`#submittedNoticeBanner`) in View-Only mode.
+   - Saves timestamp in `localStorage` under `_LAB_STORAGE_KEY + studentId`.
+
+2. **New Student Unlock (`unlockFormForNewStudent`):**
+   - Provides a prominent **`[ 👤+ เริ่มทำสำหรับ นศ. คนใหม่ ]`** button on both the banner and the bottom button group.
+   - Shows a confirmation dialog (`Swal.fire`) warning the previous student to save/print their PDF before reset.
+   - Fully clears form fields, cache, Base64 uploads, and file badges, restoring the page to a fresh state for the next learner.

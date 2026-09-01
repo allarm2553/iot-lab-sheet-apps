@@ -1438,6 +1438,9 @@ if (msg.payload === 'ON') {
                 <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
               </button>
             </div>
+            <button type="button" class="btn btn-new-student" id="newStudentBtn" onclick="confirmResetForNewStudent()" style="display:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#ffffff;width:100%;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;margin-top:0.25rem;">
+              <i class="fa-solid fa-user-plus"></i> เริ่มทำใบงานใหม่ (สำหรับนักศึกษาคนใหม่)
+            </button>
           </div>
 
         </form>
@@ -2136,11 +2139,11 @@ if (msg.payload === 'ON') {
       _doActualSubmit();
     }
 
-    function lockFormAsSubmitted(submittedTime) {
+            function lockFormAsSubmitted(submittedTime) {
       const form = document.getElementById('labForm');
       if (form) {
         form.querySelectorAll('input, textarea, select, button[type="submit"], .upload-area, .remove-file-btn').forEach(el => {
-          if (el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary')) {
+          if (el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary') && !el.classList.contains('btn-print') && !el.classList.contains('btn-new-student') && el.id !== 'newStudentBtn') {
             el.disabled = true;
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = true;
           }
@@ -2155,19 +2158,128 @@ if (msg.payload === 'ON') {
         submitBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> ส่งงานเรียบร้อยแล้ว (${submittedTime})`;
       }
 
+      const newStudentBtn = document.getElementById('newStudentBtn');
+      if (newStudentBtn) {
+        newStudentBtn.style.display = 'inline-flex';
+      }
+
       const form2 = document.getElementById('labForm');
       if (form2) {
         let notice = document.getElementById('submittedNoticeBanner');
         if (!notice) {
           notice = document.createElement('div');
           notice.id = 'submittedNoticeBanner';
-          notice.style.cssText = 'background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.4);color:#34d399;padding:0.85rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;font-weight:500;';
+          notice.style.cssText = 'background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.4);color:#34d399;padding:0.85rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;font-weight:500;';
           const firstSection = form2.querySelector('.form-section, .section-card, .glass-card, div');
           if (firstSection) form2.insertBefore(notice, firstSection);
           else form2.prepend(notice);
         }
-        notice.innerHTML = `<i class="fa-solid fa-lock" style="font-size:1.1rem;"></i> <span>ใบงานนี้ถูกส่งเรียบร้อยแล้วเมื่อ <strong>${submittedTime}</strong> (โหมดดูอย่างเดียว / View-Only) สามารถกดปุ่มพิมพ์ PDF เพื่อบันทึกเป็นหลักฐานได้</span>`;
+        notice.innerHTML = `
+          <div style="display:flex;align-items:center;gap:0.6rem;flex:1;min-width:240px;">
+            <i class="fa-solid fa-lock" style="font-size:1.1rem;"></i>
+            <span>ใบงานนี้ถูกส่งเรียบร้อยแล้วเมื่อ <strong>${submittedTime}</strong> (โหมดดูอย่างเดียว) สามารถกดพิมพ์ PDF หรือเริ่มทำสำหรับคนใหม่ได้</span>
+          </div>
+          <button type="button" class="btn-new-student" onclick="confirmResetForNewStudent()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#ffffff;padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all 0.2s;">
+            <i class="fa-solid fa-user-plus"></i> เริ่มทำสำหรับ นศ. คนใหม่
+          </button>
+        `;
       }
+    }
+
+    function confirmResetForNewStudent() {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'เริ่มทำใบงานสำหรับ นศ. คนใหม่?',
+          text: 'ระบบจะปลดล็อกหน้าเพจและล้างข้อมูลในฟอร์มเพื่อให้นักศึกษาคนถัดไปเริ่มทำใบงานได้ (หากต้องการเก็บผลงานของคนเดิม กรุณากดพิมพ์/บันทึก PDF ก่อน)',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: '<i class="fa-solid fa-user-plus"></i> ใช่, ปลดล็อกเริ่มคนใหม่',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#3b82f6',
+          cancelButtonColor: '#64748b'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            unlockFormForNewStudent();
+          }
+        });
+      } else {
+        if (confirm('เริ่มทำใบงานสำหรับ นศ. คนใหม่? (ข้อมูลเดิมจะถูกล้างเพื่อให้คนถัดไปกรอก)')) {
+          unlockFormForNewStudent();
+        }
+      }
+    }
+
+    function unlockFormForNewStudent() {
+      const form = document.getElementById('labForm');
+      if (form) {
+        form.querySelectorAll('input, textarea, select, button, .upload-area, .remove-file-btn').forEach(el => {
+          el.disabled = false;
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = false;
+        });
+        form.reset();
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.background = '';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+      }
+
+      const notice = document.getElementById('submittedNoticeBanner');
+      if (notice) {
+        if (typeof notice.remove === 'function') notice.remove();
+        else if (notice.parentNode) notice.parentNode.removeChild(notice);
+      }
+
+      const newStudentBtn = document.getElementById('newStudentBtn');
+      if (newStudentBtn) newStudentBtn.style.display = 'none';
+
+      // Clear file uploads & previews
+      if (typeof uploadedScreenshotBase64 !== 'undefined') uploadedScreenshotBase64 = null;
+      if (typeof uploadedCodeBase64 !== 'undefined') uploadedCodeBase64 = null;
+      if (typeof screenshotData !== 'undefined') screenshotData = { base64: null, name: null, type: null, size: null };
+      if (typeof codeFileData !== 'undefined') codeFileData = { base64: null, name: null, type: null, size: null };
+      if (typeof screenshotBase64 !== 'undefined') screenshotBase64 = null;
+      if (typeof codeBase64 !== 'undefined') codeBase64 = null;
+      if (typeof filesData !== 'undefined') filesData = { screenshotBase64: null, codeBase64: null };
+      if (window.uploadedScreenshotBase64) window.uploadedScreenshotBase64 = null;
+      if (window.uploadedCodeBase64) window.uploadedCodeBase64 = null;
+      if (window.filesData) window.filesData = { screenshotBase64: null, codeBase64: null };
+
+      ['screenshotPreview', 'codePreview', 'screenshotFile', 'codeFile', 'screenshotBadge', 'codeFileBadge'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      ['screenshotInput', 'codeInput', 'proofFile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+
+      // Clear student info & session storage
+      ['studentId', 'student_id', 'studentName', 'student_name', 'studentGroup', 'student_group'].forEach(k => {
+        localStorage.removeItem(k);
+      });
+      if (typeof _LAB_STORAGE_KEY !== 'undefined') {
+        localStorage.removeItem('iot_lab_draft_' + _LAB_STORAGE_KEY);
+      }
+      if (typeof STORAGE_KEY !== 'undefined') {
+        localStorage.removeItem('iot_lab_draft_' + STORAGE_KEY);
+      }
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'ปลดล็อกเรียบร้อยแล้ว',
+          text: 'พร้อมสำหรับนักศึกษาคนใหม่เริ่มทำใบงานได้เลยครับ',
+          timer: 1800,
+          showConfirmButton: false
+        });
+      }
+
+      document.getElementById('studentName')?.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
