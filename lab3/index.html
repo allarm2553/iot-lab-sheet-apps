@@ -1633,6 +1633,31 @@ void loop() {
             • RSSI &gt;= -75 dBm : สัญญาณระดับปานกลาง/พอใช้ (Fair Signal)<br>
             • RSSI &lt; -80 dBm : สัญญาณอ่อนมาก อาจเกิด Packet Loss หรือหลุดบ่อย (Poor Signal)
           </div>
+
+          <h4><i class="fa-solid fa-code"></i> 2.3 คำสั่งที่ใช้ในการวัดและอ่านค่าความแรงสัญญาณ (RSSI Commands)</h4>
+          <p>
+            ในเฟิร์มแวร์ ESP32 และ ESP8266 มีคำสั่งมาตรฐานจากคลาส <code>WiFi</code> สำหรับอ่านค่าความแรงสัญญาณ 2 คำสั่งหลัก:
+          </p>
+          <ul style="padding-left: 1.25rem; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7;">
+            <li>
+              <strong>1. <code>WiFi.RSSI()</code> — อ่านความแรงสัญญาณของ AP ที่กำลังเชื่อมต่ออยู่ (Current Connected RSSI):</strong><br>
+              ใช้ในโหมด Station (STA) เพื่อตรวจสอบระดับสัญญาณของ Wi-Fi Router ที่บอร์ดเกาะอยู่ ณ ขณะนั้น คืนค่าเป็นตัวเลขจำนวนเต็มลบ (<code>int32_t</code> มีหน่วยเป็น dBm)<br>
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 6px 12px; margin: 4px 0 8px 0; font-family: monospace; font-size: 0.85rem; color: #38bdf8;">
+                int32_t currentRSSI = WiFi.RSSI();<br>
+                Serial.printf("ความแรงสัญญาณ AP ปัจจุบัน: %d dBm\n", currentRSSI);
+              </div>
+            </li>
+            <li>
+              <strong>2. <code>WiFi.RSSI(i)</code> — อ่านความแรงสัญญาณจากการสแกนหาเครือข่าย (Scanned Network RSSI):</strong><br>
+              ใช้ร่วมกับ <code>WiFi.scanNetworks()</code> โดยส่งตัวแปรดัชนี <code>i</code> (ลำดับที่ <code>0</code> ถึง <code>n-1</code>) เพื่อดึงค่าความแรงสัญญาณของ Access Point แต่ละตัวที่ตรวจพบรอบบอร์ด<br>
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 6px 12px; margin: 4px 0 8px 0; font-family: monospace; font-size: 0.85rem; color: #38bdf8;">
+                int n = WiFi.scanNetworks();<br>
+                for (int i = 0; i &lt; n; i++) {<br>
+                &nbsp;&nbsp;Serial.printf("[%d] SSID: %s | RSSI: %d dBm\n", i + 1, WiFi.SSID(i).c_str(), WiFi.RSSI(i));<br>
+                }
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -1646,6 +1671,7 @@ void loop() {
             <li><code>WiFi.dnsIP()</code>: เซิร์ฟเวอร์ DNS สำหรับแปลงชื่อ Domain (เช่น <code>8.8.8.8</code>)</li>
             <li><code>WiFi.macAddress()</code>: หมายเลขประจำตัวฮาร์ดแวร์ชิป (Layer 2 MAC) ไม่ซ้ำกันในโลก เหมาะใช้เป็น <strong>Unique Device ID</strong> บนระบบคลาวด์</li>
             <li><code>WiFi.BSSIDstr()</code>: หมายเลข MAC Address ของ Access Point ที่บอร์ดเชื่อมต่ออยู่</li>
+            <li><code>WiFi.RSSI()</code>: ค่าความแรงสัญญาณวิทยุ (Layer 1 Physical - มีหน่วยเป็น dBm ยิ่งเข้าใกล้ 0 ยิ่งแรง)</li>
           </ul>
 
           <h4><i class="fa-solid fa-list-check"></i> 3.2 ตารางค่าสถานะการเชื่อมต่อ (wl_status_t Enum)</h4>
@@ -1768,6 +1794,11 @@ void loop() {
                     <td><b>อ่านพารามิเตอร์ IP &amp; MAC</b></td>
                     <td><code>GET_NETWORK_INFO</code></td>
                     <td>ส่งคืน IP Address, Subnet, Gateway, DNS, MAC Address</td>
+                  </tr>
+                  <tr>
+                    <td><b>อ่านค่าความแรงสัญญาณ RSSI</b></td>
+                    <td><code>GET_RSSI</code></td>
+                    <td>ส่งคืนค่า <code>WiFi.RSSI()</code> (dBm) เพื่อตรวจสอบคุณภาพสัญญาณปัจจุบัน</td>
                   </tr>
                   <tr>
                     <td><b>จำลองการตัดการเชื่อมต่อ</b></td>

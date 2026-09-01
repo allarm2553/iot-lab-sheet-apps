@@ -32,8 +32,8 @@
 #include <LittleFS.h>
 
 // ─── กำหนดข้อมูลการเชื่อมต่อ Wi-Fi ──────────────────────────────────────────
-const char* ssid     = "iot_512";
-const char* password = "iot123456";
+const char* ssid     = "ALLARM_HOME_WiFi";
+const char* password = "arm123456";
 
 // ─── ฟังก์ชันช่วยตรวจสอบ Content-Type (MIME Type) ───────────────────────────
 String getContentType(String path) {
