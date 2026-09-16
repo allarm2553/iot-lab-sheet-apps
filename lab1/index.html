@@ -1521,6 +1521,101 @@ void loop() {
             </div>
           </div>
 
+          
+
+          <!-- 4. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. [Spot the Bug 1: ADC Integer Division] นักศึกษาคนหนึ่งเขียนโค้ด <code>int raw = analogRead(36); float percent = (raw / 4095) * 100;</code> แต่ค่าที่ได้แสดงเป็น <code>0.0%</code> เสมอแม้จะหมุนปรับค่า VR จงวิเคราะห์ว่าเกิดจากสาเหตุใด และต้องแก้ไขโค้ดอย่างไรให้ถูกต้อง?</label>
+              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุเชิงสถาปัตยกรรมคอมไพเลอร์ และวิธีแก้ไขโค้ดที่ถูกต้อง..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. [Relay Control &amp; Inverted Logic] เหตุใดเราจึงต้องใช้โมดูลรีเลย์ในการขับพัดลม/ปั๊มน้ำแทนการต่อตรงกับขา GPIO และหากโมดูลรีเลย์ที่ใช้เป็นชนิด Active-LOW เราต้องเขียนคำสั่งควบคุมให้เปิดและปิดโหลดอย่างไร?</label>
+              <textarea id="question2" rows="3" required placeholder="อธิบายการแยกสัญญาณ Optocoupler กระแสไฟฟ้า และคำสั่งควบคุม Active-LOW..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [Fail-Safe Design: Sensor Disconnection] หากสายสัญญาณ DATA ของเซ็นเซอร์ DHT11 หลุดระหว่างทำงาน โค้ดที่ไม่มีการดักจับค่าด้วยฟังก์ชัน <code>isnan()</code> จะส่งผลกระทบต่อการตัดสินใจของรีเลย์อย่างไร และแนวทางการเขียนระบบความปลอดภัย (Fail-Safe Action) ที่ดีควรเป็นอย่างไร?</label>
+              <textarea id="question3" rows="3" required placeholder="อธิบายพฤติกรรมเมื่ออ่านได้ค่า NaN และการสั่งตัดโหลดเพื่อความปลอดภัย..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Result File Uploads -->
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพหลักฐานการทดลอง (รูปวงจร หรือ Serial Monitor/OLED)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              
+              <!-- Preview box -->
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือบีบอัดเป็น .zip จากโจทย์ท้าทาย)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              
+              <!-- Preview box -->
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลการทำงานของวงจร ปัญหาที่พบในการทดลอง หรือผลลัพธ์ของโจทย์ท้าทายที่ปรับปรุง..."></textarea>
+            </div>
+          </div>
+
           <!-- 3. Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
@@ -1658,98 +1753,6 @@ void loop() {
             </div>
           </div>
 
-          <!-- 4. Post-Lab Questions -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
-            </div>
-
-            <div class="form-group">
-              <label for="question1">1. [Spot the Bug 1: ADC Integer Division] นักศึกษาคนหนึ่งเขียนโค้ด <code>int raw = analogRead(36); float percent = (raw / 4095) * 100;</code> แต่ค่าที่ได้แสดงเป็น <code>0.0%</code> เสมอแม้จะหมุนปรับค่า VR จงวิเคราะห์ว่าเกิดจากสาเหตุใด และต้องแก้ไขโค้ดอย่างไรให้ถูกต้อง?</label>
-              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุเชิงสถาปัตยกรรมคอมไพเลอร์ และวิธีแก้ไขโค้ดที่ถูกต้อง..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question2">2. [Relay Control &amp; Inverted Logic] เหตุใดเราจึงต้องใช้โมดูลรีเลย์ในการขับพัดลม/ปั๊มน้ำแทนการต่อตรงกับขา GPIO และหากโมดูลรีเลย์ที่ใช้เป็นชนิด Active-LOW เราต้องเขียนคำสั่งควบคุมให้เปิดและปิดโหลดอย่างไร?</label>
-              <textarea id="question2" rows="3" required placeholder="อธิบายการแยกสัญญาณ Optocoupler กระแสไฟฟ้า และคำสั่งควบคุม Active-LOW..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question3">3. [Fail-Safe Design: Sensor Disconnection] หากสายสัญญาณ DATA ของเซ็นเซอร์ DHT11 หลุดระหว่างทำงาน โค้ดที่ไม่มีการดักจับค่าด้วยฟังก์ชัน <code>isnan()</code> จะส่งผลกระทบต่อการตัดสินใจของรีเลย์อย่างไร และแนวทางการเขียนระบบความปลอดภัย (Fail-Safe Action) ที่ดีควรเป็นอย่างไร?</label>
-              <textarea id="question3" rows="3" required placeholder="อธิบายพฤติกรรมเมื่ออ่านได้ค่า NaN และการสั่งตัดโหลดเพื่อความปลอดภัย..."></textarea>
-            </div>
-          </div>
-
-          <!-- 4. Result File Uploads -->
-          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
-            </div>
-            <div class="form-group">
-              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
-              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
-            </div>
-
-            <!-- Screenshot upload -->
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพหลักฐานการทดลอง (รูปวงจร หรือ Serial Monitor/OLED)</label>
-              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
-                <i class="fa-regular fa-images upload-icon"></i>
-                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
-              </div>
-              
-              <!-- Preview box -->
-              <div class="file-preview" id="screenshotPreview">
-                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
-                <div class="preview-details">
-                  <div class="preview-name" id="screenshotName">file_name.png</div>
-                  <div class="preview-size" id="screenshotSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-
-            <!-- Code file upload -->
-            <div class="form-group">
-              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือบีบอัดเป็น .zip จากโจทย์ท้าทาย)</label>
-              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
-                <i class="fa-regular fa-file-code upload-icon"></i>
-                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
-              </div>
-              
-              <!-- Preview box -->
-              <div class="file-preview" id="codePreview">
-                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
-                <div class="preview-details">
-                  <div class="preview-name" id="codeName">code_file.ino</div>
-                  <div class="preview-size" id="codeSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. Conclusion -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
-            </div>
-            <div class="form-group">
-              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
-              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลการทำงานของวงจร ปัญหาที่พบในการทดลอง หรือผลลัพธ์ของโจทย์ท้าทายที่ปรับปรุง..."></textarea>
-            </div>
-          </div>
 
           <!-- Submit & Print Button Group -->
           <div class="button-group" style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">

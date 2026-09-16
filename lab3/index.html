@@ -1351,6 +1351,76 @@ void loop() {
           </div>
         </div>
 
+        
+        </div>
+
+        <!-- โค้ดโจทย์ท้าทาย -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution)</label>
+            <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
+          </div>
+          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดหรือ Wokwi..." required></textarea>
+        </div>
+
+        <!-- คำอธิบายตรรกะควบคุม -->
+        <div class="form-group">
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของระบบ Scan, Connect และ Auto-reconnect</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนการค้นหา SSID เป้าหมาย การตรวจสอบสถานะใน loop() และการกระพริบ LED แจ้งเตือน..." required></textarea>
+        </div>
+
+        <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-clipboard-question" style="color: var(--accent);"></i> คำถามวิเคราะห์และสรุปผลเชิงลึก (2.5 คะแนน)
+          </h3>
+
+          <div class="form-group">
+            <label for="question1">1. ค่าความแรงสัญญาณ RSSI มีหน่วยเป็นอะไร เหตุใดจึงแสดงผลเป็นค่าติดลบ และค่าใดถือเป็นระดับสัญญาณที่ดีสำหรับการใช้งาน IoT?</label>
+            <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question2">2. โหมด Station (STA), Access Point (AP) และ AP+STA แตกต่างกันอย่างไรในทางสถาปัตยกรรม และยกตัวอย่างการใช้งานจริง?</label>
+            <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question3">3. เหตุใดสถาปัตยกรรมแบบ Event-Driven Callback (เช่น <code>WiFi.onEvent()</code> หรือ <code>WiFiEventHandler</code>) จึงมีประสิทธิภาพและความเสถียรสูงกว่าการเขียนคำสั่ง Status Polling ใน <code>loop()</code> เพื่อตรวจจับ Wi-Fi หลุด?</label>
+            <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+        </div>
+
+        <!-- แนบไฟล์ผลการทดลอง -->
+        <div class="form-group-row">
+          <div class="form-group">
+            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ Serial Monitor ผลการ Scan & Connect</label>
+            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
+              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
+              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
+              <div id="screenshotBadge" class="file-badge"></div>
+              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
+            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
+              <i class="fa-solid fa-file-zipper upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์โค้ดมาวางที่นี่</div>
+              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
+              <div id="codeFileBadge" class="file-badge"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- สรุปผลการทดลอง -->
+        <div class="form-group">
+          <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
+          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Wi-Fi ไปประยุกต์ใช้ในระบบ IoT..." required></textarea>
+        </div>
+
         <!-- 5-Question Multiple Choice Quiz -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
@@ -1486,74 +1556,7 @@ void loop() {
               </label>
             </div>
           </div>
-        </div>
 
-        <!-- โค้ดโจทย์ท้าทาย -->
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution)</label>
-            <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
-          </div>
-          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดหรือ Wokwi..." required></textarea>
-        </div>
-
-        <!-- คำอธิบายตรรกะควบคุม -->
-        <div class="form-group">
-          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของระบบ Scan, Connect และ Auto-reconnect</label>
-          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนการค้นหา SSID เป้าหมาย การตรวจสอบสถานะใน loop() และการกระพริบ LED แจ้งเตือน..." required></textarea>
-        </div>
-
-        <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
-        <div>
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-clipboard-question" style="color: var(--accent);"></i> คำถามวิเคราะห์และสรุปผลเชิงลึก (2.5 คะแนน)
-          </h3>
-
-          <div class="form-group">
-            <label for="question1">1. ค่าความแรงสัญญาณ RSSI มีหน่วยเป็นอะไร เหตุใดจึงแสดงผลเป็นค่าติดลบ และค่าใดถือเป็นระดับสัญญาณที่ดีสำหรับการใช้งาน IoT?</label>
-            <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="question2">2. โหมด Station (STA), Access Point (AP) และ AP+STA แตกต่างกันอย่างไรในทางสถาปัตยกรรม และยกตัวอย่างการใช้งานจริง?</label>
-            <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="question3">3. เหตุใดสถาปัตยกรรมแบบ Event-Driven Callback (เช่น <code>WiFi.onEvent()</code> หรือ <code>WiFiEventHandler</code>) จึงมีประสิทธิภาพและความเสถียรสูงกว่าการเขียนคำสั่ง Status Polling ใน <code>loop()</code> เพื่อตรวจจับ Wi-Fi หลุด?</label>
-            <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-        </div>
-
-        <!-- แนบไฟล์ผลการทดลอง -->
-        <div class="form-group-row">
-          <div class="form-group">
-            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ Serial Monitor ผลการ Scan & Connect</label>
-            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
-              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
-              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
-              <div id="screenshotBadge" class="file-badge"></div>
-              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
-            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
-              <i class="fa-solid fa-file-zipper upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์โค้ดมาวางที่นี่</div>
-              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
-              <div id="codeFileBadge" class="file-badge"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- สรุปผลการทดลอง -->
-        <div class="form-group">
-          <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
-          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Wi-Fi ไปประยุกต์ใช้ในระบบ IoT..." required></textarea>
-        </div>
 
         <!-- Submit & Print Button Group with Pre-check Score Button -->
         <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">

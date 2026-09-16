@@ -1390,6 +1390,76 @@ void factoryResetWifi() {
           </div>
         </div>
 
+        
+        </div>
+
+        <!-- โค้ดโจทย์ท้าทาย -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution พร้อม OLED Debug)</label>
+            <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
+          </div>
+          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดจริง..." required></textarea>
+        </div>
+
+        <!-- คำอธิบายตรรกะควบคุม -->
+        <div class="form-group">
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการสลับโหมด AP/STA และการแสดงผลบนจอ OLED</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่บอร์ดเปิดเครื่อง การแสดงผล OLED ในโหมด AP และ STA จนถึงการกดปุ่ม GPIO 0 ค้างเพื่อล้างข้อมูล..." required></textarea>
+        </div>
+
+        <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-clipboard-question" style="color: var(--accent);"></i> คำถามวิเคราะห์และสรุปผลเชิงลึก (2.5 คะแนน)
+          </h3>
+
+          <div class="form-group">
+            <label for="question1">1. จงอธิบายกระบวนการที่สมาร์ตโฟนเชื่อมต่อ Access Point แล้วหน้าต่าง Captive Portal Dashboard เด้งขึ้นมาบนหน้าจออัตโนมัติ (DNS Port 53 ทำงานอย่างไร)?</label>
+            <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question2">2. เหตุใดการจัดเก็บรหัสผ่าน Wi-Fi ลงใน LittleFS Flash Memory จึงมีความปลอดภัยและยืดหยุ่นกว่าการ Hardcode ไว้ในซอร์สโค้ด?</label>
+            <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="question3">3. ในแง่การเขียนโปรแกรมเชิงวิศวกรรม IoT เหตุใดการนำ <strong>Event-Driven Auto-Reconnect</strong> มาร่วมกับระบบ <strong>30-Second Auto-Fallback to AP</strong> จึงช่วยแก้ปัญหาสัญญาณหลุดได้อย่างสมบูรณ์แบบ?</label>
+            <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
+          </div>
+        </div>
+
+        <!-- แนบไฟล์ผลการทดลอง -->
+        <div class="form-group-row">
+          <div class="form-group">
+            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ OLED Display หรือ Web Dashboard</label>
+            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
+              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
+              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
+              <div id="screenshotBadge" class="file-badge"></div>
+              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
+            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
+              <i class="fa-solid fa-file-zipper upload-icon"></i>
+              <div class="upload-text">คลิกหรือลากไฟล์โค้ดหรือ data folder มาวางที่นี่</div>
+              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
+              <div id="codeFileBadge" class="file-badge"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- สรุปผลการทดลอง -->
+        <div class="form-group">
+          <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
+          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Web Configurator ไปใช้ในโปรเจกต์ IoT จริง..." required></textarea>
+        </div>
+
         <!-- 5-Question Multiple Choice Quiz -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
@@ -1525,74 +1595,7 @@ void factoryResetWifi() {
               </label>
             </div>
           </div>
-        </div>
 
-        <!-- โค้ดโจทย์ท้าทาย -->
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <label for="challengeCode"><i class="fa-solid fa-code"></i> โค้ดโปรแกรมโจทย์ท้าทาย (Challenge Code Solution พร้อม OLED Debug)</label>
-            <button type="button" class="copy-btn" onclick="pasteChallengeTemplate()"><i class="fa-solid fa-paste"></i> วางโครงร่างโค้ด</button>
-          </div>
-          <textarea id="challengeCode" name="challengeCode" class="code-font" placeholder="// วางโค้ดภาษา C++ หรือ Arduino (.ino) ฉบับสมบูรณ์ที่ผ่านการทดสอบบนบอร์ดจริง..." required></textarea>
-        </div>
-
-        <!-- คำอธิบายตรรกะควบคุม -->
-        <div class="form-group">
-          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการสลับโหมด AP/STA และการแสดงผลบนจอ OLED</label>
-          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่บอร์ดเปิดเครื่อง การแสดงผล OLED ในโหมด AP และ STA จนถึงการกดปุ่ม GPIO 0 ค้างเพื่อล้างข้อมูล..." required></textarea>
-        </div>
-
-        <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
-        <div>
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-clipboard-question" style="color: var(--accent);"></i> คำถามวิเคราะห์และสรุปผลเชิงลึก (2.5 คะแนน)
-          </h3>
-
-          <div class="form-group">
-            <label for="question1">1. จงอธิบายกระบวนการที่สมาร์ตโฟนเชื่อมต่อ Access Point แล้วหน้าต่าง Captive Portal Dashboard เด้งขึ้นมาบนหน้าจออัตโนมัติ (DNS Port 53 ทำงานอย่างไร)?</label>
-            <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="question2">2. เหตุใดการจัดเก็บรหัสผ่าน Wi-Fi ลงใน LittleFS Flash Memory จึงมีความปลอดภัยและยืดหยุ่นกว่าการ Hardcode ไว้ในซอร์สโค้ด?</label>
-            <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="question3">3. ในแง่การเขียนโปรแกรมเชิงวิศวกรรม IoT เหตุใดการนำ <strong>Event-Driven Auto-Reconnect</strong> มาร่วมกับระบบ <strong>30-Second Auto-Fallback to AP</strong> จึงช่วยแก้ปัญหาสัญญาณหลุดได้อย่างสมบูรณ์แบบ?</label>
-            <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
-          </div>
-        </div>
-
-        <!-- แนบไฟล์ผลการทดลอง -->
-        <div class="form-group-row">
-          <div class="form-group">
-            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอ OLED Display หรือ Web Dashboard</label>
-            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
-              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
-              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
-              <div id="screenshotBadge" class="file-badge"></div>
-              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
-            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
-              <i class="fa-solid fa-file-zipper upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์โค้ดหรือ data folder มาวางที่นี่</div>
-              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
-              <div id="codeFileBadge" class="file-badge"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- สรุปผลการทดลอง -->
-        <div class="form-group">
-          <label for="conclusion"><i class="fa-solid fa-award"></i> สรุปผลการทดลองและข้อเสนอแนะ</label>
-          <textarea id="conclusion" name="conclusion" data-protected="true" placeholder="สรุปสิ่งที่ได้เรียนรู้ ปัญหาที่พบ และแนวทางการนำ Web Configurator ไปใช้ในโปรเจกต์ IoT จริง..." required></textarea>
-        </div>
 
         <!-- Submit & Print Button Group with Pre-check Score Button -->
         <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">

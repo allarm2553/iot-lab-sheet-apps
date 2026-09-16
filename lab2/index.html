@@ -1398,6 +1398,102 @@ void loop() {
             </div>
           </div>
 
+          
+
+          <!-- Challenge Code Box -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">เขียนโค้ดภาษา C++ นำค่าเซ็นเซอร์ทั้งหมดและสถานะรีเลย์/ปุ่มกดมาจัดวางบนจอ OLED (128x64):</label>
+              <textarea id="challengeCode" rows="8" required placeholder="แปะโค้ด C++ สำหรับโจทย์ท้าทายที่นี่..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="controlLogic">อธิบายการจัดวางพิกัด UI บนหน้าจอ OLED และการใช้ฟังก์ชันวาดกราฟิก:</label>
+              <textarea id="controlLogic" rows="3" required placeholder="เช่น บรรทัดบนใช้ drawRect วาดแถบ Header, บรรทัดกลางพิมพ์ Temp/Hum, บรรทัดล่างวาด Progress Bar แสดงค่า ADC และสถานะ Relay..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Post-Lab Questions & Fault Diagnosis -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. [Spot the Bug 1: Missing Frame Buffer Flush] นักศึกษาคนหนึ่งเขียนโค้ด <code>setup()</code> และ <code>loop()</code> โดยเรียกคำสั่ง <code>display.clearDisplay(); display.setCursor(0,0); display.print("IoT Lab 2");</code> แต่ปรากฏว่าหน้าจอ OLED ดำสนิทไม่มีข้อความใดๆ ปรากฏขึ้นเลย จงวิเคราะห์ว่าขาดคำสั่งใด และอธิบายหลักการทำงานของ Frame Buffer?</label>
+              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุว่าขาด display.display() และอธิบายการทำงานของ Frame Buffer ในแรม..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. [I2C Bus Collision &amp; Multi-device Architecture] หากในอนาคตต้องการต่อเซ็นเซอร์ตรวจวัดความดันบรรยากาศ (BMP280 - I2C) และเซ็นเซอร์วัดความเข้มแสง (BH1750 - I2C) เพิ่มเติมเข้ากับบอร์ด ESP32 จะต้องต่อสายสัญญาณอย่างไร และระบบแยกแยะอุปกรณ์แต่ละตัวได้อย่างไรโดยที่สายสัญญาณไม่ชนกัน?</label>
+              <textarea id="question2" rows="3" required placeholder="อธิบายการต่อขนานสาย SDA/SCL ร่วมกันบนบัส I2C และการใช้ I2C Address แยกแยะอุปกรณ์..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [UI/UX &amp; Frame Rate Optimization] จงอธิบายเหตุผลว่าทำไมในการพัฒนาอุปกรณ์ IoT ทางอุตสาหกรรม เราจึงควรใช้ตัวจับเวลา Non-blocking (<code>millis()</code>) กำหนดอัตราการรีเฟรชหน้าจอ OLED (เช่น 2–5 Hz หรือทุกๆ 200–500ms) แทนการอัปเดตหน้าจอทุกรอบลูป และมีเทคนิคอย่างไรในการป้องกันปัญหา Screen Burn-in บนจอ OLED?</label>
+              <textarea id="question3" rows="3" required placeholder="อธิบายข้อดีของการลดภาระบัส I2C, การตอบสนองของระบบ และเทคนิคป้องกัน Burn-in (เช่น Auto-dimming / Screen Timeout / Pixel Shifting)..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพผลการทดลองแสดงหน้าจอ OLED (หรือ Serial Monitor)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดจริง (.ino หรือ .zip จากโจทย์ท้าทายที่นำข้อมูลเซ็นเซอร์และสถานะรีเลย์ปุ่มกดมาแสดงผล)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์และผลลัพธ์ของโจทย์ท้าทายที่แสดงอุณหภูมิ ความชื้น แอนะล็อก และสถานะรีเลย์สวิตช์ปุ่มกดบนหน้าจอ OLED..."></textarea>
+            </div>
+          </div>
+
           <!-- 3. Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
@@ -1535,99 +1631,6 @@ void loop() {
             </div>
           </div>
 
-          <!-- Challenge Code Box -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
-            </div>
-            <div class="form-group">
-              <label for="challengeCode">เขียนโค้ดภาษา C++ นำค่าเซ็นเซอร์ทั้งหมดและสถานะรีเลย์/ปุ่มกดมาจัดวางบนจอ OLED (128x64):</label>
-              <textarea id="challengeCode" rows="8" required placeholder="แปะโค้ด C++ สำหรับโจทย์ท้าทายที่นี่..."></textarea>
-            </div>
-            <div class="form-group">
-              <label for="controlLogic">อธิบายการจัดวางพิกัด UI บนหน้าจอ OLED และการใช้ฟังก์ชันวาดกราฟิก:</label>
-              <textarea id="controlLogic" rows="3" required placeholder="เช่น บรรทัดบนใช้ drawRect วาดแถบ Header, บรรทัดกลางพิมพ์ Temp/Hum, บรรทัดล่างวาด Progress Bar แสดงค่า ADC และสถานะ Relay..."></textarea>
-            </div>
-          </div>
-
-          <!-- 4. Post-Lab Questions & Fault Diagnosis -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
-            </div>
-
-            <div class="form-group">
-              <label for="question1">1. [Spot the Bug 1: Missing Frame Buffer Flush] นักศึกษาคนหนึ่งเขียนโค้ด <code>setup()</code> และ <code>loop()</code> โดยเรียกคำสั่ง <code>display.clearDisplay(); display.setCursor(0,0); display.print("IoT Lab 2");</code> แต่ปรากฏว่าหน้าจอ OLED ดำสนิทไม่มีข้อความใดๆ ปรากฏขึ้นเลย จงวิเคราะห์ว่าขาดคำสั่งใด และอธิบายหลักการทำงานของ Frame Buffer?</label>
-              <textarea id="question1" rows="3" required placeholder="อธิบายสาเหตุว่าขาด display.display() และอธิบายการทำงานของ Frame Buffer ในแรม..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question2">2. [I2C Bus Collision &amp; Multi-device Architecture] หากในอนาคตต้องการต่อเซ็นเซอร์ตรวจวัดความดันบรรยากาศ (BMP280 - I2C) และเซ็นเซอร์วัดความเข้มแสง (BH1750 - I2C) เพิ่มเติมเข้ากับบอร์ด ESP32 จะต้องต่อสายสัญญาณอย่างไร และระบบแยกแยะอุปกรณ์แต่ละตัวได้อย่างไรโดยที่สายสัญญาณไม่ชนกัน?</label>
-              <textarea id="question2" rows="3" required placeholder="อธิบายการต่อขนานสาย SDA/SCL ร่วมกันบนบัส I2C และการใช้ I2C Address แยกแยะอุปกรณ์..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question3">3. [UI/UX &amp; Frame Rate Optimization] จงอธิบายเหตุผลว่าทำไมในการพัฒนาอุปกรณ์ IoT ทางอุตสาหกรรม เราจึงควรใช้ตัวจับเวลา Non-blocking (<code>millis()</code>) กำหนดอัตราการรีเฟรชหน้าจอ OLED (เช่น 2–5 Hz หรือทุกๆ 200–500ms) แทนการอัปเดตหน้าจอทุกรอบลูป และมีเทคนิคอย่างไรในการป้องกันปัญหา Screen Burn-in บนจอ OLED?</label>
-              <textarea id="question3" rows="3" required placeholder="อธิบายข้อดีของการลดภาระบัส I2C, การตอบสนองของระบบ และเทคนิคป้องกัน Burn-in (เช่น Auto-dimming / Screen Timeout / Pixel Shifting)..."></textarea>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
-            </div>
-
-            <!-- Screenshot upload -->
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพผลการทดลองแสดงหน้าจอ OLED (หรือ Serial Monitor)</label>
-              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
-                <i class="fa-regular fa-images upload-icon"></i>
-                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
-              </div>
-              
-              <div class="file-preview" id="screenshotPreview">
-                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
-                <div class="preview-details">
-                  <div class="preview-name" id="screenshotName">file_name.png</div>
-                  <div class="preview-size" id="screenshotSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-
-            <!-- Code file upload -->
-            <div class="form-group">
-              <label>2. ไฟล์โค้ดจริง (.ino หรือ .zip จากโจทย์ท้าทายที่นำข้อมูลเซ็นเซอร์และสถานะรีเลย์ปุ่มกดมาแสดงผล)</label>
-              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
-                <i class="fa-regular fa-file-code upload-icon"></i>
-                <div class="upload-text">ลากและวางไฟล์โค้ดที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ .ino, .cpp, .zip (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="codeInput" class="file-input" accept=".ino,.cpp,.zip" onchange="handleFileSelect(this, 'code')">
-              </div>
-              
-              <div class="file-preview" id="codePreview">
-                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
-                <div class="preview-details">
-                  <div class="preview-name" id="codeName">code_file.ino</div>
-                  <div class="preview-size" id="codeSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. Conclusion -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
-            </div>
-            <div class="form-group">
-              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ</label>
-              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์และผลลัพธ์ของโจทย์ท้าทายที่แสดงอุณหภูมิ ความชื้น แอนะล็อก และสถานะรีเลย์สวิตช์ปุ่มกดบนหน้าจอ OLED..."></textarea>
-            </div>
-          </div>
 
           <!-- Submit & Print Button Group -->
           <div class="button-group" style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">

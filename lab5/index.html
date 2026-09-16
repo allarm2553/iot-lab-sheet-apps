@@ -1296,6 +1296,99 @@ void loop() {
             </div>
           </div>
 
+          
+
+          <!-- 4. Post-Lab Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
+            </div>
+
+            <div class="form-group">
+              <label for="question1">1. [Spot the Bug &amp; Best Practice: Client ID Collision] หากในห้องทดลองมีนักศึกษา 20 คน ใช้โค้ดตัวอย่างที่ระบุ Client ID เป็น <code>"ESP32_Node"</code> เหมือนกันทั้งหมด จะเกิดอาการผิดปกติอย่างไรบน MQTT Broker และจงอธิบายวิธีแก้ปัญหาโดยใช้ชิปไอดีหรือรหัสนักศึกษา (เช่น MAC Address หรือ Student ID) ในการตั้ง Client ID?</label>
+              <textarea id="question1" rows="3" data-protected="true" required placeholder="อธิบายพฤติกรรม Client Disconnect Loop และวิธีสร้าง Unique Client ID..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">2. [Topic Design &amp; QoS Level Selection] อธิบายความแตกต่างระหว่าง Wildcard เครื่องหมาย <code>'+'</code> (Single-level) กับ <code>'#'</code> (Multi-level) ในการ Subscribe หัวข้อ MQTT และอธิบายว่าเหตุใดการส่งข้อมูล Sensor Telemetry ราย 5 วินาทีจึงนิยมใช้ QoS 0 ในขณะที่คำสั่งสั่งการฉุกเฉิน (Emergency Shutdown) ควรเลือกใช้ QoS 1 หรือ QoS 2?</label>
+              <textarea id="question2" rows="3" data-protected="true" required placeholder="อธิบายความแตกต่างของ Wildcard และเหตุผลการเลือกระดับ QoS ตามลักษณะข้อมูล..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">3. [JSON Payload &amp; Non-blocking MQTT Loop] ในการรับส่งข้อมูลผ่าน MQTT เหตุใดการรวมข้อมูลเป็น JSON String เดียวจึงมีประสิทธิภาพมากกว่าการแยก Publish ทีละตัวแปร และหากเราใส่คำสั่ง <code>delay(5000)</code> ใน <code>loop()</code> จะส่งผลกระทบต่อการรับคำสั่งในฟังก์ชัน <code>callback()</code> และกลไก Keep-Alive อย่างไร?</label>
+              <textarea id="question3" rows="3" data-protected="true" required placeholder="อธิบายประโยชน์ของ JSON Payload และผลกระทบของการบล็อกเธรดต่อ mqttClient.loop()..."></textarea>
+            </div>
+          </div>
+
+          <!-- 5. Challenge Code Area -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดภาษา C++/Arduino ที่ต่อยอดการ Publish Telemetry JSON และฟังก์ชัน Callback ควบคุมรีเลย์พัดลม..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <!-- 6. Attachments -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>1. รูปภาพผลงานมอนิเตอร์และสั่งงานผ่านโปรแกรม MQTT Explorer หรือ Web Client</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-regular fa-images upload-icon"></i>
+                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file_name.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Code file upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือ .zip)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
+                <i class="fa-regular fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
+                <div class="upload-hint">รองรับไฟล์ .ino, .zip (ขนาดไม่เกิน 5MB)</div>
+                <input type="file" id="codeInput" class="file-input" accept=".ino,.zip" onchange="handleFileSelect(this, 'code')">
+              </div>
+              
+              <div class="file-preview" id="codePreview">
+                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="preview-details">
+                  <div class="preview-name" id="codeName">code_file.ino</div>
+                  <div class="preview-size" id="codeSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ (ต้องพิมพ์มากกว่า 100 ตัวอักษร)</label>
+              <textarea id="conclusion" rows="4" data-protected="true" required placeholder="เขียนวิเคราะห์ผลสัมฤทธิ์จากการเชื่อมต่อรับส่งข้อความผ่านทาง Cloud MQTT Broker, ความเร็วการตอบสนอง, และข้อควรระวังในการใช้งาน..."></textarea>
+            </div>
+          </div>
+
           <!-- 3. Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
@@ -1433,96 +1526,6 @@ void loop() {
             </div>
           </div>
 
-          <!-- 4. Post-Lab Questions -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-circle-question"></i> คำถามท้ายการทดลอง &amp; การวิเคราะห์ข้อผิดพลาด
-            </div>
-
-            <div class="form-group">
-              <label for="question1">1. [Spot the Bug &amp; Best Practice: Client ID Collision] หากในห้องทดลองมีนักศึกษา 20 คน ใช้โค้ดตัวอย่างที่ระบุ Client ID เป็น <code>"ESP32_Node"</code> เหมือนกันทั้งหมด จะเกิดอาการผิดปกติอย่างไรบน MQTT Broker และจงอธิบายวิธีแก้ปัญหาโดยใช้ชิปไอดีหรือรหัสนักศึกษา (เช่น MAC Address หรือ Student ID) ในการตั้ง Client ID?</label>
-              <textarea id="question1" rows="3" data-protected="true" required placeholder="อธิบายพฤติกรรม Client Disconnect Loop และวิธีสร้าง Unique Client ID..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question2">2. [Topic Design &amp; QoS Level Selection] อธิบายความแตกต่างระหว่าง Wildcard เครื่องหมาย <code>'+'</code> (Single-level) กับ <code>'#'</code> (Multi-level) ในการ Subscribe หัวข้อ MQTT และอธิบายว่าเหตุใดการส่งข้อมูล Sensor Telemetry ราย 5 วินาทีจึงนิยมใช้ QoS 0 ในขณะที่คำสั่งสั่งการฉุกเฉิน (Emergency Shutdown) ควรเลือกใช้ QoS 1 หรือ QoS 2?</label>
-              <textarea id="question2" rows="3" data-protected="true" required placeholder="อธิบายความแตกต่างของ Wildcard และเหตุผลการเลือกระดับ QoS ตามลักษณะข้อมูล..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="question3">3. [JSON Payload &amp; Non-blocking MQTT Loop] ในการรับส่งข้อมูลผ่าน MQTT เหตุใดการรวมข้อมูลเป็น JSON String เดียวจึงมีประสิทธิภาพมากกว่าการแยก Publish ทีละตัวแปร และหากเราใส่คำสั่ง <code>delay(5000)</code> ใน <code>loop()</code> จะส่งผลกระทบต่อการรับคำสั่งในฟังก์ชัน <code>callback()</code> และกลไก Keep-Alive อย่างไร?</label>
-              <textarea id="question3" rows="3" data-protected="true" required placeholder="อธิบายประโยชน์ของ JSON Payload และผลกระทบของการบล็อกเธรดต่อ mqttClient.loop()..."></textarea>
-            </div>
-          </div>
-
-          <!-- 5. Challenge Code Area -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
-            </div>
-            <div class="form-group">
-              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
-              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดภาษา C++/Arduino ที่ต่อยอดการ Publish Telemetry JSON และฟังก์ชัน Callback ควบคุมรีเลย์พัดลม..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
-            </div>
-          </div>
-
-          <!-- 6. Attachments -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-regular fa-image"></i> แนบผลการทดลองและไฟล์งาน
-            </div>
-
-            <!-- Screenshot upload -->
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพผลงานมอนิเตอร์และสั่งงานผ่านโปรแกรม MQTT Explorer หรือ Web Client</label>
-              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
-                <i class="fa-regular fa-images upload-icon"></i>
-                <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
-              </div>
-              
-              <div class="file-preview" id="screenshotPreview">
-                <img src="" class="preview-thumbnail" id="screenshotImg" alt="preview">
-                <div class="preview-details">
-                  <div class="preview-name" id="screenshotName">file_name.png</div>
-                  <div class="preview-size" id="screenshotSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-
-            <!-- Code file upload -->
-            <div class="form-group">
-              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือ .zip)</label>
-              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
-                <i class="fa-regular fa-file-code upload-icon"></i>
-                <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
-                <div class="upload-hint">รองรับไฟล์ .ino, .zip (ขนาดไม่เกิน 5MB)</div>
-                <input type="file" id="codeInput" class="file-input" accept=".ino,.zip" onchange="handleFileSelect(this, 'code')">
-              </div>
-              
-              <div class="file-preview" id="codePreview">
-                <div class="preview-thumbnail" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--accent);"><i class="fa-solid fa-file-arrow-up"></i></div>
-                <div class="preview-details">
-                  <div class="preview-name" id="codeName">code_file.ino</div>
-                  <div class="preview-size" id="codeSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('code')"><i class="fa-regular fa-circle-xmark"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 7. Conclusion -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-list-check"></i> สรุปผลการทดลอง
-            </div>
-            <div class="form-group">
-              <label for="conclusion">วิเคราะห์และสรุปผลจากการทำใบงานปฏิบัติการ (ต้องพิมพ์มากกว่า 100 ตัวอักษร)</label>
-              <textarea id="conclusion" rows="4" data-protected="true" required placeholder="เขียนวิเคราะห์ผลสัมฤทธิ์จากการเชื่อมต่อรับส่งข้อความผ่านทาง Cloud MQTT Broker, ความเร็วการตอบสนอง, และข้อควรระวังในการใช้งาน..."></textarea>
-            </div>
-          </div>
 
           <!-- Submit & Print Button Group -->
           <div class="button-group" style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">
