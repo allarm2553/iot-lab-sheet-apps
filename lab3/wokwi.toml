@@ -1,4 +1,0 @@
-[wokwi]
-version = 1
-firmware = 'solution/.pio/build/ipst_wifi/firmware.elf'
-elf = 'solution/.pio/build/ipst_wifi/firmware.elf'
