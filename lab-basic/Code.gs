@@ -1,6 +1,6 @@
 /**
- * Web App for Basic Lab: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32
- * Designed by Antigravity AI (Auto-Grading Version)
+ * Web App for Basic Lab: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32 / ESP8266
+ * Designed by Antigravity AI (Auto-Grading & Quiz Assessment Version)
  */
 
 function doGet(e) {
@@ -11,131 +11,107 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// Auto-grading logic for Lab Basic
-// Auto-grading logic for lab-basic
-// Auto-grading logic for lab-basic
+// Auto-grading logic for Lab Basic (10.0 Points Total)
 function gradeSubmission(data) {
-  var blankKeywords = ["OUTPUT", "digitalWrite", "HIGH", "LOW", "delay"];
-  var challengeKeywords = ["pinMode", "digitalWrite", "delay", "HIGH", "LOW", "2|led|led_builtin|d5|18|14|gpio14|gpio18"];
-  var q1Keywords = ["input only|input|อินพุต", "34|35|36|39|a0|gpio16", "pull-up|pullup", "pull-down|pulldown"];
-  var q2Keywords = ["strapping|boot|บูต", "0", "12|15|2|d3|d4|d8|gpio0|gpio12|gpio15|gpio2", "ดึงกระแส|แรงดัน|ดึง"];
-  
-  var challengeScore = 0.0;
-  var q1Score = 0.0;
-  var q2Score = 0.0;
-  var attachmentScore = 0.0;
   var feedbackDetails = [];
-
-  // 1. Grade Code / Challenge (4.0 points max)
-  // 1.1 Grade Skeleton Blanks (1.5 points max if blanks exist, otherwise challenge gets full 4.0 points)
-  var hasBlanks = blankKeywords && blankKeywords.length > 0;
-  var skeletonScore = 0.0;
   
-  if (hasBlanks) {
-    var codeContent = (data.codeBlank1 || '') + ' ' + (data.codeBlank2 || '') + ' ' + (data.codeBlank3 || '') + ' ' + (data.codeBlank4 || '') + ' ' + (data.codeBlank5 || '');
-    if (codeContent.replace(/\s+/g, '').length > 0) {
-      var matchedBlanks = 0;
-      for (var i = 0; i < blankKeywords.length; i++) {
-        var subKws = blankKeywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (codeContent.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedBlanks++;
-        }
-      }
-      skeletonScore = (matchedBlanks / blankKeywords.length) * 1.5;
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ถูกต้องตรงประเด็น " + matchedBlanks + "/" + blankKeywords.length + " ส่วนหลัก (+" + skeletonScore.toFixed(1) + "/1.5 คะแนน)");
-    } else {
-      feedbackDetails.push("- เติมคำตอบโครงร่างโค้ด: ไม่พบการส่งคำตอบ (+0.0/1.5 คะแนน)");
-    }
-  }
-
-  // 1.2 Grade Pasted Challenge Code (2.5 points max if blanks exist, otherwise 4.0 points max)
-  var challengeMax = hasBlanks ? 2.5 : 4.0;
+  // 1. Grade Challenge Code (3.0 pts max)
+  var challengeScore = 0.0;
   var challengeCodeText = data.challengeCode || '';
   if (challengeCodeText.trim().length > 0) {
-    var matchedChallenge = 0;
-    for (var i = 0; i < challengeKeywords.length; i++) {
-      var subKws = challengeKeywords[i].split('|');
-      var isMatched = false;
-      for (var j = 0; j < subKws.length; j++) {
-        if (challengeCodeText.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          isMatched = true;
-          break;
-        }
-      }
-      if (isMatched) {
-        matchedChallenge++;
-      }
-    }
-    challengeScore = (matchedChallenge / challengeKeywords.length) * challengeMax;
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ตรงตรรกะ " + matchedChallenge + "/" + challengeKeywords.length + " จุดหลัก (+" + challengeScore.toFixed(1) + "/" + challengeMax.toFixed(1) + " คะแนน)");
+    var c1 = /pinMode\s*\(\s*(2|LED_PIN|LED_BUILTIN|18|14|d4|d5)\s*,\s*OUTPUT\s*\)/i.test(challengeCodeText);
+    var c2 = /digitalWrite\s*\(\s*(2|LED_PIN|LED_BUILTIN|18|14|d4|d5)\s*,\s*HIGH\s*\)/i.test(challengeCodeText) &&
+             /digitalWrite\s*\(\s*(2|LED_PIN|LED_BUILTIN|18|14|d4|d5)\s*,\s*LOW\s*\)/i.test(challengeCodeText);
+    var c3 = /delay\s*\(\s*1000\s*\)/i.test(challengeCodeText) || /millis\(\)\s*-\s*\w+\s*(>=|>)\s*1000/i.test(challengeCodeText);
+    
+    var matchedCh = 0;
+    if (c1) { matchedCh++; }
+    if (c2) { matchedCh++; }
+    if (c3) { matchedCh++; }
+    
+    challengeScore = matchedCh * 1.0;
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ผ่านเกณฑ์เงื่อนไข " + matchedCh + "/3 เกณฑ์ (+" + challengeScore.toFixed(1) + "/3.0 คะแนน)");
   } else {
-    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/" + challengeMax.toFixed(1) + " คะแนน)");
+    feedbackDetails.push("- โจทย์ท้าทาย (Challenge Code): ไม่พบการส่งโค้ดคำตอบ (+0.0/3.0 คะแนน)");
   }
 
-  // 2. Grade Question 1 (2.0 points, or 4.0 points if Q2 does not exist)
+  // 2. Grade Multiple Choice Quiz (5 Questions x 0.4 pt = 2.0 pts max)
+  var quizAnswers = {
+    quiz1: '1b',
+    quiz2: '2a',
+    quiz3: '3c',
+    quiz4: '4b',
+    quiz5: '5c'
+  };
+  var correctQuiz = 0;
+  var answeredQuiz = 0;
+  var totalQuiz = 5;
+  for (var k = 1; k <= totalQuiz; k++) {
+    var studentAns = data['quiz' + k] || '';
+    if (studentAns) {
+      answeredQuiz++;
+      if (studentAns === quizAnswers['quiz' + k]) {
+        correctQuiz++;
+      }
+    }
+  }
+  var quizScore = (correctQuiz / totalQuiz) * 2.0;
+  feedbackDetails.push("- แบบทดสอบเลือกตอบ (Quiz 5 ข้อ): ตอบถูก " + correctQuiz + "/" + totalQuiz + " ข้อ (+" + quizScore.toFixed(1) + "/2.0 คะแนน)");
+
+  // 3. Grade Post-Lab Question 1: Input-Only Pins (1.5 pts max)
+  var q1Score = 0.0;
   var q1Text = data.question1 || '';
-  var hasQ2 = q2Keywords && q2Keywords.length > 0;
-  var q1Max = hasQ2 ? 2.0 : 4.0;
-  if (q1Text.trim().length > 0) {
+  var q1Keywords = ["34", "35", "36", "39", "input", "pull", "output", "ขับ", "adc", "แอนะล็อก"];
+  if (q1Text.trim().length > 10) {
     var matchedQ1 = 0;
     for (var i = 0; i < q1Keywords.length; i++) {
-      var subKws = q1Keywords[i].split('|');
-      var isMatched = false;
-      for (var j = 0; j < subKws.length; j++) {
-        if (q1Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-          isMatched = true;
-          break;
-        }
-      }
-      if (isMatched) {
+      if (q1Text.toLowerCase().indexOf(q1Keywords[i]) !== -1) {
         matchedQ1++;
       }
     }
-    q1Score = (matchedQ1 / q1Keywords.length) * q1Max;
-    feedbackDetails.push("- คำถามข้อ 1: ตรงจุดสำคัญ " + matchedQ1 + "/" + q1Keywords.length + " จุด (+" + q1Score.toFixed(1) + "/" + q1Max.toFixed(1) + " คะแนน)");
+    q1Score = matchedQ1 >= 2 ? 1.5 : (matchedQ1 >= 1 ? 1.0 : 0.5);
+    feedbackDetails.push("- คำถามข้อที่ 1 (Input-Only GPIO): วิเคราะห์ตรงประเด็น " + matchedQ1 + " จุดสำคัญ (+" + q1Score.toFixed(1) + "/1.5 คะแนน)");
   } else {
-    feedbackDetails.push("- คำถามข้อ 1: ไม่พบการตอบคำถาม (+0.0/" + q1Max.toFixed(1) + " คะแนน)");
+    feedbackDetails.push("- คำถามข้อที่ 1: ไม่พบการตอบหรือข้อความสั้นเกินไป (+0.0/1.5 คะแนน)");
   }
 
-  // 3. Grade Question 2 (2.0 points max)
-  if (hasQ2) {
-    var q2Text = data.question2 || '';
-    if (q2Text.trim().length > 0) {
-      var matchedQ2 = 0;
-      for (var i = 0; i < q2Keywords.length; i++) {
-        var subKws = q2Keywords[i].split('|');
-        var isMatched = false;
-        for (var j = 0; j < subKws.length; j++) {
-          if (q2Text.toLowerCase().indexOf(subKws[j].toLowerCase()) !== -1) {
-            isMatched = true;
-            break;
-          }
-        }
-        if (isMatched) {
-          matchedQ2++;
-        }
+  // 4. Grade Post-Lab Question 2: Strapping Pins (1.5 pts max)
+  var q2Score = 0.0;
+  var q2Text = data.question2 || '';
+  var q2Keywords = ["strapping", "boot", "บูต", "gpio 0", "gpio0", "0", "uart", "download", "flash", "12", "15", "2", "pull"];
+  if (q2Text.trim().length > 10) {
+    var matchedQ2 = 0;
+    for (var j = 0; j < q2Keywords.length; j++) {
+      if (q2Text.toLowerCase().indexOf(q2Keywords[j]) !== -1) {
+        matchedQ2++;
       }
-      q2Score = (matchedQ2 / q2Keywords.length) * 2.0;
-      feedbackDetails.push("- คำถามข้อ 2: ตรงจุดสำคัญ " + matchedQ2 + "/" + q2Keywords.length + " จุด (+" + q2Score.toFixed(1) + "/2.0 คะแนน)");
-    } else {
-      feedbackDetails.push("- คำถามข้อ 2: ไม่พบการตอบคำถาม (+0.0/2.0 คะแนน)");
     }
+    q2Score = matchedQ2 >= 2 ? 1.5 : (matchedQ2 >= 1 ? 1.0 : 0.5);
+    feedbackDetails.push("- คำถามข้อที่ 2 (Strapping Pins): วิเคราะห์ตรงประเด็น " + matchedQ2 + " จุดสำคัญ (+" + q2Score.toFixed(1) + "/1.5 คะแนน)");
+  } else {
+    feedbackDetails.push("- คำถามข้อที่ 2: ไม่พบการตอบหรือข้อความสั้นเกินไป (+0.0/1.5 คะแนน)");
   }
 
-  // 4. Attachments (2.0 points max)
-  var screenshotOk = (data.screenshotBase64 && data.screenshotName) ? 1.0 : 0.0;
-  var codeOk = (data.codeBase64 && data.codeFileName) ? 1.0 : 0.0;
-  attachmentScore = screenshotOk + codeOk;
-  feedbackDetails.push("- ไฟล์แนบ: แนบรูปภาพ " + (screenshotOk ? "แล้ว" : "ไม่พบ") + ", แนบไฟล์โค้ด " + (codeOk ? "แล้ว" : "ไม่พบ") + " (+" + attachmentScore.toFixed(1) + "/2.0 คะแนน)");
+  // 5. Attachments (1.0 pt max: Screenshot 0.5 + Code 0.5)
+  var screenshotOk = (data.screenshotBase64 && (data.screenshotName || data.screenshotType)) ? 0.5 : 0.0;
+  var codeOk = (data.codeBase64 && (data.codeFileName || data.codeFileType)) ? 0.5 : 0.0;
+  var attachmentScore = screenshotOk + codeOk;
+  feedbackDetails.push("- ไฟล์แนบหลักฐาน: ภาพผลรัน (" + (screenshotOk ? "0.5" : "0.0") + ") + ไฟล์โค้ด .ino (" + (codeOk ? "0.5" : "0.0") + ") (+" + attachmentScore.toFixed(1) + "/1.0 คะแนน)");
 
-  var finalScore = parseFloat((skeletonScore + challengeScore + q1Score + q2Score + attachmentScore).toFixed(1));
+  // 6. Conclusion (1.0 pt max)
+  var conclusionText = data.conclusion || '';
+  var conclusionScore = 0.0;
+  if (conclusionText.trim().length > 100) {
+    conclusionScore = 1.0;
+    feedbackDetails.push("- สรุปผลการทดลอง: สมบูรณ์ (>100 ตัวอักษร) (+1.0/1.0 คะแนน)");
+  } else if (conclusionText.trim().length > 30) {
+    conclusionScore = 0.5;
+    feedbackDetails.push("- สรุปผลการทดลอง: พอใช้ (+0.5/1.0 คะแนน)");
+  } else {
+    feedbackDetails.push("- สรุปผลการทดลอง: ไม่สมบูรณ์หรือสั้นเกินไป (+0.0/1.0 คะแนน)");
+  }
+
+  var finalScore = parseFloat((challengeScore + quizScore + q1Score + q2Score + attachmentScore + conclusionScore).toFixed(1));
 
   return {
     score: finalScore,
@@ -158,11 +134,11 @@ function submitLabData(data) {
       sheet = ss.insertSheet(sheetName);
       var headers = [
         "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
-        "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำอธิบายตรรกะ (controlLogic)", "คำอธิบายโจทย์ท้าทาย (challengeLogic)",
-        "คำตอบท้าทาย (Arduino Blink Code)", 
-        "คำถามข้อที่ 1 (GPIO vs Input-Only)", "คำถามข้อที่ 2 (Strapping Pins)",
-        "ลิงก์ไฟล์รูปภาพผลการทดลอง", "ลิงก์ไฟล์โค้ด (.ino)", "สรุปผลการทดลอง",
-        "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ"
+        "คะแนนประเมิน (เต็ม 10)", "ข้อเสนอแนะอัตโนมัติ",
+        "โจทย์ท้าทาย (Challenge Code)",
+        "แบบทดสอบข้อ 1", "แบบทดสอบข้อ 2", "แบบทดสอบข้อ 3", "แบบทดสอบข้อ 4", "แบบทดสอบข้อ 5",
+        "คำถามข้อที่ 1 (Input-Only GPIO)", "คำถามข้อที่ 2 (Strapping Pins)",
+        "ลิงก์ไฟล์รูปภาพผลการทดลอง", "ลิงก์ไฟล์โค้ด (.ino)", "สรุปผลการทดลอง"
       ];
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e2e8f0");
@@ -184,11 +160,14 @@ function submitLabData(data) {
     }
     
     // Process screenshot
-    if (data.screenshotBase64 && data.screenshotName) {
+    if (data.screenshotBase64 && (data.screenshotName || data.screenshotType)) {
+      var sName = data.screenshotName || "screenshot.png";
+      var sType = data.screenshotType || "image/png";
+      var sBase64 = data.screenshotBase64.indexOf(",") !== -1 ? data.screenshotBase64.split(",")[1] : data.screenshotBase64;
       var screenshotBlob = Utilities.newBlob(
-        Utilities.base64Decode(data.screenshotBase64.split(",")[1]),
-        data.screenshotType,
-        data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_screenshot_" + data.screenshotName
+        Utilities.base64Decode(sBase64),
+        sType,
+        data.studentId + "_" + (data.studentName || 'Student').replace(/\s+/g, '_') + "_screenshot_" + sName
       );
       var file = folder.createFile(screenshotBlob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -196,35 +175,40 @@ function submitLabData(data) {
     }
     
     // Process code file
-    if (data.codeBase64 && data.codeFileName) {
+    if (data.codeBase64 && (data.codeFileName || data.codeFileType)) {
+      var cName = data.codeFileName || "blink.ino";
+      var cType = data.codeFileType || "text/plain";
+      var cBase64 = data.codeBase64.indexOf(",") !== -1 ? data.codeBase64.split(",")[1] : data.codeBase64;
       var codeBlob = Utilities.newBlob(
-        Utilities.base64Decode(data.codeBase64.split(",")[1]),
-        data.codeFileType,
-        data.studentId + "_" + data.studentName.replace(/\s+/g, '_') + "_code_" + data.codeFileName
+        Utilities.base64Decode(cBase64),
+        cType,
+        data.studentId + "_" + (data.studentName || 'Student').replace(/\s+/g, '_') + "_code_" + cName
       );
-      var file = folder.createFile(codeBlob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      codeFileUrl = file.getUrl();
+      var file2 = folder.createFile(codeBlob);
+      file2.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      codeFileUrl = file2.getUrl();
     }
     
     // 3. Log data to Spreadsheet
     var rowData = [
       new Date(),
-      data.studentName,
-      data.studentId,
-      data.studentGroup,
-      data.labDate,
+      data.studentName || '',
+      data.studentId || '',
+      data.studentGroup || '',
+      data.labDate || '',
+      grading.score,
+      grading.feedback,
       data.challengeCode || '',
-      data.controlLogic || '',
-      data.challengeLogic || '',
-      data.codeBlank1,
-      data.question1,
-      data.question2,
+      data.quiz1 || '',
+      data.quiz2 || '',
+      data.quiz3 || '',
+      data.quiz4 || '',
+      data.quiz5 || '',
+      data.question1 || '',
+      data.question2 || '',
       screenshotUrl,
       codeFileUrl,
-      data.conclusion,
-      grading.score,
-      grading.feedback
+      data.conclusion || ''
     ];
     
     sheet.appendRow(rowData);
