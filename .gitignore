@@ -41,5 +41,6 @@ logs/
 */.pio/
 */*/.pio/
 submissions/
+scratch/
 
 

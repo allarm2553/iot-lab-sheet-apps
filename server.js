@@ -44,8 +44,8 @@ const polyfillScript = `
               return this;
             },
             submitLabData: function(payload) {
-              const pathParts = window.location.pathname.split('/');
-              const labName = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || 'unknown';
+              const pathParts = window.location.pathname.split('/').filter(p => p && p !== 'index.html');
+              const labName = pathParts[pathParts.length - 1] || 'lab-basic';
               fetch('/api/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -328,9 +328,9 @@ function serveInjectedHtml(labPath, res) {
   res.send(htmlContent);
 }
 
-// Redirect root to dashboard
+// Serve Master Portal (index.html) at root
 app.get('/', (req, res) => {
-  res.redirect('/dashboard');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve the teacher's dashboard
@@ -338,23 +338,31 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
-// Routing for lab index pages
-const validLabs = ['lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab4', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev', 'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi'];
+// Routing for lab index pages & assets
+const validLabs = [
+  'lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab3.2_Wifi_UI_config', 'lab3.2',
+  'lab4', 'lab4.1', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev',
+  'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi',
+  'LAB6_Fleet', 'LAB6_AppInstall', 'LAB_Convert2app'
+];
+
 validLabs.forEach(lab => {
-  app.get(`/${lab}`, (req, res) => {
-    const targetFolder = (lab === 'lab6_perform') ? 'LAB6_Perform' : (lab === 'lab6_dev') ? 'LAB6_Dev' : (lab === 'lab5_dev') ? 'LAB5_Dev' : lab;
+  const targetFolder = (lab === 'lab6_perform') ? 'LAB6_Perform' : 
+                       (lab === 'lab6_dev') ? 'LAB6_Dev' : 
+                       (lab === 'lab5_dev') ? 'LAB5_Dev' : 
+                       (lab === 'lab3.2') ? 'lab3.2_Wifi_UI_config' : lab;
+  
+  // Handle HTML rendering with polyfill
+  app.get([`/${lab}`, `/${lab}/`, `/${lab}/index.html`], (req, res) => {
     serveInjectedHtml(targetFolder, res);
   });
+
+  // Serve static assets in the lab folder (such as GUIDE.md, images, css, etc.)
+  app.use(`/${lab}`, express.static(path.join(__dirname, targetFolder)));
 });
 
-// Serve solution data folders for dashboards
-app.use('/LAB6_Fleet', express.static(path.join(__dirname, 'LAB6_Fleet')));
-app.use('/LAB6_AppInstall', express.static(path.join(__dirname, 'LAB6_AppInstall')));
-app.use('/LAB6_Perform/solution/data', express.static(path.join(__dirname, 'LAB6_Perform', 'solution', 'data')));
-app.use('/LAB6_Dev/solution/data', express.static(path.join(__dirname, 'LAB6_Dev', 'solution', 'data')));
-app.use('/LAB5_Dev/solution/data', express.static(path.join(__dirname, 'LAB5_Dev', 'solution', 'data')));
-app.use('/lab4/solution/data', express.static(path.join(__dirname, 'lab4', 'solution', 'data')));
-app.use('/lab5/solution/data', express.static(path.join(__dirname, 'lab5', 'solution', 'data')));
+// Serve root static files (index.html, dashboard.html, etc.)
+app.use(express.static(__dirname));
 
 // Submissions API POST: Handles file uploads, auto-grading, and logging
 app.post('/api/submit', (req, res) => {

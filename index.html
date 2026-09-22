@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ศูนย์รวมใบงานปฏิบัติการ IoT - Master Learning Portal</title>
+  
+  <!-- Google Fonts: Outfit, Sarabun, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Central Configuration -->
+  <script src="./config.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: rgba(22, 30, 49, 0.7);
+      --bg-card-hover: rgba(30, 41, 69, 0.85);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-blue: #3b82f6;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #a855f7;
+      --glass-blur: blur(16px);
+      --font-body: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Outfit', 'Sarabun', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 60%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      background: rgba(9, 13, 22, 0.8);
+      border-bottom: 1px solid var(--border-card);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.4rem;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text span {
+      font-size: 0.78rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+      display: block;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .btn-nav-teacher {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-nav-teacher:hover {
+      background: #6366f1;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-nav-github {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-card);
+    }
+
+    .btn-nav-github:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Hero Section */
+    .hero {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      font-family: var(--font-mono);
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 10%, #818cf8 50%, #c084fc 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      max-width: 780px;
+      margin: 0 auto 2.5rem auto;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    /* Statistics Bar */
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto 3rem auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 0 1.5rem;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .stat-number {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Controls: Search & Category Filter */
+    .controls-wrapper {
+      max-width: 1400px;
+      margin: 0 auto 2rem auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .search-box-container {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .search-box-container i {
+      position: absolute;
+      left: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.9rem 1.25rem 0.9rem 3.1rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .filter-tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      padding: 0.5rem 1.1rem;
+      border-radius: 9999px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--font-body);
+    }
+
+    .filter-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.25));
+      border-color: var(--accent-cyan);
+      color: #38bdf8;
+      font-weight: 600;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Main Grid */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem 1.5rem;
+    }
+
+    .module-section {
+      margin-bottom: 3.5rem;
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-card);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .module-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .module-icon {
+      font-size: 1.4rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .module-1 .module-icon { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); }
+    .module-2 .module-icon { background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); }
+    .module-3 .module-icon { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+    .module-4 .module-icon { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+    .module-5 .module-icon { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+
+    .module-header h2 {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .module-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .labs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Lab Card */
+    .lab-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .lab-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, transparent);
+      transition: all 0.3s ease;
+    }
+
+    .lab-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+    }
+
+    .lab-card:hover::before {
+      background: linear-gradient(90deg, #38bdf8, #6366f1);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.85rem;
+    }
+
+    .lab-id-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .tag-diff {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .diff-easy { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .diff-medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .diff-hard { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .diff-pro { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    .lab-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      line-height: 1.35;
+    }
+
+    .lab-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tech-pill {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 1rem;
+    }
+
+    .btn-launch {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: #fff;
+      padding: 0.65rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .btn-launch:hover {
+      background: linear-gradient(135deg, #0369a1, #4338ca);
+      box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-guide {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      text-decoration: none;
+      transition: all 0.25s ease;
+      font-size: 0.95rem;
+    }
+
+    .btn-guide:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-card);
+      background: rgba(9, 13, 22, 0.9);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* No results view */
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .no-results i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0.85rem 1rem;
+      }
+      .brand-text h1 {
+        font-size: 1.05rem;
+      }
+      .hero {
+        padding: 2.5rem 1rem 1.5rem 1rem;
+      }
+      .labs-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    /* GAS Settings Modal */
+    .gas-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .gas-modal {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(99, 102, 241, 0.2);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 960px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .gas-modal-header {
+      padding: 1.25rem 1.75rem;
+      background: rgba(30, 41, 59, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gas-modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .gas-modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .gas-modal-close:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .gas-modal-body {
+      padding: 1.5rem 1.75rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .gas-guide-tip {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.86rem;
+      color: #c7d2fe;
+      line-height: 1.55;
+    }
+    .gas-guide-tip strong {
+      color: #fff;
+    }
+    .gas-lab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .gas-lab-item {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .gas-lab-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .gas-lab-name {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .gas-lab-badge {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .gas-input-wrap {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .gas-input {
+      flex: 1;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .gas-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    }
+    .gas-btn-sm {
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .gas-btn-sm:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .gas-modal-footer {
+      padding: 1rem 1.75rem;
+      background: rgba(15, 23, 42, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+      <div class="brand-text">
+        <h1>IoT Lab Worksheets Portal</h1>
+        <span>ESP32 & ESP8266 HYBRID CLOUD</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <button type="button" class="btn-nav btn-nav-teacher" onclick="openGasSettingsModal()" title="ตั้งค่าลิงก์ Web App Google Apps Script สำหรับรับคะแนน">
+        <i class="fa-solid fa-sliders"></i> ลิงก์ส่งคะแนน (17 Labs)
+      </button>
+      <a href="dashboard.html" class="btn-nav" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35);" title="เปิดแผงควบคุมคุณครู">
+        <i class="fa-solid fa-chalkboard-user"></i> แผงควบคุม (Dashboard)
+      </a>
+      <a href="https://github.com/allarm2553/iot-lab-sheet-apps" target="_blank" rel="noopener noreferrer" class="btn-nav btn-nav-github">
+        <i class="fa-brands fa-github"></i> GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Header -->
+  <header class="hero">
+    <div class="hero-badge">
+      <i class="fa-solid fa-bolt"></i> NEXT-GEN INTERACTIVE E-LEARNING
+    </div>
+    <h1 class="hero-title">
+      ศูนย์รวมใบงานปฏิบัติการ <span class="gradient-text">IoT & Embedded Systems</span>
+    </h1>
+    <p class="hero-subtitle">
+      แพลตฟอร์มการเรียนรู้และทดลองระบบไอโอทีแบบอินเตอร์แอคทีฟ รองรับการจำลอง Wokwi Simulator, การตรวจประเมินคะแนนอัตโนมัติ (10 คะแนน), โค้ดตัวอย่าง Arduino/PlatformIO, และระบบส่งรายงานผลขึ้น Google Sheets
+    </p>
+  </header>
+
+  <!-- Overview Statistics -->
+  <div class="stats-container">
+    <div class="stat-box">
+      <div class="stat-number" id="statLabCount">18+</div>
+      <div class="stat-label">ใบงานปฏิบัติการครบวงจร</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">2 ฮาร์ดแวร์</div>
+      <div class="stat-label">ESP32 & ESP8266</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">10 คะแนน</div>
+      <div class="stat-label">ระบบตรวจอัตโนมัติ + Quiz 5 ข้อ</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">2 สภาพแวดล้อม</div>
+      <div class="stat-label">Google Sheets & Local Server</div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="controls-wrapper">
+    <div class="search-box-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="ค้นหาใบงานด้วยชื่อ, หมายเลข Lab, เซ็นเซอร์, MQTT, WebSocket, OLED...">
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-btn active" data-filter="all"><i class="fa-solid fa-layer-group"></i> ทั้งหมด</button>
+      <button class="filter-btn" data-filter="mod-1"><i class="fa-solid fa-microchip"></i> 1. ฮาร์ดแวร์ & GPIO</button>
+      <button class="filter-btn" data-filter="mod-2"><i class="fa-solid fa-network-wired"></i> 2. Wi-Fi & WebServer</button>
+      <button class="filter-btn" data-filter="mod-3"><i class="fa-solid fa-cloud-arrow-up"></i> 3. Cloud MQTT & Capstone</button>
+      <button class="filter-btn" data-filter="mod-4"><i class="fa-solid fa-chart-line"></i> 4. Node-RED & Analytics</button>
+      <button class="filter-btn" data-filter="mod-5"><i class="fa-solid fa-cubes"></i> 5. แอปพลิเคชัน & เสริม</button>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="main-content" id="labsContainer">
+
+    <!-- Module 1: Foundation & Hardware Control -->
+    <section class="module-section" data-module="mod-1">
+      <div class="module-header module-1">
+        <div class="module-title-group">
+          <div class="module-icon"><i class="fa-solid fa-microchip"></i></div>
+          <h2>หมวดที่ 1: พื้นฐานฮาร์ดแวร์และวงจรควบคุม (Foundation & Hardware IO)</h2>
+        </div>
+        <span class="module-badge">Module 1 (Labs 0 - 2)</span>
+      </div>
+      
+      <div class="labs-grid">
+        
+        <!-- Lab Basic -->
+        <article class="lab-card" data-keywords="basic blink led gpio arduino esp32 esp8266 พื้นฐาน ไฟกะพริบ">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab Basic</span>
+              <span class="tag-diff diff-easy">Beginner</span>
+            </div>
+            <h3 class="lab-title">การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32</h3>
+            <p class="lab-desc">เรียนรู้โครงสร้างขาสัญญาณ (Pinout), คุณสมบัติ Strapping Pins, Input-Only Pins และการเขียนโปรแกรมควบคุมไฟกะพริบเบื้องต้น</p>
+            <div class="tech-tags">
+              <span class="tech-pill">ESP32</span>
+              <span class="tech-pill">ESP8266</span>
+              <span class="tech-pill">GPIO Output</span>
+              <span class="tech-pill">Blink</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab-basic/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab-basic/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 1 -->
+        <article class="lab-card" data-keywords="lab1 adc analog relay gpio transistor sensor เซ็นเซอร์ อนาล็อก รีเลย์ ทรานซิสเตอร์">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 1</span>
+              <span class="tag-diff diff-easy">Beginner</span>
+            </div>
+            <h3 class="lab-title">การอ่านค่าเซ็นเซอร์และการควบคุมเอาต์พุต (GPIO/Relay)</h3>
+            <p class="lab-desc">การอ่านสัญญาณ Analog ด้วย ADC 12-bit, การประมวลผลค่าระดับความเข้มแสง/อุณหภูมิ และการขับโหลดวงจรรีเลย์ด้วยทรานซิสเตอร์</p>
+            <div class="tech-tags">
+              <span class="tech-pill">ADC 12-bit</span>
+              <span class="tech-pill">Relay 5V</span>
+              <span class="tech-pill">Transistor Driver</span>
+              <span class="tech-pill">LDR</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab1/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab1/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 1.1 -->
+        <article class="lab-card" data-keywords="lab1.1 switch button debounce state machine pullup pulldown สวิตช์ ปุ่มกด ดิเด้ง">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 1.1</span>
+              <span class="tag-diff diff-easy">Beginner</span>
+            </div>
+            <h3 class="lab-title">การควบคุมเอาต์พุตด้วยอินพุตสวิตช์ปุ่มกด (Debounce)</h3>
+            <p class="lab-desc">การต่อวงจร Internal Pull-up, ปัญหา Switch Bouncing และการเขียนโค้ดแก้ปัญหาแบบไม่บล็อกเวลาด้วย millis() และ State Machine</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Input Pullup</span>
+              <span class="tech-pill">Software Debounce</span>
+              <span class="tech-pill">State Toggle</span>
+              <span class="tech-pill">Long-press</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab1.1/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab1.1/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 2 -->
+        <article class="lab-card" data-keywords="lab2 oled i2c ssd1306 display screen sda scl กราฟิก จอแสดงผล">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 2</span>
+              <span class="tag-diff diff-easy">Beginner</span>
+            </div>
+            <h3 class="lab-title">การแสดงผลผ่านจอ OLED SSD1306 (I2C 128x64)</h3>
+            <p class="lab-desc">การสื่อสารผ่านบัส I2C (SDA/SCL), โครงสร้าง Display Buffer, การวาดรูปทรงเรขาคณิต และการทำ Dynamic UI แสดงสถานะเซ็นเซอร์สด</p>
+            <div class="tech-tags">
+              <span class="tech-pill">I2C Bus</span>
+              <span class="tech-pill">SSD1306</span>
+              <span class="tech-pill">Adafruit GFX</span>
+              <span class="tech-pill">Display Buffer</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab2/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab2/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Module 2: Network & Embedded Web Server -->
+    <section class="module-section" data-module="mod-2">
+      <div class="module-header module-2">
+        <div class="module-title-group">
+          <div class="module-icon"><i class="fa-solid fa-network-wired"></i></div>
+          <h2>หมวดที่ 2: การเชื่อมต่อไร้สายและเว็บเซิร์ฟเวอร์ฝังตัว (Wireless & Embedded Web)</h2>
+        </div>
+        <span class="module-badge">Module 2 (Labs 3 - 4.1)</span>
+      </div>
+      
+      <div class="labs-grid">
+
+        <!-- Lab 3 -->
+        <article class="lab-card" data-keywords="lab3 webserver littlefs http spiffs flash html css js เว็บเซิร์ฟเวอร์">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 3</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)</h3>
+            <p class="lab-desc">การจัดเก็บไฟล์เว็บ (HTML, CSS, JS) ใน LittleFS Flash Memory และการให้บริการหน้าเว็บฝังตัวผ่าน WebServer (Port 80)</p>
+            <div class="tech-tags">
+              <span class="tech-pill">LittleFS</span>
+              <span class="tech-pill">WebServer (HTTP)</span>
+              <span class="tech-pill">streamFile()</span>
+              <span class="tech-pill">MIME Types</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab3/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab3/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 3.1 -->
+        <article class="lab-card" data-keywords="lab3.1 wifi scan rssi sta ap auto-connect dbm สแกนไวไฟ ความแรงสัญญาณ">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 3.1</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">การเชื่อมต่อ Wi-Fi และสแกนหาเครือข่าย (WiFi Scan & RSSI)</h3>
+            <p class="lab-desc">การสั่งสแกนหา Access Point รอบตัว, การวิเคราะห์ความแรงสัญญาณ RSSI (dBm), โหมด WIFI_STA/AP และการเชื่อมต่ออัตโนมัติ</p>
+            <div class="tech-tags">
+              <span class="tech-pill">WiFi.scanNetworks()</span>
+              <span class="tech-pill">RSSI (dBm)</span>
+              <span class="tech-pill">Station Mode</span>
+              <span class="tech-pill">Auto Connect</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab3.1/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab3.1/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 3.2 -->
+        <article class="lab-card" data-keywords="lab3.2 wifi config captive portal oled auto-reconnect fallback event-driven ตั้งค่าไวไฟ">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 3.2</span>
+              <span class="tag-diff diff-hard">Advanced</span>
+            </div>
+            <h3 class="lab-title">ระบบตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI + OLED Debug & Auto-Reconnect</h3>
+            <p class="lab-desc">สถาปัตยกรรม Captive Portal บันทึกรหัสผ่านลง LittleFS (`/config.json`), จอ OLED ดีบัก 3 โหมด, และ Auto-Fallback กลับเป็น AP ภายใน 30 วินาที</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Captive Portal</span>
+              <span class="tech-pill">Event-Driven Callback</span>
+              <span class="tech-pill">Auto AP Fallback</span>
+              <span class="tech-pill">OLED UI</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab3.2_Wifi_UI_config/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab3.2_Wifi_UI_config/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 4 -->
+        <article class="lab-card" data-keywords="lab4 websocket realtime duplex json event bidirectional ควบคุมเรียลไทม์ สองทาง">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 4</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">การสื่อสารสองทางแบบเรียลไทม์ (Local WebSockets)</h3>
+            <p class="lab-desc">การเชื่อมต่อแบบ Full-Duplex Non-blocking ระหว่างเว็บบราวเซอร์และบอร์ด ESP32 ส่งข้อมูลเซ็นเซอร์และควบคุมสวิตช์แบบทันทีทันใด</p>
+            <div class="tech-tags">
+              <span class="tech-pill">WebSocket</span>
+              <span class="tech-pill">JSON Payload</span>
+              <span class="tech-pill">Full Duplex</span>
+              <span class="tech-pill">Zero Latency</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab4/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab4/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 4.1 -->
+        <article class="lab-card" data-keywords="lab4.1 multi-device websocket dashboard telemetry telemetry gauge telemetry ควบคุมหลายจุด">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 4.1</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">ระบบควบคุมและมอนิเตอร์ฮาร์ดแวร์หลายจุดผ่าน Real-time WebSocket</h3>
+            <p class="lab-desc">การขยายขีดความสามารถ WebSocket รองรับอุปกรณ์เชื่อมต่อพร้อมกันหลายเครื่อง, แดชบอร์ด Gauge อัปเดตข้อมูลเซ็นเซอร์แบบสตรีมมิ่ง</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Multi-client</span>
+              <span class="tech-pill">Telemetry Stream</span>
+              <span class="tech-pill">Live Dashboard</span>
+              <span class="tech-pill">ArduinoJson</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab4.1/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab4.1/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Module 3: Cloud MQTT & Grand Challenge -->
+    <section class="module-section" data-module="mod-3">
+      <div class="module-header module-3">
+        <div class="module-title-group">
+          <div class="module-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <h2>หมวดที่ 3: สื่อสารระดับคลาวด์และโครงงานบูรณาการ (Cloud MQTT & Capstone)</h2>
+        </div>
+        <span class="module-badge">Module 3 (Labs 5 - 6)</span>
+      </div>
+      
+      <div class="labs-grid">
+
+        <!-- Lab 5 -->
+        <article class="lab-card" data-keywords="lab5 mqtt cloud broker pubsub hivemq emqx topic payload คลาวด์ไอโอที">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 5</span>
+              <span class="tag-diff diff-hard">Advanced</span>
+            </div>
+            <h3 class="lab-title">การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT Broker</h3>
+            <p class="lab-desc">โครงสร้างสถาปัตยกรรม Publish/Subscribe, การเชื่อมต่อ Cloud Broker (EMQX / HiveMQ), โครงสร้าง Topic, และการสั่งงานข้ามอินเทอร์เน็ต</p>
+            <div class="tech-tags">
+              <span class="tech-pill">MQTT Broker</span>
+              <span class="tech-pill">PubSubClient</span>
+              <span class="tech-pill">QoS 0/1/2</span>
+              <span class="tech-pill">Cloud Telemetry</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab5/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab5/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 5 Dev -->
+        <article class="lab-card" data-keywords="lab5 dev dht11 dht22 temperature humidity mqtt live stream จำลอง">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 5 (Dev)</span>
+              <span class="tag-diff diff-hard">Advanced</span>
+            </div>
+            <h3 class="lab-title">MQTT Telemetry Node (DHT Sensor & Multi-Control)</h3>
+            <p class="lab-desc">เวอร์ชันพัฒนาขั้นสูง เชื่อมต่อเซ็นเซอร์วัดอุณหภูมิและความชื้น DHT11/22 ส่งข้อมูล JSON Telemetry เข้าสู่ระบบคลาวด์แบบอัตโนมัติ</p>
+            <div class="tech-tags">
+              <span class="tech-pill">DHT11/22</span>
+              <span class="tech-pill">JSON Stream</span>
+              <span class="tech-pill">Wokwi Ready</span>
+              <span class="tech-pill">Cloud MQTT</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="LAB5_Dev/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="LAB5_Dev/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 6 -->
+        <article class="lab-card" data-keywords="lab6 hybrid node local cloud websocket mqtt capstone grand challenge บูรณาการ">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 6</span>
+              <span class="tag-diff diff-pro">Capstone</span>
+            </div>
+            <h3 class="lab-title">การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)</h3>
+            <p class="lab-desc">สุดยอดโครงงานผสาน 2 โลก: รัน WebSockets ภายในวง LAN ทำงานคู่ขนานกับ Cloud MQTT พร้อมระบบ Fail-safe ทำงานได้แม้อินเทอร์เน็ตดับ</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Hybrid Node</span>
+              <span class="tech-pill">Local WebSocket</span>
+              <span class="tech-pill">Cloud MQTT</span>
+              <span class="tech-pill">Fail-safe</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab6/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab6/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 6 Performance -->
+        <article class="lab-card" data-keywords="lab6 perform performance industrial telemetry dynamic pin factory reset อุตสาหกรรม">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 6 (Perform)</span>
+              <span class="tag-diff diff-pro">Capstone</span>
+            </div>
+            <h3 class="lab-title">Industrial Hybrid Node Performance & Configuration</h3>
+            <p class="lab-desc">การปรับแต่งฮาร์ดแวร์แบบไดนามิกผ่านเว็บ, ระบบ Factory Reset, การบันทึกพินและเซ็นเซอร์ลง Flash Memory และการวัดประสิทธิภาพโหนด</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Industrial Grade</span>
+              <span class="tech-pill">Dynamic Config</span>
+              <span class="tech-pill">Hardware Audit</span>
+              <span class="tech-pill">Auto Recovery</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="LAB6_Perform/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="LAB6_Perform/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Module 4: Big Data, Analytics & Visualization -->
+    <section class="module-section" data-module="mod-4">
+      <div class="module-header module-4">
+        <div class="module-title-group">
+          <div class="module-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h2>หมวดที่ 4: การประมวลผลและการวิเคราะห์ข้อมูลขนาดใหญ่ (Analytics & Visualization)</h2>
+        </div>
+        <span class="module-badge">Module 4 (Labs 7 - 9)</span>
+      </div>
+      
+      <div class="labs-grid">
+
+        <!-- Lab 7 -->
+        <article class="lab-card" data-keywords="lab7 nodered node-red flow dashboard automation logic แดชบอร์ด โหนดเรด">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 7</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">การเชื่อมโยงข้อมูลและการสร้างแดชบอร์ดด้วย Node-RED</h3>
+            <p class="lab-desc">การสร้าง Flow อัตโนมัติรับข้อมูลจาก MQTT, การประมวลผล Logic ด้วย JavaScript Function Node, และการออกแบบ Dashboard สวยงาม</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Node-RED</span>
+              <span class="tech-pill">MQTT Node</span>
+              <span class="tech-pill">UI Dashboard</span>
+              <span class="tech-pill">Automation Rule</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab7/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab7/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 8 -->
+        <article class="lab-card" data-keywords="lab8 influxdb time-series database data logging bucket measurement ฐานข้อมูลอนุกรมเวลา">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 8</span>
+              <span class="tag-diff diff-hard">Advanced</span>
+            </div>
+            <h3 class="lab-title">การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)</h3>
+            <p class="lab-desc">โครงสร้างฐานข้อมูลแบบ Time-Series (Bucket, Measurement, Tags, Fields), การบันทึกข้อมูลเทเลเมทรีความเร็วสูงจาก IoT Gateway</p>
+            <div class="tech-tags">
+              <span class="tech-pill">InfluxDB v2</span>
+              <span class="tech-pill">Time-Series DB</span>
+              <span class="tech-pill">Line Protocol</span>
+              <span class="tech-pill">Data Retention</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab8/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab8/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab 9 -->
+        <article class="lab-card" data-keywords="lab9 grafana flux query visualization analytics panel alert กราฟานา วิเคราะห์ข้อมูล">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab 9</span>
+              <span class="tag-diff diff-hard">Advanced</span>
+            </div>
+            <h3 class="lab-title">การวิเคราะห์และแสดงผลข้อมูลย้อนหลังด้วย Grafana</h3>
+            <p class="lab-desc">การเขียนคำสั่ง Flux Query ดึงข้อมูลจาก InfluxDB, การรวมกลุ่มข้อมูลด้วย aggregateWindow(), การสร้างแผงมอนิเตอร์ระดับมืออาชีพ</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Grafana</span>
+              <span class="tech-pill">Flux Query</span>
+              <span class="tech-pill">Time Range Filter</span>
+              <span class="tech-pill">Alerting System</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab9/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab9/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Module 5: Specialized Extensions & Deployment -->
+    <section class="module-section" data-module="mod-5">
+      <div class="module-header module-5">
+        <div class="module-title-group">
+          <div class="module-icon"><i class="fa-solid fa-cubes"></i></div>
+          <h2>หมวดที่ 5: ใบงานเสริมและการแปลงแอปพลิเคชัน (Extensions & Deployment)</h2>
+        </div>
+        <span class="module-badge">Module 5 (Extensions)</span>
+      </div>
+      
+      <div class="labs-grid">
+
+        <!-- Lab Extra (Web UI) -->
+        <article class="lab-card" data-keywords="lab-extra web dashboard html css javascript glassmorphism ออกแบบเว็บแดชบอร์ด">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab Extra</span>
+              <span class="tag-diff diff-easy">Beginner</span>
+            </div>
+            <h3 class="lab-title">การพัฒนา Web Dashboard ด้วย HTML, Modern CSS & JS</h3>
+            <p class="lab-desc">การออกแบบหน้าเว็บควบคุมอุปกรณ์สไตล์ Dark Glassmorphism, การใช้ Grid/Flexbox และการเขียนฟังก์ชัน JavaScript สลับสถานะหลอดไฟและรีเลย์</p>
+            <div class="tech-tags">
+              <span class="tech-pill">HTML5 Canvas</span>
+              <span class="tech-pill">Glassmorphism</span>
+              <span class="tech-pill">DOM Manipulation</span>
+              <span class="tech-pill">Responsive</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab-extra/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab-extra/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab WebConfig WiFi -->
+        <article class="lab-card" data-keywords="lab-webconfig_wifi captive portal dns server wifi manager wifi configurator">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Lab WebConfig</span>
+              <span class="tag-diff diff-medium">Intermediate</span>
+            </div>
+            <h3 class="lab-title">การตั้งค่า Wi-Fi ผ่านหน้าเว็บ Web Configuration</h3>
+            <p class="lab-desc">การสร้างระบบ Captive Portal แบบ Standalone ร่วมกับ DNS Server (Port 53) และการบันทึกค่าชื่อเครือข่าย/รหัสผ่านลง Flash Memory</p>
+            <div class="tech-tags">
+              <span class="tech-pill">DNSServer 53</span>
+              <span class="tech-pill">Captive Portal</span>
+              <span class="tech-pill">HTTP POST</span>
+              <span class="tech-pill">LittleFS</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="lab-webconfig_wifi/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใบงาน</a>
+            <a href="lab-webconfig_wifi/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือปฏิบัติการ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab Fleet Management -->
+        <article class="lab-card" data-keywords="lab6 fleet multi-node industrial esp-now gateway node group จัดการโหนดกลุ่ม">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">Fleet Manager</span>
+              <span class="tag-diff diff-pro">Industrial</span>
+            </div>
+            <h3 class="lab-title">IoT Fleet & Node Cluster Management Portal</h3>
+            <p class="lab-desc">ระบบมอนิเตอร์และบริหารจัดการกลุ่มอุปกรณ์ IoT หลายโหนดพร้อมกันผ่านเครือข่าย Hybrid Gateway สำหรับโรงงานอุตสาหกรรมและสมาร์ตฟาร์ม</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Fleet Dashboard</span>
+              <span class="tech-pill">Multi-Node</span>
+              <span class="tech-pill">Cluster Status</span>
+              <span class="tech-pill">Industrial IoT</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="LAB6_Fleet/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดพอร์ทัล</a>
+            <a href="LAB6_Fleet/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือ"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab Convert2App -->
+        <article class="lab-card" data-keywords="convert2app packaging electron capacitor exe apk desktop mobile แปลงเว็บเป็นแอป">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">App Packaging</span>
+              <span class="tag-diff diff-medium">Deployment</span>
+            </div>
+            <h3 class="lab-title">การแพ็กเกจแดชบอร์ดเป็น Desktop (.exe) & Mobile App (.apk)</h3>
+            <p class="lab-desc">เครื่องมือและสคริปต์อัตโนมัติสำหรับการแปลงไฟล์ HTML/CSS/JS บน IoT Web Dashboard ให้กลายเป็นแอปพลิเคชัน Standalone ติดตั้งใช้งานได้ทันที</p>
+            <div class="tech-tags">
+              <span class="tech-pill">Desktop .EXE</span>
+              <span class="tech-pill">Android .APK</span>
+              <span class="tech-pill">WebIntoApp</span>
+              <span class="tech-pill">Capacitor</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="LAB_Convert2app/index.html" class="btn-launch"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดสตูดิโอ Packaging</a>
+            <a href="LAB_Convert2app/GUIDE.md" target="_blank" class="btn-guide" title="คู่มือ Packaging"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+        <!-- Lab App Install (PWA Mobile) -->
+        <article class="lab-card" data-keywords="lab6 app install pwa progressive web app mobile android ios offline controller">
+          <div>
+            <div class="card-top">
+              <span class="lab-id-badge">PWA App</span>
+              <span class="tag-diff diff-easy">Mobile App</span>
+            </div>
+            <h3 class="lab-title">แอปพลิเคชันควบคุมอุปกรณ์พกพา (Installable PWA)</h3>
+            <p class="lab-desc">แอปพลิเคชัน Progressive Web App รองรับการติดตั้งลงหน้าจอมือถือ (Add to Home Screen) เชื่อมต่อ WebSocket ภายในวง LAN และ Cloud MQTT</p>
+            <div class="tech-tags">
+              <span class="tech-pill">PWA</span>
+              <span class="tech-pill">Offline MQTT</span>
+              <span class="tech-pill">Service Worker</span>
+              <span class="tech-pill">Mobile UI</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="LAB6_AppInstall/index.html" class="btn-launch"><i class="fa-solid fa-mobile-screen-button"></i> เปิด Mobile App</a>
+            <a href="LAB6_AppInstall/GUIDE_APP_INSTALL.md" target="_blank" class="btn-guide" title="คู่มือติดตั้ง"><i class="fa-solid fa-book"></i></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="dashboard.html"><i class="fa-solid fa-chalkboard-user"></i> แผงตรวจคะแนนคุณครู</a>
+      <a href="GIT_WORKFLOW_GUIDE.md" target="_blank"><i class="fa-solid fa-code-branch"></i> คู่มือ Git Workflow</a>
+      <a href="WOKWI_SIMULATION_GUIDE.md" target="_blank"><i class="fa-solid fa-vr-cardboard"></i> คู่มือ Wokwi Simulation</a>
+      <a href="README.md" target="_blank"><i class="fa-solid fa-circle-info"></i> สถาปัตยกรรมระบบ</a>
+    </div>
+    <p>© 2026 IoT Learning Systems • พัฒนาขึ้นสำหรับการเรียนการสอนระบบสมองกลฝังตัวและไอโอที (ESP32 / ESP8266)</p>
+  </footer>
+
+  <!-- Search & Filtering Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const labCards = document.querySelectorAll('.lab-card');
+      const moduleSections = document.querySelectorAll('.module-section');
+      const statLabCount = document.getElementById('statLabCount');
+
+      // Update total lab count
+      if (statLabCount) {
+        statLabCount.textContent = labCards.length + ' Labs';
+      }
+
+      let currentFilter = 'all';
+      let currentQuery = '';
+
+      function applyFilterAndSearch() {
+        const query = currentQuery.toLowerCase().trim();
+        let visibleCount = 0;
+
+        moduleSections.forEach(section => {
+          const modType = section.getAttribute('data-module');
+          const isModuleMatch = (currentFilter === 'all' || currentFilter === modType);
+          let visibleInModule = 0;
+
+          const cards = section.querySelectorAll('.lab-card');
+          cards.forEach(card => {
+            const title = card.querySelector('.lab-title').textContent.toLowerCase();
+            const desc = card.querySelector('.lab-desc').textContent.toLowerCase();
+            const keywords = (card.getAttribute('data-keywords') || '').toLowerCase();
+            const badge = (card.querySelector('.lab-id-badge') ? card.querySelector('.lab-id-badge').textContent.toLowerCase() : '');
+
+            const isTextMatch = query === '' || 
+              title.includes(query) || 
+              desc.includes(query) || 
+              keywords.includes(query) || 
+              badge.includes(query);
+
+            if (isModuleMatch && isTextMatch) {
+              card.style.display = 'flex';
+              visibleInModule++;
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+
+          // Show/hide module section header based on whether any cards match
+          if (visibleInModule > 0) {
+            section.style.display = 'block';
+          } else {
+            section.style.display = 'none';
+          }
+        });
+      }
+
+      // Search input handler
+      searchInput.addEventListener('input', (e) => {
+        currentQuery = e.target.value;
+        applyFilterAndSearch();
+      });
+
+      // Category filter buttons handler
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.getAttribute('data-filter');
+          applyFilterAndSearch();
+        });
+      });
+    });
+
+    // ===== TEACHER GAS CONFIGURATION MODAL =====
+    const LABS_CONFIG_META = [
+      { id: 'lab-basic', label: 'BASIC', name: 'Lab Basic: ติดตั้ง Arduino IDE & Pinout ESP32/ESP8266' },
+      { id: 'lab1', label: 'LAB 01', name: 'Lab 1: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)' },
+      { id: 'lab1.1', label: 'LAB 1.1', name: 'Lab 1.1: การควบคุมเอาต์พุตด้วยสวิตช์ปุ่มกด (Debounce)' },
+      { id: 'lab2', label: 'LAB 02', name: 'Lab 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)' },
+      { id: 'lab3', label: 'LAB 03', name: 'Lab 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)' },
+      { id: 'lab3.1', label: 'LAB 3.1', name: 'Lab 3.1: การเชื่อมต่อ Wi-Fi และสแกนเครือข่าย (WiFi Scan & RSSI)' },
+      { id: 'lab3.2_Wifi_UI_config', label: 'LAB 3.2', name: 'Lab 3.2: ตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI + OLED Debug' },
+      { id: 'lab4', label: 'LAB 04', name: 'Lab 4: การสื่อสารสองทางเรียลไทม์ (Local WebSockets)' },
+      { id: 'lab4.1', label: 'LAB 4.1', name: 'Lab 4.1: ระบบควบคุมและมอนิเตอร์ฮาร์ดแวร์หลายจุด (Multi-WS)' },
+      { id: 'lab5', label: 'LAB 05', name: 'Lab 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT Broker' },
+      { id: 'LAB5_Dev', label: 'LAB 05 DEV', name: 'Lab 5 Dev: MQTT Telemetry Node (DHT Sensor)' },
+      { id: 'lab6', label: 'LAB 06', name: 'Lab 6: โครงงานบูรณาการ Hybrid Node ขั้นสูง (Grand Challenge)' },
+      { id: 'lab7', label: 'LAB 07', name: 'Lab 7: การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED' },
+      { id: 'lab8', label: 'LAB 08', name: 'Lab 8: การบันทึกสถิติตามเวลาด้วย InfluxDB (Data Logging)' },
+      { id: 'lab9', label: 'LAB 09', name: 'Lab 9: การวิเคราะห์และแสดงผลข้อมูลด้วย Grafana' },
+      { id: 'lab-extra', label: 'EXTRA', name: 'Lab Extra: พัฒนา Web Dashboard ด้วย HTML, CSS & JS' },
+      { id: 'lab-webconfig_wifi', label: 'WEBCONFIG', name: 'Lab WebConfig: การตั้งค่า Wi-Fi ผ่าน Captive Portal' }
+    ];
+
+    function openGasSettingsModal() {
+      renderGasModalList();
+      const modal = document.getElementById('gasModalOverlay');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeGasSettingsModal() {
+      const modal = document.getElementById('gasModalOverlay');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'gasModalOverlay') {
+        closeGasSettingsModal();
+      }
+    }
+
+    function renderGasModalList() {
+      const container = document.getElementById('gasModalLabList');
+      if (!container) return;
+
+      container.innerHTML = LABS_CONFIG_META.map(lab => {
+        const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(lab.id) : '') || (typeof LAB_CONFIG !== 'undefined' ? (LAB_CONFIG[lab.id] || '') : '');
+        const isConfigured = currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL');
+        const graderUrl = isConfigured ? (currentUrl.split('?')[0] + '?page=grader') : '#';
+
+        return `
+          <div class="gas-lab-item">
+            <div class="gas-lab-top">
+              <div class="gas-lab-name">
+                <span class="gas-lab-badge">${lab.label}</span>
+                <span>${lab.name}</span>
+              </div>
+              <div style="display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;">
+                <a href="./${lab.id}/Code.gs" download="Code_${lab.id}.gs" class="gas-btn-sm" style="color:#60a5fa; border-color:rgba(96,165,250,0.4);" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
+                  <i class="fa-solid fa-download"></i> Code.gs
+                </a>
+                <button type="button" class="gas-btn-sm" onclick="copyCodeGsFromModal('${lab.id}')" style="color:#c084fc; border-color:rgba(192,132,252,0.4); cursor:pointer;" title="คัดลอกโค้ด Code.gs ไปวางใน Apps Script">
+                  <i class="fa-solid fa-copy"></i> คัดลอก
+                </button>
+                ${isConfigured 
+                  ? `<button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน"><i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน</button>
+                     <a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
+                  : `<span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> ยังไม่ได้ใส่ลิงก์</span>`
+                }
+              </div>
+            </div>
+            <div class="gas-input-wrap">
+              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${currentUrl}" placeholder="https://script.google.com/macros/s/.../exec">
+              ${isConfigured 
+                ? `<a href="${currentUrl}" target="_blank" class="gas-btn-sm" title="ทดสอบเปิด URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` 
+                : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveGasSettingsFromModal() {
+      LABS_CONFIG_META.forEach(lab => {
+        const input = document.getElementById('modal_url_' + lab.id);
+        if (input && window.localStorage) {
+          const val = input.value.trim();
+          if (val && val.startsWith('https://script.google.com')) {
+            localStorage.setItem('gas_url_' + lab.id, val);
+            if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[lab.id] = val;
+          } else {
+            localStorage.removeItem('gas_url_' + lab.id);
+          }
+        }
+      });
+
+      renderGasModalList();
+      closeGasSettingsModal();
+      alert('✅ บันทึกลิงก์ Google Apps Script ลงในเบราว์เซอร์เรียบร้อยแล้ว! ทุกใบงานจะส่งคะแนนตรงไปยัง Google Sheets ตามที่ท่านกำหนด');
+    }
+
+    function resetGasSettingsToDefault() {
+      if (!confirm('ต้องการล้างค่าลิงก์ที่บันทึกไว้ในเบราว์เซอร์นี้แล้วกลับไปใช้ค่าเริ่มต้นหรือไม่?')) return;
+      LABS_CONFIG_META.forEach(lab => {
+        localStorage.removeItem('gas_url_' + lab.id);
+      });
+      renderGasModalList();
+      alert('รีเซ็ตการตั้งค่าเรียบร้อยแล้ว');
+    }
+
+    function copyConfigJsSnippet() {
+      const configObj = {};
+      LABS_CONFIG_META.forEach(lab => {
+        const input = document.getElementById('modal_url_' + lab.id);
+        configObj[lab.id] = (input && input.value.trim()) ? input.value.trim() : ('YOUR_GAS_URL_FOR_' + lab.id.toUpperCase().replace(/[-\.]/g, '_'));
+      });
+
+      const snippet = "const LAB_CONFIG = " + JSON.stringify(configObj, null, 2) + ";\n\nfunction getLabScriptUrl(labId) {\n  if (typeof window !== 'undefined') {\n    if (window.location && window.location.search) {\n      const params = new URLSearchParams(window.location.search);\n      const queryGas = params.get('gas') || params.get('gas_url');\n      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) {\n        const cleanGas = queryGas.trim();\n        if (window.localStorage && labId) {\n          try { window.localStorage.setItem('gas_url_' + labId, cleanGas); } catch(e){}\n        }\n        return cleanGas;\n      }\n    }\n    if (window.localStorage) {\n      const custom = window.localStorage.getItem('gas_url_' + labId);\n      if (custom && custom.trim().startsWith('https://script.google.com')) return custom.trim();\n    }\n  }\n  const url = LAB_CONFIG[labId] || '';\n  return (url && !url.includes('YOUR_GAS_URL')) ? url.trim() : '';\n}\n\nif (typeof module !== 'undefined' && module.exports) module.exports = { LAB_CONFIG, getLabScriptUrl };";
+
+      navigator.clipboard.writeText(snippet).then(() => {
+        alert('📋 คัดลอกโค้ดคอนฟิกเรียบร้อยแล้ว! สามารถนำไปวางแทนที่เนื้อหาในไฟล์ config.js แล้ว commit ขึ้น GitHub ได้ทันที');
+      }).catch(() => {
+        prompt('คัดลอกโค้ดด้านล่างนี้ไปวางในไฟล์ config.js:', snippet);
+      });
+    }
+
+    function copyCodeGsFromModal(labId) {
+      fetch('./' + labId + '/Code.gs')
+        .then(res => {
+          if (!res.ok) throw new Error('Network error');
+          return res.text();
+        })
+        .then(code => {
+          navigator.clipboard.writeText(code).then(() => {
+            alert('📋 คัดลอก Code.gs สำหรับ ' + labId + ' สำเร็จแล้ว!\nนำไปเปิดใน Google Apps Script แล้วกด Ctrl+V วางเพื่อ Deploy ได้ทันที');
+          }).catch(() => {
+            prompt('คัดลอกโค้ดด้านล่างนี้สำหรับ ' + labId + ':', code);
+          });
+        })
+        .catch(() => {
+          window.open('https://github.com/allarm2553/iot-lab-sheet-apps/blob/main/' + labId + '/Code.gs', '_blank');
+        });
+    }
+
+    function copyStudentShareLinkFromModal(labId) {
+      const input = document.getElementById('modal_url_' + labId);
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      if (!val || !val.startsWith('https://script.google.com')) {
+        alert('⚠️ ยังไม่ได้ระบุลิงก์ GAS สำหรับ ' + labId + '\nกรุณาใส่ Web App URL ในช่องก่อนคัดลอกลิงก์ให้นักเรียน');
+        return;
+      }
+      const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + labId + '/';
+      const shareUrl = baseUrl + '?gas=' + encodeURIComponent(val);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('🎉 คัดลอกลิงก์สำเร็จ!\n\n' + shareUrl + '\n\nส่งลิงก์นี้ให้นักเรียนเข้าทำ ' + labId + ' ได้ทันที!');
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
+      });
+    }
+  </script>
+
+  <!-- GAS Settings Modal -->
+  <div class="gas-modal-overlay" id="gasModalOverlay" onclick="handleModalOverlayClick(event)">
+    <div class="gas-modal">
+      <div class="gas-modal-header">
+        <div class="gas-modal-title">
+          <i class="fa-solid fa-sliders" style="color:#818cf8;"></i> ตั้งค่าลิงก์ส่งคะแนน Google Apps Script (17 Labs)
+        </div>
+        <button type="button" class="gas-modal-close" onclick="closeGasSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="gas-modal-body">
+        <div class="gas-guide-tip">
+          <strong><i class="fa-solid fa-circle-info"></i> คำแนะนำสำหรับอาจารย์ผู้สอน:</strong><br>
+          1. กดปุ่ม <strong>"📥 Code.gs"</strong> หรือ <strong>"📋 คัดลอก"</strong> เพื่อนำโค้ดประจำแล็บไปสร้าง Google Apps Script ได้ทันที<br>
+          2. นำ <strong>Web App URL</strong> ที่ได้จากการ Deploy มาวางในช่อง แล้วกด <strong>"💾 บันทึก"</strong> หรือกด <strong>"🔗 ลิงก์นักเรียน"</strong> เพื่อส่งให้นักศึกษาเข้าทำใบงาน<br>
+          3. กด <strong>"📋 คัดลอกโค้ดสำหรับ config.js"</strong> หากต้องการนำไปอัปเดตไฟล์ config.js บน GitHub เพื่อแชร์ให้ทุกคนใช้ร่วมกัน
+        </div>
+
+        <div class="gas-lab-list" id="gasModalLabList">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <div class="gas-modal-footer">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="gas-btn-sm" style="background:#4f46e5; color:#fff; border-color:#6366f1;" onclick="saveGasSettingsFromModal()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกลงเบราว์เซอร์ (Save)
+          </button>
+          <button type="button" class="gas-btn-sm" onclick="copyConfigJsSnippet()">
+            <i class="fa-solid fa-code"></i> คัดลอกโค้ดสำหรับ config.js
+          </button>
+          <button type="button" class="gas-btn-sm" style="color:#f87171;" onclick="resetGasSettingsToDefault()">
+            <i class="fa-solid fa-rotate-left"></i> รีเซ็ตเป็นค่าเริ่มต้น
+          </button>
+        </div>
+        <button type="button" class="gas-btn-sm" onclick="closeGasSettingsModal()">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

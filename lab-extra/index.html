@@ -11,6 +11,8 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <script src="../config.js"></script>
+
   <style>
     /* CSS Variables & Design System */
     :root {
@@ -1292,6 +1294,44 @@ window.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
+          <!-- เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL Box) -->
+          <div class="gas-connect-box" style="background: rgba(15, 23, 42, 0.7); border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 1rem 1.25rem; margin: 1.25rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+              <div style="font-weight: 600; font-size: 0.92rem; color: #f8fafc; display: flex; align-items: center; gap: 0.45rem;">
+                <i class="fa-solid fa-link" style="color: #60a5fa;"></i> เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL):
+              </div>
+              <span id="teacherGasBadge" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.76rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">
+                นำลิงก์ Web App จาก Google Apps Script ของผู้สอนมาวาง เพื่อบันทึกคะแนนลงชีตของท่านโดยตรง
+              </div>
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                <a href="./Code.gs" download="Code_lab-extra.gs" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
+                  <i class="fa-solid fa-download"></i> โหลด Code.gs
+                </a>
+                <button type="button" onclick="copyCodeGsContent('lab-extra')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="คัดลอกโค้ด Code.gs ไปวางใน Google Apps Script">
+                  <i class="fa-solid fa-copy"></i> คัดลอก Code.gs
+                </button>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="teacherGasUrlInput" placeholder="วางลิงก์ https://script.google.com/macros/s/.../exec ที่นี่..." style="flex: 1; min-width: 240px; background: rgba(11, 17, 32, 0.9); border: 1px solid #334155; border-radius: 7px; padding: 0.45rem 0.75rem; color: #f8fafc; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; outline: none;">
+              <button type="button" onclick="saveTeacherGasUrl('lab-extra')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                <i class="fa-solid fa-floppy-disk"></i> บันทึก URL
+              </button>
+              <button type="button" onclick="copyStudentShareLink('lab-extra')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="คัดลอกลิงก์ที่แนบ Google Apps Script ส่งให้นักเรียน">
+                <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์ให้นักเรียน
+              </button>
+              <button type="button" onclick="testTeacherGasUrl('lab-extra')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
+              </button>
+            </div>
+          </div>
+
+
           <!-- 2. Challenge Code Explanation -->
           <div class="form-section">
             <div class="form-section-title">
@@ -1867,6 +1907,7 @@ window.addEventListener('DOMContentLoaded', () => {
         conclusion
       };
 
+      const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab-extra') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler((response) => {
@@ -2403,6 +2444,137 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
     window.addEventListener('DOMContentLoaded', initAntiCheat);
+
+  
+
+    // ===== TEACHER GOOGLE SHEETS CONNECTION MANAGEMENT =====
+    function initTeacherGasBox() {
+      const input = document.getElementById('teacherGasUrlInput');
+      const badge = document.getElementById('teacherGasBadge');
+      if (!input || !badge) return;
+
+      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab-extra') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      if (currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL') && !currentUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
+        input.value = currentUrl;
+        badge.style.background = 'rgba(16, 185, 129, 0.15)';
+        badge.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+        badge.style.color = '#6ee7b7';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> เชื่อมต่อ Google Sheets ผู้สอนแล้ว';
+      } else {
+        badge.style.background = 'rgba(59, 130, 246, 0.12)';
+        badge.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+        badge.style.color = '#93c5fd';
+        badge.innerHTML = '<i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)';
+      }
+    }
+
+    function saveTeacherGasUrl(labId) {
+      const input = document.getElementById('teacherGasUrlInput');
+      if (!input) return;
+      const val = input.value.trim();
+      if (val && !val.startsWith('https://script.google.com')) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'error', title: 'URL ไม่ถูกต้อง', text: 'กรุณาวาง Web App URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/.../exec' });
+        } else if (typeof showModal === 'function') {
+          showModal('URL ไม่ถูกต้อง', 'กรุณาวาง Web App URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/.../exec', false);
+        } else {
+          alert('URL ไม่ถูกต้อง: กรุณาวาง Web App URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/.../exec');
+        }
+        return;
+      }
+      if (val) {
+        localStorage.setItem('gas_url_' + labId, val);
+        if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[labId] = val;
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'เชื่อมต่อ Web App เรียบร้อยแล้ว ใบงานนี้จะส่งข้อมูลและประเมินผลคะแนนตรงไปยัง Google Sheets ของท่านทันที' });
+        } else if (typeof showModal === 'function') {
+          showModal('บันทึกสำเร็จ!', 'เชื่อมต่อ Web App เรียบร้อยแล้ว ใบงานนี้จะส่งข้อมูลและประเมินผลคะแนนตรงไปยัง Google Sheets ของท่านทันที', true);
+        } else {
+          alert('บันทึกสำเร็จ! เชื่อมต่อ Web App เรียบร้อยแล้ว');
+        }
+      } else {
+        localStorage.removeItem('gas_url_' + labId);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'info', title: 'ล้างการเชื่อมต่อ', text: 'ล้างค่า URL แล้ว ระบบจะกลับไปทำงานในโหมดจำลองผลออฟไลน์' });
+        } else if (typeof showModal === 'function') {
+          showModal('ล้างการเชื่อมต่อ', 'ล้างค่า URL แล้ว ระบบจะกลับไปทำงานในโหมดจำลองผลออฟไลน์', true);
+        } else {
+          alert('ล้างค่า URL แล้ว ระบบจะกลับไปทำงานในโหมดจำลองผลออฟไลน์');
+        }
+      }
+      initTeacherGasBox();
+    }
+
+    function copyCodeGsContent(labId) {
+      fetch('./Code.gs')
+        .then(res => {
+          if (!res.ok) throw new Error('Network error');
+          return res.text();
+        })
+        .then(code => {
+          navigator.clipboard.writeText(code).then(() => {
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({ icon: 'success', title: 'คัดลอก Code.gs สำเร็จ! 🎉', text: 'คัดลอกโค้ด Google Apps Script ประจำแล็บนี้ลง Clipboard เรียบร้อยแล้ว\n\nสามารถเปิด Google Apps Script แล้วกด Ctrl+V วางเพื่อ Deploy ได้ทันที!' });
+            } else if (typeof showModal === 'function') {
+              showModal('คัดลอก Code.gs สำเร็จ! 🎉', 'คัดลอกโค้ด Google Apps Script ประจำแล็บนี้ลง Clipboard เรียบร้อยแล้ว\n\nสามารถเปิด Google Apps Script แล้วกด Ctrl+V วางเพื่อ Deploy ได้ทันที!', true);
+            } else {
+              alert('คัดลอก Code.gs สำเร็จ! สามารถเปิด Google Apps Script แล้วกด Ctrl+V วางเพื่อ Deploy ได้ทันที');
+            }
+          }).catch(() => {
+            prompt('คัดลอกโค้ดด้านล่างนี้ไปวางใน Code.gs:', code);
+          });
+        })
+        .catch(() => {
+          window.open('https://github.com/allarm2553/iot-lab-sheet-apps/blob/main/' + labId + '/Code.gs', '_blank');
+        });
+    }
+
+    function copyStudentShareLink(labId) {
+      const input = document.getElementById('teacherGasUrlInput');
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      if (!val || !val.startsWith('https://script.google.com')) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุลิงก์ GAS', text: 'กรุณาวาง Web App URL ในช่องแล้วกดบันทึก ก่อนคัดลอกลิงก์ส่งให้นักเรียน' });
+        } else if (typeof showModal === 'function') {
+          showModal('ยังไม่ได้ระบุลิงก์ GAS', 'กรุณาวาง Web App URL ในช่องแล้วกดบันทึก ก่อนคัดลอกลิงก์ส่งให้นักเรียน', false);
+        } else {
+          alert('ยังไม่ได้ระบุลิงก์ GAS: กรุณาวาง Web App URL ในช่องแล้วกดบันทึก ก่อนคัดลอกลิงก์ส่งให้นักเรียน');
+        }
+        return;
+      }
+      const shareUrl = window.location.origin + window.location.pathname + '?gas=' + encodeURIComponent(val);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์สำเร็จ! 🎉', text: 'คัดลอกลิงก์ใบงานที่แนบระบบส่งคะแนนของคุณเรียบร้อยแล้ว:\n\n' + shareUrl + '\n\nสามารถส่งลิงก์นี้ให้นักเรียนในห้องเรียนได้ทันที!' });
+        } else if (typeof showModal === 'function') {
+          showModal('คัดลอกลิงก์สำเร็จ! 🎉', 'คัดลอกลิงก์ใบงานที่แนบระบบส่งคะแนนของคุณเรียบร้อยแล้ว:\n\n' + shareUrl + '\n\nสามารถส่งลิงก์นี้ให้นักเรียนในห้องเรียนได้ทันที!', true);
+        } else {
+          alert('คัดลอกลิงก์สำเร็จ!\n\n' + shareUrl);
+        }
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
+      });
+    }
+
+    function testTeacherGasUrl(labId) {
+      const input = document.getElementById('teacherGasUrlInput');
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      if (!val || !val.startsWith('https://script.google.com')) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'error', title: 'ไม่พบคอนฟิก URL', text: 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ' });
+        } else if (typeof showModal === 'function') {
+          showModal('ไม่พบคอนฟิก URL', 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ', false);
+        } else {
+          alert('ไม่พบคอนฟิก URL: กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ');
+        }
+        return;
+      }
+      window.open(val.split('?')[0] + '?page=grader', '_blank');
+    }
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initTeacherGasBox, 100);
+    });
 
   </script>
 </body>

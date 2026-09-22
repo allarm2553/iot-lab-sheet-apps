@@ -168,5 +168,6 @@ void loop() {
     Serial.printf("[STATUS] %s: Temp=%.1f C | Hum=%.1f%% | ADC=%.1f%% (Raw: %d) | Fan=%s | Mist=%s\n",
                   SENSOR_NAME, temperature, humidity, analogPercent, rawAnalog,
                   fanState ? "ON" : "OFF", mistState ? "ON" : "OFF");
+    Serial.println("");
   }
 }

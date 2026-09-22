@@ -23,8 +23,8 @@
 #include <ArduinoJson.h>
 #include <DHT.h>
 
-const char* ssid = "iot_512";
-const char* password = "iot123456";
+const char* ssid = "Wokwi-GUEST";
+const char* password = "";
 
 // MQTT settings
 const char* mqttServer = "broker.emqx.io";

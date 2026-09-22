@@ -11,6 +11,9 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- Central Configuration -->
+  <script src="./config.js"></script>
+
   <style>
     /* CSS Variables & Design System */
     :root {
@@ -654,9 +657,176 @@
       .main-card {
         background: transparent !important;
         border: none !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-      }
+    /* GAS Settings Modal */
+    .gas-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .gas-modal {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(99, 102, 241, 0.2);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 960px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .gas-modal-header {
+      padding: 1.25rem 1.75rem;
+      background: rgba(30, 41, 59, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gas-modal-title {
+      font-family: var(--heading-font);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .gas-modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .gas-modal-close:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .gas-modal-body {
+      padding: 1.5rem 1.75rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .gas-guide-tip {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.86rem;
+      color: #c7d2fe;
+      line-height: 1.55;
+    }
+    .gas-guide-tip strong {
+      color: #fff;
+    }
+    .gas-lab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .gas-lab-item {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .gas-lab-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .gas-lab-name {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .gas-lab-badge {
+      font-size: 0.72rem;
+      font-family: var(--mono-font);
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .gas-input-wrap {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .gas-input {
+      flex: 1;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      color: #f8fafc;
+      font-family: var(--mono-font);
+      font-size: 0.82rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .gas-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    }
+    .gas-btn-sm {
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .gas-btn-sm:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .gas-modal-footer {
+      padding: 1rem 1.75rem;
+      background: rgba(15, 23, 42, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
   </style>
 </head>
@@ -673,8 +843,13 @@
           <span>IoT Web Apps Submission Server - Local Mode</span>
         </div>
       </div>
-      <div style="font-size: 0.85rem; color: var(--text-muted);">
-        <i class="fa-regular fa-clock" style="margin-right: 0.25rem;"></i> เซิร์ฟเวอร์และระบบตรวจคะแนนอัตโนมัติเปิดอยู่
+      <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <button type="button" onclick="openGasSettingsModal()" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.35); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease;">
+          <i class="fa-solid fa-sliders"></i> ลิงก์ส่งคะแนน GAS (17 Labs)
+        </button>
+        <a href="index.html" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease;">
+          <i class="fa-solid fa-layer-group"></i> หน้าศูนย์รวมใบงาน (Master Portal)
+        </a>
       </div>
     </header>
 
@@ -899,9 +1074,14 @@
       'lab2': { title: 'ใบงานที่ 2', name: 'การแสดงผลผ่านจอ OLED SSD1306 (I2C)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. ขาสัญญาณหลัก I2C (SDA และ SCL) มีหน้าที่อะไรแตกต่างกันอย่างไร?', q2: '2. ในการสั่งวาดข้อมูลบนจอ เหตุใดจึงต้องสั่ง display.display() ตามหลังคำสั่งการวาด?' },
       'lab3': { title: 'ใบงานที่ 3', name: 'เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. LittleFS และ SPIFFS มีความแตกต่างกันอย่างไร และเหตุใดจึงนิยมนำมาใช้กับ ESP32?', q2: '2. ในการส่งไฟล์เว็บผ่านระบบ Network การเรียกใช้งาน streamFile ส่งผลดีกว่า send อย่างไร?' },
       'lab3.1': { title: 'ใบงานที่ 3.1', name: 'การเชื่อมต่อ WiFi เบื้องต้น (WiFi Scan & Station Mode)', codeLabel: 'โค้ดโจทย์ท้าทาย (Scan + Connect + LED Blink)', q1: '1. RSSI ย่อมาจากอะไร และค่า RSSI ที่สัญญาณแรงกว่าควรมีค่าเป็นอย่างไร?', q2: '2. ความแตกต่างระหว่าง WIFI_STA, WIFI_AP และ WIFI_AP_STA คืออะไร?' },
+      'lab3.2_Wifi_UI_config': { title: 'ใบงานที่ 3.2', name: 'ระบบตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI + OLED Debug & Auto-Reconnect', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายการทำงานของ Captive Portal และ DNS Server (Port 53)', q2: '2. ข้อดีของ Event-Driven Auto-Reconnect เมื่อเทียบกับ Polling ใน loop() คืออะไร?' },
       'lab4': { title: 'ใบงานที่ 4', name: 'ส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. สรุปข้อดีของการส่งข้อมูลแบบ WebSocket เมื่อเทียบกับการดึงข้อมูลแบบ HTTP Polling', q2: '2. โครงสร้าง JSON payload มีประโยชน์ต่องานส่งข้อมูลควบคุมอุปกรณ์ฝั่งฮาร์ดแวร์อย่างไร?' },
+      'lab4.1': { title: 'ใบงานที่ 4.1', name: 'ระบบมอนิเตอร์และควบคุมหลายจุดผ่าน WebSocket Telemetry', codeLabel: 'โค้ดโจทย์ท้าทาย (C++)', q1: '1. สถาปัตยกรรม Multi-client WebSocket จัดการการส่งข้อมูลพร้อมกันอย่างไร?', q2: '2. การส่งข้อมูลแบบ JSON Stringify ใน WebSocket ช่วยให้สเกลระบบได้ง่ายขึ้นอย่างไร?' },
       'lab5': { title: 'ใบงานที่ 5', name: 'การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายโครงสร้างของ Pub/Sub และหน้าที่หลักของ MQTT Broker', q2: '2. การชนกันของ Client ID ในการเข้าเชื่อมต่อ Broker ก่อให้เกิดผลลัพธ์ที่เป็นอันตรายอย่างไร?' },
+      'LAB5_Dev': { title: 'ใบงานที่ 5 (Dev)', name: 'MQTT Telemetry Node (DHT Sensor & Multi-Control)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายการทำงานของ DHT11/22 และการแปลงค่าเป็น JSON Telemetry', q2: '2. การ Publish ข้อมูลแบบ Non-blocking มีผลต่อความเสถียรอย่างไร?' },
       'lab6': { title: 'ใบงานที่ 6', name: 'การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายความสำคัญของการสั่งรีเซ็ตเชื่อมต่อ MQTT แบบ Non-blocking', q2: '2. การนำระบบ Hybrid Node รันภายในวง LAN เครือข่ายออฟไลน์มีประโยชน์กับอุตสาหกรรมอย่างไร?' },
+      'LAB6_Dev': { title: 'ใบงานที่ 6 (Dev)', name: 'Hybrid Node Grand Challenge (Development)', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. อธิบายการทำงานร่วมกันระหว่าง WebSocket Server และ MQTT Client', q2: '2. ระบบ Fail-safe ทำงานอย่างไรเมื่อเน็ตหลุด?' },
+      'LAB6_Perform': { title: 'ใบงานที่ 6 (Perform)', name: 'Industrial Hybrid Node Performance & Config', codeLabel: 'โค้ดคำตอบช่องกวดขัน', q1: '1. การปรับแต่ง Hardware Pin ผ่าน Web Config มีประโยชน์อย่างไร?', q2: '2. การทดสอบวัดความหน่วง (Latency) ของ WebSocket vs MQTT ต่างกันอย่างไร?' },
       'lab-extra': { title: 'ใบงานเสริม', name: 'การพัฒนา Web Dashboard ด้วย HTML, CSS & JS', codeLabel: 'อธิบายกระบวนการพัฒนา Challenge', q1: '1. คุณสมบัติ backdrop-filter: blur(8px) ส่งผลอย่างไรต่อการแสดงผลแดชบอร์ดแบบ Glassmorphism?', q2: '2. ฟังก์ชัน document.getElementById() มีหน้าที่อะไร?' },
       'lab7': { title: 'ใบงานที่ 7', name: 'การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED', codeLabel: 'โค้ด JavaScript โหนด function (ตรวจสอบความชื้น)', q1: '1. โหนด json ใน Node-RED ทำหน้าที่อะไรและเหตุใดจึงต้องใช้ต่อท้ายโหนด mqtt in?', q2: '2. โหนด change มีประโยชน์อย่างไรเมื่อต่อเชื่อมโยงกับ ui_switch ก่อนส่งออก mqtt out?' },
       'lab8': { title: 'ใบงานที่ 8', name: 'การบันทึกสถิติมิติตามเวลาด้วย InfluxDB (Data Logging)', codeLabel: 'โค้ด JavaScript โหนด function (แปลงรีเลย์ ON/OFF เป็น 1/0)', q1: '1. เหตุใดการเก็บข้อมูลเซ็นเซอร์จึงนิยมเก็บลงฐานข้อมูล Time-Series มากกว่า MySQL?', q2: '2. อธิบายความหมายของโครงสร้าง Bucket, Measurement, Tags, และ Fields ใน InfluxDB' },
@@ -1301,6 +1481,205 @@
       link.click();
       document.body.removeChild(link);
     }
+
+    // ===== TEACHER GAS CONFIGURATION MODAL =====
+    const LABS_CONFIG_META = [
+      { id: 'lab-basic', label: 'BASIC', name: 'Lab Basic: ติดตั้ง Arduino IDE & Pinout ESP32/ESP8266' },
+      { id: 'lab1', label: 'LAB 01', name: 'Lab 1: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)' },
+      { id: 'lab1.1', label: 'LAB 1.1', name: 'Lab 1.1: การควบคุมเอาต์พุตด้วยสวิตช์ปุ่มกด (Debounce)' },
+      { id: 'lab2', label: 'LAB 02', name: 'Lab 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)' },
+      { id: 'lab3', label: 'LAB 03', name: 'Lab 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)' },
+      { id: 'lab3.1', label: 'LAB 3.1', name: 'Lab 3.1: การเชื่อมต่อ Wi-Fi และสแกนเครือข่าย (WiFi Scan & RSSI)' },
+      { id: 'lab3.2_Wifi_UI_config', label: 'LAB 3.2', name: 'Lab 3.2: ตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI + OLED Debug' },
+      { id: 'lab4', label: 'LAB 04', name: 'Lab 4: การสื่อสารสองทางเรียลไทม์ (Local WebSockets)' },
+      { id: 'lab4.1', label: 'LAB 4.1', name: 'Lab 4.1: ระบบควบคุมและมอนิเตอร์ฮาร์ดแวร์หลายจุด (Multi-WS)' },
+      { id: 'lab5', label: 'LAB 05', name: 'Lab 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT Broker' },
+      { id: 'LAB5_Dev', label: 'LAB 05 DEV', name: 'Lab 5 Dev: MQTT Telemetry Node (DHT Sensor)' },
+      { id: 'lab6', label: 'LAB 06', name: 'Lab 6: โครงงานบูรณาการ Hybrid Node ขั้นสูง (Grand Challenge)' },
+      { id: 'lab7', label: 'LAB 07', name: 'Lab 7: การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED' },
+      { id: 'lab8', label: 'LAB 08', name: 'Lab 8: การบันทึกสถิติตามเวลาด้วย InfluxDB (Data Logging)' },
+      { id: 'lab9', label: 'LAB 09', name: 'Lab 9: การวิเคราะห์และแสดงผลข้อมูลด้วย Grafana' },
+      { id: 'lab-extra', label: 'EXTRA', name: 'Lab Extra: พัฒนา Web Dashboard ด้วย HTML, CSS & JS' },
+      { id: 'lab-webconfig_wifi', label: 'WEBCONFIG', name: 'Lab WebConfig: การตั้งค่า Wi-Fi ผ่าน Captive Portal' }
+    ];
+
+    function openGasSettingsModal() {
+      renderGasModalList();
+      const modal = document.getElementById('gasModalOverlay');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeGasSettingsModal() {
+      const modal = document.getElementById('gasModalOverlay');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'gasModalOverlay') {
+        closeGasSettingsModal();
+      }
+    }
+
+    function renderGasModalList() {
+      const container = document.getElementById('gasModalLabList');
+      if (!container) return;
+
+      container.innerHTML = LABS_CONFIG_META.map(lab => {
+        const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(lab.id) : '') || (typeof LAB_CONFIG !== 'undefined' ? (LAB_CONFIG[lab.id] || '') : '');
+        const isConfigured = currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL');
+        const graderUrl = isConfigured ? (currentUrl.split('?')[0] + '?page=grader') : '#';
+
+        return `
+          <div class="gas-lab-item">
+            <div class="gas-lab-top">
+              <div class="gas-lab-name">
+                <span class="gas-lab-badge">${lab.label}</span>
+                <span>${lab.name}</span>
+              </div>
+              <div style="display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;">
+                <a href="./${lab.id}/Code.gs" download="Code_${lab.id}.gs" class="gas-btn-sm" style="color:#60a5fa; border-color:rgba(96,165,250,0.4);" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
+                  <i class="fa-solid fa-download"></i> Code.gs
+                </a>
+                <button type="button" class="gas-btn-sm" onclick="copyCodeGsFromModal('${lab.id}')" style="color:#c084fc; border-color:rgba(192,132,252,0.4); cursor:pointer;" title="คัดลอกโค้ด Code.gs ไปวางใน Apps Script">
+                  <i class="fa-solid fa-copy"></i> คัดลอก
+                </button>
+                ${isConfigured 
+                  ? `<button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน"><i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน</button>
+                     <a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
+                  : `<span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> ยังไม่ได้ใส่ลิงก์</span>`
+                }
+              </div>
+            </div>
+            <div class="gas-input-wrap">
+              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${currentUrl}" placeholder="https://script.google.com/macros/s/.../exec">
+              ${isConfigured 
+                ? `<a href="${currentUrl}" target="_blank" class="gas-btn-sm" title="ทดสอบเปิด URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` 
+                : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveGasSettingsFromModal() {
+      LABS_CONFIG_META.forEach(lab => {
+        const input = document.getElementById('modal_url_' + lab.id);
+        if (input && window.localStorage) {
+          const val = input.value.trim();
+          if (val && val.startsWith('https://script.google.com')) {
+            localStorage.setItem('gas_url_' + lab.id, val);
+            if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[lab.id] = val;
+          } else {
+            localStorage.removeItem('gas_url_' + lab.id);
+          }
+        }
+      });
+
+      renderGasModalList();
+      closeGasSettingsModal();
+      alert('✅ บันทึกลิงก์ Google Apps Script ลงในเบราว์เซอร์เรียบร้อยแล้ว! ทุกใบงานจะส่งคะแนนตรงไปยัง Google Sheets ตามที่ท่านกำหนด');
+    }
+
+    function resetGasSettingsToDefault() {
+      if (!confirm('ต้องการล้างค่าลิงก์ที่บันทึกไว้ในเบราว์เซอร์นี้แล้วกลับไปใช้ค่าเริ่มต้นหรือไม่?')) return;
+      LABS_CONFIG_META.forEach(lab => {
+        localStorage.removeItem('gas_url_' + lab.id);
+      });
+      renderGasModalList();
+      alert('รีเซ็ตการตั้งค่าเรียบร้อยแล้ว');
+    }
+
+    function copyConfigJsSnippet() {
+      const configObj = {};
+      LABS_CONFIG_META.forEach(lab => {
+        const input = document.getElementById('modal_url_' + lab.id);
+        configObj[lab.id] = (input && input.value.trim()) ? input.value.trim() : ('YOUR_GAS_URL_FOR_' + lab.id.toUpperCase().replace(/[-\.]/g, '_'));
+      });
+
+      const snippet = "const LAB_CONFIG = " + JSON.stringify(configObj, null, 2) + ";\n\nfunction getLabScriptUrl(labId) {\n  if (typeof window !== 'undefined') {\n    if (window.location && window.location.search) {\n      const params = new URLSearchParams(window.location.search);\n      const queryGas = params.get('gas') || params.get('gas_url');\n      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) {\n        const cleanGas = queryGas.trim();\n        if (window.localStorage && labId) {\n          try { window.localStorage.setItem('gas_url_' + labId, cleanGas); } catch(e){}\n        }\n        return cleanGas;\n      }\n    }\n    if (window.localStorage) {\n      const custom = window.localStorage.getItem('gas_url_' + labId);\n      if (custom && custom.trim().startsWith('https://script.google.com')) return custom.trim();\n    }\n  }\n  const url = LAB_CONFIG[labId] || '';\n  return (url && !url.includes('YOUR_GAS_URL')) ? url.trim() : '';\n}\n\nif (typeof module !== 'undefined' && module.exports) module.exports = { LAB_CONFIG, getLabScriptUrl };";
+
+      navigator.clipboard.writeText(snippet).then(() => {
+        alert('📋 คัดลอกโค้ดคอนฟิกเรียบร้อยแล้ว! สามารถนำไปวางแทนที่เนื้อหาในไฟล์ config.js แล้ว commit ขึ้น GitHub ได้ทันที');
+      }).catch(() => {
+        prompt('คัดลอกโค้ดด้านล่างนี้ไปวางในไฟล์ config.js:', snippet);
+      });
+    }
+
+    function copyCodeGsFromModal(labId) {
+      fetch('./' + labId + '/Code.gs')
+        .then(res => {
+          if (!res.ok) throw new Error('Network error');
+          return res.text();
+        })
+        .then(code => {
+          navigator.clipboard.writeText(code).then(() => {
+            alert('📋 คัดลอก Code.gs สำหรับ ' + labId + ' สำเร็จแล้ว!\nนำไปเปิดใน Google Apps Script แล้วกด Ctrl+V วางเพื่อ Deploy ได้ทันที');
+          }).catch(() => {
+            prompt('คัดลอกโค้ดด้านล่างนี้สำหรับ ' + labId + ':', code);
+          });
+        })
+        .catch(() => {
+          window.open('https://github.com/allarm2553/iot-lab-sheet-apps/blob/main/' + labId + '/Code.gs', '_blank');
+        });
+    }
+
+    function copyStudentShareLinkFromModal(labId) {
+      const input = document.getElementById('modal_url_' + labId);
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      if (!val || !val.startsWith('https://script.google.com')) {
+        alert('⚠️ ยังไม่ได้ระบุลิงก์ GAS สำหรับ ' + labId + '\nกรุณาใส่ Web App URL ในช่องก่อนคัดลอกลิงก์ให้นักเรียน');
+        return;
+      }
+      const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + labId + '/';
+      const shareUrl = baseUrl + '?gas=' + encodeURIComponent(val);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('🎉 คัดลอกลิงก์สำเร็จ!\n\n' + shareUrl + '\n\nส่งลิงก์นี้ให้นักเรียนเข้าทำ ' + labId + ' ได้ทันที!');
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
+      });
+    }
   </script>
+
+  <!-- GAS Settings Modal -->
+  <div class="gas-modal-overlay" id="gasModalOverlay" onclick="handleModalOverlayClick(event)">
+    <div class="gas-modal">
+      <div class="gas-modal-header">
+        <div class="gas-modal-title">
+          <i class="fa-solid fa-sliders" style="color:#818cf8;"></i> ตั้งค่าลิงก์ส่งคะแนน Google Apps Script (17 Labs)
+        </div>
+        <button type="button" class="gas-modal-close" onclick="closeGasSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="gas-modal-body">
+        <div class="gas-guide-tip">
+          <strong><i class="fa-solid fa-circle-info"></i> คำแนะนำสำหรับอาจารย์ผู้สอน:</strong><br>
+          1. กดปุ่ม <strong>"📥 Code.gs"</strong> หรือ <strong>"📋 คัดลอก"</strong> เพื่อนำโค้ดประจำแล็บไปสร้าง Google Apps Script ได้ทันที<br>
+          2. นำ <strong>Web App URL</strong> ที่ได้จากการ Deploy มาวางในช่อง แล้วกด <strong>"💾 บันทึก"</strong> หรือกด <strong>"🔗 ลิงก์นักเรียน"</strong> เพื่อส่งให้นักศึกษาเข้าทำใบงาน<br>
+          3. กด <strong>"📋 คัดลอกโค้ดสำหรับ config.js"</strong> หากต้องการนำไปอัปเดตไฟล์ config.js บน GitHub เพื่อแชร์ให้ทุกคนใช้ร่วมกัน
+        </div>
+
+        <div class="gas-lab-list" id="gasModalLabList">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <div class="gas-modal-footer">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="gas-btn-sm" style="background:#4f46e5; color:#fff; border-color:#6366f1;" onclick="saveGasSettingsFromModal()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกลงเบราว์เซอร์ (Save)
+          </button>
+          <button type="button" class="gas-btn-sm" onclick="copyConfigJsSnippet()">
+            <i class="fa-solid fa-code"></i> คัดลอกโค้ดสำหรับ config.js
+          </button>
+          <button type="button" class="gas-btn-sm" style="color:#f87171;" onclick="resetGasSettingsToDefault()">
+            <i class="fa-solid fa-rotate-left"></i> รีเซ็ตเป็นค่าเริ่มต้น
+          </button>
+        </div>
+        <button type="button" class="gas-btn-sm" onclick="closeGasSettingsModal()">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
