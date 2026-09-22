@@ -13,7 +13,7 @@ function doGet(e) {
 
 // Auto-grading logic for Lab 5
 function gradeSubmission(data) {
-  var blankKeywords = ["espClient", "1883", "callback", "subTopic|control|cmd", "pubTopic|state"];
+  var blankKeywords = ["espClient", "1883|mqttPort", "callback", "subTopic|control|cmd", "pubTopic|state"];
   var challengeKeywords = [
     "mqttClient|client|pubSubClient",
     "publish|pubTopic",

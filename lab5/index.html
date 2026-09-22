@@ -2048,9 +2048,9 @@ void loop() {
       const b4 = (document.getElementById('codeBlank4')?.value || '').trim();
       const b5 = (document.getElementById('codeBlank5')?.value || '').trim();
 
-      const b1Ok = /^\s*espClient\s*$/i.test(b1);
-      const b2Ok = /^\s*1883\s*$/i.test(b2);
-      const b3Ok = /^\s*callback\s*$/i.test(b3);
+      const b1Ok = /^\s*&?\s*espClient\s*$/i.test(b1);
+      const b2Ok = /^\s*(1883|mqttPort)\s*$/i.test(b2);
+      const b3Ok = /^\s*&?\s*callback\s*$/i.test(b3);
       const b4Ok = /^\s*(subTopic|"esp-node\/control\/cmd"|'esp-node\/control\/cmd'|CMD_TOPIC)\s*$/i.test(b4);
       const b5Ok = /^\s*(pubTopic|"esp-node\/state"|'esp-node\/state'|STATE_TOPIC)\s*$/i.test(b5);
 
