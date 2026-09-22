@@ -2030,6 +2030,75 @@ void loop() {
             </div>
           </div>
 
+          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
+              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-cloud-arrow-up"></i> แนบหลักฐานการทดลอง
+            </div>
+
+            <!-- Screenshot Upload -->
+            <div class="form-group">
+              <label>1. รูปถ่ายหน้าจอ Arduino IDE ขณะคอมไพล์และอัปโหลดโค้ดสำเร็จ (Done Uploading)</label>
+              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
+                <i class="fa-solid fa-image upload-icon"></i>
+                <div class="upload-text">ลากไฟล์รูปภาพมาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์รูปภาพ PNG, JPG, JPEG (ขนาดไม่เกิน 10MB)</div>
+                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
+              </div>
+              <div class="file-preview" id="screenshotPreview">
+                <img src="" alt="Thumbnail" class="preview-thumbnail" id="screenshotThumb">
+                <div class="preview-details">
+                  <div class="preview-name" id="screenshotName">file.png</div>
+                  <div class="preview-size" id="screenshotSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Code/Flow JSON File Upload -->
+            <div class="form-group">
+              <label>2. ไฟล์โปรแกรม Arduino (.ino)</label>
+              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeFileInput').click()">
+                <i class="fa-solid fa-file-code upload-icon"></i>
+                <div class="upload-text">ลากไฟล์ .ino มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+                <div class="upload-hint">ยอมรับไฟล์โปรแกรม (.ino) ขนาดไม่เกิน 5MB</div>
+                <input type="file" id="codeFileInput" class="file-input" accept=".ino" onchange="handleFileSelect(this, 'code')">
+              </div>
+              <div class="file-preview" id="codePreview">
+                <div class="preview-details" style="padding-left: 0.5rem;">
+                  <div class="preview-name" id="codeFileName">blink.ino</div>
+                  <div class="preview-size" id="codeFileSize">0 KB</div>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="removeFile('code')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Experiment Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-square-poll-vertical"></i> สรุปผลการทดลอง
+            </div>
+            <div class="form-group">
+              <label for="conclusion">สรุปสิ่งที่ได้รับจากการเรียนรู้การติดตั้งโปรแกรมและฮาร์ดแวร์ ESP32 / ESP8266:</label>
+              <textarea id="conclusion" rows="4" placeholder="เขียนสรุปอธิบายสิ่งที่ได้เรียนรู้และทักษะพื้นฐานในใบงาน..." required></textarea>
+            </div>
+          </div>
+
           <!-- Multiple Choice Quiz (5 Questions) -->
           <div class="form-section">
             <div class="form-section-title">
@@ -2164,75 +2233,6 @@ void loop() {
                   <span>ง. <code>pinMode(18, INPUT_PULLUP); digitalRead(18);</code></span>
                 </label>
               </div>
-            </div>
-          </div>
-
-          <!-- โจทย์ท้าทายการทดลอง (Challenge Code Area) -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> โค้ดโจทย์ท้าทายการทดลอง (Challenge Code)
-            </div>
-            <div class="form-group">
-              <label for="challengeCode">วางซอร์สโค้ดที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Challenge) ที่นี่เพื่อตรวจคะแนนอัตโนมัติ:</label>
-              <textarea id="challengeCode" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-cloud-arrow-up"></i> แนบหลักฐานการทดลอง
-            </div>
-
-            <!-- Screenshot Upload -->
-            <div class="form-group">
-              <label>1. รูปถ่ายหน้าจอ Arduino IDE ขณะคอมไพล์และอัปโหลดโค้ดสำเร็จ (Done Uploading)</label>
-              <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
-                <i class="fa-solid fa-image upload-icon"></i>
-                <div class="upload-text">ลากไฟล์รูปภาพมาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
-                <div class="upload-hint">ยอมรับไฟล์รูปภาพ PNG, JPG, JPEG (ขนาดไม่เกิน 10MB)</div>
-                <input type="file" id="screenshotInput" class="file-input" accept="image/*" onchange="handleFileSelect(this, 'screenshot')">
-              </div>
-              <div class="file-preview" id="screenshotPreview">
-                <img src="" alt="Thumbnail" class="preview-thumbnail" id="screenshotThumb">
-                <div class="preview-details">
-                  <div class="preview-name" id="screenshotName">file.png</div>
-                  <div class="preview-size" id="screenshotSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('screenshot')">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Code/Flow JSON File Upload -->
-            <div class="form-group">
-              <label>2. ไฟล์โปรแกรม Arduino (.ino)</label>
-              <div class="upload-area" id="codeArea" onclick="document.getElementById('codeFileInput').click()">
-                <i class="fa-solid fa-file-code upload-icon"></i>
-                <div class="upload-text">ลากไฟล์ .ino มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
-                <div class="upload-hint">ยอมรับไฟล์โปรแกรม (.ino) ขนาดไม่เกิน 5MB</div>
-                <input type="file" id="codeFileInput" class="file-input" accept=".ino" onchange="handleFileSelect(this, 'code')">
-              </div>
-              <div class="file-preview" id="codePreview">
-                <div class="preview-details" style="padding-left: 0.5rem;">
-                  <div class="preview-name" id="codeFileName">blink.ino</div>
-                  <div class="preview-size" id="codeFileSize">0 KB</div>
-                </div>
-                <button type="button" class="remove-file-btn" onclick="removeFile('code')">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Experiment Conclusion -->
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-square-poll-vertical"></i> สรุปผลการทดลอง
-            </div>
-            <div class="form-group">
-              <label for="conclusion">สรุปสิ่งที่ได้รับจากการเรียนรู้การติดตั้งโปรแกรมและฮาร์ดแวร์ ESP32 / ESP8266:</label>
-              <textarea id="conclusion" rows="4" placeholder="เขียนสรุปอธิบายสิ่งที่ได้เรียนรู้และทักษะพื้นฐานในใบงาน..." required></textarea>
             </div>
           </div>
 
