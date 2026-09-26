@@ -1916,6 +1916,43 @@
         <form id="labForm" onsubmit="return false;">
           
           <!-- Student Metadata -->
+          <!-- เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL Box) -->
+                    <div class="gas-connect-box" style="background: rgba(15, 23, 42, 0.7); border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 1rem 1.25rem; margin: 1.25rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
+                      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+                        <div style="font-weight: 600; font-size: 0.92rem; color: #f8fafc; display: flex; align-items: center; gap: 0.45rem;">
+                          <i class="fa-solid fa-link" style="color: #60a5fa;"></i> เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL):
+                        </div>
+                        <span id="teacherGasBadge" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.76rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.35rem;">
+                          <i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)
+                        </span>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">
+                          นำลิงก์ Web App จาก Google Apps Script ของผู้สอนมาวาง เพื่อบันทึกคะแนนลงชีตของท่านโดยตรง
+                        </div>
+                        <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                          <a href="./Code.gs" download="Code_lab-basic.gs" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
+                            <i class="fa-solid fa-download"></i> โหลด Code.gs
+                          </a>
+                          <button type="button" onclick="copyCodeGsContent('lab-basic')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="คัดลอกโค้ด Code.gs ไปวางใน Google Apps Script">
+                            <i class="fa-solid fa-copy"></i> คัดลอก Code.gs
+                          </button>
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="teacherGasUrlInput" placeholder="วางลิงก์ https://script.google.com/macros/s/.../exec ที่นี่..." style="flex: 1; min-width: 240px; background: rgba(11, 17, 32, 0.9); border: 1px solid #334155; border-radius: 7px; padding: 0.45rem 0.75rem; color: #f8fafc; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; outline: none;">
+                        <button type="button" onclick="saveTeacherGasUrl('lab-basic')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                          <i class="fa-solid fa-floppy-disk"></i> บันทึก URL
+                        </button>
+                        <button type="button" onclick="copyStudentShareLink('lab-basic')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="คัดลอกลิงก์ที่แนบ Google Apps Script ส่งให้นักเรียน">
+                          <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์ให้นักเรียน
+                        </button>
+                        <button type="button" onclick="testTeacherGasUrl('lab-basic')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                          <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
+                        </button>
+                      </div>
+                    </div>
+
           <div class="form-section">
             <div class="form-section-title">
               <i class="fa-solid fa-user-graduate"></i> ข้อมูลนักศึกษา
@@ -1955,44 +1992,7 @@
             </div>
           </div>
 
-          <!-- เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL Box) -->
-          <div class="gas-connect-box" style="background: rgba(15, 23, 42, 0.7); border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 1rem 1.25rem; margin: 1.25rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
-              <div style="font-weight: 600; font-size: 0.92rem; color: #f8fafc; display: flex; align-items: center; gap: 0.45rem;">
-                <i class="fa-solid fa-link" style="color: #60a5fa;"></i> เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL):
-              </div>
-              <span id="teacherGasBadge" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.76rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.35rem;">
-                <i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)
-              </span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">
-                นำลิงก์ Web App จาก Google Apps Script ของผู้สอนมาวาง เพื่อบันทึกคะแนนลงชีตของท่านโดยตรง
-              </div>
-              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
-                <a href="./Code.gs" download="Code_lab-basic.gs" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
-                  <i class="fa-solid fa-download"></i> โหลด Code.gs
-                </a>
-                <button type="button" onclick="copyCodeGsContent('lab-basic')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="คัดลอกโค้ด Code.gs ไปวางใน Google Apps Script">
-                  <i class="fa-solid fa-copy"></i> คัดลอก Code.gs
-                </button>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <input type="text" id="teacherGasUrlInput" placeholder="วางลิงก์ https://script.google.com/macros/s/.../exec ที่นี่..." style="flex: 1; min-width: 240px; background: rgba(11, 17, 32, 0.9); border: 1px solid #334155; border-radius: 7px; padding: 0.45rem 0.75rem; color: #f8fafc; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; outline: none;">
-              <button type="button" onclick="saveTeacherGasUrl('lab-basic')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
-                <i class="fa-solid fa-floppy-disk"></i> บันทึก URL
-              </button>
-              <button type="button" onclick="copyStudentShareLink('lab-basic')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="คัดลอกลิงก์ที่แนบ Google Apps Script ส่งให้นักเรียน">
-                <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์ให้นักเรียน
-              </button>
-              <button type="button" onclick="testTeacherGasUrl('lab-basic')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
-                <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
-              </button>
-            </div>
-          </div>
-
-          <!-- Challenge Solution -->
+<!-- Challenge Solution -->
           <div class="form-section">
             <div class="form-section-title">
               <i class="fa-solid fa-code"></i> คำตอบส่วนโจทย์ท้าทาย (Challenge)

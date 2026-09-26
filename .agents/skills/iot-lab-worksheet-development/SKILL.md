@@ -21,11 +21,14 @@ Each lab worksheet (`index.html`) is designed with a responsive, glassmorphic da
    - **Skeleton Code (`<div class="code-container">`):** Copyable Arduino/C++ template with copy button.
 
 2. **Right Column (ฟอร์มบันทึกและส่งรายงานผล - Student Submission Form):**
+   - **Teacher Google Sheets Connection Box (`.gas-connect-box`):** กล่องตั้งค่า Web App URL ของผู้สอน, ปุ่มโหลด/คัดลอก Code.gs, บันทึก URL, คัดลอกลิงก์ให้นักเรียน และทดสอบเชื่อมต่อ (อยู่บนสุดของคอลัมน์ขวา).
    - **Student Profile Form:** Name, Student ID, Class Section, Date.
-   - **Code Blank Fill-in:** Inputs mapped to skeleton code blanks with real-time feedback.
+   - **Code Blank Fill-in / Challenge Code:** Inputs mapped to skeleton code blanks with real-time feedback.
    - **Analytical & Theory Questions:** Textareas with auto-resize.
    - **File Upload Area:** Drag & drop screenshot and source code file upload with Base64 encoding.
-   - **Action Buttons:** Submit report button, Reset form button, and Print to PDF export button.
+   - **Conclusion & Recommendations:** Student findings and reflections.
+   - **5-Question Multiple Choice Quiz:** Automated grading with Google Sheets integration.
+   - **Action Buttons:** Pre-check score button, Submit report button, Reset form button, and Print to PDF export button.
 
 ---
 
