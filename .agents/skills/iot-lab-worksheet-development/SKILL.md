@@ -277,11 +277,22 @@ All worksheets must present equipment requirements in a clean, responsive table:
 
 ---
 
-## 6. Print & PDF Export Best Practices
+## 6. Dual-Mode Diagram Rendering & Print/PDF Export Architecture
 
-Worksheets must print cleanly for physical grading and archiving:
+Worksheets must print cleanly for physical grading and PDF archiving without iframe/canvas rendering glitches:
 
+### Dual-Mode Diagram Strategy
+1. **Interactive Screen Mode:** The live Wokwi simulation iframe (`#wokwiEmbedFrame`) runs continuously for student experimentation. The print SVG (`.wokwi-print-diagram`) is hidden (`display: none;`).
+2. **Print/PDF Export Mode (`@media print`):** 
+   - All interactive controls, toolbars, buttons, and iframes are hidden (`display: none !important;`).
+   - The **Vector SVG Circuit Schematic (`.wokwi-print-diagram`)** is automatically displayed (`display: block !important;`), rendering crisp 300+ DPI schematics on white A4 paper.
+
+### CSS Rules for Print
 ```css
+.wokwi-print-diagram {
+  display: none;
+}
+
 @media print {
   body {
     background: #ffffff !important;
@@ -301,8 +312,19 @@ Worksheets must print cleanly for physical grading and archiving:
     color: #000000 !important;
     page-break-inside: avoid;
   }
-  header, .course-badge, .btn-theory-toggle, .btn-submit, .btn-reset, .upload-area, .modal-overlay {
+  header, .course-badge, .btn-theory-toggle, .btn-submit, .btn-reset, .upload-area, .modal-overlay,
+  .wokwi-header-bar, .wokwi-actions, .wokwi-iframe-wrapper, .wokwi-guide-banner {
     display: none !important;
+  }
+  .wokwi-print-diagram {
+    display: block !important;
+    padding: 0.75rem !important;
+    background: #ffffff !important;
+    text-align: center !important;
+  }
+  .wokwi-print-diagram svg {
+    max-width: 100% !important;
+    height: auto !important;
   }
   input[type="text"], input[type="date"], textarea {
     background: transparent !important;
@@ -323,6 +345,9 @@ Worksheets must print cleanly for physical grading and archiving:
 
 To maximize interactive learning, fill-in-the-blank questions must be embedded directly inside the skeleton code block (`<pre><code>`) rather than as a disconnected list.
 
+### Pedagogical Placeholder Guidelines
+Never provide direct answers inside the placeholder text. Always frame the placeholder as paired choices or category hints (e.g. `INPUT / OUTPUT`, `4095.0 / 1023.0`, `HIGH / LOW`) to encourage analytical reasoning.
+
 ### HTML Pattern
 ```html
 <div class="code-container">
@@ -332,7 +357,7 @@ To maximize interactive learning, fill-in-the-blank questions must be embedded d
   </div>
   <pre><code>void setup() {
   Serial.begin(115200);
-  pinMode(RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น OUTPUT)" style="width: 175px;">);
+  pinMode(RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="INPUT / OUTPUT" style="width: 155px;">);
 }</code></pre>
 </div>
 ```
@@ -371,22 +396,6 @@ To maximize interactive learning, fill-in-the-blank questions must be embedded d
 }
 ```
 
-### Smart Copy with Injected Student Answers
-```javascript
-function copyCode() {
-  const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* ช่องที่ 1 */';
-  const codeText = `void setup() {
-  Serial.begin(115200);
-  pinMode(RELAY_PIN, ${b1});
-}`;
-  navigator.clipboard.writeText(codeText).then(() => {
-    const copyBtn = document.querySelector('.copy-btn');
-    copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success)"></i> Copied!';
-    setTimeout(() => copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy', 2000);
-  });
-}
-```
-
 ---
 
 ## 8. Anti-Cheat & Plagiarism Prevention System
@@ -400,83 +409,72 @@ To maintain academic integrity and encourage genuine critical thinking, all work
 - **Drag & Drop Lock (`drop`):** Prevents dragging external text directly into the answer boxes.
 - **Whitelisting:** Code submission areas (`#challengeCode`) remain unrestricted to allow pasting program code from the IDE.
 
-### Animated Warning Toast Notification
-```html
-<div id="antiCheatToast" class="anti-cheat-toast">
-  <i class="fa-solid fa-triangle-exclamation"></i>
-  <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>
-</div>
-```
-
 ---
 
 ## 9. Multiple Choice Quiz & Real-time Assessment Standards
 
-Every lab worksheet should feature a **5-Question Multiple Choice Quiz** testing theoretical fundamentals, compiler/hardware quirks, and troubleshooting awareness:
-
-### UI Structure & Glassmorphic Radio Tiles
-```html
-<div class="quiz-card">
-  <div class="quiz-q-title">
-    <span class="quiz-q-badge">ข้อที่ 1</span>
-    <span>[คำถามเชิงทฤษฎี/การทำงานของฮาร์ดแวร์]</span>
-  </div>
-  <div class="quiz-options-grid">
-    <label class="quiz-option-label">
-      <input type="radio" name="quiz1" value="1a" form="labForm" required>
-      <span>ก. [ตัวเลือกที่ 1]</span>
-    </label>
-    <label class="quiz-option-label">
-      <input type="radio" name="quiz1" value="1b" form="labForm" required>
-      <span>ข. [ตัวเลือกที่ 2]</span>
-    </label>
-    <label class="quiz-option-label">
-      <input type="radio" name="quiz1" value="1c" form="labForm" required>
-      <span>ค. [ตัวเลือกที่ 3 - ถูกต้อง]</span>
-    </label>
-    <label class="quiz-option-label">
-      <input type="radio" name="quiz1" value="1d" form="labForm" required>
-      <span>ง. [ตัวเลือกที่ 4]</span>
-    </label>
-  </div>
-</div>
-```
+Every lab worksheet should feature a **5-Question Multiple Choice Quiz** testing theoretical fundamentals, compiler/hardware quirks, and troubleshooting awareness.
 
 ---
 
-## 10. Wokwi Simulation & PlatformIO Integration Standard
+## 10. Wokwi Simulation & Local VS Code Template Standard (Gold Standard)
 
-To support seamless online simulation alongside physical hardware:
+To provide 100% reliable simulation without Wokwi web server congestion or internet dropouts:
 
-1. **Root & Solution Configuration:**
-   - Maintain `diagram.json` and `wokwi.toml` at both worksheet root (`labX/`) and `labX/solution/`.
-   - Provide a root `platformio.ini` with `src_dir = solution/src` so VS Code PlatformIO status bar buttons (`✓ Build`, `→ Upload`) activate immediately.
+### 1. Persistent Single-Instance Simulation Engine & True Fullscreen
+- Load iframe once with `view=both` to contain diagram, code, and Serial Monitor in a single session.
+- **Dual-Mode True Fullscreen (`requestFullscreen()` + CSS Overlay):**
+  - Triggers native browser fullscreen covering 100% of the display monitor.
+  - Automatically overrides ancestor `.glass-card` styling (`backdrop-filter: none; overflow: visible;`) to prevent viewport clipping.
+  - Synchronizes UI state via `fullscreenchange` event and `Escape` key handling without iframe reloads (preserves simulation execution state).
 
-2. **Fault-Tolerant Code Pattern:**
-   - **Configurable Sensor Selector:**
-     ```cpp
-     #define USE_DHT22    // Toggle between USE_DHT22 and USE_DHT11
-     #if defined(USE_DHT22)
-       #define DHTTYPE DHT22
-     #else
-       #define DHTTYPE DHT11
-     #endif
-     ```
-   - **ESP32 Core 3.x ADC Setup:**
-     ```cpp
-     pinMode(ANALOG_PIN, INPUT);
-     #if defined(ESP32)
-     analogSetAttenuation(ADC_11db);
-     analogReadResolution(12);
-     #endif
-     ```
-   - **Fail-Safe Sensor Disconnection Handler:**
-     ```cpp
-     if (isnan(temp) || isnan(hum)) {
-       setSafeState("Sensor Disconnection");
-       return;
-     }
-     ```
+### 2. Local VS Code Template Structure (`vscode-wokwi-template/`)
+Provide an offline-ready starter template folder and `.zip` download:
+```text
+vscode-wokwi-template/
+├── .vscode/
+│   ├── extensions.json       # Recommendations: PlatformIO & Wokwi for VS Code
+│   └── tasks.json            # 1-Click build tasks
+├── src/
+│   └── main.cpp              # Starter firmware with setRelay() helper & guided TODOs (Never include full solution)
+├── diagram.json              # Microcontroller + Sensor + Actuator wiring
+├── wokwi.toml                # Firmware ELF mapping: '.pio/build/ipst_wifi/firmware.elf'
+├── platformio.ini            # Environment configs & library dependencies
+└── README.md                 # Step-by-step local execution guide
+```
+
+> [!IMPORTANT]
+> **Pedagogical Integrity Rule for Starter Templates:**
+> The `main.cpp` inside the offline VS Code template must contain only the starter scaffolding (Pin setup, Serial monitor, `millis()` timer loop, and `setRelay()` helper). The challenge logic (Hysteresis, Fail-safe `isnan()`, thresholds) **must be left as `TODO` exercise comments** to ensure learners actively design and write the algorithms themselves.
+
+### 3. Relay Active-HIGH / Active-LOW Standard Architecture
+Firmware should always abstract hardware relay logic to allow seamless switching between simulation (Active-HIGH) and commercial Optocoupler relay boards (Active-LOW):
+```cpp
+#define RELAY_ACTIVE_LOW false  // Set true when using Active-LOW relay modules
+
+#if RELAY_ACTIVE_LOW
+  #define RELAY_ON   LOW
+  #define RELAY_OFF  HIGH
+#else
+  #define RELAY_ON   HIGH
+  #define RELAY_OFF  LOW
+#endif
+
+void setRelay(uint8_t pin, bool state) {
+  digitalWrite(pin, state ? RELAY_ON : RELAY_OFF);
+}
+```
+
+### 4. Action Toolbar Integration
+```html
+<div class="wokwi-actions">
+  <button type="button" class="wokwi-ctrl-btn vscode" onclick="openInVsCode()"><i class="fa-solid fa-code"></i> เปิดใน VS Code</button>
+  <a href="labX_vscode_wokwi_template.zip" download="labX_vscode_wokwi_template.zip" class="wokwi-ctrl-btn zip"><i class="fa-solid fa-file-zipper"></i> โหลด Template (.zip)</a>
+  <button type="button" class="wokwi-ctrl-btn info" onclick="openVsCodeGuideModal()"><i class="fa-solid fa-circle-question"></i> วิธีใช้บน VS Code</button>
+  <button type="button" class="wokwi-ctrl-btn" id="btnWokwiFullscreen" onclick="toggleWokwiFullscreen()"><i class="fa-solid fa-expand"></i> ขยายเต็มจอ</button>
+  <a id="wokwiExternalLink" href="https://wokwi.com/projects/PROJECT_ID" target="_blank" rel="noopener noreferrer" class="wokwi-ctrl-btn external"><i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดใน Wokwi</a>
+</div>
+```
 
 ---
 
@@ -500,8 +498,6 @@ All worksheets implement client-side pre-submission grading to give students imm
 
 ## 12. Single-Submission Lock & Shared Station Reset Protocol
 
-To prevent accidental double submissions while supporting shared laboratory computers across student rotations:
-
 1. **Submission Lock (`lockFormAsSubmitted`):**
    - Disables all form inputs and submit button upon successful submission.
    - Displays a glassmorphic confirmation banner (`#submittedNoticeBanner`) in View-Only mode.
@@ -511,3 +507,62 @@ To prevent accidental double submissions while supporting shared laboratory comp
    - Provides a prominent **`[ 👤+ เริ่มทำสำหรับ นศ. คนใหม่ ]`** button on both the banner and the bottom button group.
    - Shows a confirmation dialog (`Swal.fire`) warning the previous student to save/print their PDF before reset.
    - Fully clears form fields, cache, Base64 uploads, and file badges, restoring the page to a fresh state for the next learner.
+
+---
+
+## 13. Gold Standard Reference Implementation
+
+- **Reference Model:** `lab1/index.html` (ESP32 Smart Greenhouse IoT Node)
+- **Reference Template:** `lab1/vscode-wokwi-template/` and `lab1/lab1_vscode_wokwi_template.zip`
+- **Reference Backend:** `lab1/Code.gs`
+
+---
+
+## 14. Interactive Real-Time Waveform & Hysteresis Plotter Standard
+
+An integrated 60 FPS HTML5 Canvas oscilloscope simulating and visualizing dynamic sensor behavior and actuator hysteresis without external charting dependencies.
+
+### Key Capabilities & Visual Tracks
+1. **Zero External Dependencies:** Built with pure HTML5 Canvas 2D context, optimized for 60 FPS rendering with zero lag and full offline functionality.
+2. **Dual Analog Traces:**
+   - **Trace 1 (Cyan `#38bdf8`):** Temperature / Primary analog metric (0 – 50°C).
+   - **Trace 2 (Violet `#c084fc`):** Humidity / Secondary analog metric (0 – 100%).
+3. **Dynamic Hysteresis Threshold Markers:**
+   - Visual dashed reference lines indicating activation thresholds (e.g. Fan ON at $30.0^\circ\text{C}$, Fan OFF at $29.5^\circ\text{C}$).
+4. **Digital Actuator State Tracks (Bottom Sub-Tracks):**
+   - High/Low logic level step-lines for Relay Actuators (Fan & Mist).
+5. **Interactive Controls & 6 Scenario Presets:**
+   - Real-time Sliders for manual value sweeps.
+   - 6 Quick-Test Presets:
+     - ☀️ **ร้อนจัด (>30°C):** Verifies cooling trigger.
+     - ❄️ **เย็น (<29.5°C):** Verifies cooling shutdown.
+     - 🏜️ **แห้งแล้ง (<50%):** Verifies humidification trigger.
+     - 🌧️ **ชื้นสูง (>60%):** Verifies humidification shutdown.
+     - ⚠️ **Sensor Error (`NaN`):** Verifies fail-safe shutdown of all relays.
+     - 🌿 **ปกติ (Normal):** Restores balanced operating setpoints.
+
+---
+
+## 15. Web Serial API Direct Hardware Telemetry Bridge Standard (Production-Grade)
+
+Allows direct browser-to-ESP32 USB connection via modern Chromium standard (`navigator.serial`), enabling seamless hardware validation and live serial telemetry streaming.
+
+### Key Architectural Standards & Best Practices
+1. **DTR / RTS Auto-Release Signal Management:**
+   - When connecting on Chromium/Windows, always set `setSignals({ dataTerminalReady: false, requestToSend: false })` immediately after opening the port. This keeps both transistors OFF ($EN=1, IO0=1$), ensuring the ESP32 runs in Normal Flash Execution Mode without getting stuck in Reset or Download Boot.
+2. **Direct Reader + Non-Fatal TextDecoder Stream:**
+   - Use `serialPort.readable.getReader()` with `new TextDecoder('utf-8', { fatal: false })` instead of `pipeTo()`. This prevents stream pipeline locking and gracefully skips binary noise emitted by the ESP32 bootloader (at 74880 baud).
+3. **Hardware Reset Pulse via Web UI (`[ 🔄 รีเซ็ต ESP32 ]`):**
+   - Provide a 1-click software trigger that pulses `DTR: false, RTS: true` ($120\text{ms}$ to pull $EN$ LOW) and then releases to `DTR: false, RTS: false` ($100\text{ms}$ to release $EN$ HIGH while $IO0$ remains HIGH). This triggers a clean hardware reboot directly into **Normal Flash Boot Mode** (`SPI_FAST_FLASH_BOOT`) rather than Flashing Download Mode.
+4. **On-the-Fly Baud Rate Selector:**
+   - Provide dropdown support (`115200`, `9600`, `57600`, `74880`, `19200`, `38400`) so learners can match their firmware configuration dynamically.
+5. **Interactive Bidirectional Command TX Bar:**
+   - Monospace input bar to transmit commands or test parameters directly to the microcontroller over the open serial stream.
+6. **Flexible Multi-Pattern Telemetry Parser:**
+   - Tolerates partial and mixed formats:
+     - Basic Skeleton: `Temp: 28.5 C | Analog: 45.0%`
+     - Grand Challenge: `[STATUS] Temp: 31.2 C | Hum: 55.0% | ADC: 45.0% (Raw: 1843) | Fan: ON | Mist: OFF`
+     - Thai & Short tags: `อุณหภูมิ: 30`, `T: 29.5`, `Hum: 60`, `ADC: 2048`, `Fan: 1`, `Mist: 0`
+     - Fail-Safe trigger: Automatically identifies `nan` or `[FAIL-SAFE]` lines to engage UI safe-mode chips.
+
+

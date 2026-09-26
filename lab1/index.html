@@ -1120,6 +1120,28 @@
       .form-section-title i {
         display: none !important;
       }
+
+      /* Wokwi Circuit Diagram for PDF & Print */
+      .wokwi-section-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        margin: 1rem 0 !important;
+        page-break-inside: avoid !important;
+      }
+      .wokwi-header-bar, .wokwi-actions, .wokwi-iframe-wrapper, .wokwi-guide-banner {
+        display: none !important;
+      }
+      .wokwi-print-diagram {
+        display: block !important;
+        padding: 0.75rem !important;
+        background: #ffffff !important;
+        text-align: center !important;
+      }
+      .wokwi-print-diagram svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
     }
   
     /* Anti-Cheat Toast Warning */
@@ -1231,6 +1253,580 @@
     }
     .btn-check-score:hover { background: rgba(16,185,129,0.25); border-color: #34d399; }
     /* ============================================================= */
+
+    /* ============================================================= */
+    /* 🌟 Wokwi Interactive Simulation Component Styles              */
+    /* ============================================================= */
+    .wokwi-section-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      margin: 1.5rem 0 2rem 0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .wokwi-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.9));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .wokwi-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      font-family: var(--heading-font);
+    }
+
+    .wokwi-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .wokwi-ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .wokwi-ctrl-btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      transform: translateY(-1px);
+    }
+
+    .wokwi-ctrl-btn.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    .wokwi-ctrl-btn.external {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.35);
+      color: #c084fc;
+    }
+
+    .wokwi-ctrl-btn.external:hover {
+      background: rgba(168, 85, 247, 0.3);
+      border-color: #c084fc;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.vscode {
+      background: rgba(0, 122, 204, 0.2);
+      border-color: rgba(0, 122, 204, 0.45);
+      color: #38bdf8;
+    }
+
+    .wokwi-ctrl-btn.vscode:hover {
+      background: rgba(0, 122, 204, 0.4);
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.zip {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .wokwi-ctrl-btn.zip:hover {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #34d399;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.info {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    .wokwi-ctrl-btn.info:hover {
+      background: rgba(245, 158, 11, 0.3);
+      border-color: #fbbf24;
+      color: #ffffff;
+    }
+
+    .wokwi-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      background: #12151f;
+    }
+
+    .wokwi-iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .wokwi-guide-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(15, 23, 42, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .guide-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+
+    .guide-item span b {
+      color: #e2e8f0;
+    }
+
+    .guide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #38bdf8;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Wokwi Seamless Fullscreen Mode (Native & CSS Overlay) */
+    #wokwiSectionCard:fullscreen,
+    #wokwiSectionCard:-webkit-full-screen,
+    .wokwi-section-card.wokwi-fullscreen-mode {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-shadow: none !important;
+      background: #090d16 !important;
+      border: none !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    body.wokwi-body-fullscreen {
+      overflow: hidden !important;
+    }
+
+    body.wokwi-body-fullscreen .glass-card {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      overflow: visible !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-header-bar,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-header-bar,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-header-bar {
+      border-radius: 0 !important;
+      padding: 0.75rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      background: #0f172a !important;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3) !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-iframe-wrapper,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-iframe-wrapper,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-iframe-wrapper {
+      flex: 1 1 0% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      display: flex !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-iframe-wrapper iframe,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-iframe-wrapper iframe,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-iframe-wrapper iframe {
+      width: 100% !important;
+      height: 100% !important;
+      flex: 1 !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-guide-banner,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-guide-banner,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-guide-banner {
+      border-radius: 0 !important;
+      padding: 0.5rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      background: #0f172a !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-print-diagram,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-print-diagram,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-print-diagram {
+      display: none !important;
+    }
+
+    /* ========================================================= */
+    /* 📈 Live Waveform Plotter & Web Serial Hardware Bridge CSS */
+    /* ========================================================= */
+    .lab-feature-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .lab-feature-header {
+      background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .lab-feature-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .lab-feature-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .feature-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(30, 41, 59, 0.7);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .feature-btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    .feature-btn.primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+    }
+    .feature-btn.primary:hover {
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .feature-btn.danger {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .feature-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.35);
+    }
+
+    .feature-btn.warning {
+      background: rgba(234, 179, 8, 0.18);
+      border-color: rgba(234, 179, 8, 0.4);
+      color: #facc15;
+    }
+    .feature-btn.warning:hover {
+      background: rgba(234, 179, 8, 0.3);
+    }
+
+    .feature-select {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-size: 0.76rem;
+      font-family: var(--mono-font), monospace;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .feature-select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+    }
+    .feature-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .serial-send-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+    }
+    .serial-send-bar input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 6px;
+      padding: 0.38rem 0.65rem;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.8rem;
+      color: #f8fafc;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .serial-send-bar input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .lab-feature-body {
+      padding: 1.15rem;
+    }
+
+    /* Canvas Plotter */
+    .plotter-canvas-container {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: #020617;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
+    }
+
+    .plotter-canvas-container canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .plotter-telemetry-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+    }
+
+    .telemetry-chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 0.45rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .telemetry-chip .chip-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .telemetry-chip .chip-value {
+      font-family: var(--mono-font), monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .telemetry-chip .chip-badge {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      width: fit-content;
+      margin-top: 0.1rem;
+    }
+
+    .chip-badge.off {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .chip-badge.on {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* Simulation Control Sliders & Scenario Presets */
+    .sim-controls-panel {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin-top: 0.85rem;
+    }
+
+    .sim-slider-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .sim-slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .sim-slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .sim-slider-header b {
+      color: var(--text-main);
+      font-family: var(--mono-font), monospace;
+    }
+
+    .sim-slider-group input[type="range"] {
+      width: 100%;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+
+    .sim-preset-bar {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .preset-btn {
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    /* Web Serial Terminal */
+    .serial-terminal-box {
+      background: #020617;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 8px;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.8rem;
+      color: #a5f3fc;
+      height: 150px;
+      padding: 0.75rem;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.45;
+    }
+
+    .serial-terminal-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .serial-terminal-box::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 3px;
+    }
+
+    .serial-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .serial-status-tag.disconnected {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .serial-status-tag.connected {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    @media print {
+      .lab-feature-card {
+        display: none !important;
+      }
+    }
 
   </style>
 </head>
@@ -1394,6 +1990,510 @@
           </table>
         </div>
 
+        <!-- ======================================================= -->
+        <!-- 🌟 Wokwi Online Circuit & Firmware Simulation (ESP32)   -->
+        <!-- ======================================================= -->
+        <h2 style="margin-top: 2rem;"><i class="fa-solid fa-microchip" style="color: #38bdf8;"></i> วงจรจำลองเสมือนจริง (Wokwi Interactive Simulation)</h2>
+        <div class="wokwi-section-card" id="wokwiSectionCard">
+          <div class="wokwi-header-bar">
+            <div class="wokwi-title">
+              <i class="fa-solid fa-microchip" style="color: #38bdf8;"></i>
+              <span>พื้นที่จำลองการทำงานของวงจร (Wokwi Interactive Simulator)</span>
+            </div>
+            <div class="wokwi-actions">
+              <button type="button" class="wokwi-ctrl-btn active" id="btnToggleSimMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-gamepad"></i> <span>โหมดจำลอง Wokwi</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnToggleDiagramMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-diagram-project"></i> <span>ดูผังการต่อวงจร (SVG)</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnWokwiFullscreen" onclick="toggleWokwiFullscreen()" title="เปิด/ปิดโหมดเต็มหน้าจอ (Fullscreen)">
+                <i class="fa-solid fa-expand" id="wokwiFsIcon"></i> <span id="wokwiFsText">เต็มหน้าจอ</span>
+              </button>
+              <a id="wokwiExternalLink" href="https://wokwi.com/projects/new/esp32" target="_blank" rel="noopener noreferrer" class="wokwi-ctrl-btn external" title="เปิดแท็บใหม่บน Wokwi.com">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>เปิด Wokwi</span>
+              </a>
+              <button type="button" class="wokwi-ctrl-btn vscode" onclick="copyVsCodeCommand()" title="คัดลอกคำสั่งสำหรับรันโปรเจกต์นี้ใน VS Code + Wokwi Extension">
+                <i class="fa-solid fa-code"></i> <span>VS Code Wokwi</span>
+              </button>
+              <a href="lab1_vscode_wokwi_template.zip" download="lab1_vscode_wokwi_template.zip" class="wokwi-ctrl-btn zip" title="ดาวน์โหลดโปรเจกต์ต้นแบบ PlatformIO + Wokwi ไปเปิดใน VS Code">
+                <i class="fa-solid fa-download"></i> <span>โหลด Template (.zip)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Wokwi Frame Container -->
+          <div class="wokwi-iframe-wrapper" id="wokwiIframeWrapper">
+            <iframe id="wokwiEmbedFrame" 
+                    src="https://wokwi.com/projects/new/esp32" 
+                    loading="lazy" 
+                    allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+                    allowfullscreen="true"
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
+                    title="Wokwi ESP32 Lab 1 Simulation"></iframe>
+          </div>
+
+          <!-- Interactive Realistic Vector SVG Wiring Diagram -->
+          <div class="wokwi-diagram-wrapper" id="wokwiDiagramWrapper" style="display: none; padding: 1rem; background: #0f172a; text-align: center;">
+            <svg viewBox="0 0 840 430" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Segoe UI', Arial, sans-serif; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; width: 100%; max-width: 800px; height: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+              <defs>
+                <!-- Wire Glow Filters & Drop Shadows -->
+                <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.15"/>
+                </filter>
+                <linearGradient id="metalShield" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#e2e8f0"/>
+                  <stop offset="50%" stop-color="#cbd5e1"/>
+                  <stop offset="100%" stop-color="#94a3b8"/>
+                </linearGradient>
+                <linearGradient id="relayBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#2563eb"/>
+                  <stop offset="100%" stop-color="#1d4ed8"/>
+                </linearGradient>
+                <linearGradient id="terminalGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#16a34a"/>
+                  <stop offset="100%" stop-color="#15803d"/>
+                </linearGradient>
+                <linearGradient id="dhtWhite" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="100%" stop-color="#f1f5f9"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Blueprint Grid Background -->
+              <rect width="100%" height="100%" fill="#f8fafc"/>
+              <g opacity="0.4">
+                <line x1="0" y1="70" x2="840" y2="70" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="0" y1="140" x2="840" y2="140" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="0" y1="210" x2="840" y2="210" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="0" y1="280" x2="840" y2="280" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="0" y1="350" x2="840" y2="350" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="140" y1="0" x2="140" y2="430" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="280" y1="0" x2="280" y2="430" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="420" y1="0" x2="420" y2="430" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="560" y1="0" x2="560" y2="430" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="700" y1="0" x2="700" y2="430" stroke="#e2e8f0" stroke-width="1"/>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 1. JUMPER WIRES LAYER (Clean & Untangled Paths)      -->
+              <!-- ==================================================== -->
+
+              <!-- === LEFT SIDE (Sensors to ESP32 - 100% Non-Crossing & Continuous) === -->
+              <!-- Potentiometer SIG (Orange) -> GPIO 36 / VP (Top Left Direct) -->
+              <path d="M 175 55 C 235 55, 275 142, 325 142" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linecap="round"/>
+              <!-- DHT22 DATA Wire (Green) -> GPIO 33 (Middle Left Direct) -->
+              <path d="M 175 185 C 235 185, 275 167, 325 167" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round"/>
+              
+              <!-- 3.3V Power (Red) -> DHT22 VCC & Jumper to Potentiometer VCC -->
+              <path d="M 325 267 C 265 267, 225 210, 175 210" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- 3.3V Jumper along pin edge -->
+              <path d="M 175 210 C 195 210, 195 80, 175 80" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="175" cy="210" r="3.5" fill="#dc2626"/>
+
+              <!-- GND Rail (Black) -> DHT22 GND & Jumper to Potentiometer GND -->
+              <path d="M 325 327 C 265 327, 225 235, 175 235" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- GND Jumper along outer pin edge -->
+              <path d="M 175 235 C 208 235, 208 105, 175 105" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="175" cy="235" r="3.5" fill="#1e293b"/>
+
+              <!-- === RIGHT SIDE (Actuators & Relays to ESP32 - 100% Non-Crossing) === -->
+              <!-- Mist Relay IN (Purple) -> GPIO 23 (Level 1: Top Direct) -->
+              <path d="M 505 117 C 550 117, 595 65, 640 65" fill="none" stroke="#9333ea" stroke-width="3.5" stroke-linecap="round"/>
+              
+              <!-- Fan Relay IN (Blue) -> GPIO 5 (Level 4: Middle Smooth Curve) -->
+              <path d="M 505 267 C 555 267, 595 185, 640 185" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
+              
+              <!-- Alert LED Anode (Pink/Red) -> GPIO 18 (Level 7: Bottom Direct) -->
+              <path d="M 505 242 C 550 242, 590 310, 640 310" fill="none" stroke="#e11d48" stroke-width="3.5" stroke-linecap="round"/>
+
+              <!-- 5V Power (Red) -> Fan Relay VCC (Level 5) & Jumper to Mist Relay (Level 2) -->
+              <path d="M 505 352 C 565 352, 605 210, 640 210" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- 5V Jumper between Relays along pin edge (No Signal Crossing) -->
+              <path d="M 640 210 C 625 210, 625 90, 640 90" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="640" cy="210" r="3.5" fill="#dc2626"/>
+
+              <!-- GND (Black) -> Fan Relay GND (Level 6) & Jumper to Mist Relay (Level 3) -->
+              <path d="M 505 327 C 555 327, 595 235, 640 235" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- GND Jumper between Relays along pin edge -->
+              <path d="M 640 235 C 620 235, 620 115, 640 115" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="640" cy="235" r="3.5" fill="#1e293b"/>
+
+              <!-- ==================================================== -->
+              <!-- 2. ESP32 DevKit V4 (Center Realistic Component)      -->
+              <!-- ==================================================== -->
+              <g transform="translate(325, 30)" filter="url(#shadow)">
+                <!-- Black PCB Body -->
+                <rect x="0" y="0" width="180" height="360" rx="12" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+                <!-- Mounting Holes -->
+                <circle cx="12" cy="14" r="3.5" fill="#f8fafc" stroke="#475569" stroke-width="1"/>
+                <circle cx="168" cy="14" r="3.5" fill="#f8fafc" stroke="#475569" stroke-width="1"/>
+                <circle cx="12" cy="346" r="3.5" fill="#f8fafc" stroke="#475569" stroke-width="1"/>
+                <circle cx="168" cy="346" r="3.5" fill="#f8fafc" stroke="#475569" stroke-width="1"/>
+
+                <!-- Metallic ESP-WROOM-32 Shield -->
+                <rect x="25" y="25" width="130" height="110" rx="6" fill="url(#metalShield)" stroke="#64748b" stroke-width="1.5"/>
+                <!-- PCB Antenna Trace Pattern -->
+                <rect x="40" y="30" width="100" height="22" rx="3" fill="#1e293b"/>
+                <path d="M 48 42 L 56 36 L 64 42 L 72 36 L 80 42 L 88 36 L 96 42 L 104 36 L 112 42 L 120 36 L 128 42" fill="none" stroke="#eab308" stroke-width="2"/>
+                <!-- Shield Text -->
+                <text x="90" y="80" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">ESP32-WROOM-32</text>
+                <text x="90" y="98" fill="#475569" font-size="9" font-weight="bold" text-anchor="middle">Wi-Fi + BT Dual-Core SoC</text>
+                <text x="90" y="118" fill="#334155" font-size="8" text-anchor="middle">CE 0700 FCC ID: 2AC7Z</text>
+
+                <!-- Micro USB Port at Bottom -->
+                <rect x="65" y="340" width="50" height="20" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="1"/>
+                <rect x="73" y="347" width="34" height="8" rx="2" fill="#0f172a"/>
+
+                <!-- Buttons: EN and BOOT -->
+                <rect x="20" y="325" width="22" height="16" rx="2" fill="#334155" stroke="#64748b"/>
+                <circle cx="31" cy="333" r="4" fill="#94a3b8"/>
+                <text x="31" y="320" fill="#94a3b8" font-size="7.5" font-weight="bold" text-anchor="middle">EN</text>
+
+                <rect x="138" y="325" width="22" height="16" rx="2" fill="#334155" stroke="#64748b"/>
+                <circle cx="149" cy="333" r="4" fill="#94a3b8"/>
+                <text x="149" y="320" fill="#94a3b8" font-size="7.5" font-weight="bold" text-anchor="middle">BOOT</text>
+
+                <!-- Onboard LEDs -->
+                <circle cx="45" cy="295" r="3" fill="#ef4444"/>
+                <text x="45" y="288" fill="#94a3b8" font-size="6.5" text-anchor="middle">PWR</text>
+                <circle cx="135" cy="295" r="3" fill="#3b82f6"/>
+                <text x="135" y="288" fill="#94a3b8" font-size="6.5" text-anchor="middle">IO2</text>
+
+                <!-- Left Pin Headers & Labels (15 Pins) -->
+                <g fill="#eab308">
+                  <rect x="4" y="60" width="8" height="6" rx="1"/>
+                  <rect x="4" y="85" width="8" height="6" rx="1"/>
+                  <rect x="4" y="109" width="8" height="6" rx="1"/><!-- GPIO 36 -->
+                  <rect x="4" y="134" width="8" height="6" rx="1"/><!-- GPIO 33 -->
+                  <rect x="4" y="159" width="8" height="6" rx="1"/>
+                  <rect x="4" y="184" width="8" height="6" rx="1"/>
+                  <rect x="4" y="209" width="8" height="6" rx="1"/>
+                  <rect x="4" y="234" width="8" height="6" rx="1"/><!-- 3V3 -->
+                  <rect x="4" y="259" width="8" height="6" rx="1"/>
+                  <rect x="4" y="284" width="8" height="6" rx="1"/>
+                  <rect x="4" y="294" width="8" height="6" rx="1"/><!-- GND -->
+                </g>
+                <text x="16" y="115" fill="#fb923c" font-size="9" font-weight="bold">GPIO 36 (VP)</text>
+                <text x="16" y="140" fill="#4ade80" font-size="9" font-weight="bold">GPIO 33 (DHT)</text>
+                <text x="16" y="240" fill="#f87171" font-size="9" font-weight="bold">3V3 (Power)</text>
+                <text x="16" y="300" fill="#cbd5e1" font-size="9" font-weight="bold">GND</text>
+
+                <!-- Right Pin Headers & Labels (15 Pins) -->
+                <g fill="#eab308">
+                  <rect x="168" y="60" width="8" height="6" rx="1"/>
+                  <rect x="168" y="84" width="8" height="6" rx="1"/><!-- GPIO 23 -->
+                  <rect x="168" y="109" width="8" height="6" rx="1"/>
+                  <rect x="168" y="134" width="8" height="6" rx="1"/>
+                  <rect x="168" y="159" width="8" height="6" rx="1"/>
+                  <rect x="168" y="184" width="8" height="6" rx="1"/>
+                  <rect x="168" y="209" width="8" height="6" rx="1"/><!-- GPIO 18 -->
+                  <rect x="168" y="234" width="8" height="6" rx="1"/><!-- GPIO 5 -->
+                  <rect x="168" y="259" width="8" height="6" rx="1"/>
+                  <rect x="168" y="294" width="8" height="6" rx="1"/><!-- GND -->
+                  <rect x="168" y="319" width="8" height="6" rx="1"/><!-- 5V VIN -->
+                </g>
+                <text x="164" y="90" fill="#c084fc" font-size="9" font-weight="bold" text-anchor="end">GPIO 23 (Mist)</text>
+                <text x="164" y="215" fill="#fda4af" font-size="9" font-weight="bold" text-anchor="end">GPIO 18 (LED)</text>
+                <text x="164" y="240" fill="#93c5fd" font-size="9" font-weight="bold" text-anchor="end">GPIO 5 (Fan)</text>
+                <text x="164" y="300" fill="#cbd5e1" font-size="9" font-weight="bold" text-anchor="end">GND</text>
+                <text x="164" y="325" fill="#f87171" font-size="9" font-weight="bold" text-anchor="end">5V (VIN)</text>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 3. POTENTIOMETER (Top Left Component)                -->
+              <!-- ==================================================== -->
+              <g transform="translate(30, 25)" filter="url(#shadow)">
+                <rect x="0" y="0" width="145" height="110" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                <!-- Rotary Knob -->
+                <circle cx="72" cy="50" r="30" fill="#0284c7" stroke="#0369a1" stroke-width="2"/>
+                <circle cx="72" cy="50" r="20" fill="#e2e8f0"/>
+                <line x1="72" y1="50" x2="86" y2="36" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+                <text x="72" y="94" fill="#0f172a" font-size="11" font-weight="bold" text-anchor="middle">Potentiometer 10k</text>
+                <text x="72" y="104" fill="#64748b" font-size="8" text-anchor="middle">Analog Knob (GPIO 36)</text>
+                <!-- Pins (Top: SIG, Mid: VCC, Bot: GND) -->
+                <circle cx="145" cy="30" r="4" fill="#ea580c"/>
+                <text x="135" y="33" fill="#ea580c" font-size="8" font-weight="bold" text-anchor="end">SIG (36)</text>
+                <circle cx="145" cy="55" r="4" fill="#dc2626"/>
+                <text x="135" y="58" fill="#dc2626" font-size="8" font-weight="bold" text-anchor="end">VCC (3.3V)</text>
+                <circle cx="145" cy="80" r="4" fill="#1e293b"/>
+                <text x="135" y="83" fill="#1e293b" font-size="8" font-weight="bold" text-anchor="end">GND</text>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 4. SENSOR: DHT22 (Bottom Left Component)             -->
+              <!-- ==================================================== -->
+              <g transform="translate(30, 160)" filter="url(#shadow)">
+                <rect x="0" y="0" width="145" height="115" rx="8" fill="url(#dhtWhite)" stroke="#cbd5e1" stroke-width="1.5"/>
+                <!-- Grid Ventilation Slots -->
+                <g fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.5">
+                  <rect x="15" y="15" width="115" height="7" rx="2"/>
+                  <rect x="15" y="26" width="115" height="7" rx="2"/>
+                  <rect x="15" y="37" width="115" height="7" rx="2"/>
+                  <rect x="15" y="48" width="115" height="7" rx="2"/>
+                  <rect x="15" y="59" width="115" height="7" rx="2"/>
+                </g>
+                <text x="72" y="88" fill="#0f172a" font-size="12" font-weight="bold" text-anchor="middle">DHT22 / AM2302</text>
+                <text x="72" y="102" fill="#64748b" font-size="8.5" text-anchor="middle">Temp &amp; Humidity (GPIO 33)</text>
+                <!-- Pin Headers (Top: DATA, Mid: VCC, Bot: GND) -->
+                <circle cx="145" cy="25" r="4" fill="#16a34a"/>
+                <text x="135" y="28" fill="#16a34a" font-size="8" font-weight="bold" text-anchor="end">DATA (33)</text>
+                <circle cx="145" cy="50" r="4" fill="#dc2626"/>
+                <text x="135" y="53" fill="#dc2626" font-size="8" font-weight="bold" text-anchor="end">VCC (+)</text>
+                <circle cx="145" cy="75" r="4" fill="#1e293b"/>
+                <text x="135" y="78" fill="#1e293b" font-size="8" font-weight="bold" text-anchor="end">GND (-)</text>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 5. RELAY 2: MIST PUMP (Top Right Component)          -->
+              <!-- ==================================================== -->
+              <g transform="translate(640, 25)" filter="url(#shadow)">
+                <rect x="0" y="0" width="165" height="100" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <!-- Blue Songle Relay Cube -->
+                <rect x="45" y="12" width="75" height="76" rx="4" fill="url(#relayBlue)" stroke="#1d4ed8" stroke-width="1"/>
+                <text x="82" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">SONGLE</text>
+                <text x="82" y="52" fill="#93c5fd" font-size="8" text-anchor="middle">SRD-05VDC</text>
+                <text x="82" y="66" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">RELAY 2 (MIST)</text>
+                <!-- Green Screw Terminals (Output) -->
+                <rect x="125" y="15" width="32" height="70" rx="3" fill="url(#terminalGreen)"/>
+                <circle cx="141" cy="28" r="4" fill="#0f172a"/>
+                <circle cx="141" cy="50" r="4" fill="#0f172a"/>
+                <circle cx="141" cy="72" r="4" fill="#0f172a"/>
+                <!-- Input Control Pins (Top: IN, Mid: VCC, Bot: GND) -->
+                <circle cx="0" cy="40" r="4" fill="#9333ea"/>
+                <text x="10" y="43" fill="#c084fc" font-size="8" font-weight="bold">IN (GPIO 23)</text>
+                <circle cx="0" cy="65" r="4" fill="#dc2626"/>
+                <text x="10" y="68" fill="#f87171" font-size="8">VCC (5V)</text>
+                <circle cx="0" cy="90" r="4" fill="#94a3b8"/>
+                <text x="10" y="93" fill="#cbd5e1" font-size="8">GND</text>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 6. RELAY 1: FAN (Middle Right Component)             -->
+              <!-- ==================================================== -->
+              <g transform="translate(640, 145)" filter="url(#shadow)">
+                <rect x="0" y="0" width="165" height="100" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <!-- Blue Songle Relay Cube -->
+                <rect x="45" y="12" width="75" height="76" rx="4" fill="url(#relayBlue)" stroke="#1d4ed8" stroke-width="1"/>
+                <text x="82" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">SONGLE</text>
+                <text x="82" y="52" fill="#93c5fd" font-size="8" text-anchor="middle">SRD-05VDC</text>
+                <text x="82" y="66" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">RELAY 1 (FAN)</text>
+                <!-- Green Screw Terminals -->
+                <rect x="125" y="15" width="32" height="70" rx="3" fill="url(#terminalGreen)"/>
+                <circle cx="141" cy="28" r="4" fill="#0f172a"/>
+                <circle cx="141" cy="50" r="4" fill="#0f172a"/>
+                <circle cx="141" cy="72" r="4" fill="#0f172a"/>
+                <!-- Input Control Pins (Top: IN, Mid: VCC, Bot: GND) -->
+                <circle cx="0" cy="40" r="4" fill="#2563eb"/>
+                <text x="10" y="43" fill="#93c5fd" font-size="8" font-weight="bold">IN (GPIO 5)</text>
+                <circle cx="0" cy="65" r="4" fill="#dc2626"/>
+                <text x="10" y="68" fill="#f87171" font-size="8">VCC (5V)</text>
+                <circle cx="0" cy="90" r="4" fill="#94a3b8"/>
+                <text x="10" y="93" fill="#cbd5e1" font-size="8">GND</text>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- 7. ALERT LED & RESISTOR (Bottom Right Component)     -->
+              <!-- ==================================================== -->
+              <g transform="translate(640, 270)" filter="url(#shadow)">
+                <rect x="0" y="0" width="165" height="85" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                <!-- Red 5mm LED Bulb -->
+                <circle cx="35" cy="42" r="14" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+                <circle cx="31" cy="38" r="4" fill="#fca5a5" opacity="0.8"/>
+                <text x="35" y="70" fill="#991b1b" font-size="9" font-weight="bold" text-anchor="middle">Alert LED (18)</text>
+
+                <!-- 220 Ohm Resistor -->
+                <rect x="75" y="36" width="36" height="12" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1"/>
+                <!-- Color Bands (Red, Red, Brown, Gold) -->
+                <rect x="81" y="36" width="3" height="12" fill="#ef4444"/>
+                <rect x="88" y="36" width="3" height="12" fill="#ef4444"/>
+                <rect x="95" y="36" width="3" height="12" fill="#78350f"/>
+                <rect x="103" y="36" width="3" height="12" fill="#eab308"/>
+                <text x="93" y="62" fill="#78350f" font-size="8.5" font-weight="bold" text-anchor="middle">220 Ω</text>
+                <!-- Wire to GND -->
+                <line x1="111" y1="42" x2="140" y2="42" stroke="#1e293b" stroke-width="2"/>
+                <circle cx="140" cy="42" r="3" fill="#1e293b"/>
+                <text x="140" y="58" fill="#64748b" font-size="8" text-anchor="middle">GND</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Bottom Guide Banner -->
+          <div class="wokwi-guide-banner">
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-play"></i> เริ่มต้นการทดลอง</span>
+              <span>กดปุ่มสีเขียว <b>Start Simulation (▶)</b> เพื่อรันโปรแกรมจำลองได้ทันทีโดยไม่ต้องล็อกอิน</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i> เข้าสู่ระบบ Wokwi</span>
+              <span>หากต้องการ Sign In บันทึกงาน ให้กดปุ่ม <b>[ ↗ เปิด Wokwi ]</b> (Google/GitHub ไม่อนุญาตให้ล็อกอินผ่าน iframe)</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-sliders"></i> หมุน Analog VR</span>
+              <span>คลิกหมุนตัวต้านทานปรับค่าได้ (GPIO 36) เพื่อทดสอบอ่านค่าเปอร์เซ็นต์ ADC 0-100%</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-lightbulb"></i> สังเกตรีเลย์ &amp; LED</span>
+              <span>สังเกตไฟ LED (GPIO 18) และหน้าสัมผัส Relay 1 (พัดลม) / Relay 2 (พ่นหมอก) ตัดต่อตามเงื่อนไข</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 🌟 Feature 1: Real-time Waveform & Hysteresis Plotter    -->
+        <!-- ======================================================= -->
+        <div class="lab-feature-card" id="waveformPlotterCard">
+          <div class="lab-feature-header">
+            <div class="lab-feature-title">
+              <i class="fa-solid fa-chart-line" style="color: #38bdf8;"></i>
+              <span>กราฟวิเคราะห์การควบคุมและจำลองสัญญาณ Real-Time (Waveform Plotter)</span>
+            </div>
+            <div class="lab-feature-actions">
+              <button type="button" class="feature-btn" id="btnTogglePlotterMode" onclick="togglePlotterSourceMode()">
+                <i class="fa-solid fa-sliders"></i> <span id="plotterModeLabel">โหมดจำลอง (Sim)</span>
+              </button>
+              <button type="button" class="feature-btn" id="btnPausePlotter" onclick="togglePlotterPause()">
+                <i class="fa-solid fa-pause"></i> <span id="btnPausePlotterText">หยุดชั่วคราว</span>
+              </button>
+              <button type="button" class="feature-btn" onclick="clearPlotterData()">
+                <i class="fa-solid fa-broom"></i> <span>ล้างกราฟ</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lab-feature-body">
+            <!-- Canvas Oscilloscope Window -->
+            <div class="plotter-canvas-container">
+              <canvas id="waveformCanvas" width="800" height="220"></canvas>
+            </div>
+
+            <!-- Live Telemetry Stats Chips -->
+            <div class="plotter-telemetry-bar">
+              <div class="telemetry-chip">
+                <span class="chip-label"><i class="fa-solid fa-temperature-half" style="color: #38bdf8;"></i> อุณหภูมิ</span>
+                <span class="chip-value" id="chipTemp">28.5 °C</span>
+                <span class="chip-badge off" id="badgeTempHyst">เกณฑ์: &ge;30.0 / &le;29.5</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="chip-label"><i class="fa-solid fa-droplet" style="color: #c084fc;"></i> ความชื้น</span>
+                <span class="chip-value" id="chipHum">55.0 %</span>
+                <span class="chip-badge off" id="badgeHumHyst">เกณฑ์: &le;50 / &ge;60</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="chip-label"><i class="fa-solid fa-gauge" style="color: #facc15;"></i> แอนะล็อก (VR)</span>
+                <span class="chip-value" id="chipAdc">45.0 %</span>
+                <span class="chip-badge off" id="chipRawAdc">Raw: 1843</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="chip-label"><i class="fa-solid fa-fan" style="color: #60a5fa;"></i> รีเลย์ 1 (พัดลม)</span>
+                <span class="chip-value" id="chipFan">OFF</span>
+                <span class="chip-badge off" id="badgeFan">GPIO 5</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="chip-label"><i class="fa-solid fa-cloud-rain" style="color: #a855f7;"></i> รีเลย์ 2 (พ่นหมอก)</span>
+                <span class="chip-value" id="chipMist">OFF</span>
+                <span class="chip-badge off" id="badgeMist">GPIO 23</span>
+              </div>
+            </div>
+
+            <!-- Interactive Simulation Sliders & Scenario Presets (Active in Sim Mode) -->
+            <div class="sim-controls-panel" id="simControlsPanel">
+              <div class="sim-slider-row">
+                <div class="sim-slider-group">
+                  <div class="sim-slider-header">
+                    <span><i class="fa-solid fa-temperature-half" style="color: #38bdf8;"></i> ปรับอุณหภูมิทดสอบ:</span>
+                    <b id="simTempVal">28.5 °C</b>
+                  </div>
+                  <input type="range" id="simTempSlider" min="20.0" max="42.0" step="0.5" value="28.5" oninput="onSimTempChange(this.value)">
+                </div>
+                <div class="sim-slider-group">
+                  <div class="sim-slider-header">
+                    <span><i class="fa-solid fa-droplet" style="color: #c084fc;"></i> ปรับความชื้นทดสอบ:</span>
+                    <b id="simHumVal">55.0 %</b>
+                  </div>
+                  <input type="range" id="simHumSlider" min="20.0" max="95.0" step="1.0" value="55.0" oninput="onSimHumChange(this.value)">
+                </div>
+                <div class="sim-slider-group">
+                  <div class="sim-slider-header">
+                    <span><i class="fa-solid fa-sliders" style="color: #facc15;"></i> ปรับหมุน VR (GPIO 36):</span>
+                    <b id="simAdcVal">45.0 %</b>
+                  </div>
+                  <input type="range" id="simAdcSlider" min="0" max="100" step="1" value="45" oninput="onSimAdcChange(this.value)">
+                </div>
+              </div>
+
+              <!-- Quick Scenario Presets -->
+              <div class="sim-preset-bar">
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> จำลองสถานการณ์:</span>
+                <button type="button" class="preset-btn" onclick="applySimScenario('hot')">☀️ อุณหภูมิพุ่งสูง (&ge;30°C)</button>
+                <button type="button" class="preset-btn" onclick="applySimScenario('cool')">❄️ อุณหภูมิลดลง (&le;29.5°C)</button>
+                <button type="button" class="preset-btn" onclick="applySimScenario('dry')">🌵 อากาศแห้ง (&le;50%)</button>
+                <button type="button" class="preset-btn" onclick="applySimScenario('humid')">🌧️ อากาศชื้นสูง (&ge;60%)</button>
+                <button type="button" class="preset-btn" onclick="applySimScenario('failsafe')">⚠️ เซ็นเซอร์ขัดข้อง (Fail-Safe)</button>
+                <button type="button" class="preset-btn" onclick="applySimScenario('normal')">🔄 สภาวะปกติ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 🌟 Feature 2: Web Serial API Live Hardware Bridge       -->
+        <!-- ======================================================= -->
+        <div class="lab-feature-card" id="webSerialCard">
+          <div class="lab-feature-header">
+            <div class="lab-feature-title">
+              <i class="fa-solid fa-terminal" style="color: #4ade80;"></i>
+              <span>มอนิเตอร์และเชื่อมต่อบอร์ดฮาร์ดแวร์จริง (Web Serial API Monitor)</span>
+            </div>
+            <div class="lab-feature-actions">
+              <!-- Baud Rate Selector -->
+              <select id="serialBaudRateSelect" class="feature-select" onchange="onBaudRateChange()" title="เลือกความเร็ว Baud Rate ให้ตรงกับ Serial.begin() ในโค้ด">
+                <option value="115200" selected>115200 baud (ESP32/Lab1)</option>
+                <option value="9600">9600 baud (มาตรฐานทั่วไป)</option>
+                <option value="57600">57600 baud</option>
+                <option value="74880">74880 baud (ESP Boot Log)</option>
+                <option value="19200">19200 baud</option>
+                <option value="38400">38400 baud</option>
+              </select>
+
+              <span class="serial-status-tag disconnected" id="serialStatusBadge">
+                <span class="status-dot" style="background:#ef4444;"></span>
+                <span id="serialStatusText">ยังไม่ได้เชื่อมต่อ USB</span>
+              </span>
+
+              <button type="button" class="feature-btn primary" id="btnConnectSerial" onclick="toggleWebSerial()">
+                <i class="fa-solid fa-plug"></i> <span id="btnConnectSerialText">เชื่อมต่อบอร์ดจริง (USB)</span>
+              </button>
+
+              <button type="button" class="feature-btn warning" id="btnResetBoard" onclick="resetEsp32Board()" title="ส่งสัญญาณ DTR/RTS เพื่อสั่งรีเซ็ตบอร์ดใหม่">
+                <i class="fa-solid fa-rotate-left"></i> <span>รีเซ็ต ESP32</span>
+              </button>
+
+              <button type="button" class="feature-btn" onclick="clearSerialTerminal()">
+                <i class="fa-solid fa-broom"></i> <span>ล้าง</span>
+              </button>
+              <button type="button" class="feature-btn" onclick="openSerialGuideModal()">
+                <i class="fa-solid fa-circle-question"></i> <span>วิธีใช้ / แก้ปัญหา</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lab-feature-body">
+            <div class="serial-terminal-box" id="serialTerminalWindow">[WEB SERIAL TERMINAL READY]
+รองรับการเชื่อมต่อบอร์ด ESP32 / ESP8266 ผ่านสาย USB (Chrome / Edge / Brave)
+1. เสียบสาย USB ระหว่างบอร์ดกับคอมพิวเตอร์
+2. กดปุ่ม "เชื่อมต่อบอร์ดจริง (USB)" ด้านบน แล้วเลือกพอร์ต COM (เช่น Silicon Labs CP210x หรือ USB-SERIAL CH340)
+3. หากเชื่อมต่อแล้วไม่มีข้อความขึ้น ให้กดปุ่ม "รีเซ็ต ESP32" หรือกดปุ่ม EN/RST บนบอร์ด และตรวจสอบ Baud Rate ให้ตรงกับโค้ด</div>
+
+            <!-- Command TX Bar -->
+            <div class="serial-send-bar">
+              <input type="text" id="serialInputText" placeholder="พิมพ์คำสั่งส่งไปยังบอร์ด (เช่น HELP, TEST หรือค่าควบคุม) แล้วกด Enter..." onkeydown="if(event.key==='Enter') sendSerialText()">
+              <button type="button" class="feature-btn primary" onclick="sendSerialText()"><i class="fa-solid fa-paper-plane"></i> ส่งคำสั่ง</button>
+            </div>
+          </div>
+        </div>
+
         <h2 style="margin-top: 1.5rem;">โค้ดโครงร่าง (Skeleton Code)</h2>
         <p>ศึกษาโค้ดต่อไปนี้และค้นหาคำตอบเพื่อนำมาเติมในช่องว่างทางขวามือให้สมบูรณ์:</p>
         
@@ -1422,8 +2522,8 @@ void setup() {
   dht.begin();
   
   // 1. ตั้งค่าโหมดของขารีเลย์ให้เป็นเอาต์พุต
-  pinMode(FAN_RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น OUTPUT)" style="width: 175px;">);
-  pinMode(MIST_RELAY_PIN, <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น OUTPUT)" style="width: 175px;">);
+  pinMode(FAN_RELAY_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="INPUT / OUTPUT" style="width: 155px;">);
+  pinMode(MIST_RELAY_PIN, <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="INPUT / OUTPUT" style="width: 155px;">);
   
   // 2. ตั้งค่าลดทอนสัญญาณของ ADC เป็น 11dB (ช่วงแรงดัน 0-3.3V)
   #if defined(ESP32)
@@ -1436,15 +2536,15 @@ void loop() {
   rawAnalog = analogRead(ANALOG_PIN);
   
   // 3. แปลงค่า rawAnalog (0-4095 สำหรับ ESP32 หรือ 0-1023 สำหรับ ESP8266) ให้เป็นเปอร์เซ็นต์ (0-100%)
-  analogPercent = (rawAnalog / <input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="ช่องที่ 3 (เช่น 4095.0)" style="width: 185px;">) * 100.0;
+  analogPercent = (rawAnalog / <input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="4095.0 / 1023.0" style="width: 165px;">) * 100.0;
   
   Serial.printf("Temp: %.1f C | Analog: %.1f%%\n", temperature, analogPercent);
   
   // 4. เขียนเงื่อนไข: หากอุณหภูมิ > 30 องศาเซลเซียส ให้เปิดพัดลม
   if (temperature > 30.0) {
-    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="ช่องที่ 4 (เช่น HIGH)" style="width: 165px;">);
+    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="HIGH / LOW" style="width: 130px;">);
   } else {
-    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น LOW)" style="width: 165px;">);
+    digitalWrite(FAN_RELAY_PIN, <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="HIGH / LOW" style="width: 130px;">);
   }
   
   delay(2000);
@@ -1815,6 +2915,61 @@ void loop() {
     </div>
   </div>
 
+  <!-- VS Code + Wokwi Local Simulation Guide Modal -->
+  <div class="modal-overlay" id="vscodeGuideModal" style="display: none; z-index: 10000;">
+    <div class="theory-modal-content" style="max-width: 760px; max-height: 88vh; overflow-y: auto;">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-laptop-code" style="color: #38bdf8;"></i> คู่มือการรัน Wokwi Simulation บน VS Code (Local 100%)</h2>
+        <button type="button" class="theory-close-x" onclick="closeVsCodeGuideModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="theory-modal-body" style="padding: 1.5rem;">
+        <div class="info-frame" style="margin-bottom: 1.25rem;">
+          <h3><i class="fa-solid fa-shield-halved"></i> ข้อดีของการจำลองบน VS Code ในเครื่องตนเอง</h3>
+          <p style="margin-bottom: 0;">รันลื่นไหล 100% ไม่มีปัญหา Server Wokwi เต็มหรือติดคิว โหลดเร็ว ทดสอบโค้ดและ Serial Monitor ได้แม้ไม่มีอินเทอร์เน็ต</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="step-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.25rem;">
+            <div style="font-weight: 600; color: #38bdf8; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: #0284c7; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">1</span>
+              <span>ติดตั้ง Extension ใน VS Code</span>
+            </div>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.5rem;">กด <code>Ctrl + Shift + X</code> (Extensions) แล้วค้นหาและติดตั้ง 2 ตัวนี้:</p>
+            <ul style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0; padding-left: 1.25rem;">
+              <li><b>PlatformIO IDE</b> (สำหรับคอมไพล์เฟิร์มแวร์ ESP32)</li>
+              <li><b>Wokwi for VS Code</b> (สำหรับเปิดวงจรจำลอง <code>diagram.json</code>)</li>
+            </ul>
+          </div>
+
+          <div class="step-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.25rem;">
+            <div style="font-weight: 600; color: #34d399; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: #059669; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">2</span>
+              <span>เปิดโปรเจกต์ Template หรือแตกไฟล์ Zip</span>
+            </div>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0;">กดปุ่ม <b>"เปิดใน VS Code"</b> หรือดาวน์โหลดไฟล์ <b>Template (.zip)</b> แล้วแตกไฟล์เปิดโฟลเดอร์ใน VS Code</p>
+          </div>
+
+          <div class="step-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.25rem;">
+            <div style="font-weight: 600; color: #fbbf24; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: #d97706; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
+              <span>คอมไพล์และเริ่มการจำลอง (Build &amp; Simulate)</span>
+            </div>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.5rem;">ขั้นตอนสั่งรันวงจร:</p>
+            <ol style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0; padding-left: 1.25rem;">
+              <li>กดปุ่ม <b>Build (✓)</b> บนแถบสถานะด้านล่างของ PlatformIO</li>
+              <li>เมื่อขึ้นข้อความ <code>SUCCESS</code> ให้เปิดไฟล์ <b><code>diagram.json</code></b></li>
+              <li>กดปุ่ม <b>Start Simulation (▶)</b> หรือกด <code>F1</code> พิมพ์ <code>Wokwi: Start Simulator</code></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="theory-modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <a href="lab1_vscode_wokwi_template.zip" download="lab1_vscode_wokwi_template.zip" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;"><i class="fa-solid fa-download"></i> ดาวน์โหลด Template (.zip) ตอนนี้</a>
+        <button type="button" class="modal-close-btn" onclick="closeVsCodeGuideModal()">เข้าใจแล้ว ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Theory Content Modal -->
   <div class="modal-overlay" id="theoryModal" style="display: none;">
     <div class="theory-modal-content">
@@ -1973,13 +3128,26 @@ void loop() {
           </div>
 
           <div class="theory-card">
-            <h4><i class="fa-solid fa-code-compare"></i> 5.3 Active-HIGH vs Active-LOW Relays</h4>
-            <p>โมดูลรีเลย์ส่วนใหญ่ในท้องตลาดทำงานแบบ <strong>Active-LOW</strong> ซึ่งต้องการแรงดัน 0V (<code>LOW</code>) ที่ขา IN เพื่อสั่งให้รีเลย์ดูดหน้าสัมผัส (เปิดโหลด) และต้องการ 3.3V (<code>HIGH</code>) เพื่อสั่งดับ</p>
-            <p style="margin-top: 0.5rem;"><strong>ข้อแนะนำระดับมืออาชีพ:</strong> ควรใช้ Macro นิยามความหมายไว้ที่ส่วนหัวของโค้ด เพื่อป้องกันการสับสน:</p>
+            <h4><i class="fa-solid fa-code-compare"></i> 5.3 Active-HIGH vs Active-LOW Relays &amp; ฟังก์ชันควบคุมรีเลย์</h4>
+            <p>โมดูลรีเลย์ทั่วไปในท้องตลาดส่วนใหญ่ทำงานแบบ <strong>Active-LOW</strong> (ใช้ <code>LOW</code> เพื่อสั่ง ON และ <code>HIGH</code> เพื่อสั่ง OFF) ในขณะที่รีเลย์บางรุ่นหรือการจำลองใน Wokwi เป็นแบบ <strong>Active-HIGH</strong> (ใช้ <code>HIGH</code> เพื่อ ON)</p>
+            <p style="margin-top: 0.5rem;"><strong>รูปแบบฟังก์ชันมาตรฐานระดับมืออาชีพ (Clean &amp; Reusable):</strong> กำหนด Macro และสร้าง Helper Function <code>setRelay()</code> ช่วยให้สลับเปลี่ยนฮาร์ดแวร์ได้ง่ายโดยไม่ต้องแก้โค้ดหลัก:</p>
             <div class="theory-formula">
-              #define RELAY_ON   HIGH  // หรือ LOW หากใช้บอร์ดรีเลย์ Active-LOW<br>
-              #define RELAY_OFF  LOW   // หรือ HIGH หากใช้บอร์ดรีเลย์ Active-LOW<br><br>
-              digitalWrite(FAN_RELAY_PIN, RELAY_ON);  // โค้ดจะอ่านเข้าใจง่าย ไม่สับสน
+              // กำหนดระดับ Logic (true = Active-LOW, false = Active-HIGH)<br>
+              #define RELAY_ACTIVE_LOW false<br><br>
+              #if RELAY_ACTIVE_LOW<br>
+              &nbsp;&nbsp;#define RELAY_ON   LOW<br>
+              &nbsp;&nbsp;#define RELAY_OFF  HIGH<br>
+              #else<br>
+              &nbsp;&nbsp;#define RELAY_ON   HIGH<br>
+              &nbsp;&nbsp;#define RELAY_OFF  LOW<br>
+              #endif<br><br>
+              // ฟังก์ชันควบคุมรีเลย์<br>
+              void setRelay(uint8_t pin, bool state) {<br>
+              &nbsp;&nbsp;digitalWrite(pin, state ? RELAY_ON : RELAY_OFF);<br>
+              }<br><br>
+              // ใช้งานในโค้ดหลักได้อย่างชัดเจน ไม่สับสน:<br>
+              setRelay(FAN_RELAY_PIN, true);  // สั่งเปิดพัดลม<br>
+              setRelay(FAN_RELAY_PIN, false); // สั่งปิดพัดลม
             </div>
           </div>
 
@@ -2073,11 +3241,45 @@ void loop() {
             </p>
           </div>
         </div>
-
       </div>
 
       <div class="theory-modal-footer">
         <button type="button" class="modal-close-btn" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web Serial API Guide Modal -->
+  <div class="modal-overlay" id="serialGuideModal" style="display: none; z-index: 10000;">
+    <div class="theory-modal-content" style="max-width: 680px; max-height: 88vh; overflow-y: auto;">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-plug" style="color: #4ade80;"></i> คู่มือการเชื่อมต่อฮาร์ดแวร์จริงผ่าน Web Serial API</h2>
+        <button type="button" class="theory-close-x" onclick="closeSerialGuideModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="theory-modal-body" style="padding: 1.5rem;">
+        <div class="info-frame" style="margin-bottom: 1rem;">
+          <h4><i class="fa-solid fa-circle-info"></i> Web Serial API คืออะไร?</h4>
+          <p>เป็นมาตรฐานเว็บสมัยใหม่ที่ช่วยให้หน้าเว็บสามารถสื่อสารกับไมโครคอนโทรลเลอร์ (ESP32 / ESP8266 / Arduino) ผ่านสาย USB ได้โดยตรง <b>โดยไม่ต้องลงโปรแกรมเพิ่มเติม</b></p>
+        </div>
+
+        <div class="theory-card" style="margin-bottom: 1rem;">
+          <h4><i class="fa-solid fa-list-ol"></i> ขั้นตอนการเชื่อมต่อบอร์ดจริง:</h4>
+          <ol style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li>เสียบสาย USB เชื่อมต่อบอร์ด ESP32 / ESP8266 เข้ากับคอมพิวเตอร์</li>
+            <li>กดปุ่ม <b>"เชื่อมต่อบอร์ดจริง (USB)"</b> บนกล่อง Web Serial</li>
+            <li>เบราว์เซอร์จะแสดงหน้าต่างเลือกพอร์ต ให้เลือก <b>USB-Serial (เช่น CH340, CP2102 หรือ FTDI)</b> แล้วกด <b>Connect</b></li>
+            <li>หน้าต่าง Terminal จะเริ่มสตรีมข้อมูลค่าเซ็นเซอร์และสถานะรีเลย์แบบ Real-Time อัตโนมัติ (115200 baud)</li>
+          </ol>
+        </div>
+
+        <div class="theory-card">
+          <h4><i class="fa-brands fa-chrome"></i> เบราว์เซอร์ที่รองรับ:</h4>
+          <p><span style="color: #4ade80; font-weight: bold;">✓ รองรับ:</span> Google Chrome, Microsoft Edge, Opera, Brave (บน Windows, macOS, Linux, ChromeOS)</p>
+          <p style="color: #f87171; font-size: 0.85rem; margin-top: 0.35rem;"><i class="fa-solid fa-triangle-exclamation"></i> Safari และ Firefox ยังไม่รองรับ Web Serial API</p>
+        </div>
+      </div>
+      <div class="theory-modal-footer">
+        <button type="button" class="modal-close-btn" onclick="closeSerialGuideModal()">เข้าใจแล้ว ปิดหน้าต่าง</button>
       </div>
     </div>
   </div>
@@ -2165,6 +3367,151 @@ void loop() {
       const panel = document.getElementById('theory-tab-' + tabKey);
       if (panel) panel.classList.add('active');
     }
+
+    // =========================================================
+    // 🌟 Wokwi & SVG Diagram Toggle Controller
+    // =========================================================
+    function toggleSimOrDiagram(btn) {
+      const isSim = btn.id === 'btnToggleSimMode';
+      const simWrapper = document.getElementById('wokwiIframeWrapper');
+      const diagWrapper = document.getElementById('wokwiDiagramWrapper');
+      const btnSim = document.getElementById('btnToggleSimMode');
+      const btnDiag = document.getElementById('btnToggleDiagramMode');
+
+      if (isSim) {
+        if (simWrapper) simWrapper.style.display = 'block';
+        if (diagWrapper) diagWrapper.style.display = 'none';
+        if (btnSim) btnSim.classList.add('active');
+        if (btnDiag) btnDiag.classList.remove('active');
+      } else {
+        if (simWrapper) simWrapper.style.display = 'none';
+        if (diagWrapper) diagWrapper.style.display = 'block';
+        if (btnDiag) btnDiag.classList.add('active');
+        if (btnSim) btnSim.classList.remove('active');
+      }
+    }
+
+    function copyVsCodeCommand() {
+      const guideText = `// PlatformIO + Wokwi Extension Setup for Lab 1:
+1. ติดตั้งส่วนขยาย 'Wokwi Simulator' ใน VS Code
+2. ดาวน์โหลด template: 'lab1_vscode_wokwi_template.zip' แล้วแตกไฟล์เปิดใน VS Code
+3. กด F1 -> พิมพ์ 'Wokwi: Start Simulator' เพื่อเริ่มจำลองวงจรใน VS Code ทันที!`;
+      navigator.clipboard.writeText(guideText).then(() => {
+        alert('คัดลอกขั้นตอนเปิดใช้งาน VS Code + Wokwi เรียบร้อยแล้วครับ!\n\nท่านสามารถดาวน์โหลดไฟล์ template .zip ไปเปิดได้ทันที');
+      });
+    }
+
+    // =========================================================
+    // 🌟 Wokwi Simulation Persistent Controller (Native & Overlay Fullscreen)
+    // =========================================================
+    function toggleWokwiFullscreen() {
+      const card = document.getElementById('wokwiSectionCard');
+      const icon = document.getElementById('wokwiFsIcon');
+      const text = document.getElementById('wokwiFsText');
+      if (!card) return;
+
+      const isNativeFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const isCssFull = card.classList.contains('wokwi-fullscreen-mode');
+
+      if (!isNativeFull && !isCssFull) {
+        // เปิดโหมดเต็มจอ: พยายามใช้ Native Browser Fullscreen ก่อน
+        if (card.requestFullscreen) {
+          card.requestFullscreen().catch(() => {
+            enableCssFullscreen(card, icon, text);
+          });
+        } else if (card.webkitRequestFullscreen) {
+          card.webkitRequestFullscreen();
+        } else {
+          enableCssFullscreen(card, icon, text);
+        }
+      } else {
+        // ปิดโหมดเต็มจอ
+        if (isNativeFull) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        }
+        disableCssFullscreen(card, icon, text);
+      }
+    }
+
+    function enableCssFullscreen(card, icon, text) {
+      card.classList.add('wokwi-fullscreen-mode');
+      document.body.classList.add('wokwi-body-fullscreen');
+      if (icon) { icon.classList.remove('fa-expand'); icon.classList.add('fa-compress'); }
+      if (text) text.textContent = 'ย่อหน้าจอ';
+    }
+
+    function disableCssFullscreen(card, icon, text) {
+      card.classList.remove('wokwi-fullscreen-mode');
+      document.body.classList.remove('wokwi-body-fullscreen');
+      if (icon) { icon.classList.remove('fa-compress'); icon.classList.add('fa-expand'); }
+      if (text) text.textContent = 'เต็มหน้าจอ';
+    }
+
+    // Sync สถานะเมื่อผู้ใช้กด F11 / ESC หรือ Fullscreen Event จากเบราว์เซอร์
+    function handleFullscreenChange() {
+      const card = document.getElementById('wokwiSectionCard');
+      const icon = document.getElementById('wokwiFsIcon');
+      const text = document.getElementById('wokwiFsText');
+      if (!card) return;
+
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFull) {
+        enableCssFullscreen(card, icon, text);
+      } else {
+        disableCssFullscreen(card, icon, text);
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    // กดปุ่ม Escape เพื่อออกจากโหมดเต็มจอ
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const card = document.getElementById('wokwiSectionCard');
+        if (card && (card.classList.contains('wokwi-fullscreen-mode') || document.fullscreenElement)) {
+          toggleWokwiFullscreen();
+        }
+      }
+    });
+
+    // =========================================================
+    // 💻 VS Code & Local Wokwi Template Helpers
+    // =========================================================
+    function openVsCodeGuideModal() {
+      const modal = document.getElementById('vscodeGuideModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeVsCodeGuideModal() {
+      const modal = document.getElementById('vscodeGuideModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function openInVsCode() {
+      // 1. คำนวณ URI สำหรับเปิด VS Code โปรโตคอล vscode://file/
+      const currentPath = window.location.pathname;
+      let targetUri = 'vscode://file/' + encodeURI(currentPath.replace(/index\.html$/i, 'vscode-wokwi-template/diagram.json'));
+      
+      // เรียกเปิด VS Code
+      window.location.href = targetUri;
+
+      // แสดง Popup แนะนำ
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'info',
+          title: 'กำลังเปิดโปรเจกต์ใน VS Code...',
+          html: '<p style="font-size:0.9rem;color:#cbd5e1;line-height:1.6;">ระบบกำลังเรียกเปิด VS Code พร้อมไฟล์ <code>diagram.json</code> และ <code>wokwi.toml</code><br><br>💡 หาก VS Code ไม่เปิดขึ้นมา สามารถกดปุ่ม <b>"โหลด Template (.zip)"</b> เพื่อนำไปเปิดใน VS Code ด้วยตนเองได้ทันที</p>',
+          timer: 6000,
+          showConfirmButton: true,
+          confirmButtonText: 'รับทราบ'
+        });
+      }
+    }
     // File Base64 caches
     let uploadedScreenshotBase64 = null;
     let uploadedScreenshotName = null;
@@ -2195,11 +3542,11 @@ void loop() {
 
     // Code copy function (with student answers embedded)
     function copyCode() {
-      const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* ช่องที่ 1 */';
-      const b2 = document.getElementById('codeBlank2')?.value.trim() || '/* ช่องที่ 2 */';
-      const b3 = document.getElementById('codeBlank3')?.value.trim() || '/* ช่องที่ 3 */';
-      const b4 = document.getElementById('codeBlank4')?.value.trim() || '/* ช่องที่ 4 */';
-      const b5 = document.getElementById('codeBlank5')?.value.trim() || '/* ช่องที่ 5 */';
+      const b1 = document.getElementById('codeBlank1')?.value.trim() || '/* INPUT / OUTPUT */';
+      const b2 = document.getElementById('codeBlank2')?.value.trim() || '/* INPUT / OUTPUT */';
+      const b3 = document.getElementById('codeBlank3')?.value.trim() || '/* 4095.0 / 1023.0 */';
+      const b4 = document.getElementById('codeBlank4')?.value.trim() || '/* HIGH / LOW */';
+      const b5 = document.getElementById('codeBlank5')?.value.trim() || '/* HIGH / LOW */';
 
       const codeText = `// Skeleton Code for Lab 1
 #include <Arduino.h>
@@ -3181,8 +4528,702 @@ void loop() {
       window.open(val.split('?')[0] + '?page=grader', '_blank');
     }
     
+    // =========================================================
+    // 📈 Feature 1: Real-Time Waveform & Hysteresis Plotter Engine
+    // =========================================================
+    let plotterMode = 'sim'; // 'sim' or 'hardware'
+    let plotterPaused = false;
+    const MAX_PLOTTER_POINTS = 60; // Keep last 60 seconds (1 pt/sec)
+    let plotterHistory = [];
+
+    // Current State
+    let liveTele = {
+      temp: 28.5,
+      hum: 55.0,
+      adcPercent: 45.0,
+      adcRaw: 1843,
+      fan: false,
+      mist: false,
+      failSafe: false
+    };
+
+    function initWaveformPlotter() {
+      // Seed initial history
+      const now = Date.now();
+      plotterHistory = [];
+      for (let i = MAX_PLOTTER_POINTS; i > 0; i--) {
+        plotterHistory.push({
+          time: now - i * 1000,
+          temp: 28.5 + Math.sin(i * 0.1) * 0.4,
+          hum: 55.0 + Math.cos(i * 0.1) * 0.8,
+          fan: false,
+          mist: false
+        });
+      }
+
+      // Start rendering loop & tick interval
+      requestAnimationFrame(renderWaveformLoop);
+      setInterval(plotterSimTick, 1000);
+    }
+
+    function togglePlotterSourceMode() {
+      const label = document.getElementById('plotterModeLabel');
+      const simControls = document.getElementById('simControlsPanel');
+      if (plotterMode === 'sim') {
+        plotterMode = 'hardware';
+        if (label) label.textContent = 'โหมดบอร์ดจริง (Hardware)';
+        if (simControls) simControls.style.opacity = '0.4';
+      } else {
+        plotterMode = 'sim';
+        if (label) label.textContent = 'โหมดจำลอง (Sim)';
+        if (simControls) simControls.style.opacity = '1.0';
+      }
+    }
+
+    function togglePlotterPause() {
+      plotterPaused = !plotterPaused;
+      const btnText = document.getElementById('btnPausePlotterText');
+      if (btnText) {
+        btnText.textContent = plotterPaused ? 'เล่นต่อ' : 'หยุดชั่วคราว';
+      }
+    }
+
+    function clearPlotterData() {
+      plotterHistory = [];
+      const canvas = document.getElementById('waveformCanvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Simulation Slider Handlers
+    function onSimTempChange(val) {
+      liveTele.temp = parseFloat(val);
+      const el = document.getElementById('simTempVal');
+      if (el) el.textContent = liveTele.temp.toFixed(1) + ' °C';
+      evalSimHysteresis();
+    }
+
+    function onSimHumChange(val) {
+      liveTele.hum = parseFloat(val);
+      const el = document.getElementById('simHumVal');
+      if (el) el.textContent = liveTele.hum.toFixed(1) + ' %';
+      evalSimHysteresis();
+    }
+
+    function onSimAdcChange(val) {
+      liveTele.adcPercent = parseFloat(val);
+      liveTele.adcRaw = Math.round((liveTele.adcPercent / 100.0) * 4095);
+      const el = document.getElementById('simAdcVal');
+      if (el) el.textContent = liveTele.adcPercent.toFixed(1) + ' %';
+      updateTelemetryChips();
+    }
+
+    function evalSimHysteresis() {
+      if (liveTele.failSafe) {
+        liveTele.fan = false;
+        liveTele.mist = false;
+        updateTelemetryChips();
+        return;
+      }
+
+      // Fan Hysteresis (>= 30.0 -> ON, <= 29.5 -> OFF)
+      if (liveTele.temp >= 30.0) {
+        liveTele.fan = true;
+      } else if (liveTele.temp <= 29.5) {
+        liveTele.fan = false;
+      }
+
+      // Mist Humidity (<= 50.0 -> ON, >= 60.0 -> OFF)
+      if (liveTele.hum <= 50.0) {
+        liveTele.mist = true;
+      } else if (liveTele.hum >= 60.0) {
+        liveTele.mist = false;
+      }
+
+      updateTelemetryChips();
+    }
+
+    function applySimScenario(type) {
+      liveTele.failSafe = false;
+      if (type === 'hot') {
+        setSimInputs(33.5, 52.0, 60.0);
+      } else if (type === 'cool') {
+        setSimInputs(27.0, 56.0, 40.0);
+      } else if (type === 'dry') {
+        setSimInputs(29.0, 42.0, 30.0);
+      } else if (type === 'humid') {
+        setSimInputs(28.0, 75.0, 70.0);
+      } else if (type === 'failsafe') {
+        liveTele.failSafe = true;
+        setSimInputs(NaN, NaN, 50.0);
+      } else {
+        setSimInputs(28.5, 55.0, 45.0);
+      }
+    }
+
+    function setSimInputs(t, h, a) {
+      if (isNaN(t)) {
+        liveTele.temp = 0;
+        liveTele.hum = 0;
+      } else {
+        liveTele.temp = t;
+        liveTele.hum = h;
+      }
+      liveTele.adcPercent = a;
+      liveTele.adcRaw = Math.round((a / 100.0) * 4095);
+
+      const tSlider = document.getElementById('simTempSlider');
+      const hSlider = document.getElementById('simHumSlider');
+      const aSlider = document.getElementById('simAdcSlider');
+      if (tSlider && !isNaN(t)) tSlider.value = t;
+      if (hSlider && !isNaN(h)) hSlider.value = h;
+      if (aSlider) aSlider.value = a;
+
+      const tVal = document.getElementById('simTempVal');
+      const hVal = document.getElementById('simHumVal');
+      const aVal = document.getElementById('simAdcVal');
+      if (tVal) tVal.textContent = isNaN(t) ? 'NAN (Error)' : t.toFixed(1) + ' °C';
+      if (hVal) hVal.textContent = isNaN(h) ? 'NAN (Error)' : h.toFixed(1) + ' %';
+      if (aVal) aVal.textContent = a.toFixed(1) + ' %';
+
+      evalSimHysteresis();
+    }
+
+    function updateTelemetryChips() {
+      const chipT = document.getElementById('chipTemp');
+      const chipH = document.getElementById('chipHum');
+      const chipA = document.getElementById('chipAdc');
+      const chipRaw = document.getElementById('chipRawAdc');
+      const chipFan = document.getElementById('chipFan');
+      const badgeFan = document.getElementById('badgeFan');
+      const chipMist = document.getElementById('chipMist');
+      const badgeMist = document.getElementById('badgeMist');
+
+      if (chipT) chipT.textContent = liveTele.failSafe ? 'ERR (isnan)' : (liveTele.temp.toFixed(1) + ' °C');
+      if (chipH) chipH.textContent = liveTele.failSafe ? 'ERR (isnan)' : (liveTele.hum.toFixed(1) + ' %');
+      if (chipA) chipA.textContent = liveTele.adcPercent.toFixed(1) + ' %';
+      if (chipRaw) chipRaw.textContent = 'Raw: ' + liveTele.adcRaw;
+
+      if (chipFan) {
+        chipFan.textContent = liveTele.fan ? 'ON' : 'OFF';
+        chipFan.style.color = liveTele.fan ? '#4ade80' : '#94a3b8';
+      }
+      if (badgeFan) {
+        badgeFan.className = 'chip-badge ' + (liveTele.fan ? 'on' : 'off');
+        badgeFan.textContent = liveTele.fan ? 'ทำงาน (หมุน)' : 'หยุดทำงาน';
+      }
+
+      if (chipMist) {
+        chipMist.textContent = liveTele.mist ? 'ON' : 'OFF';
+        chipMist.style.color = liveTele.mist ? '#a855f7' : '#94a3b8';
+      }
+      if (badgeMist) {
+        badgeMist.className = 'chip-badge ' + (liveTele.mist ? 'on' : 'off');
+        badgeMist.textContent = liveTele.mist ? 'ทำงาน (พ่นหมอก)' : 'หยุดทำงาน';
+      }
+    }
+
+    function plotterSimTick() {
+      if (plotterPaused) return;
+      if (plotterMode === 'sim') {
+        // Add gentle ambient jitter
+        const jitterT = (Math.random() - 0.5) * 0.15;
+        const jitterH = (Math.random() - 0.5) * 0.3;
+        
+        let curT = liveTele.failSafe ? 0 : (liveTele.temp + jitterT);
+        let curH = liveTele.failSafe ? 0 : (liveTele.hum + jitterH);
+
+        plotterHistory.push({
+          time: Date.now(),
+          temp: curT,
+          hum: curH,
+          fan: liveTele.fan,
+          mist: liveTele.mist
+        });
+        if (plotterHistory.length > MAX_PLOTTER_POINTS) {
+          plotterHistory.shift();
+        }
+      }
+    }
+
+    function renderWaveformLoop() {
+      const canvas = document.getElementById('waveformCanvas');
+      if (canvas && canvas.offsetParent !== null) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // Clear Background with grid
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, w, h);
+
+        // Draw Subdued Grid Lines
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        for (let y = 20; y < h - 30; y += 30) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+        for (let x = 40; x < w; x += 60) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h - 30);
+          ctx.stroke();
+        }
+
+        // Draw Hysteresis Threshold Lines
+        const analogH = h - 40;
+        const tempToY = (t) => analogH - ((t - 15) / (45 - 15)) * analogH;
+        const humToY = (hum) => analogH - (hum / 100.0) * analogH;
+
+        // 30°C Fan ON Upper Threshold (Red Dashed)
+        const yTempHigh = tempToY(30.0);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, yTempHigh);
+        ctx.lineTo(w, yTempHigh);
+        ctx.stroke();
+        ctx.fillStyle = '#f87171';
+        ctx.font = '10px Segoe UI, sans-serif';
+        ctx.fillText('30.0°C (Fan ON)', 8, yTempHigh - 4);
+
+        // 29.5°C Fan OFF Lower Threshold (Green Dashed)
+        const yTempLow = tempToY(29.5);
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
+        ctx.beginPath();
+        ctx.moveTo(0, yTempLow);
+        ctx.lineTo(w, yTempLow);
+        ctx.stroke();
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText('29.5°C (Fan OFF)', 110, yTempLow + 11);
+
+        // 50% Mist ON Threshold (Purple Dashed)
+        const yHumLow = humToY(50.0);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(0, yHumLow);
+        ctx.lineTo(w, yHumLow);
+        ctx.stroke();
+        ctx.fillStyle = '#c084fc';
+        ctx.fillText('50% (Mist ON)', w - 100, yHumLow - 4);
+
+        // 60% Mist OFF Threshold (Blue Dashed)
+        const yHumHigh = humToY(60.0);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(0, yHumHigh);
+        ctx.lineTo(w, yHumHigh);
+        ctx.stroke();
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText('60% (Mist OFF)', w - 100, yHumHigh + 11);
+
+        ctx.setLineDash([]); // Reset line dash
+
+        // Draw Data Lines
+        if (plotterHistory.length > 1) {
+          const stepX = w / (MAX_PLOTTER_POINTS - 1);
+
+          // 1. Draw Humidity Trace (Violet)
+          ctx.strokeStyle = '#a855f7';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          plotterHistory.forEach((pt, idx) => {
+            const x = idx * stepX;
+            const y = humToY(pt.hum);
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+
+          // 2. Draw Temperature Trace (Cyan)
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          plotterHistory.forEach((pt, idx) => {
+            const x = idx * stepX;
+            const y = tempToY(pt.temp);
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+
+          // 3. Draw Digital Logic Track at bottom
+          const digY = h - 16;
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, h - 30, w, 30);
+          ctx.strokeStyle = '#334155';
+          ctx.beginPath();
+          ctx.moveTo(0, h - 30);
+          ctx.lineTo(w, h - 30);
+          ctx.stroke();
+
+          ctx.font = '10px Segoe UI, monospace';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText('RELAYS:', 6, digY + 4);
+
+          plotterHistory.forEach((pt, idx) => {
+            const x = idx * stepX;
+            // Fan Indicator Dot
+            if (pt.fan) {
+              ctx.fillStyle = '#22c55e';
+              ctx.fillRect(x, digY - 8, stepX + 1, 6);
+            }
+            // Mist Indicator Dot
+            if (pt.mist) {
+              ctx.fillStyle = '#a855f7';
+              ctx.fillRect(x, digY + 2, stepX + 1, 6);
+            }
+          });
+
+          ctx.fillStyle = '#22c55e';
+          ctx.fillText('■ Fan', 60, digY + 4);
+          ctx.fillStyle = '#a855f7';
+          ctx.fillText('■ Mist', 105, digY + 4);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillText('— Temp (°C)', 160, digY + 4);
+          ctx.fillStyle = '#c084fc';
+          ctx.fillText('— Humidity (%)', 240, digY + 4);
+        }
+      }
+      requestAnimationFrame(renderWaveformLoop);
+    }
+
+    // =========================================================
+    // 🔌 Feature 2: Web Serial API Direct Hardware Communication
+    // =========================================================
+    let serialPort = null;
+    let serialReader = null;
+    let serialKeepReading = false;
+
+    function openSerialGuideModal() {
+      const m = document.getElementById('serialGuideModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeSerialGuideModal() {
+      const m = document.getElementById('serialGuideModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function clearSerialTerminal() {
+      const term = document.getElementById('serialTerminalWindow');
+      if (term) term.textContent = '';
+    }
+
+    async function toggleWebSerial() {
+      if (serialPort) {
+        await disconnectWebSerial();
+      } else {
+        await connectWebSerial();
+      }
+    }
+
+    async function onBaudRateChange() {
+      const select = document.getElementById('serialBaudRateSelect');
+      if (!select) return;
+      const newBaud = parseInt(select.value, 10) || 115200;
+
+      if (serialPort) {
+        appendSerialTerminal(`\n[CONFIG] กำลังเปลี่ยนความเร็ว Baud Rate เป็น ${newBaud} baud...\n`);
+        await disconnectWebSerial();
+        await connectWebSerial();
+      }
+    }
+
+    async function connectWebSerial() {
+      if (!('serial' in navigator)) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'เบราว์เซอร์ไม่รองรับ Web Serial',
+            html: 'กรุณาใช้งานผ่าน <b>Google Chrome, Microsoft Edge หรือ Brave</b> บนคอมพิวเตอร์เพื่อเชื่อมต่อสาย USB กับบอร์ดจริง'
+          });
+        } else {
+          alert('เบราว์เซอร์ไม่รองรับ Web Serial API: กรุณาใช้งานผ่าน Google Chrome หรือ Microsoft Edge บนคอมพิวเตอร์');
+        }
+        return;
+      }
+
+      const select = document.getElementById('serialBaudRateSelect');
+      const baudRate = select ? (parseInt(select.value, 10) || 115200) : 115200;
+
+      try {
+        if (!serialPort) {
+          serialPort = await navigator.serial.requestPort();
+        }
+        
+        await serialPort.open({ baudRate: baudRate });
+
+        // Set DTR=false, RTS=false to ensure ESP32 runs in Normal Flash Boot mode (EN=HIGH, IO0=HIGH)
+        try {
+          await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        } catch (sigErr) {
+          console.warn('Cannot set DTR/RTS signals:', sigErr);
+        }
+
+        updateSerialUI(true, baudRate);
+        appendSerialTerminal(`\n========================================\n[CONNECTED] เชื่อมต่อพอร์ต USB สำเร็จ (${baudRate} baud)\nพร้อมรับข้อมูล Telemetry & Serial Log...\n(หากไม่มีข้อความขึ้น ให้กดปุ่ม "รีเซ็ต ESP32" หรือกดปุ่ม EN บนบอร์ด)\n========================================\n`);
+
+        // Automatically switch Plotter to Hardware mode
+        if (plotterMode !== 'hardware') {
+          togglePlotterSourceMode();
+        }
+
+        readSerialStream();
+      } catch (err) {
+        console.error('Web Serial Connection Error:', err);
+        serialPort = null;
+        updateSerialUI(false);
+        appendSerialTerminal(`\n[ERROR] ไม่สามารถเชื่อมต่อพอร์ต USB ได้: ${err.message || err}\n`);
+      }
+    }
+
+    async function readSerialStream() {
+      serialKeepReading = true;
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      let lineBuffer = '';
+
+      try {
+        const reader = serialPort.readable.getReader();
+        serialReader = reader;
+
+        while (serialKeepReading) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            appendSerialTerminal(chunk);
+
+            lineBuffer += chunk;
+            const lines = lineBuffer.split(/\r?\n/);
+            lineBuffer = lines.pop(); // Keep incomplete trailing fragment
+
+            for (const line of lines) {
+              if (line.trim()) {
+                parseSerialTelemetryLine(line.trim());
+              }
+            }
+          }
+        }
+      } catch (err) {
+        if (serialKeepReading) {
+          console.warn('Serial stream read error:', err);
+          appendSerialTerminal(`\n[STREAM WARN] การอ่านข้อมูลหยุดชะงัก: ${err.message || err}\n`);
+        }
+      } finally {
+        if (serialReader) {
+          try {
+            serialReader.releaseLock();
+          } catch (e) {}
+          serialReader = null;
+        }
+      }
+    }
+
+    async function resetEsp32Board() {
+      if (!serialPort) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'info',
+            title: 'ยังไม่ได้เชื่อมต่อ USB',
+            text: 'กรุณากดปุ่ม "เชื่อมต่อบอร์ดจริง (USB)" ก่อนสั่งรีเซ็ต'
+          });
+        } else {
+          alert('กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนสั่งรีเซ็ต');
+        }
+        return;
+      }
+
+      try {
+        appendSerialTerminal('\n[RESET] กำลังส่งสัญญาณ Hardware Reset (Normal Boot) ไปยัง ESP32...\n');
+        // 1. Pull EN LOW (Reset active) while keeping IO0 HIGH
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: true });
+        await new Promise(r => setTimeout(r, 120));
+
+        // 2. Release EN HIGH (Normal Flash Boot) while keeping IO0 HIGH
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        await new Promise(r => setTimeout(r, 100));
+
+        appendSerialTerminal('[RESET] รีเซ็ตสำเร็จ (Normal Flash Boot)! บอร์ดกำลังเริ่มรันโปรแกรม...\n');
+      } catch (err) {
+        appendSerialTerminal(`\n[RESET ERROR] ไม่สามารถสั่งรีเซ็ตผ่านซอฟต์แวร์ได้: ${err.message || err}\n💡 แนะนำ: กดปุ่ม EN / RST บนตัวบอร์ด ESP32 ด้วยตนเอง 1 ครั้ง\n`);
+      }
+    }
+
+    async function sendSerialText() {
+      const input = document.getElementById('serialInputText');
+      if (!input || !input.value) return;
+      const cmd = input.value;
+
+      if (!serialPort || !serialPort.writable) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ยังไม่ได้เชื่อมต่อ USB',
+            text: 'กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนส่งคำสั่ง'
+          });
+        } else {
+          alert('กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนส่งคำสั่ง');
+        }
+        return;
+      }
+
+      try {
+        const encoder = new TextEncoder();
+        const writer = serialPort.writable.getWriter();
+        await writer.write(encoder.encode(cmd + '\r\n'));
+        writer.releaseLock();
+        appendSerialTerminal(`\n> [TX] ${cmd}\n`);
+        input.value = '';
+      } catch (err) {
+        appendSerialTerminal(`\n[TX ERROR] ส่งคำสั่งไม่สำเร็จ: ${err.message || err}\n`);
+      }
+    }
+
+    async function disconnectWebSerial() {
+      serialKeepReading = false;
+      if (serialReader) {
+        try { await serialReader.cancel(); } catch(e){}
+        try { serialReader.releaseLock(); } catch(e){}
+        serialReader = null;
+      }
+      if (serialPort) {
+        try { await serialPort.close(); } catch(e){}
+        serialPort = null;
+      }
+      updateSerialUI(false);
+      appendSerialTerminal('\n[DISCONNECTED] ตัดการเชื่อมต่อพอร์ต USB เรียบร้อยแล้ว\n');
+    }
+
+    function updateSerialUI(connected, baudRate = 115200) {
+      const badge = document.getElementById('serialStatusBadge');
+      const text = document.getElementById('serialStatusText');
+      const btn = document.getElementById('btnConnectSerial');
+      const btnText = document.getElementById('btnConnectSerialText');
+
+      if (connected) {
+        if (badge) badge.className = 'serial-status-tag connected';
+        if (text) text.textContent = `เชื่อมต่อแล้ว (${baudRate} baud)`;
+        if (btn) {
+          btn.className = 'feature-btn danger';
+          if (btnText) btnText.textContent = 'ตัดการเชื่อมต่อ USB';
+        }
+      } else {
+        if (badge) badge.className = 'serial-status-tag disconnected';
+        if (text) text.textContent = 'ยังไม่ได้เชื่อมต่อ USB';
+        if (btn) {
+          btn.className = 'feature-btn primary';
+          if (btnText) btnText.textContent = 'เชื่อมต่อบอร์ดจริง (USB)';
+        }
+      }
+    }
+
+    function appendSerialTerminal(text) {
+      const term = document.getElementById('serialTerminalWindow');
+      if (term) {
+        term.textContent += text;
+        if (term.textContent.length > 15000) {
+          term.textContent = term.textContent.slice(-8000);
+        }
+        term.scrollTop = term.scrollHeight;
+      }
+    }
+
+    function parseSerialTelemetryLine(line) {
+      if (!line) return;
+
+      let hasUpdate = false;
+
+      // 1. Temp (Supports "Temp: 28.5 C", "Temperature: 28.5", "T: 28.5")
+      const tempMatch = line.match(/(?:temp(?:erature)?|อุณหภูมิ|T)\s*[:=]\s*([-\d.]+)/i);
+      if (tempMatch) {
+        const val = parseFloat(tempMatch[1]);
+        if (!isNaN(val) && val > -40 && val < 120) {
+          liveTele.temp = val;
+          hasUpdate = true;
+        }
+      }
+
+      // 2. Hum (Supports "Hum: 55.0 %", "Humidity: 55", "H: 55.0%")
+      const humMatch = line.match(/(?:hum(?:idity)?|ความชื้น|H)\s*[:=]\s*([-\d.]+)/i);
+      if (humMatch) {
+        const val = parseFloat(humMatch[1]);
+        if (!isNaN(val) && val >= 0 && val <= 100) {
+          liveTele.hum = val;
+          hasUpdate = true;
+        }
+      }
+
+      // 3. Analog / ADC (Supports "Analog: 45.0%", "ADC: 1843", "VR: 50%")
+      const adcMatch = line.match(/(?:analog|adc|vr|knob|raw)\s*[:=]\s*([-\d.]+)/i);
+      if (adcMatch) {
+        const val = parseFloat(adcMatch[1]);
+        if (!isNaN(val)) {
+          if (val > 100) {
+            // Raw ADC (0 - 4095)
+            liveTele.adcRaw = Math.round(val);
+            liveTele.adcPercent = parseFloat(((val / 4095.0) * 100).toFixed(1));
+          } else {
+            // Percent (0 - 100%)
+            liveTele.adcPercent = val;
+            liveTele.adcRaw = Math.round((val / 100.0) * 4095);
+          }
+          hasUpdate = true;
+        }
+      }
+
+      // 4. Fan Relay (Supports "Fan: ON/OFF", "Fan: HIGH/LOW", "Fan=1/0")
+      const fanMatch = line.match(/(?:fan|relay1|พัดลม)\s*[:=]\s*(on|off|high|low|1|0)/i);
+      if (fanMatch) {
+        const s = fanMatch[1].toUpperCase();
+        liveTele.fan = (s === 'ON' || s === 'HIGH' || s === '1');
+        hasUpdate = true;
+      }
+
+      // 5. Mist Relay (Supports "Mist: ON/OFF", "Mist: HIGH/LOW", "Pump: ON")
+      const mistMatch = line.match(/(?:mist|pump|relay2|พ่นหมอก|ปั๊ม)\s*[:=]\s*(on|off|high|low|1|0)/i);
+      if (mistMatch) {
+        const s = mistMatch[1].toUpperCase();
+        liveTele.mist = (s === 'ON' || s === 'HIGH' || s === '1');
+        hasUpdate = true;
+      }
+
+      // 6. Fail-safe Detection
+      if (line.includes('[FAIL-SAFE]') || line.includes('อ่านค่าเซ็นเซอร์ DHT ล้มเหลว') || line.toLowerCase().includes('nan')) {
+        liveTele.failSafe = true;
+        liveTele.fan = false;
+        liveTele.mist = false;
+        hasUpdate = true;
+      } else if (hasUpdate && !isNaN(liveTele.temp) && !isNaN(liveTele.hum)) {
+        liveTele.failSafe = false;
+      }
+
+      if (hasUpdate) {
+        updateTelemetryChips();
+
+        if (plotterMode === 'hardware' && !plotterPaused) {
+          plotterHistory.push({
+            time: Date.now(),
+            temp: liveTele.temp,
+            hum: liveTele.hum,
+            fan: liveTele.fan,
+            mist: liveTele.mist
+          });
+          if (plotterHistory.length > MAX_PLOTTER_POINTS) {
+            plotterHistory.shift();
+          }
+        }
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(initTeacherGasBox, 100);
+      setTimeout(initWaveformPlotter, 300);
     });
 
   </script>
