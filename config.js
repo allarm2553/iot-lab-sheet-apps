@@ -9,6 +9,7 @@
 
 const LAB_CONFIG = {
   // หมวดที่ 1: พื้นฐานฮาร์ดแวร์และการเชื่อมต่ออินพุต/เอาต์พุต (Module 1)
+  "lab0-basic": "YOUR_GAS_URL_FOR_LAB_BASIC",
   "lab-basic": "YOUR_GAS_URL_FOR_LAB_BASIC",
   "lab1": "YOUR_GAS_URL_FOR_LAB1",
   "lab1.1": "YOUR_GAS_URL_FOR_LAB1_1",
