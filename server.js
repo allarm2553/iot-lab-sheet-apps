@@ -114,7 +114,7 @@ const gradingRules = {
       'WIFI_AUTH_OPEN|ENC_TYPE_NONE|AUTH_OPEN',
       'begin', 'WL_CONNECTED', 'localIP', 'RSSI', 'macAddress'
     ],
-    challengeKeywords: ['scanNetworks', 'begin', 'WL_CONNECTED', 'digitalWrite|ledcWrite|blink'],
+    challengeKeywords: ['reconnect|begin|scanNetworks|WiFi.onEvent|WiFiEventHandler', 'WL_CONNECTED|status|DISCONNECTED|ARDUINO_EVENT', 'millis|delay|onEvent|EventHandler|interval', 'digitalWrite|ledcWrite|blink|LED|Serial.print'],
     q1Keywords: ['RSSI|Received Signal Strength', 'ลบ|negative', 'dBm', 'แรง|strength|สัญญาณ'],
     q2Keywords: ['STA|Station|สถานีลูกข่าย', 'AP|Access Point|จุดเชื่อมต่อ', 'WIFI_AP_STA|AP_STA|ทั้งสอง', 'เชื่อมต่อ|กระจาย|ให้บริการ']
   },

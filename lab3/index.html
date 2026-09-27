@@ -2317,7 +2317,8 @@ void loop() {
 
   // ── 6. Pre-Submission Score Check System ──
   
-  // ===== REGEX EVALUATION ENGINE (LAB 3) =====
+    // ===== REGEX EVALUATION ENGINE (LAB 3) =====
+  // รองรับทั้ง 2 สถาปัตยกรรม: Non-blocking Loop Polling (millis) และ Event-Driven Callback (WiFi.onEvent)
   function evaluateLab3Challenge(code) {
     if (!code || code.trim().length === 0) {
       return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
@@ -2325,28 +2326,31 @@ void loop() {
     let score = 0.0;
     let matched = [];
 
-    // Criterion 1: Event-driven Wi-Fi reconnect (+1.0)
-    if (/(WiFi\.onEvent|ARDUINO_EVENT_WIFI_STA_DISCONNECTED|SYSTEM_EVENT_STA_DISCONNECTED|disconnect)/i.test(code)) {
+    const isEventDriven = /(WiFi.onEvent|WiFiEventHandler|ARDUINO_EVENT|onStationMode|setAutoReconnect)/i.test(code);
+    const isLoopPolling = /(millis()|WiFi.status()|WL_CONNECTED|previousMillis|interval)/i.test(code);
+
+    // Criterion 1: กลไกตรวจสอบและสั่ง Reconnect Wi-Fi (+1.0 คะแนน)
+    if (/(WiFi.reconnect|WiFi.begin|WiFi.disconnect|reconnect|begin)/i.test(code) && (isEventDriven || /(WiFi.status|WL_CONNECTED)/i.test(code))) {
       score += 1.0;
-      matched.push('✓ มี Event-Driven Reconnect หรือดักจับ Event Disconnected');
+      matched.push(isEventDriven ? '✓ มีระบบกู้คืนสัญญาณ Wi-Fi แบบ Event-Driven Callback' : '✓ มีระบบตรวจจับสถานะและกู้คืนสัญญาณ Wi-Fi Reconnect ใน loop()');
     } else {
-      matched.push('✗ ขาดการดักจับ WiFi Event Disconnected');
+      matched.push('✗ ขาดคำสั่งตรวจเช็คหรือกู้คืนสัญญาณ Wi-Fi (เช่น WiFi.reconnect(), WiFi.begin() หรือ WiFi.onEvent)');
     }
 
-    // Criterion 2: 30s AP Fallback / Non-blocking timer (+0.8)
-    if (/(millis\(\)|delay|WiFi\.softAP|30000|AP)/i.test(code)) {
+    // Criterion 2: สถาปัตยกรรม Non-blocking Timing หรือ Event Callback (+0.8 คะแนน)
+    if (isEventDriven || /(millis()|previousMillis|interval|delay)/i.test(code)) {
       score += 0.8;
-      matched.push('✓ มีกลไกจับเวลา Fallback สลับเป็น AP Mode');
+      matched.push(isEventDriven ? '✓ สถาปัตยกรรม Event-Driven ปลอดภัยในระดับ System Background (Non-blocking)' : '✓ มีการควบคุมจังหวะเวลา/ตรวจสอบสถานะแบบ Non-blocking');
     } else {
-      matched.push('✗ ขาดการกำหนดเวลา Fallback เข้าสู่ AP Mode');
+      matched.push('✗ ขาดการจัดการจังหวะเวลาในการเชื่อมต่อใหม่');
     }
 
-    // Criterion 3: OLED Status / LED UI (+0.7)
-    if (/(display\.|OLED|SSD1306|digitalWrite)/i.test(code)) {
+    // Criterion 3: การแสดงสถานะผ่าน LED หรือ Serial Log (+0.7 คะแนน)
+    if (/(digitalWrite|ledcWrite|blink|LED|Serial.print|Serial.println|Serial.printf)/i.test(code)) {
       score += 0.7;
-      matched.push('✓ มีการแจ้งสถานะ Reconnecting บนหน้าจอ OLED หรือ LED');
+      matched.push('✓ มีการควบคุมไฟกระพริบ LED แสดงสถานะ หรือส่งข้อความ Log แจ้งเตือน');
     } else {
-      matched.push('✗ ขาดการแสดงผลสถานะ Reconnecting บนจอ OLED/LED');
+      matched.push('✗ ขาดคำสั่งควบคุม LED (digitalWrite) หรือ Serial Log แสดงสถานะ');
     }
 
     return {
