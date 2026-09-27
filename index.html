@@ -973,19 +973,19 @@
       <div class="labs-grid">
 
         <!-- Lab 3 -->
-        <article class="lab-card" data-keywords="lab3 webserver littlefs http spiffs flash html css js เว็บเซิร์ฟเวอร์">
+        <article class="lab-card" data-keywords="lab3 wifi scan rssi sta ap auto-connect dbm สแกนไวไฟ ความแรงสัญญาณ การเชื่อมต่อ">
           <div>
             <div class="card-top">
               <span class="lab-id-badge">Lab 3</span>
               <span class="tag-diff diff-medium">Intermediate</span>
             </div>
-            <h3 class="lab-title">เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)</h3>
-            <p class="lab-desc">การจัดเก็บไฟล์เว็บ (HTML, CSS, JS) ใน LittleFS Flash Memory และการให้บริการหน้าเว็บฝังตัวผ่าน WebServer (Port 80)</p>
+            <h3 class="lab-title">การเชื่อมต่อ Wi-Fi และสแกนหาเครือข่าย (WiFi Scan & RSSI)</h3>
+            <p class="lab-desc">การสั่งสแกนหา Access Point รอบตัว, การวิเคราะห์ความแรงสัญญาณ RSSI (dBm), โหมด WIFI_STA/AP และระบบ Event-Driven Auto-Reconnect</p>
             <div class="tech-tags">
-              <span class="tech-pill">LittleFS</span>
-              <span class="tech-pill">WebServer (HTTP)</span>
-              <span class="tech-pill">streamFile()</span>
-              <span class="tech-pill">MIME Types</span>
+              <span class="tech-pill">WiFi.scanNetworks()</span>
+              <span class="tech-pill">RSSI (dBm)</span>
+              <span class="tech-pill">Station Mode</span>
+              <span class="tech-pill">Auto Connect</span>
             </div>
           </div>
           <div class="card-actions">
@@ -995,19 +995,19 @@
         </article>
 
         <!-- Lab 3.1 -->
-        <article class="lab-card" data-keywords="lab3.1 wifi scan rssi sta ap auto-connect dbm สแกนไวไฟ ความแรงสัญญาณ">
+        <article class="lab-card" data-keywords="lab3.1 webserver littlefs http spiffs flash html css js เว็บเซิร์ฟเวอร์">
           <div>
             <div class="card-top">
               <span class="lab-id-badge">Lab 3.1</span>
               <span class="tag-diff diff-medium">Intermediate</span>
             </div>
-            <h3 class="lab-title">การเชื่อมต่อ Wi-Fi และสแกนหาเครือข่าย (WiFi Scan & RSSI)</h3>
-            <p class="lab-desc">การสั่งสแกนหา Access Point รอบตัว, การวิเคราะห์ความแรงสัญญาณ RSSI (dBm), โหมด WIFI_STA/AP และการเชื่อมต่ออัตโนมัติ</p>
+            <h3 class="lab-title">เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)</h3>
+            <p class="lab-desc">การจัดเก็บไฟล์เว็บ (HTML, CSS, JS) ใน LittleFS Flash Memory และการให้บริการหน้าเว็บฝังตัวผ่าน WebServer (Port 80)</p>
             <div class="tech-tags">
-              <span class="tech-pill">WiFi.scanNetworks()</span>
-              <span class="tech-pill">RSSI (dBm)</span>
-              <span class="tech-pill">Station Mode</span>
-              <span class="tech-pill">Auto Connect</span>
+              <span class="tech-pill">LittleFS</span>
+              <span class="tech-pill">WebServer (HTTP)</span>
+              <span class="tech-pill">streamFile()</span>
+              <span class="tech-pill">MIME Types</span>
             </div>
           </div>
           <div class="card-actions">
@@ -1487,8 +1487,8 @@
       { id: 'lab1', label: 'LAB 01', name: 'Lab 1: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)' },
       { id: 'lab1.1', label: 'LAB 1.1', name: 'Lab 1.1: การควบคุมเอาต์พุตด้วยสวิตช์ปุ่มกด (Debounce)' },
       { id: 'lab2', label: 'LAB 02', name: 'Lab 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)' },
-      { id: 'lab3', label: 'LAB 03', name: 'Lab 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)' },
-      { id: 'lab3.1', label: 'LAB 3.1', name: 'Lab 3.1: การเชื่อมต่อ Wi-Fi และสแกนเครือข่าย (WiFi Scan & RSSI)' },
+      { id: 'lab3', label: 'LAB 03', name: 'Lab 3: การเชื่อมต่อ Wi-Fi และสแกนหาเครือข่าย (WiFi Scan & RSSI)' },
+      { id: 'lab3.1', label: 'LAB 3.1', name: 'Lab 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)' },
       { id: 'lab3.2_Wifi_UI_config', label: 'LAB 3.2', name: 'Lab 3.2: ตั้งค่า Wi-Fi ผ่านหน้าเว็บ UI + OLED Debug' },
       { id: 'lab4', label: 'LAB 04', name: 'Lab 4: การสื่อสารสองทางเรียลไทม์ (Local WebSockets)' },
       { id: 'lab4.1', label: 'LAB 4.1', name: 'Lab 4.1: ระบบควบคุมและมอนิเตอร์ฮาร์ดแวร์หลายจุด (Multi-WS)' },

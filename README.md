@@ -12,7 +12,8 @@
 - [lab-basic/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab-basic) - ใบงานพื้นฐาน: การติดตั้ง Arduino IDE และคุณลักษณะของ ESP32
 - [lab1/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab1) - ใบงานที่ 1: การอ่านค่าเซ็นเซอร์และการควบคุมเอาต์พุต (GPIO, ADC & Relays)
 - [lab2/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab2) - ใบงานที่ 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)
-- [lab3/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab3) - ใบงานที่ 3: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 (LittleFS Web Server)
+- [lab3/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab3) - ใบงานที่ 3: การเชื่อมต่อ Wi-Fi และสแกนหาเครือข่าย (WiFi Scan & RSSI)
+- [lab3.1/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab3.1) - ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)
 - [lab4/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab4) - ใบงานที่ 4: การส่งข้อมูลสองทางแบบเรียลไทม์ (Local WebSockets)
 - [lab5/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab5) - ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT
 - [lab6/](file:///Users/allarmmac/myjob_folder/MyLaB/IoT/lab6) - ใบงานที่ 6: การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)

@@ -109,12 +109,6 @@ const gradingRules = {
     q2Keywords: ['buffer', 'บัฟเฟอร์', 'หน่วยความจำ', 'แสดงผล', 'จอ']
   },
   'lab3': {
-    blankKeywords: ['handleFileRequest', 'handleClient'],
-    challengeKeywords: ['LittleFS', 'exists', 'open', 'streamFile'],
-    q1Keywords: ['LittleFS', 'SPIFFS', 'ความเร็ว', 'เสถียร', 'directory', 'ย่อย'],
-    q2Keywords: ['streamFile', 'send', 'RAM', 'หน่วยความจำ', 'สตรีม', 'ขนาดใหญ่']
-  },
-  'lab3.1': {
     blankKeywords: [
       'WIFI_STA|WIFI_MODE_STA', 'SSID', 'RSSI', 'channel',
       'WIFI_AUTH_OPEN|ENC_TYPE_NONE|AUTH_OPEN',
@@ -123,6 +117,12 @@ const gradingRules = {
     challengeKeywords: ['scanNetworks', 'begin', 'WL_CONNECTED', 'digitalWrite|ledcWrite|blink'],
     q1Keywords: ['RSSI|Received Signal Strength', 'ลบ|negative', 'dBm', 'แรง|strength|สัญญาณ'],
     q2Keywords: ['STA|Station|สถานีลูกข่าย', 'AP|Access Point|จุดเชื่อมต่อ', 'WIFI_AP_STA|AP_STA|ทั้งสอง', 'เชื่อมต่อ|กระจาย|ให้บริการ']
+  },
+  'lab3.1': {
+    blankKeywords: ['LittleFS.begin', 'handleFileRequest', 'handleClient', 'streamFile'],
+    challengeKeywords: ['LittleFS', 'exists', 'open', 'streamFile'],
+    q1Keywords: ['LittleFS', 'SPIFFS', 'ความเร็ว', 'เสถียร', 'directory', 'ย่อย'],
+    q2Keywords: ['streamFile', 'send', 'RAM', 'หน่วยความจำ', 'สตรีม', 'ขนาดใหญ่']
   },
   'lab4': {
     blankKeywords: ['broadcastTXT', 'msg'],
