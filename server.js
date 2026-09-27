@@ -72,6 +72,18 @@ const polyfillScript = `
 
 // Heuristic Rules for Grading Student Submissions (Keywords mapping)
 const gradingRules = {
+  'lab0': {
+    blankKeywords: ['OUTPUT', 'digitalWrite', 'HIGH', 'LOW', 'delay'],
+    challengeKeywords: ['pinMode', 'digitalWrite', 'delay', 'HIGH', 'LOW', '2|led|led_builtin|d5|18|14|gpio14|gpio18'],
+    q1Keywords: ['input only|input|อินพุต', '34|35|36|39|a0|gpio16', 'pull-up|pullup', 'pull-down|pulldown'],
+    q2Keywords: ['strapping|boot|บูต', '0', '12|15|2|d3|d4|d8|gpio0|gpio12|gpio15|gpio2', 'ดึงกระแส|แรงดัน|ดึง']
+  },
+  'lab0-basic': {
+    blankKeywords: ['OUTPUT', 'digitalWrite', 'HIGH', 'LOW', 'delay'],
+    challengeKeywords: ['pinMode', 'digitalWrite', 'delay', 'HIGH', 'LOW', '2|led|led_builtin|d5|18|14|gpio14|gpio18'],
+    q1Keywords: ['input only|input|อินพุต', '34|35|36|39|a0|gpio16', 'pull-up|pullup', 'pull-down|pulldown'],
+    q2Keywords: ['strapping|boot|บูต', '0', '12|15|2|d3|d4|d8|gpio0|gpio12|gpio15|gpio2', 'ดึงกระแส|แรงดัน|ดึง']
+  },
   'lab-basic': {
     blankKeywords: ['OUTPUT', 'digitalWrite', 'HIGH', 'LOW', 'delay'],
     challengeKeywords: ['pinMode', 'digitalWrite', 'delay', 'HIGH', 'LOW', '2|led|led_builtin|d5|18|14|gpio14|gpio18'],
@@ -340,7 +352,7 @@ app.get('/dashboard', (req, res) => {
 
 // Routing for lab index pages & assets
 const validLabs = [
-  'lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab3.2_Wifi_UI_config', 'lab3.2',
+  'lab0', 'lab0-basic', 'lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab3.2_Wifi_UI_config', 'lab3.2',
   'lab4', 'lab4.1', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev',
   'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi',
   'LAB6_Fleet', 'LAB6_AppInstall', 'LAB_Convert2app'
@@ -350,7 +362,8 @@ validLabs.forEach(lab => {
   const targetFolder = (lab === 'lab6_perform') ? 'LAB6_Perform' : 
                        (lab === 'lab6_dev') ? 'LAB6_Dev' : 
                        (lab === 'lab5_dev') ? 'LAB5_Dev' : 
-                       (lab === 'lab3.2') ? 'lab3.2_Wifi_UI_config' : lab;
+                       (lab === 'lab3.2') ? 'lab3.2_Wifi_UI_config' :
+                       (lab === 'lab-basic') ? 'lab0-basic' : lab;
   
   // Handle HTML rendering with polyfill
   app.get([`/${lab}`, `/${lab}/`, `/${lab}/index.html`], (req, res) => {

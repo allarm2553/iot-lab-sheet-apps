@@ -2287,8 +2287,8 @@ void setup() {
   Serial.begin(115200);
   delay(500);
 
-  // [ช่องว่าง 1]: กำหนดโหมดของพิน GPIO 2 ให้เป็นขา OUTPUT
-  pinMode(ONBOARD_LED_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="OUTPUT" style="width: 120px;">);
+  // [ช่องว่าง 1]: กำหนดทิศทางการทำงานของพิน LED (INPUT / OUTPUT)
+  pinMode(ONBOARD_LED_PIN, <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="INPUT / OUTPUT" style="width: 155px;">);
   pinMode(EXT_LED1_PIN, OUTPUT);
   pinMode(EXT_LED2_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -2297,8 +2297,8 @@ void setup() {
 }
 
 void loop() {
-  // [ช่องว่าง 2]: สั่งให้ LED ติดสว่าง (จ่ายสัญญาณลอจิก HIGH 3.3V)
-  digitalWrite(ONBOARD_LED_PIN, <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="HIGH" style="width: 120px;">);
+  // [ช่องว่าง 2]: สั่งจ่ายระดับแรงดันลอจิกให้หลอด LED (HIGH / LOW)
+  digitalWrite(ONBOARD_LED_PIN, <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="HIGH / LOW" style="width: 135px;">);
   digitalWrite(EXT_LED1_PIN, HIGH);
   digitalWrite(EXT_LED2_PIN, LOW);
   delay(500);
@@ -2408,11 +2408,11 @@ void loop() {
             <p style="font-size: 0.82rem; color: #94a3b8; margin-top: -0.25rem; margin-bottom: 0.75rem;">(หมายเหตุ: สามารถกรอกคำตอบลงในช่องว่างบนโค้ดแม่แบบภาษา C++ ฝั่งซ้าย หรือพิมพ์ในช่องด้านล่างนี้ได้โดยตรง)</p>
             <div class="form-group">
               <label for="codeBlank1Input">ช่องว่าง 1: คำสั่งกำหนดโหมดให้ขา GPIO 2 ทำงานเป็นเอาต์พุต (pinMode) <span class="req">*</span></label>
-              <input type="text" id="codeBlank1Input" oninput="syncBlankInputs('codeBlank1', this.value)" placeholder="เช่น OUTPUT" autocomplete="off">
+              <input type="text" id="codeBlank1Input" oninput="syncBlankInputs('codeBlank1', this.value)" placeholder="INPUT / OUTPUT" autocomplete="off">
             </div>
             <div class="form-group">
               <label for="codeBlank2Input">ช่องว่าง 2: คำสั่งสั่งให้หลอด LED ติดสว่าง (digitalWrite) <span class="req">*</span></label>
-              <input type="text" id="codeBlank2Input" oninput="syncBlankInputs('codeBlank2', this.value)" placeholder="เช่น HIGH" autocomplete="off">
+              <input type="text" id="codeBlank2Input" oninput="syncBlankInputs('codeBlank2', this.value)" placeholder="HIGH / LOW" autocomplete="off">
             </div>
           </div>
 
@@ -2421,7 +2421,7 @@ void loop() {
             <h3 class="section-title"><i class="fa-solid fa-brain"></i> ส่วนที่ 2: วิเคราะห์ตรรกะการควบคุมและฟังก์ชัน (Control Logic - 0.8 คะแนน)</h3>
             <div class="form-group">
               <label for="controlLogic">อธิบายหน้าที่ของฟังก์ชัน <code>setup()</code>, <code>loop()</code>, ความหมายของการกำหนด <code>OUTPUT</code> และเหตุใดในโปรเจกต์ขนาดใหญ่จึงไม่ควรใช้คำสั่ง <code>delay()</code> <span class="req">*</span></label>
-              <textarea id="controlLogic" rows="4" required placeholder="อธิบายหน้าที่ของ setup, loop, OUTPUT และข้อเสียของ delay() เมื่อต้องทำงานหลายอย่างพร้อมกัน..."></textarea>
+              <textarea id="controlLogic" rows="4" required placeholder="อธิบายหน้าที่ ลำดับการประมวลผลของฟังก์ชันหลัก และผลกระทบต่อระบบเมื่อใช้คำสั่งหน่วงเวลา..."></textarea>
             </div>
           </div>
 
@@ -2430,16 +2430,7 @@ void loop() {
             <h3 class="section-title"><i class="fa-solid fa-trophy"></i> ส่วนที่ 3: โค้ดโจทย์ท้าทายการทดลอง (Challenge Code: Non-blocking Blink - 2.0 คะแนน)</h3>
             <div class="form-group">
               <label for="challengeCode">วางซอร์สโค้ดภาษา C++ ที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Non-blocking Blink ด้วย <code>millis()</code> หรือไฟกระพริบหลายดวง) ที่นี่: <span class="req">*</span></label>
-              <textarea id="challengeCode" class="code-textarea" rows="7" required placeholder="// เขียนโค้ดไฟกระพริบโดยใช้ millis() เพื่อไม่ให้โปรแกรมหยุดค้าง (Non-blocking Blink)
-unsigned long previousMillis = 0;
-const long interval = 500;
-void loop() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    // สลับสถานะ LED...
-  }
-}"></textarea>
+              <textarea id="challengeCode" class="code-textarea" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
             </div>
           </div>
 
@@ -2449,17 +2440,17 @@ void loop() {
             
             <div class="form-group">
               <label for="question1"><strong>คำถามที่ 1:</strong> อธิบายความแตกต่างและลำดับการทำงานของฟังก์ชัน <code>setup()</code> และ <code>loop()</code> ในโปรแกรมไมโครคอนโทรลเลอร์ <span class="req">*</span></label>
-              <textarea id="question1" rows="3" required placeholder="อธิบายความแตกต่าง setup ทำงานรอบเดียวตอนเริ่มต้น ส่วน loop ทำงานวนซ้ำตลอดเวลา..."></textarea>
+              <textarea id="question1" rows="3" required placeholder="อธิบายหลักการทำงาน วัตถุประสงค์ และลำดับขั้นตอนการประมวลผลของแต่ละฟังก์ชัน..."></textarea>
             </div>
 
             <div class="form-group">
               <label for="question2"><strong>คำถามที่ 2:</strong> ขา GPIO ชุดใดของ ESP32 ที่เป็น Input-Only และขา Strapping Pins (เช่น GPIO 0, 2, 15) มีข้อควรระวังอย่างไรในการต่อวงจรภายนอก? <span class="req">*</span></label>
-              <textarea id="question2" rows="3" required placeholder="อธิบายเรื่อง Input-Only (GPIO 34-39) ไม่มีวงจร Pull-up และ Strapping Pins กำหนดโหมดการบูต หากต่อดึงแรงดันค้างไว้บอร์ดจะไม่ยอมบูต..."></textarea>
+              <textarea id="question2" rows="3" required placeholder="อธิบายข้อจำกัดของกลุ่มพินอินพุต วงจรภายใน และผลกระทบต่อการบูตของบอร์ดหากต่อวงจรไม่ถูกต้อง..."></textarea>
             </div>
 
             <div class="form-group">
               <label for="question3"><strong>คำถามที่ 3:</strong> อธิบายข้อดีและความแตกต่างระหว่างการพัฒนาด้วย <strong>Arduino IDE</strong> และการใช้ <strong>VS Code + PlatformIO + Wokwi Simulator</strong> <span class="req">*</span></label>
-              <textarea id="question3" rows="3" required placeholder="อธิบายเปรียบเทียบ: Arduino IDE ใช้ง่ายเหมาะสำหรับเริ่มต้น ส่วน VS Code + PlatformIO มี IntelliSense จัดการไลบรารีอัตโนมัติ และ Wokwi จำลองได้โดยไม่ต้องมีฮาร์ดแวร์จริง..."></textarea>
+              <textarea id="question3" rows="3" required placeholder="อธิบายเปรียบเทียบคุณสมบัติเด่น ข้อดี-ข้อจำกัด และความเหมาะสมในการเลือกใช้แต่ละเครื่องมือ..."></textarea>
             </div>
           </div>
 
@@ -2553,7 +2544,7 @@ void loop() {
             <h3 class="section-title"><i class="fa-solid fa-comment-dots"></i> ส่วนที่ 7: สรุปผลและอภิปรายผลการทดลอง (0.8 คะแนน)</h3>
             <div class="form-group">
               <label for="conclusion">สรุปผลการทดลอง ปัญหาที่พบในการติดตั้งโปรแกรมหรือการอัปโหลดโค้ด และแนวทางแก้ไข <span class="req">*</span></label>
-              <textarea id="conclusion" rows="4" required placeholder="สรุปผลการทดลอง การติดตั้ง Arduino IDE / VS Code + PlatformIO + Wokwi สำเร็จ การทดสอบไฟกระพริบ และข้อสังเกต..."></textarea>
+              <textarea id="conclusion" rows="4" required placeholder="เขียนวิเคราะห์ผลการทำงานของวงจร ปัญหาที่พบในการทดลอง หรือผลลัพธ์ของโจทย์ท้าทายที่ปรับปรุง..."></textarea>
             </div>
           </div>
 
@@ -2658,7 +2649,7 @@ void loop() {
       <div class="theory-modal-body">
         <!-- Theory Navigation Tabs -->
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('esp32', this)"><i class="fa-solid fa-microchip"></i> 1. สถาปัตยกรรม ESP32</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('esp32', this)"><i class="fa-solid fa-microchip"></i> 1. สถาปัตยกรรม & พินเอาต์ (ESP32/ESP8266)</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('arduino-ide', this)"><i class="fa-solid fa-infinity"></i> 2. การติดตั้ง Arduino IDE</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('vscode-pio', this)"><i class="fa-solid fa-laptop-code"></i> 3. VS Code + PlatformIO</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('gpio', this)"><i class="fa-solid fa-table-list"></i> 4. GPIO & Strapping</button>
@@ -2668,14 +2659,574 @@ void loop() {
         <!-- TAB 1: ESP32 ARCHITECTURE -->
         <div class="theory-tab-panel active" id="theory-tab-esp32">
           <div class="theory-card">
-            <h4>1. สถาปัตยกรรมและคุณลักษณะของ ESP32 Microcontroller</h4>
-            <p>ESP32 เป็น System-on-Chip (SoC) ประสิทธิภาพสูงจาก Espressif Systems ที่ได้รับความนิยมสูงสุดในงาน IoT โดยมีคุณสมบัติหลักดังนี้:</p>
+            <h4>1. สถาปัตยกรรมและโครงสร้างพินเอาต์ (ESP32 & ESP8266 Pinout Architecture)</h4>
+            <p>ไมโครคอนโทรลเลอร์ <strong>ESP32</strong> และ <strong>ESP8266</strong> เป็นชิปประมวลผล System-on-Chip (SoC) ที่ได้รับความนิยมสูงสุดในงาน Internet of Things (IoT) และระบบอัตโนมัติ:</p>
+            
             <ul style="padding-left: 1.2rem; line-height: 1.6;">
-              <li><strong>CPU:</strong> Xtensa Dual-Core 32-bit LX6 Microprocessor ประมวลผลที่ความเร็ว 240 MHz (คำนวณได้สูงถึง 600 DMIPS)</li>
-              <li><strong>หน่วยความจำ (Memory):</strong> 520 KB SRAM ภายในตัวชิป และ 4 MB (หรือ 8/16 MB) External SPI Flash Memory</li>
-              <li><strong>การเชื่อมต่อไร้สาย:</strong> Wi-Fi 802.11 b/g/n (2.4 GHz) และ Bluetooth v4.2 BR/EDR ร่วมกับ Bluetooth Low Energy (BLE)</li>
-              <li><strong>GPIO & Peripherals:</strong> รองรับ Capacitive Touch, 12-bit ADC, 8-bit DAC, UART, SPI, I2C, PWM, I2S, CAN Bus</li>
+              <li><strong>ESP32 Microcontroller:</strong> ใช้ซีพียู 32-bit Dual-Core 240MHz, มี Wi-Fi 2.4GHz และ Bluetooth 4.2/BLE ในตัว, SRAM ขนาดใหญ่ 520KB และ ADC ความละเอียด 12-bit (0-4095)</li>
+              <li><strong>ESP8266 Microcontroller:</strong> ใช้ซีพียู 32-bit Single-Core 80/160MHz, มี Wi-Fi ในตัว, SRAM ขนาด 80KB และ ADC ความละเอียด 10-bit (0-1023) ที่ขา A0 เพียงขาเดียว</li>
             </ul>
+
+            
+<div class="pinout-container" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 1.25rem; margin: 1.25rem 0; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+    <h5 style="color: #38bdf8; margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fa-solid fa-microchip"></i> แผนผังพินบอร์ด ESP32 Dev Module (30-Pin NodeMCU ESP32 / IPST-WiFi)
+    </h5>
+    <span style="background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px;">
+      Xtensa Dual-Core 240MHz
+    </span>
+  </div>
+
+  <div style="overflow-x: auto; text-align: center;">
+    <svg viewBox="0 0 860 480" width="100%" height="auto" style="max-width: 860px; font-family: 'JetBrains Mono', Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="boardGradESP32" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#1e293b"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+        <linearGradient id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#94a3b8"/>
+          <stop offset="100%" stop-color="#475569"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Legend Bar -->
+      <g transform="translate(10, 10)" font-size="11" font-weight="bold">
+        <rect x="0" y="0" width="14" height="14" rx="3" fill="#ef4444"/>
+        <text x="20" y="11" fill="#cbd5e1">POWER (3.3V / 5V / GND)</text>
+
+        <rect x="200" y="0" width="14" height="14" rx="3" fill="#10b981"/>
+        <text x="220" y="11" fill="#cbd5e1">ADC (แอนะล็อก)</text>
+
+        <rect x="340" y="0" width="14" height="14" rx="3" fill="#06b6d4"/>
+        <text x="360" y="11" fill="#cbd5e1">I2C / SPI / UART</text>
+
+        <rect x="490" y="0" width="14" height="14" rx="3" fill="#a855f7"/>
+        <text x="510" y="11" fill="#cbd5e1">INPUT ONLY (34-39)</text>
+
+        <rect x="670" y="0" width="14" height="14" rx="3" fill="#f59e0b"/>
+        <text x="690" y="11" fill="#cbd5e1">STRAPPING (BOOT)</text>
+      </g>
+
+      <!-- Center Board Body -->
+      <rect x="330" y="45" width="200" height="420" rx="14" fill="url(#boardGradESP32)" stroke="#38bdf8" stroke-width="2"/>
+      
+      <!-- USB Connector -->
+      <rect x="400" y="445" width="60" height="24" rx="4" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="430" y="460" font-size="10" fill="#f8fafc" text-anchor="middle" font-weight="bold">USB</text>
+
+      <!-- ESP-WROOM-32 Shield & Antenna -->
+      <rect x="350" y="65" width="160" height="150" rx="6" fill="url(#chipGrad)" stroke="#cbd5e1" stroke-width="1.5"/>
+      <!-- Antenna area -->
+      <rect x="360" y="70" width="140" height="35" rx="3" fill="#0284c7" opacity="0.85"/>
+      <text x="430" y="92" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="bold">2.4GHz Wi-Fi + BLE</text>
+      <text x="430" y="145" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ESP-WROOM-32</text>
+      <text x="430" y="165" font-size="10" fill="#1e293b" text-anchor="middle">Dual-Core 240MHz</text>
+      <text x="430" y="185" font-size="9" fill="#334155" text-anchor="middle">Flash 4MB | SRAM 520KB</text>
+
+      <!-- Buttons -->
+      <rect x="345" y="415" width="35" height="20" rx="4" fill="#334155" stroke="#94a3b8"/>
+      <text x="362" y="429" font-size="9" fill="#f8fafc" text-anchor="middle">EN</text>
+
+      <rect x="480" y="415" width="35" height="20" rx="4" fill="#334155" stroke="#94a3b8"/>
+      <text x="497" y="429" font-size="9" fill="#f8fafc" text-anchor="middle">BOOT</text>
+
+      <!-- Onboard LED & Power LED -->
+      <circle cx="365" cy="385" r="5" fill="#3b82f6"/>
+      <text x="380" y="388" font-size="9" fill="#60a5fa">LED (GPIO 2)</text>
+      <circle cx="495" cy="385" r="5" fill="#ef4444"/>
+      <text x="460" y="388" font-size="9" fill="#f87171" text-anchor="end">PWR</text>
+
+      <!-- LEFT PINS (15 Pins) -->
+      <!-- 1. 3V3 -->
+      <rect x="20" y="55" width="290" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="30" y="70" font-size="11" font-weight="bold" fill="#ffffff">3.3V Power Out (3V3)</text>
+      <line x1="310" y1="66" x2="330" y2="66" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="335" cy="66" r="3" fill="#ef4444"/>
+
+      <!-- 2. EN -->
+      <rect x="90" y="82" width="220" height="22" rx="4" fill="#64748b"/>
+      <text x="100" y="97" font-size="11" fill="#ffffff">Reset / Enable (EN)</text>
+      <line x1="310" y1="93" x2="330" y2="93" stroke="#64748b" stroke-width="2"/>
+      <circle cx="335" cy="93" r="3" fill="#64748b"/>
+
+      <!-- 3. VP (GPIO 36) -->
+      <rect x="50" y="109" width="260" height="22" rx="4" fill="#a855f7"/>
+      <text x="60" y="124" font-size="11" font-weight="bold" fill="#ffffff">GPIO 36 (VP) [ADC1_CH0] Input-Only</text>
+      <line x1="310" y1="120" x2="330" y2="120" stroke="#a855f7" stroke-width="2"/>
+      <circle cx="335" cy="120" r="3" fill="#a855f7"/>
+
+      <!-- 4. VN (GPIO 39) -->
+      <rect x="50" y="136" width="260" height="22" rx="4" fill="#a855f7"/>
+      <text x="60" y="151" font-size="11" font-weight="bold" fill="#ffffff">GPIO 39 (VN) [ADC1_CH3] Input-Only</text>
+      <line x1="310" y1="147" x2="330" y2="147" stroke="#a855f7" stroke-width="2"/>
+      <circle cx="335" cy="147" r="3" fill="#a855f7"/>
+
+      <!-- 5. GPIO 34 -->
+      <rect x="80" y="163" width="230" height="22" rx="4" fill="#a855f7"/>
+      <text x="90" y="178" font-size="11" font-weight="bold" fill="#ffffff">GPIO 34 [ADC1_CH6] Input-Only</text>
+      <line x1="310" y1="174" x2="330" y2="174" stroke="#a855f7" stroke-width="2"/>
+      <circle cx="335" cy="174" r="3" fill="#a855f7"/>
+
+      <!-- 6. GPIO 35 -->
+      <rect x="80" y="190" width="230" height="22" rx="4" fill="#a855f7"/>
+      <text x="90" y="205" font-size="11" font-weight="bold" fill="#ffffff">GPIO 35 [ADC1_CH7] Input-Only</text>
+      <line x1="310" y1="201" x2="330" y2="201" stroke="#a855f7" stroke-width="2"/>
+      <circle cx="335" cy="201" r="3" fill="#a855f7"/>
+
+      <!-- 7. GPIO 32 -->
+      <rect x="100" y="217" width="210" height="22" rx="4" fill="#10b981"/>
+      <text x="110" y="232" font-size="11" fill="#ffffff">GPIO 32 [ADC1_CH4 / Touch9]</text>
+      <line x1="310" y1="228" x2="330" y2="228" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="228" r="3" fill="#10b981"/>
+
+      <!-- 8. GPIO 33 -->
+      <rect x="100" y="244" width="210" height="22" rx="4" fill="#10b981"/>
+      <text x="110" y="259" font-size="11" fill="#ffffff">GPIO 33 [ADC1_CH5 / Touch8]</text>
+      <line x1="310" y1="255" x2="330" y2="255" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="255" r="3" fill="#10b981"/>
+
+      <!-- 9. GPIO 25 -->
+      <rect x="110" y="271" width="200" height="22" rx="4" fill="#0284c7"/>
+      <text x="120" y="286" font-size="11" fill="#ffffff">GPIO 25 [DAC1 / ADC2_CH8]</text>
+      <line x1="310" y1="282" x2="330" y2="282" stroke="#0284c7" stroke-width="2"/>
+      <circle cx="335" cy="282" r="3" fill="#0284c7"/>
+
+      <!-- 10. GPIO 26 -->
+      <rect x="110" y="298" width="200" height="22" rx="4" fill="#0284c7"/>
+      <text x="120" y="313" font-size="11" fill="#ffffff">GPIO 26 [DAC2 / ADC2_CH9]</text>
+      <line x1="310" y1="309" x2="330" y2="309" stroke="#0284c7" stroke-width="2"/>
+      <circle cx="335" cy="309" r="3" fill="#0284c7"/>
+
+      <!-- 11. GPIO 27 -->
+      <rect x="100" y="325" width="210" height="22" rx="4" fill="#10b981"/>
+      <text x="110" y="340" font-size="11" fill="#ffffff">GPIO 27 [ADC2_CH7 / Touch7]</text>
+      <line x1="310" y1="336" x2="330" y2="336" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="336" r="3" fill="#10b981"/>
+
+      <!-- 12. GPIO 14 -->
+      <rect x="80" y="352" width="230" height="22" rx="4" fill="#10b981"/>
+      <text x="90" y="367" font-size="11" fill="#ffffff">GPIO 14 [HSPI_CLK / Touch6]</text>
+      <line x1="310" y1="363" x2="330" y2="363" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="363" r="3" fill="#10b981"/>
+
+      <!-- 13. GPIO 12 (Strapping) -->
+      <rect x="50" y="379" width="260" height="22" rx="4" fill="#f59e0b"/>
+      <text x="60" y="394" font-size="11" font-weight="bold" fill="#0f172a">GPIO 12 [HSPI_MISO] Strapping</text>
+      <line x1="310" y1="390" x2="330" y2="390" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="335" cy="390" r="3" fill="#f59e0b"/>
+
+      <!-- 14. GPIO 13 -->
+      <rect x="80" y="406" width="230" height="22" rx="4" fill="#10b981"/>
+      <text x="90" y="421" font-size="11" fill="#ffffff">GPIO 13 [HSPI_MOSI / Touch4]</text>
+      <line x1="310" y1="417" x2="330" y2="417" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="417" r="3" fill="#10b981"/>
+
+      <!-- 15. GND -->
+      <rect x="170" y="433" width="140" height="22" rx="4" fill="#334155"/>
+      <text x="180" y="448" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="310" y1="444" x2="330" y2="444" stroke="#334155" stroke-width="2"/>
+      <circle cx="335" cy="444" r="3" fill="#334155"/>
+
+      <!-- RIGHT PINS (15 Pins) -->
+      <!-- 1. VIN (5V) -->
+      <rect x="550" y="55" width="290" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="560" y="70" font-size="11" font-weight="bold" fill="#ffffff">VIN (5V Input / USB Power)</text>
+      <line x1="530" y1="66" x2="550" y2="66" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="525" cy="66" r="3" fill="#ef4444"/>
+
+      <!-- 2. GND -->
+      <rect x="550" y="82" width="150" height="22" rx="4" fill="#334155"/>
+      <text x="560" y="97" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="530" y1="93" x2="550" y2="93" stroke="#334155" stroke-width="2"/>
+      <circle cx="525" cy="93" r="3" fill="#334155"/>
+
+      <!-- 3. GPIO 13 / GPIO 23 (VSPI MOSI) -->
+      <rect x="550" y="109" width="240" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="124" font-size="11" fill="#ffffff">GPIO 23 [VSPI_MOSI / LED1]</text>
+      <line x1="530" y1="120" x2="550" y2="120" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="120" r="3" fill="#06b6d4"/>
+
+      <!-- 4. GPIO 22 (I2C SCL) -->
+      <rect x="550" y="136" width="250" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="151" font-size="11" font-weight="bold" fill="#ffffff">GPIO 22 [I2C SCL (Clock)]</text>
+      <line x1="530" y1="147" x2="550" y2="147" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="147" r="3" fill="#06b6d4"/>
+
+      <!-- 5. TX0 (GPIO 1) -->
+      <rect x="550" y="163" width="230" height="22" rx="4" fill="#64748b"/>
+      <text x="560" y="178" font-size="11" fill="#ffffff">GPIO 1 [U0TXD (Serial Out)]</text>
+      <line x1="530" y1="174" x2="550" y2="174" stroke="#64748b" stroke-width="2"/>
+      <circle cx="525" cy="174" r="3" fill="#64748b"/>
+
+      <!-- 6. RX0 (GPIO 3) -->
+      <rect x="550" y="190" width="230" height="22" rx="4" fill="#64748b"/>
+      <text x="560" y="205" font-size="11" fill="#ffffff">GPIO 3 [U0RXD (Serial In)]</text>
+      <line x1="530" y1="201" x2="550" y2="201" stroke="#64748b" stroke-width="2"/>
+      <circle cx="525" cy="201" r="3" fill="#64748b"/>
+
+      <!-- 7. GPIO 21 (I2C SDA) -->
+      <rect x="550" y="217" width="250" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="232" font-size="11" font-weight="bold" fill="#ffffff">GPIO 21 [I2C SDA (Data)]</text>
+      <line x1="530" y1="228" x2="550" y2="228" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="228" r="3" fill="#06b6d4"/>
+
+      <!-- 8. GPIO 19 (VSPI MISO) -->
+      <rect x="550" y="244" width="240" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="259" font-size="11" fill="#ffffff">GPIO 19 [VSPI_MISO / LED2]</text>
+      <line x1="530" y1="255" x2="550" y2="255" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="255" r="3" fill="#06b6d4"/>
+
+      <!-- 9. GPIO 18 (VSPI SCK) -->
+      <rect x="550" y="271" width="240" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="286" font-size="11" fill="#ffffff">GPIO 18 [VSPI_SCK / SW1]</text>
+      <line x1="530" y1="282" x2="550" y2="282" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="282" r="3" fill="#06b6d4"/>
+
+      <!-- 10. GPIO 5 (VSPI CS) -->
+      <rect x="550" y="298" width="250" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="313" font-size="11" font-weight="bold" fill="#0f172a">GPIO 5 [VSPI_SS] Strapping</text>
+      <line x1="530" y1="309" x2="550" y2="309" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="309" r="3" fill="#f59e0b"/>
+
+      <!-- 11. GPIO 17 (TX2) -->
+      <rect x="550" y="325" width="220" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="340" font-size="11" fill="#ffffff">GPIO 17 [U2TXD (UART2 TX)]</text>
+      <line x1="530" y1="336" x2="550" y2="336" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="336" r="3" fill="#06b6d4"/>
+
+      <!-- 12. GPIO 16 (RX2) -->
+      <rect x="550" y="352" width="220" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="367" font-size="11" fill="#ffffff">GPIO 16 [U2RXD (UART2 RX)]</text>
+      <line x1="530" y1="363" x2="550" y2="363" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="363" r="3" fill="#06b6d4"/>
+
+      <!-- 13. GPIO 4 -->
+      <rect x="550" y="379" width="230" height="22" rx="4" fill="#10b981"/>
+      <text x="560" y="394" font-size="11" fill="#ffffff">GPIO 4 [ADC2_CH0 / Touch0]</text>
+      <line x1="530" y1="390" x2="550" y2="390" stroke="#10b981" stroke-width="2"/>
+      <circle cx="525" cy="390" r="3" fill="#10b981"/>
+
+      <!-- 14. GPIO 2 (Onboard LED / Strapping) -->
+      <rect x="550" y="406" width="290" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="421" font-size="11" font-weight="bold" fill="#0f172a">GPIO 2 [LED / ADC2_CH2] Strapping</text>
+      <line x1="530" y1="417" x2="550" y2="417" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="417" r="3" fill="#f59e0b"/>
+
+      <!-- 15. GPIO 15 (Strapping) -->
+      <rect x="550" y="433" width="260" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="448" font-size="11" font-weight="bold" fill="#0f172a">GPIO 15 [HSPI_SS] Strapping</text>
+      <line x1="530" y1="444" x2="550" y2="444" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="444" r="3" fill="#f59e0b"/>
+    </svg>
+  </div>
+</div>
+
+
+            
+<div class="pinout-container" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 1.25rem; margin: 1.25rem 0; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+    <h5 style="color: #c084fc; margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fa-solid fa-wifi"></i> แผนผังพินบอร์ด ESP8266 NodeMCU V2 / V3 (ESP-12E / ESP-12F Module)
+    </h5>
+    <span style="background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px;">
+      Tensilica L106 80/160MHz
+    </span>
+  </div>
+
+  <div style="overflow-x: auto; text-align: center;">
+    <svg viewBox="0 0 860 480" width="100%" height="auto" style="max-width: 860px; font-family: 'JetBrains Mono', Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="boardGradESP8266" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#1e1b4b"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+        <linearGradient id="chipGrad8266" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#94a3b8"/>
+          <stop offset="100%" stop-color="#475569"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Legend Bar -->
+      <g transform="translate(10, 10)" font-size="11" font-weight="bold">
+        <rect x="0" y="0" width="14" height="14" rx="3" fill="#ef4444"/>
+        <text x="20" y="11" fill="#cbd5e1">POWER (3.3V / 5V / GND)</text>
+
+        <rect x="200" y="0" width="14" height="14" rx="3" fill="#10b981"/>
+        <text x="220" y="11" fill="#cbd5e1">ADC0 (0-1.0V Max 3.3V)</text>
+
+        <rect x="390" y="0" width="14" height="14" rx="3" fill="#06b6d4"/>
+        <text x="410" y="11" fill="#cbd5e1">I2C / SPI / UART</text>
+
+        <rect x="560" y="0" width="14" height="14" rx="3" fill="#f59e0b"/>
+        <text x="580" y="11" fill="#cbd5e1">STRAPPING (GPIO 0, 2, 15)</text>
+      </g>
+
+      <!-- Center Board Body -->
+      <rect x="330" y="45" width="200" height="420" rx="14" fill="url(#boardGradESP8266)" stroke="#a855f7" stroke-width="2"/>
+      
+      <!-- USB Connector -->
+      <rect x="400" y="445" width="60" height="24" rx="4" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="430" y="460" font-size="10" fill="#f8fafc" text-anchor="middle" font-weight="bold">USB (CH340/CP2102)</text>
+
+      <!-- ESP-12E Shield & Antenna -->
+      <rect x="350" y="65" width="160" height="140" rx="6" fill="url(#chipGrad8266)" stroke="#cbd5e1" stroke-width="1.5"/>
+      <!-- PCB Antenna -->
+      <rect x="360" y="70" width="140" height="30" rx="3" fill="#7c3aed" opacity="0.85"/>
+      <text x="430" y="90" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="bold">2.4GHz Wi-Fi (b/g/n)</text>
+      <text x="430" y="135" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ESP-12E / ESP-12F</text>
+      <text x="430" y="155" font-size="10" fill="#1e293b" text-anchor="middle">Tensilica 32-bit 80MHz</text>
+      <text x="430" y="175" font-size="9" fill="#334155" text-anchor="middle">Flash 4MB | SRAM 80KB</text>
+
+      <!-- Buttons -->
+      <rect x="345" y="415" width="35" height="20" rx="4" fill="#334155" stroke="#94a3b8"/>
+      <text x="362" y="429" font-size="9" fill="#f8fafc" text-anchor="middle">RST</text>
+
+      <rect x="480" y="415" width="35" height="20" rx="4" fill="#334155" stroke="#94a3b8"/>
+      <text x="497" y="429" font-size="9" fill="#f8fafc" text-anchor="middle">FLASH</text>
+
+      <!-- Blue LED (GPIO 2 / D4) -->
+      <circle cx="365" cy="385" r="5" fill="#3b82f6"/>
+      <text x="380" y="388" font-size="9" fill="#60a5fa">LED (D4/GPIO2)</text>
+
+      <!-- LEFT PINS (15 Pins) -->
+      <!-- 1. A0 -->
+      <rect x="50" y="55" width="260" height="22" rx="4" fill="#10b981"/>
+      <text x="60" y="70" font-size="11" font-weight="bold" fill="#ffffff">A0 [ADC0] (10-bit 0-3.3V Divider)</text>
+      <line x1="310" y1="66" x2="330" y2="66" stroke="#10b981" stroke-width="2"/>
+      <circle cx="335" cy="66" r="3" fill="#10b981"/>
+
+      <!-- 2. RSV -->
+      <rect x="180" y="82" width="130" height="22" rx="4" fill="#475569"/>
+      <text x="190" y="97" font-size="11" fill="#ffffff">RSV (Reserved)</text>
+      <line x1="310" y1="93" x2="330" y2="93" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="93" r="3" fill="#475569"/>
+
+      <!-- 3. RSV -->
+      <rect x="180" y="109" width="130" height="22" rx="4" fill="#475569"/>
+      <text x="190" y="124" font-size="11" fill="#ffffff">RSV (Reserved)</text>
+      <line x1="310" y1="120" x2="330" y2="120" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="120" r="3" fill="#475569"/>
+
+      <!-- 4. SD3 (GPIO 10) -->
+      <rect x="130" y="136" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="151" font-size="11" fill="#cbd5e1">SD3 [GPIO 10] (Flash SPI)</text>
+      <line x1="310" y1="147" x2="330" y2="147" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="147" r="3" fill="#475569"/>
+
+      <!-- 5. SD2 (GPIO 9) -->
+      <rect x="130" y="163" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="178" font-size="11" fill="#cbd5e1">SD2 [GPIO 9] (Flash SPI)</text>
+      <line x1="310" y1="174" x2="330" y2="174" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="174" r="3" fill="#475569"/>
+
+      <!-- 6. SD1 (GPIO 8) -->
+      <rect x="130" y="190" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="205" font-size="11" fill="#cbd5e1">SD1 [GPIO 8] (Flash SPI)</text>
+      <line x1="310" y1="201" x2="330" y2="201" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="201" r="3" fill="#475569"/>
+
+      <!-- 7. CMD (GPIO 11) -->
+      <rect x="130" y="217" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="232" font-size="11" fill="#cbd5e1">CMD [GPIO 11] (Flash SPI)</text>
+      <line x1="310" y1="228" x2="330" y2="228" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="228" r="3" fill="#475569"/>
+
+      <!-- 8. SD0 (GPIO 7) -->
+      <rect x="130" y="244" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="259" font-size="11" fill="#cbd5e1">SD0 [GPIO 7] (Flash SPI)</text>
+      <line x1="310" y1="255" x2="330" y2="255" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="255" r="3" fill="#475569"/>
+
+      <!-- 9. CLK (GPIO 6) -->
+      <rect x="130" y="271" width="180" height="22" rx="4" fill="#475569"/>
+      <text x="140" y="286" font-size="11" fill="#cbd5e1">CLK [GPIO 6] (Flash SPI)</text>
+      <line x1="310" y1="282" x2="330" y2="282" stroke="#475569" stroke-width="2"/>
+      <circle cx="335" cy="282" r="3" fill="#475569"/>
+
+      <!-- 10. GND -->
+      <rect x="170" y="298" width="140" height="22" rx="4" fill="#334155"/>
+      <text x="180" y="313" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="310" y1="309" x2="330" y2="309" stroke="#334155" stroke-width="2"/>
+      <circle cx="335" cy="309" r="3" fill="#334155"/>
+
+      <!-- 11. 3V3 -->
+      <rect x="150" y="325" width="160" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="160" y="340" font-size="11" font-weight="bold" fill="#ffffff">3.3V Power Out</text>
+      <line x1="310" y1="336" x2="330" y2="336" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="335" cy="336" r="3" fill="#ef4444"/>
+
+      <!-- 12. EN (CH_PD) -->
+      <rect x="120" y="352" width="190" height="22" rx="4" fill="#64748b"/>
+      <text x="130" y="367" font-size="11" fill="#ffffff">EN / CH_PD (Chip Enable)</text>
+      <line x1="310" y1="363" x2="330" y2="363" stroke="#64748b" stroke-width="2"/>
+      <circle cx="335" cy="363" r="3" fill="#64748b"/>
+
+      <!-- 13. RST -->
+      <rect x="160" y="379" width="150" height="22" rx="4" fill="#64748b"/>
+      <text x="170" y="394" font-size="11" fill="#ffffff">RST (Reset Pin)</text>
+      <line x1="310" y1="390" x2="330" y2="390" stroke="#64748b" stroke-width="2"/>
+      <circle cx="335" cy="390" r="3" fill="#64748b"/>
+
+      <!-- 14. GND -->
+      <rect x="170" y="406" width="140" height="22" rx="4" fill="#334155"/>
+      <text x="180" y="421" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="310" y1="417" x2="330" y2="417" stroke="#334155" stroke-width="2"/>
+      <circle cx="335" cy="417" r="3" fill="#334155"/>
+
+      <!-- 15. VIN -->
+      <rect x="50" y="433" width="260" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="60" y="448" font-size="11" font-weight="bold" fill="#ffffff">VIN (5V Input / USB Power In)</text>
+      <line x1="310" y1="444" x2="330" y2="444" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="335" cy="444" r="3" fill="#ef4444"/>
+
+      <!-- RIGHT PINS (15 Pins) -->
+      <!-- 1. D0 (GPIO 16) -->
+      <rect x="550" y="55" width="260" height="22" rx="4" fill="#0284c7"/>
+      <text x="560" y="70" font-size="11" fill="#ffffff">D0 [GPIO 16] (Wake / Deep Sleep)</text>
+      <line x1="530" y1="66" x2="550" y2="66" stroke="#0284c7" stroke-width="2"/>
+      <circle cx="525" cy="66" r="3" fill="#0284c7"/>
+
+      <!-- 2. D1 (GPIO 5 / I2C SCL) -->
+      <rect x="550" y="82" width="270" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="97" font-size="11" font-weight="bold" fill="#ffffff">D1 [GPIO 5] - I2C SCL (Clock)</text>
+      <line x1="530" y1="93" x2="550" y2="93" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="93" r="3" fill="#06b6d4"/>
+
+      <!-- 3. D2 (GPIO 4 / I2C SDA) -->
+      <rect x="550" y="109" width="270" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="124" font-size="11" font-weight="bold" fill="#ffffff">D2 [GPIO 4] - I2C SDA (Data)</text>
+      <line x1="530" y1="120" x2="550" y2="120" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="120" r="3" fill="#06b6d4"/>
+
+      <!-- 4. D3 (GPIO 0 / Flash / Strapping) -->
+      <rect x="550" y="136" width="290" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="151" font-size="11" font-weight="bold" fill="#0f172a">D3 [GPIO 0] FLASH Button (Strapping)</text>
+      <line x1="530" y1="147" x2="550" y2="147" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="147" r="3" fill="#f59e0b"/>
+
+      <!-- 5. D4 (GPIO 2 / Onboard LED / Strapping) -->
+      <rect x="550" y="163" width="290" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="178" font-size="11" font-weight="bold" fill="#0f172a">D4 [GPIO 2] Onboard LED (Strapping)</text>
+      <line x1="530" y1="174" x2="550" y2="174" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="174" r="3" fill="#f59e0b"/>
+
+      <!-- 6. 3V3 -->
+      <rect x="550" y="190" width="160" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="560" y="205" font-size="11" font-weight="bold" fill="#ffffff">3.3V Power Out</text>
+      <line x1="530" y1="201" x2="550" y2="201" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="525" cy="201" r="3" fill="#ef4444"/>
+
+      <!-- 7. GND -->
+      <rect x="550" y="217" width="150" height="22" rx="4" fill="#334155"/>
+      <text x="560" y="232" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="530" y1="228" x2="550" y2="228" stroke="#334155" stroke-width="2"/>
+      <circle cx="525" cy="228" r="3" fill="#334155"/>
+
+      <!-- 8. D5 (GPIO 14 / SPI SCK) -->
+      <rect x="550" y="244" width="250" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="259" font-size="11" fill="#ffffff">D5 [GPIO 14] - SPI SCK (Clock)</text>
+      <line x1="530" y1="255" x2="550" y2="255" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="255" r="3" fill="#06b6d4"/>
+
+      <!-- 9. D6 (GPIO 12 / SPI MISO) -->
+      <rect x="550" y="271" width="250" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="286" font-size="11" fill="#ffffff">D6 [GPIO 12] - SPI MISO</text>
+      <line x1="530" y1="282" x2="550" y2="282" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="282" r="3" fill="#06b6d4"/>
+
+      <!-- 10. D7 (GPIO 13 / SPI MOSI) -->
+      <rect x="550" y="298" width="250" height="22" rx="4" fill="#06b6d4"/>
+      <text x="560" y="313" font-size="11" fill="#ffffff">D7 [GPIO 13] - SPI MOSI</text>
+      <line x1="530" y1="309" x2="550" y2="309" stroke="#06b6d4" stroke-width="2"/>
+      <circle cx="525" cy="309" r="3" fill="#06b6d4"/>
+
+      <!-- 11. D8 (GPIO 15 / SPI CS / Strapping) -->
+      <rect x="550" y="325" width="290" height="22" rx="4" fill="#f59e0b"/>
+      <text x="560" y="340" font-size="11" font-weight="bold" fill="#0f172a">D8 [GPIO 15] - SPI CS (Strapping LOW)</text>
+      <line x1="530" y1="336" x2="550" y2="336" stroke="#f59e0b" stroke-width="2"/>
+      <circle cx="525" cy="336" r="3" fill="#f59e0b"/>
+
+      <!-- 12. RX (GPIO 3 / UART RX) -->
+      <rect x="550" y="352" width="250" height="22" rx="4" fill="#64748b"/>
+      <text x="560" y="367" font-size="11" fill="#ffffff">RX [GPIO 3] - UART0 RX (Serial In)</text>
+      <line x1="530" y1="363" x2="550" y2="363" stroke="#64748b" stroke-width="2"/>
+      <circle cx="525" cy="363" r="3" fill="#64748b"/>
+
+      <!-- 13. TX (GPIO 1 / UART TX) -->
+      <rect x="550" y="379" width="250" height="22" rx="4" fill="#64748b"/>
+      <text x="560" y="394" font-size="11" fill="#ffffff">TX [GPIO 1] - UART0 TX (Serial Out)</text>
+      <line x1="530" y1="390" x2="550" y2="390" stroke="#64748b" stroke-width="2"/>
+      <circle cx="525" cy="390" r="3" fill="#64748b"/>
+
+      <!-- 14. GND -->
+      <rect x="550" y="406" width="150" height="22" rx="4" fill="#334155"/>
+      <text x="560" y="421" font-size="11" font-weight="bold" fill="#ffffff">Ground (GND)</text>
+      <line x1="530" y1="417" x2="550" y2="417" stroke="#334155" stroke-width="2"/>
+      <circle cx="525" cy="417" r="3" fill="#334155"/>
+
+      <!-- 15. 3V3 -->
+      <rect x="550" y="433" width="160" height="22" rx="4" fill="#ef4444" opacity="0.9"/>
+      <text x="560" y="448" font-size="11" font-weight="bold" fill="#ffffff">3.3V Power Out</text>
+      <line x1="530" y1="444" x2="550" y2="444" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="525" cy="444" r="3" fill="#ef4444"/>
+    </svg>
+  </div>
+</div>
+
+
+            
+            <!-- Comparison Table -->
+            <div style="margin: 1.5rem 0; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                <thead>
+                  <tr style="background: rgba(30, 41, 59, 0.9); color: #f8fafc;">
+                    <th style="padding: 0.65rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1);">คุณสมบัติ (Features)</th>
+                    <th style="padding: 0.65rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); color: #38bdf8;">ESP32 (ESP-WROOM-32)</th>
+                    <th style="padding: 0.65rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); color: #c084fc;">ESP8266 (NodeMCU ESP-12E/F)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">หน่วยประมวลผล (CPU)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">Xtensa 32-bit LX6 Dual-Core (240 MHz)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">Tensilica L106 32-bit Single-Core (80/160 MHz)</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">หน่วยความจำภายใน (SRAM)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">520 KB SRAM</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">80 KB SRAM (User App ~36 KB)</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">หน่วยความจำ Flash (SPI)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">4 MB (ขยายได้สูงสุด 16 MB)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">4 MB</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">การเชื่อมต่อไร้สาย</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">Wi-Fi 802.11 b/g/n + Bluetooth 4.2 BR/EDR/BLE</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">Wi-Fi 802.11 b/g/n (ไม่มี Bluetooth)</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">จำนวนขา GPIO ใช้งานได้</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">~28-36 ขา (มี Input-Only 4 ขา)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">~11 ขา (แชร์กับ Flash และ Strapping)</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">ตัวแปลงแอนะล็อก (ADC)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">12-bit (0-4095) สูงสุด 18 ช่อง</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">10-bit (0-1023) มีเพียง 1 ช่อง (A0)</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0.55rem 0.9rem; font-weight: 600; color: #cbd5e1;">DAC (สัญญาณอนาล็อกออก)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #7dd3fc;">8-bit จำนวน 2 ช่อง (GPIO 25, 26)</td>
+                    <td style="padding: 0.55rem 0.9rem; color: #e9d5ff;">ไม่มี (ต้องจำลองด้วย PWM)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
           </div>
         </div>
 
