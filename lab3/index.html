@@ -1731,6 +1731,7 @@ void loop() {
       </div>
 
       <!-- Tab 4: Event-Driven Reconnect vs Polling -->
+            <!-- Tab 4: Wi-Fi Reconnect (Loop Polling vs Event-Driven) -->
       <div class="theory-tab-panel" id="theory-tab-tab4">
         <div class="theory-card">
           <h4><i class="fa-solid fa-scale-unbalanced-flip"></i> 4.1 เปรียบเทียบ: Status Polling ใน loop() vs Event-Driven Callback</h4>
@@ -1750,7 +1751,7 @@ void loop() {
               <tbody>
                 <tr>
                   <td><strong>สถาปัตยกรรม</strong></td>
-                  <td>Synchronous Polling (คอยถามซ้ำๆ)</td>
+                  <td>Synchronous Polling (คอยถามซ้ำๆ ในลูป)</td>
                   <td>Asynchronous / Interrupt-driven (แจ้งเมื่อมีเหตุ)</td>
                 </tr>
                 <tr>
@@ -1775,35 +1776,114 @@ void loop() {
                 </tr>
                 <tr>
                   <td><strong>การนำไปใช้งานจริง</strong></td>
-                  <td>เหมาะสำหรับศึกษาพื้นฐานเบื้องต้น</td>
+                  <td>เหมาะสำหรับศึกษาและงานที่ไมโครคอนโทรลเลอร์ไม่มี Event Library</td>
                   <td><strong>มาตรฐานสำหรับอุปกรณ์ IoT เชิงพาณิชย์ (Production)</strong></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h4><i class="fa-solid fa-code-compare"></i> 4.2 ตัวอย่างโค้ดเปรียบเทียบการใช้งานจริง</h4>
-          <div class="theory-formula" style="font-size: 0.82rem; line-height: 1.6;">
-            // 🟢 แบบ Event-Driven: ลงทะเบียนใน setup() แล้วปล่อยให้ loop() ทำงานเซนเซอร์ได้อย่างอิสระ<br>
-            #if defined(ESP32)<br>
-            WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {<br>
-            &nbsp;&nbsp;if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] Wi-Fi หลุด! สั่ง Reconnect ใน Background ทันที...");<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;WiFi.reconnect();<br>
-            &nbsp;&nbsp;} else if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Serial.println("[Event] ได้รับ IP: " + WiFi.localIP().toString());<br>
-            &nbsp;&nbsp;}<br>
-            });<br>
-            #elif defined(ESP8266)<br>
-            WiFiEventHandler dHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected&amp; e) {<br>
-            &nbsp;&nbsp;WiFi.reconnect();<br>
-            });<br>
-            #endif<br>
-            WiFi.setAutoReconnect(true);
-          </div>
-        </div>
+          <!-- Section 4.2: Loop Reconnect Code Examples -->
+          <h4 style="margin-top: 1.25rem;"><i class="fa-solid fa-rotate"></i> 4.2 วิธีที่ 1: การ Reconnect แบบวนลูปตรวจสอบใน loop() (Loop Status Polling)</h4>
+          <p>การเขียนโค้ดตรวจสอบสถานะการเชื่อมต่อในฟังก์ชัน <code>loop()</code> สามารถทำได้ 2 รูปแบบ:</p>
+          
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
+            <div style="color: #f87171; font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem;">
+              ❌ รูปแบบที่ 1: แบบ Blocking (ใช้ while / delay) - ไม่แนะนำในงานจริง
+            </div>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              วิธีนี้จะหยุดค้างการประมวลผลทั้งหมดของไมโครคอนโทรลเลอร์ขณะรอ Wi-Fi ทำให้เซนเซอร์ไม่ทำงาน และปุ่มกดไม่ตอบสนอง
+            </p>
+            <pre class="theory-formula" style="font-size: 0.8rem; line-height: 1.5; color: #fca5a5; margin: 0;"><code>void loop() {
+  // ตรวจสอบว่า Wi-Fi หลุดหรือไม่
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[Wi-Fi] ขาดการเชื่อมต่อ! กำลังเชื่อมต่อใหม่...");
+    WiFi.disconnect();
+    WiFi.begin("SSID_NAME", "PASSWORD");
 
-        <!-- Tab 5: Interactive Wi-Fi Message Box Commands -->
+    // ⚠️ ลูป Blocking: CPU จะติดค้างตรงนี้จนกว่าจะต่อติด
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("\n[Wi-Fi] เชื่อมต่อสำเร็จใหม่แล้ว! IP: " + WiFi.localIP().toString());
+  }
+
+  // งานควบคุมปกติ (จะหยุดทำงานทันทีถ้า Wi-Fi หลุด)
+  readSensorsAndControl();
+}</code></pre>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="color: #34d399; font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem;">
+              ✅ รูปแบบที่ 2: แบบ Non-blocking (ใช้ millis() จับเวลาตรวจสอบเป็นระยะ) - แนะนำ
+            </div>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              วิธีนี้จะตรวจเช็คสถานะ Wi-Fi ตามช่วงเวลาที่กำหนด (เช่น ทุก 10 วินาที) โดยไม่บล็อกการทำงานของเซนเซอร์และระบบควบคุมหลัก
+            </p>
+            <pre class="theory-formula" style="font-size: 0.8rem; line-height: 1.5; color: #6ee7b7; margin: 0;"><code>unsigned long previousWifiCheck = 0;
+const unsigned long WIFI_CHECK_INTERVAL = 10000; // ตรวจสอบทุกๆ 10 วินาที
+
+void loop() {
+  unsigned long currentMillis = millis();
+
+  // ตรวจสอบการเชื่อมต่อตามช่วงเวลาแบบ Non-blocking
+  if (currentMillis - previousWifiCheck >= WIFI_CHECK_INTERVAL) {
+    previousWifiCheck = currentMillis;
+
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("[Wi-Fi Monitor] ตรวจพบ Wi-Fi หลุด! สั่ง Reconnect...");
+      WiFi.reconnect(); // หรือ WiFi.disconnect(); WiFi.begin("SSID", "PASS");
+    }
+  }
+
+  // งานควบคุมและอ่านค่าเซนเซอร์ยังคงทำงานได้อย่างต่อเนื่อง 100%
+  readSensorsAndControl();
+}</code></pre>
+          </div>
+
+          <!-- Section 4.3: Event-Driven Code Examples -->
+          <h4 style="margin-top: 1.25rem;"><i class="fa-solid fa-bolt"></i> 4.3 วิธีที่ 2: การ Reconnect แบบ Event-Driven Callback (ระดับมืออาชีพ)</h4>
+          <p>กำหนดการทำงานในฟังก์ชัน <code>setup()</code> เพียงครั้งเดียว โดยระบบ Wi-Fi Stack ภายในจะเรียกฟังก์ชัน Callback อัตโนมัติเมื่อเกิดเหตุการณ์:</p>
+          <pre class="theory-formula" style="font-size: 0.8rem; line-height: 1.6; color: #7dd3fc; margin: 0;"><code>void setup() {
+  Serial.begin(115200);
+
+#if defined(ESP32)
+  // ลงทะเบียน Event Callback สำหรับ ESP32
+  WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+    if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+      Serial.println("[ESP32 Event] Wi-Fi หลุด! สั่ง Reconnect ใน Background ทันที...");
+      WiFi.reconnect();
+    } else if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
+      Serial.println("[ESP32 Event] เชื่อมต่อสำเร็จ! IP: " + WiFi.localIP().toString());
+    }
+  });
+#elif defined(ESP8266)
+  // ลงทะเบียน Event Callback สำหรับ ESP8266
+  static WiFiEventHandler disconnectHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& e) {
+    Serial.println("[ESP8266 Event] Wi-Fi หลุด! สั่ง Reconnect...");
+    WiFi.reconnect();
+  });
+  static WiFiEventHandler gotIpHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& e) {
+    Serial.println("[ESP8266 Event] ได้รับ IP: " + WiFi.localIP().toString());
+  });
+#endif
+
+  // สั่งให้ระบบ Wi-Fi พยายามเชื่อมต่อใหม่อัตโนมัติในระดับ Driver
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+
+  WiFi.begin("SSID_NAME", "PASSWORD");
+}
+
+void loop() {
+  // 🟢 ใน loop() ไม่ต้องมีโค้ดตรวจสอบ Wi-Fi เลย โค้ดสะอาดและประมวลผลเซนเซอร์ได้เต็มประสิทธิภาพ
+  readSensorsAndControl();
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 5: Interactive Wi-Fi Message Box Commands -->
         <div class="theory-tab-panel" id="theory-tab-tab5">
           <div class="theory-card">
             <h4><i class="fa-solid fa-terminal"></i> 5.1 รูปแบบคำสั่งควบคุมและตรวจเช็ค Wi-Fi ผ่าน Message Box</h4>
