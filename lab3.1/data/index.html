@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Smart Environment Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #1e1b4b, #0f172a, #020617);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 860px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .header p { color: #94a3b8; font-size: 0.95rem; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover { border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+    
+    .card-title {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+    .card-val {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .card-sub { font-size: 0.82rem; color: #64748b; }
+    
+    .btn-toggle {
+      width: 100%;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+    }
+    .btn-off {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .btn-off:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
+    
+    .btn-on {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .alert-banner {
+      display: none;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      align-items: center;
+      gap: 0.6rem;
+      animation: pulse 2s infinite;
+    }
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fcd34d;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-microchip"></i> ESP32 Smart Environment Dashboard</h1>
+    <p>Served directly from Flash Memory via LittleFS &amp; REST API (Port 80) | MAC: <span id="macVal" style="font-family: monospace; color: #38bdf8; font-weight: 600;">--:--:--:--:--:--</span></p>
+  </div>
+
+  <div id="alertBox1" class="alert-banner">
+    <i class="fa-solid fa-temperature-arrow-up"></i>
+    <span>แจ้งเตือน: อุณหภูมิสูงเกิน 35.0 °C -> ระบบเปิดพัดลมระบายความร้อน (Relay 1) อัตโนมัติ</span>
+  </div>
+
+  <div id="alertBox2" class="alert-banner alert-warning">
+    <i class="fa-solid fa-droplet"></i>
+    <span>แจ้งเตือน: สัญญาณอนาล็อกเกิน 2500 -> ระบบเปิดปั๊มพ่นหมอก (Relay 2) อัตโนมัติ</span>
+  </div>
+
+  <div class="grid">
+    <!-- Temperature Sensor (DHT11) -->
+    <div class="card">
+      <div class="card-title">
+        <span>อุณหภูมิ (DHT11 - GPIO 33)</span>
+        <i class="fa-solid fa-temperature-half" style="color: #f59e0b;"></i>
+      </div>
+      <div class="card-val" id="tempVal" style="color: #fb923c;">--.- <span style="font-size:1.4rem;">°C</span></div>
+      <div class="card-sub">เกณฑ์ควบคุม: &ge; 35.0°C สั่งเปิดพัดลม</div>
+    </div>
+
+    <!-- Humidity Sensor (DHT11) -->
+    <div class="card">
+      <div class="card-title">
+        <span>ความชื้นสัมพัทธ์ (DHT11)</span>
+        <i class="fa-solid fa-droplet-percent" style="color: #38bdf8;"></i>
+      </div>
+      <div class="card-val" id="humVal" style="color: #38bdf8;">--.- <span style="font-size:1.4rem;">%</span></div>
+      <div class="card-sub">สถานะเซ็นเซอร์: พร้อมทำงาน</div>
+    </div>
+
+    <!-- Analog Sensor (GPIO 36) -->
+    <div class="card">
+      <div class="card-title">
+        <span>สัญญาณอนาล็อก (GPIO 36)</span>
+        <i class="fa-solid fa-wave-square" style="color: #a855f7;"></i>
+      </div>
+      <div class="card-val" id="analogVal" style="color: #c084fc;">---- <span style="font-size:1.3rem;">/ 4095</span></div>
+      <div class="card-sub">เกณฑ์ควบคุม: &gt; 2500 สั่งเปิดปั๊มหมอก</div>
+    </div>
+
+    <!-- System Status -->
+    <div class="card">
+      <div class="card-title">
+        <span>สถานะการเชื่อมต่อ API</span>
+        <i class="fa-solid fa-signal" style="color: #10b981;"></i>
+      </div>
+      <div class="card-val" style="font-size: 1.8rem; color: #34d399;" id="statusVal">ONLINE</div>
+      <div class="card-sub" id="pollTime">Polling: ทุก 1 วินาที (/api/data)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Relay 1 Control -->
+    <div class="card">
+      <div class="card-title">
+        <span>Relay 1: พัดลมระบายความร้อน (GPIO 5)</span>
+        <i class="fa-solid fa-fan" style="color: #38bdf8;"></i>
+      </div>
+      <div style="font-size: 1.15rem; font-weight: 600;" id="relay1StatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="relay1Btn" onclick="toggleRelay('1')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม (Relay 1)</span>
+      </button>
+    </div>
+
+    <!-- Relay 2 Control -->
+    <div class="card">
+      <div class="card-title">
+        <span>Relay 2: ปั๊มพ่นหมอก/รดน้ำ (GPIO 23)</span>
+        <i class="fa-solid fa-droplet" style="color: #60a5fa;"></i>
+      </div>
+      <div style="font-size: 1.15rem; font-weight: 600;" id="relay2StatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="relay2Btn" onclick="toggleRelay('2')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก (Relay 2)</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentRelay1State = false;
+  let currentRelay2State = false;
+
+  async function fetchSensorData() {
+    try {
+      const res = await fetch('/api/data');
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      if (data.mac) document.getElementById('macVal').textContent = data.mac;
+      document.getElementById('tempVal').innerHTML = `${Number(data.temp).toFixed(1)} <span style="font-size:1.4rem;">°C</span>`;
+      document.getElementById('humVal').innerHTML = `${Number(data.hum).toFixed(1)} <span style="font-size:1.4rem;">%</span>`;
+      document.getElementById('analogVal').innerHTML = `${data.analog} <span style="font-size:1.3rem;">/ 4095</span>`;
+      document.getElementById('statusVal').textContent = 'ONLINE';
+      document.getElementById('statusVal').style.color = '#34d399';
+
+      // Update Relay 1 State
+      currentRelay1State = data.relay1 === true || data.relay1 === "true";
+      const r1Btn = document.getElementById('relay1Btn');
+      const r1Text = document.getElementById('relay1StatusText');
+      if (currentRelay1State) {
+        r1Btn.className = 'btn-toggle btn-on';
+        r1Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดพัดลม (ON)</span>';
+        r1Text.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      } else {
+        r1Btn.className = 'btn-toggle btn-off';
+        r1Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>';
+        r1Text.textContent = 'สถานะ: ปิด (OFF)';
+      }
+
+      // Update Relay 2 State
+      currentRelay2State = data.relay2 === true || data.relay2 === "true";
+      const r2Btn = document.getElementById('relay2Btn');
+      const r2Text = document.getElementById('relay2StatusText');
+      if (currentRelay2State) {
+        r2Btn.className = 'btn-toggle btn-on';
+        r2Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดปั๊มหมอก (ON)</span>';
+        r2Text.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      } else {
+        r2Btn.className = 'btn-toggle btn-off';
+        r2Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>';
+        r2Text.textContent = 'สถานะ: ปิด (OFF)';
+      }
+
+      // Alert Banners
+      const alert1 = document.getElementById('alertBox1');
+      if (data.alert1 || data.temp >= 35.0) {
+        alert1.style.display = 'flex';
+      } else {
+        alert1.style.display = 'none';
+      }
+
+      const alert2 = document.getElementById('alertBox2');
+      if (data.alert2 || data.analog > 2500) {
+        alert2.style.display = 'flex';
+      } else {
+        alert2.style.display = 'none';
+      }
+
+    } catch (err) {
+      document.getElementById('statusVal').textContent = 'DISCONNECTED';
+      document.getElementById('statusVal').style.color = '#f87171';
+    }
+  }
+
+  async function toggleRelay(relay) {
+    const newState = relay === '1' ? !currentRelay1State : !currentRelay2State;
+    try {
+      await fetch(`/api/control?relay=${relay}&state=${newState ? '1' : '0'}`);
+      fetchSensorData();
+    } catch (err) {
+      console.error('Error controlling relay:', err);
+    }
+  }
+
+  // Periodic Polling every 1 second
+  setInterval(fetchSensorData, 1000);
+  fetchSensorData();
+</script>
+
+</body>
+</html>

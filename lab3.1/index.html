@@ -1267,9 +1267,14 @@
             <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (LittleFS Web Server &amp; REST API Starter)
           </h3>
           <div class="code-container">
-            <div class="code-header">
+            <div class="code-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <span>lab3_1_iot_webserver.ino</span>
-              <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <a href="./data/index.html" download="index.html" onclick="downloadLittleFsHtml(event)" class="copy-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd;" title="ดาวน์โหลดไฟล์ index.html สำหรับใส่ในโฟลเดอร์ data/ เพื่ออัปโหลดลง LittleFS Flash Memory">
+                  <i class="fa-solid fa-file-arrow-down"></i> โหลด index.html (FS)
+                </a>
+                <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+              </div>
             </div>
             <pre><code>#include &lt;Arduino.h&gt;
 #if defined(ESP8266)
@@ -1915,8 +1920,39 @@ void loop() {
     if (panel) panel.classList.add('active');
   }
 
-  // ── 3. Smart Code Copy with Injected Blanks ──
-    function copySkeletonCode() {
+  // ── 3. Smart Code Copy & LittleFS Assets ──
+  function downloadLittleFsHtml(e) {
+    if (e) e.preventDefault();
+    fetch('./data/index.html')
+      .then(res => {
+        if (!res.ok) throw new Error('File not found');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'index.html';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'ดาวน์โหลดสำเร็จ! 🎉',
+            text: 'บันทึกไฟล์ index.html เรียบร้อยแล้ว ให้นำไฟล์นี้ไปวางในโฟลเดอร์ data/ ของโปรเจกต์ แล้วสั่ง Upload Filesystem Image (LittleFS) ลงบอร์ด ESP32 / ESP8266',
+            timer: 4000
+          });
+        }
+      })
+      .catch(() => {
+        window.open('./data/index.html', '_blank');
+      });
+  }
+
+  function copySkeletonCode() {
     const b1 = document.getElementById('codeBlank1')?.value.trim() || 'LittleFS.begin(true)';
     const b2 = document.getElementById('codeBlank2')?.value.trim() || 'server.on("/api/data", HTTP_GET, handleApiData)';
     const b3 = document.getElementById('codeBlank3')?.value.trim() || 'LittleFS.exists(path)';
