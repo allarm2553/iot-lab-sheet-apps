@@ -13,6 +13,7 @@
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="../config.js"></script>
 
   <style>
@@ -2188,7 +2189,12 @@
         <div class="code-container">
           <div class="code-header">
             <span>lab5_dev_skeleton.ino</span>
-            <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <a href="data.zip" download="data.zip" class="copy-btn" onclick="downloadLittleFsData(event)" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดชุดไฟล์ Web UI (index.html, styles.css) สำหรับใส่ในโฟลเดอร์ data/">
+                <i class="fa-solid fa-file-zipper"></i> โหลด Web UI (data.zip)
+              </a>
+              <button type="button" class="copy-btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+            </div>
           </div>
           <pre><code>#include &lt;WiFi.h&gt;
 #include &lt;PubSubClient.h&gt;
@@ -4067,6 +4073,69 @@ void loop() {
     }
 
   
+  
+    // ── Download Web UI (data.zip) for data/ Directory ──
+    async function downloadLittleFsData(e) {
+      if (e) e.preventDefault();
+      if (typeof JSZip === "undefined") {
+        const link = document.createElement("a");
+        link.href = "data.zip";
+        link.download = "data.zip";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      try {
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            title: "กำลังเตรียมชุดไฟล์ Web UI...",
+            text: "กำลังรวบรวม index.html และ styles.css เข้าสู่ data.zip",
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+        }
+
+        const [htmlRes, cssRes] = await Promise.all([
+          fetch("./data/index.html").then(r => r.ok ? r.text() : ""),
+          fetch("./data/styles.css").then(r => r.ok ? r.text() : "")
+        ]);
+
+        const zip = new JSZip();
+        zip.file("index.html", htmlRes || "<!DOCTYPE html><html><head><title>Dashboard</title></head><body><h1>Cloud MQTT Dashboard</h1></body></html>");
+        zip.file("styles.css", cssRes || "body { background: #0f172a; color: #fff; }");
+
+        const content = await zip.generateAsync({ type: "blob" });
+        const blobUrl = URL.createObjectURL(content);
+
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "data.zip";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            icon: "success",
+            title: "ดาวน์โหลดสำเร็จ!",
+            text: "นำไฟล์ data.zip ไปแตกไฟล์ลงในโฟลเดอร์ data/ ของโปรเจกต์ PlatformIO",
+            confirmButtonColor: "#3b82f6"
+          });
+        }
+      } catch (err) {
+        console.warn("Dynamic zip failed, fallback to direct data.zip:", err);
+        const link = document.createElement("a");
+        link.href = "data.zip";
+        link.download = "data.zip";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+
   </script>
 
   <!-- Web Serial API Guide Modal -->
