@@ -1308,6 +1308,7 @@ void handleApiData() {
   if (isnan(hum)) hum = 0.0;
   
   String json = "{";
+  json += "\"mac\":\"" + WiFi.macAddress() + "\",";
   json += "\"temp\":" + String(tempC, 1) + ",";
   json += "\"hum\":" + String(hum, 1) + ",";
   json += "\"analog\":" + String(rawAnalog) + ",";
@@ -1348,6 +1349,7 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("Web Server IP: "); Serial.println(WiFi.localIP());
+  Serial.print("MAC Address: "); Serial.println(WiFi.macAddress());
 
   // 1. เมานต์ระบบไฟล์ LittleFS บน Flash Memory
   if (!<input type="text" id="codeBlank1" name="codeBlank1" class="code-blank" placeholder="ช่องที่ 1 (เช่น LittleFS.begin(true))" style="width: 210px;" required>) {
@@ -1958,6 +1960,7 @@ void handleApiData() {
   if (isnan(hum)) hum = 0.0;
   
   String json = "{";
+  json += "\"mac\":\"" + WiFi.macAddress() + "\",";
   json += "\"temp\":" + String(tempC, 1) + ",";
   json += "\"hum\":" + String(hum, 1) + ",";
   json += "\"analog\":" + String(rawAnalog) + ",";
@@ -1994,6 +1997,8 @@ void setup() {
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.print("Web Server IP: "); Serial.println(WiFi.localIP());
+  Serial.print("MAC Address: "); Serial.println(WiFi.macAddress());
 
   if (!${b1}) {
     Serial.println("Mount Failed");
@@ -2062,6 +2067,7 @@ void handleApiData() {
   if (isnan(hum)) hum = 0.0;
 
   String json = "{";
+  json += "\"mac\":\"" + WiFi.macAddress() + "\",";
   json += "\"temp\":" + String(tempC, 1) + ",";
   json += "\"hum\":" + String(hum, 1) + ",";
   json += "\"analog\":" + String(rawAnalog) + ",";
@@ -2122,6 +2128,7 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.printf("Dashboard URL: http://%s\\n", WiFi.localIP().toString().c_str());
+  Serial.printf("MAC Address: %s\\n", WiFi.macAddress().c_str());
 
   #if defined(ESP8266)
   if (!LittleFS.begin()) return;

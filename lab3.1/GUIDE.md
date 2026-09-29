@@ -151,6 +151,7 @@ void handleApiData() {
   if (isnan(hum)) hum = 0.0;
 
   String json = "{";
+  json += "\"mac\":\"" + WiFi.macAddress() + "\",";
   json += "\"temp\":" + String(tempC, 1) + ",";
   json += "\"hum\":" + String(hum, 1) + ",";
   json += "\"analog\":" + String(rawAnalog) + ",";
@@ -211,6 +212,7 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.printf("Dashboard URL: http://%s\n", WiFi.localIP().toString().c_str());
+  Serial.printf("MAC Address: %s\n", WiFi.macAddress().c_str());
 
   #if defined(ESP8266)
   if (!LittleFS.begin()) return;

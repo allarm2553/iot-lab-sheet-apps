@@ -1,18 +1,19 @@
 /**
  * =====================================================================
- *  Lab 3.1 — Solution Code (PlatformIO / C++)
+ *  Lab 3.1 — Solution Code (Arduino IDE / PlatformIO C++)
  *  ชื่อ: การพัฒนา IoT Web Dashboard ด้วย LittleFS และ REST API
  * =====================================================================
  * 
  *  คุณสมบัติเด่น (Key Features):
  *   1. เชื่อมต่อ Wi-Fi SSID "iot_512", Password "iot123456"
- *   2. อ่านค่าอุณหภูมิและความชื้นจาก DHT11 (GPIO 33) และสัญญาณอนาล็อก (GPIO 36)
- *   3. เมานต์ระบบไฟล์ LittleFS Flash Memory
- *   4. สตรีมไฟล์ Static (.html, .css, .js) ด้วย server.streamFile()
- *   5. REST API Endpoint:
- *      - GET /api/data    : ส่งค่าเซ็นเซอร์ (temp, hum, analog) และสถานะรีเลย์ (JSON)
+ *   2. แสดงค่า IP Address และ MAC Address ผ่าน Serial Monitor
+ *   3. อ่านค่าอุณหภูมิและความชื้นจาก DHT11 (GPIO 33) และสัญญาณอนาล็อก (GPIO 36)
+ *   4. เมานต์ระบบไฟล์ LittleFS Flash Memory
+ *   5. สตรีมไฟล์ Static (.html, .css, .js) ด้วย server.streamFile()
+ *   6. REST API Endpoint:
+ *      - GET /api/data    : ส่งค่า MAC, เซ็นเซอร์ (temp, hum, analog) และสถานะรีเลย์ (JSON)
  *      - GET /api/control : ควบคุม Relay 1 พัดลม (GPIO 5) และ Relay 2 ปั๊มหมอก (GPIO 23)
- *   6. Dual Automation Thresholds:
+ *   7. Dual Automation Thresholds:
  *      - อุณหภูมิ DHT11 >= 35.0 °C -> เปิด Relay 1 พัดลม (GPIO 5) อัตโนมัติ (ปิดเมื่อ < 32.0 °C)
  *      - สัญญาณอนาล็อก > 2500 -> เปิด Relay 2 ปั๊มหมอก (GPIO 23) อัตโนมัติ (ปิดเมื่อ <= 2000)
  * 

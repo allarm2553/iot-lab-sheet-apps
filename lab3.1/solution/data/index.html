@@ -124,7 +124,7 @@
 <div class="container">
   <div class="header">
     <h1><i class="fa-solid fa-microchip"></i> ESP32 Smart Environment Dashboard</h1>
-    <p>Served directly from Flash Memory via LittleFS &amp; REST API (Port 80)</p>
+    <p>Served directly from Flash Memory via LittleFS &amp; REST API (Port 80) | MAC: <span id="macVal" style="font-family: monospace; color: #38bdf8; font-weight: 600;">--:--:--:--:--:--</span></p>
   </div>
 
   <div id="alertBox1" class="alert-banner">
@@ -216,6 +216,7 @@
       if (!res.ok) throw new Error('API Error');
       const data = await res.json();
       
+      if (data.mac) document.getElementById('macVal').textContent = data.mac;
       document.getElementById('tempVal').innerHTML = `${Number(data.temp).toFixed(1)} <span style="font-size:1.4rem;">°C</span>`;
       document.getElementById('humVal').innerHTML = `${Number(data.hum).toFixed(1)} <span style="font-size:1.4rem;">%</span>`;
       document.getElementById('analogVal').innerHTML = `${data.analog} <span style="font-size:1.3rem;">/ 4095</span>`;
