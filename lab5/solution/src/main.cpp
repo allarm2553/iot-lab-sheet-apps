@@ -277,6 +277,8 @@ void loop() {
         String output;
         serializeJson(doc, output);
         mqttClient.publish(pubTopic, output.c_str());
+  Serial.print("[MQTT PUB] Payload: ");
+  Serial.println(output);
       }
     }
   }

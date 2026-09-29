@@ -2251,6 +2251,8 @@ void loop() {
     String payload;
     serializeJson(doc, payload);
     mqttClient.publish( <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น pubTopic)" style="width: 175px;"> , payload.c_str());
+    Serial.print("Published Payload: ");
+    Serial.println(payload);
   }
 }</code></pre>
         </div>

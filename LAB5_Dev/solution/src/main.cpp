@@ -147,12 +147,17 @@ void publishSensorState() {
   serializeJson(doc, output);
   
   mqttClient.publish(pubTopic, output.c_str());
+  Serial.print("[MQTT PUB] Payload: ");
+  Serial.println(output);
   Serial.printf("[MQTT PUB -> %s]: %s\n", pubTopic, output.c_str());
 }
 
 // MQTT Callback Function (Receives commands from Web Dashboard)
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.printf("[MQTT SUB <- %s]: ", topic);
+  Serial.print("[MQTT SUB] Received Payload: ");
+  for (unsigned int i = 0; i < length; i++) { Serial.print((char)payload[i]); }
+  Serial.println();
   for (unsigned int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
