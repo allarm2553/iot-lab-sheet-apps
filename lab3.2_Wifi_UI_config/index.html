@@ -1269,6 +1269,495 @@
               </tbody>
             </table>
           </div>
+
+          <!-- แผนภาพการเชื่อมต่อวงจร (Interactive Realistic Vector SVG Schematic) -->
+          <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+              <svg viewBox="0 0 940 440" style="width: 100%; max-width: 820px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow32" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+    <linearGradient id="metalShield32" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="oledBgGrad32" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="940" height="440" fill="#090d16" rx="10"/>
+
+  <!-- Header Title -->
+  <rect x="0" y="0" width="940" height="38" fill="#1e293b" rx="10"/>
+  <text x="25" y="24" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="13" font-weight="700">ESP32 WI-FI CONFIG PORTAL &amp; OLED DEBUG HARDWARE SCHEMATIC</text>
+  <text x="820" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">LAB 3.2 STANDARD</text>
+
+  <!-- WIRING JUMPERS LAYER -->
+  <!-- OLED VCC (Red) -> ESP32 3V3 -->
+  <path d="M 75 69 C 75 40, 365 195, 365 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED GND (Black) -> ESP32 GND -->
+  <path d="M 105 69 C 105 45, 365 220, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED SCL (Yellow) -> ESP32 GPIO 22 -->
+  <path d="M 135 69 C 135 50, 365 340, 365 350" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round"/>
+  <!-- OLED SDA (Green) -> ESP32 GPIO 21 -->
+  <path d="M 165 69 C 165 55, 365 315, 365 320" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- SW1 OUT (Green) -> ESP32 GPIO 0 -->
+  <path d="M 150 340 C 230 340, 290 285, 365 285" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- SW1 GND (Black) -> ESP32 GND -->
+  <path d="M 90 340 C 90 395, 320 230, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Status LED Anode (Red) -> ESP32 GPIO 2 -->
+  <path d="M 575 255 C 640 255, 680 160, 715 160" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>
+  <!-- Status LED GND (Black) -> ESP32 GND -->
+  <path d="M 855 160 C 875 160, 875 230, 575 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ================= LEFT SIDE MODULES ================= -->
+  <!-- 1. OLED SSD1306 Display Module (Left Top) -->
+  <g transform="translate(30, 55)" filter="url(#shadow32)">
+    <rect width="180" height="135" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="15" y="32" width="150" height="90" rx="3" fill="url(#oledBgGrad32)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="20" y="37" width="140" height="14" fill="#3b82f6"/>
+    <text x="90" y="47" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="middle">=== [AP MODE] ===</text>
+    <text x="25" y="65" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="7.5">SSID: ESP_WiFi_Config</text>
+    <text x="25" y="78" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="7.5">IP  : 192.168.4.1</text>
+    <text x="25" y="93" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7">Portal: http://</text>
+    <text x="25" y="106" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="7">192.168.4.1 (Port 80)</text>
+    
+    <!-- Pin Headers at Top -->
+    <rect x="25" y="6" width="130" height="18" fill="#0f172a" rx="2"/>
+    <circle cx="45" cy="14" r="4" fill="#ef4444"/>
+    <text x="45" y="24" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">VCC</text>
+    <circle cx="75" cy="14" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="75" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">GND</text>
+    <circle cx="105" cy="14" r="4" fill="#eab308"/>
+    <text x="105" y="24" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SCL</text>
+    <circle cx="135" cy="14" r="4" fill="#22c55e"/>
+    <text x="135" y="24" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SDA</text>
+  </g>
+
+  <!-- 2. Push Button SW1 Module (Left Bottom) -->
+  <g transform="translate(30, 215)" filter="url(#shadow32)">
+    <rect width="180" height="150" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="25" y="20" width="55" height="55" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <circle cx="52" cy="47" r="20" fill="#10b981"/>
+    <text x="125" y="38" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">SW1 BUTTON</text>
+    <text x="125" y="54" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8.5">GPIO 0 (Active-LOW)</text>
+    <text x="125" y="70" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5">กดค้าง 3s: Factory Reset</text>
+    
+    <!-- Button Pins -->
+    <circle cx="120" cy="125" r="4" fill="#10b981"/>
+    <text x="120" y="115" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">OUT (GPIO 0)</text>
+    <circle cx="60" cy="125" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="60" y="115" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- ================= CENTER: ESP32 DEVKITC BOARD ================= -->
+  <g transform="translate(350, 55)" filter="url(#shadow32)">
+    <rect width="240" height="350" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+    <rect x="40" y="20" width="160" height="105" rx="6" fill="url(#metalShield32)" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="120" y="60" fill="#1e293b" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" text-anchor="middle">ESP32</text>
+    <text x="120" y="78" fill="#334155" font-family="'JetBrains Mono', monospace" font-size="9" text-anchor="middle">WROOM-32 Wi-Fi + BLE</text>
+    <text x="120" y="95" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">Wi-Fi Config &amp; OLED Lab</text>
+    
+    <rect x="30" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="44" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">EN</text>
+    <rect x="182" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="196" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">BOOT</text>
+
+    <!-- Left Pin Headers -->
+    <circle cx="15" cy="150" r="4" fill="#ef4444"/>
+    <text x="25" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">3V3 (Power)</text>
+    <circle cx="15" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="25" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+    <circle cx="15" cy="230" r="4" fill="#10b981"/>
+    <text x="25" y="233" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 0 (SW1)</text>
+    <circle cx="15" cy="265" r="4" fill="#22c55e"/>
+    <text x="25" y="268" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 21 (SDA)</text>
+    <circle cx="15" cy="295" r="4" fill="#eab308"/>
+    <text x="25" y="298" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 22 (SCL)</text>
+
+    <!-- Right Pin Headers -->
+    <circle cx="225" cy="150" r="4" fill="#ef4444"/>
+    <text x="215" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">5V (VIN)</text>
+    <circle cx="225" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="215" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GND</text>
+    <circle cx="225" cy="200" r="4" fill="#f43f5e"/>
+    <text x="215" y="203" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">GPIO 2 (Status LED)</text>
+  </g>
+
+  <!-- ================= RIGHT SIDE MODULES ================= -->
+  <!-- 1. Status LED & Resistor (Right Middle) -->
+  <g transform="translate(670, 75)" filter="url(#shadow32)">
+    <rect width="230" height="125" rx="6" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+    <text x="20" y="28" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">STATUS LED (GPIO 2)</text>
+    <text x="20" y="44" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">Wi-Fi Status &amp; Reset Indicator</text>
+    
+    <!-- LED Bulb -->
+    <circle cx="45" cy="85" r="14" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+    <circle cx="40" cy="80" r="4" fill="#fca5a5" opacity="0.8"/>
+    <circle cx="45" cy="85" r="4" fill="#f43f5e"/>
+    
+    <!-- 220 Ohm Resistor -->
+    <rect x="95" y="79" width="36" height="12" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1"/>
+    <rect x="101" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="108" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="115" y="79" width="3" height="12" fill="#78350f"/>
+    <rect x="123" y="79" width="3" height="12" fill="#eab308"/>
+    <text x="113" y="105" fill="#f8fafc" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">220 Ω</text>
+    
+    <!-- Wire to GND -->
+    <line x1="131" y1="85" x2="185" y2="85" stroke="#64748b" stroke-width="2"/>
+    <circle cx="185" cy="85" r="3" fill="#64748b"/>
+    <text x="185" y="102" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- 2. SoftAP / Captive Portal Info Box (Right Bottom) -->
+  <g transform="translate(670, 220)" filter="url(#shadow32)">
+    <rect width="230" height="155" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect x="12" y="12" width="206" height="24" rx="4" fill="#0f172a"/>
+    <text x="115" y="28" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" text-anchor="middle">📡 SOFTAP &amp; CAPTIVE PORTAL</text>
+    
+    <text x="20" y="58" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• SSID : <tspan fill="#38bdf8" font-weight="bold">ESP_WiFi_Config</tspan></text>
+    <text x="20" y="76" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• AP IP: <tspan fill="#4ade80" font-weight="bold">192.168.4.1</tspan></text>
+    <text x="20" y="94" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• DNS  : <tspan fill="#fbbf24">Port 53 (Wildcard *)</tspan></text>
+    <text x="20" y="112" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• Web  : <tspan fill="#a7f3d0">Port 80 (LittleFS)</tspan></text>
+    <text x="20" y="132" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="7.5">⚡ Auto-Fallback: 30s Timeout</text>
+  </g>
+</svg>
+            </div>
+          </div>
+
+          <!-- แผนภาพการเชื่อมต่อวงจร (Interactive Realistic Vector SVG Schematic) -->
+          <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+              <svg viewBox="0 0 940 440" style="width: 100%; max-width: 820px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow32" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+    <linearGradient id="metalShield32" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="oledBgGrad32" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="940" height="440" fill="#090d16" rx="10"/>
+
+  <!-- Header Title -->
+  <rect x="0" y="0" width="940" height="38" fill="#1e293b" rx="10"/>
+  <text x="25" y="24" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="13" font-weight="700">ESP32 WI-FI CONFIG PORTAL &amp; OLED DEBUG HARDWARE SCHEMATIC</text>
+  <text x="820" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">LAB 3.2 STANDARD</text>
+
+  <!-- WIRING JUMPERS LAYER -->
+  <!-- OLED VCC (Red) -> ESP32 3V3 -->
+  <path d="M 75 69 C 75 40, 365 195, 365 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED GND (Black) -> ESP32 GND -->
+  <path d="M 105 69 C 105 45, 365 220, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED SCL (Yellow) -> ESP32 GPIO 22 -->
+  <path d="M 135 69 C 135 50, 365 340, 365 350" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round"/>
+  <!-- OLED SDA (Green) -> ESP32 GPIO 21 -->
+  <path d="M 165 69 C 165 55, 365 315, 365 320" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- SW1 OUT (Green) -> ESP32 GPIO 0 -->
+  <path d="M 150 340 C 230 340, 290 285, 365 285" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- SW1 GND (Black) -> ESP32 GND -->
+  <path d="M 90 340 C 90 395, 320 230, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Status LED Anode (Red) -> ESP32 GPIO 2 -->
+  <path d="M 575 255 C 640 255, 680 160, 715 160" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>
+  <!-- Status LED GND (Black) -> ESP32 GND -->
+  <path d="M 855 160 C 875 160, 875 230, 575 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ================= LEFT SIDE MODULES ================= -->
+  <!-- 1. OLED SSD1306 Display Module (Left Top) -->
+  <g transform="translate(30, 55)" filter="url(#shadow32)">
+    <rect width="180" height="135" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="15" y="32" width="150" height="90" rx="3" fill="url(#oledBgGrad32)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="20" y="37" width="140" height="14" fill="#3b82f6"/>
+    <text x="90" y="47" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="middle">=== [AP MODE] ===</text>
+    <text x="25" y="65" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="7.5">SSID: ESP_WiFi_Config</text>
+    <text x="25" y="78" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="7.5">IP  : 192.168.4.1</text>
+    <text x="25" y="93" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7">Portal: http://</text>
+    <text x="25" y="106" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="7">192.168.4.1 (Port 80)</text>
+    
+    <!-- Pin Headers at Top -->
+    <rect x="25" y="6" width="130" height="18" fill="#0f172a" rx="2"/>
+    <circle cx="45" cy="14" r="4" fill="#ef4444"/>
+    <text x="45" y="24" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">VCC</text>
+    <circle cx="75" cy="14" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="75" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">GND</text>
+    <circle cx="105" cy="14" r="4" fill="#eab308"/>
+    <text x="105" y="24" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SCL</text>
+    <circle cx="135" cy="14" r="4" fill="#22c55e"/>
+    <text x="135" y="24" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SDA</text>
+  </g>
+
+  <!-- 2. Push Button SW1 Module (Left Bottom) -->
+  <g transform="translate(30, 215)" filter="url(#shadow32)">
+    <rect width="180" height="150" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="25" y="20" width="55" height="55" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <circle cx="52" cy="47" r="20" fill="#10b981"/>
+    <text x="125" y="38" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">SW1 BUTTON</text>
+    <text x="125" y="54" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8.5">GPIO 0 (Active-LOW)</text>
+    <text x="125" y="70" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5">กดค้าง 3s: Factory Reset</text>
+    
+    <!-- Button Pins -->
+    <circle cx="120" cy="125" r="4" fill="#10b981"/>
+    <text x="120" y="115" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">OUT (GPIO 0)</text>
+    <circle cx="60" cy="125" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="60" y="115" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- ================= CENTER: ESP32 DEVKITC BOARD ================= -->
+  <g transform="translate(350, 55)" filter="url(#shadow32)">
+    <rect width="240" height="350" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+    <rect x="40" y="20" width="160" height="105" rx="6" fill="url(#metalShield32)" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="120" y="60" fill="#1e293b" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" text-anchor="middle">ESP32</text>
+    <text x="120" y="78" fill="#334155" font-family="'JetBrains Mono', monospace" font-size="9" text-anchor="middle">WROOM-32 Wi-Fi + BLE</text>
+    <text x="120" y="95" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">Wi-Fi Config &amp; OLED Lab</text>
+    
+    <rect x="30" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="44" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">EN</text>
+    <rect x="182" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="196" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">BOOT</text>
+
+    <!-- Left Pin Headers -->
+    <circle cx="15" cy="150" r="4" fill="#ef4444"/>
+    <text x="25" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">3V3 (Power)</text>
+    <circle cx="15" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="25" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+    <circle cx="15" cy="230" r="4" fill="#10b981"/>
+    <text x="25" y="233" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 0 (SW1)</text>
+    <circle cx="15" cy="265" r="4" fill="#22c55e"/>
+    <text x="25" y="268" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 21 (SDA)</text>
+    <circle cx="15" cy="295" r="4" fill="#eab308"/>
+    <text x="25" y="298" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 22 (SCL)</text>
+
+    <!-- Right Pin Headers -->
+    <circle cx="225" cy="150" r="4" fill="#ef4444"/>
+    <text x="215" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">5V (VIN)</text>
+    <circle cx="225" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="215" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GND</text>
+    <circle cx="225" cy="200" r="4" fill="#f43f5e"/>
+    <text x="215" y="203" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">GPIO 2 (Status LED)</text>
+  </g>
+
+  <!-- ================= RIGHT SIDE MODULES ================= -->
+  <!-- 1. Status LED & Resistor (Right Middle) -->
+  <g transform="translate(670, 75)" filter="url(#shadow32)">
+    <rect width="230" height="125" rx="6" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+    <text x="20" y="28" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">STATUS LED (GPIO 2)</text>
+    <text x="20" y="44" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">Wi-Fi Status &amp; Reset Indicator</text>
+    
+    <!-- LED Bulb -->
+    <circle cx="45" cy="85" r="14" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+    <circle cx="40" cy="80" r="4" fill="#fca5a5" opacity="0.8"/>
+    <circle cx="45" cy="85" r="4" fill="#f43f5e"/>
+    
+    <!-- 220 Ohm Resistor -->
+    <rect x="95" y="79" width="36" height="12" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1"/>
+    <rect x="101" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="108" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="115" y="79" width="3" height="12" fill="#78350f"/>
+    <rect x="123" y="79" width="3" height="12" fill="#eab308"/>
+    <text x="113" y="105" fill="#f8fafc" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">220 Ω</text>
+    
+    <!-- Wire to GND -->
+    <line x1="131" y1="85" x2="185" y2="85" stroke="#64748b" stroke-width="2"/>
+    <circle cx="185" cy="85" r="3" fill="#64748b"/>
+    <text x="185" y="102" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- 2. SoftAP / Captive Portal Info Box (Right Bottom) -->
+  <g transform="translate(670, 220)" filter="url(#shadow32)">
+    <rect width="230" height="155" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect x="12" y="12" width="206" height="24" rx="4" fill="#0f172a"/>
+    <text x="115" y="28" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" text-anchor="middle">📡 SOFTAP &amp; CAPTIVE PORTAL</text>
+    
+    <text x="20" y="58" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• SSID : <tspan fill="#38bdf8" font-weight="bold">ESP_WiFi_Config</tspan></text>
+    <text x="20" y="76" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• AP IP: <tspan fill="#4ade80" font-weight="bold">192.168.4.1</tspan></text>
+    <text x="20" y="94" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• DNS  : <tspan fill="#fbbf24">Port 53 (Wildcard *)</tspan></text>
+    <text x="20" y="112" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• Web  : <tspan fill="#a7f3d0">Port 80 (LittleFS)</tspan></text>
+    <text x="20" y="132" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="7.5">⚡ Auto-Fallback: 30s Timeout</text>
+  </g>
+</svg>
+            </div>
+          </div>
+
+          <!-- แผนภาพการเชื่อมต่อวงจร (Interactive Realistic Vector SVG Schematic) -->
+          <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+              <svg viewBox="0 0 940 440" style="width: 100%; max-width: 820px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow32" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+    <linearGradient id="metalShield32" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="oledBgGrad32" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="940" height="440" fill="#090d16" rx="10"/>
+
+  <!-- Header Title -->
+  <rect x="0" y="0" width="940" height="38" fill="#1e293b" rx="10"/>
+  <text x="25" y="24" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="13" font-weight="700">ESP32 WI-FI CONFIG PORTAL &amp; OLED DEBUG HARDWARE SCHEMATIC</text>
+  <text x="820" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">LAB 3.2 STANDARD</text>
+
+  <!-- WIRING JUMPERS LAYER -->
+  <!-- OLED VCC (Red) -> ESP32 3V3 -->
+  <path d="M 75 69 C 75 40, 365 195, 365 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED GND (Black) -> ESP32 GND -->
+  <path d="M 105 69 C 105 45, 365 220, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED SCL (Yellow) -> ESP32 GPIO 22 -->
+  <path d="M 135 69 C 135 50, 365 340, 365 350" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round"/>
+  <!-- OLED SDA (Green) -> ESP32 GPIO 21 -->
+  <path d="M 165 69 C 165 55, 365 315, 365 320" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- SW1 OUT (Green) -> ESP32 GPIO 0 -->
+  <path d="M 150 340 C 230 340, 290 285, 365 285" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- SW1 GND (Black) -> ESP32 GND -->
+  <path d="M 90 340 C 90 395, 320 230, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Status LED Anode (Red) -> ESP32 GPIO 2 -->
+  <path d="M 575 255 C 640 255, 680 160, 715 160" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>
+  <!-- Status LED GND (Black) -> ESP32 GND -->
+  <path d="M 855 160 C 875 160, 875 230, 575 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ================= LEFT SIDE MODULES ================= -->
+  <!-- 1. OLED SSD1306 Display Module (Left Top) -->
+  <g transform="translate(30, 55)" filter="url(#shadow32)">
+    <rect width="180" height="135" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="15" y="32" width="150" height="90" rx="3" fill="url(#oledBgGrad32)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="20" y="37" width="140" height="14" fill="#3b82f6"/>
+    <text x="90" y="47" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="middle">=== [AP MODE] ===</text>
+    <text x="25" y="65" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="7.5">SSID: ESP_WiFi_Config</text>
+    <text x="25" y="78" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="7.5">IP  : 192.168.4.1</text>
+    <text x="25" y="93" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7">Portal: http://</text>
+    <text x="25" y="106" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="7">192.168.4.1 (Port 80)</text>
+    
+    <!-- Pin Headers at Top -->
+    <rect x="25" y="6" width="130" height="18" fill="#0f172a" rx="2"/>
+    <circle cx="45" cy="14" r="4" fill="#ef4444"/>
+    <text x="45" y="24" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">VCC</text>
+    <circle cx="75" cy="14" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="75" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">GND</text>
+    <circle cx="105" cy="14" r="4" fill="#eab308"/>
+    <text x="105" y="24" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SCL</text>
+    <circle cx="135" cy="14" r="4" fill="#22c55e"/>
+    <text x="135" y="24" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SDA</text>
+  </g>
+
+  <!-- 2. Push Button SW1 Module (Left Bottom) -->
+  <g transform="translate(30, 215)" filter="url(#shadow32)">
+    <rect width="180" height="150" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="25" y="20" width="55" height="55" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <circle cx="52" cy="47" r="20" fill="#10b981"/>
+    <text x="125" y="38" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">SW1 BUTTON</text>
+    <text x="125" y="54" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8.5">GPIO 0 (Active-LOW)</text>
+    <text x="125" y="70" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5">กดค้าง 3s: Factory Reset</text>
+    
+    <!-- Button Pins -->
+    <circle cx="120" cy="125" r="4" fill="#10b981"/>
+    <text x="120" y="115" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">OUT (GPIO 0)</text>
+    <circle cx="60" cy="125" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="60" y="115" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- ================= CENTER: ESP32 DEVKITC BOARD ================= -->
+  <g transform="translate(350, 55)" filter="url(#shadow32)">
+    <rect width="240" height="350" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+    <rect x="40" y="20" width="160" height="105" rx="6" fill="url(#metalShield32)" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="120" y="60" fill="#1e293b" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" text-anchor="middle">ESP32</text>
+    <text x="120" y="78" fill="#334155" font-family="'JetBrains Mono', monospace" font-size="9" text-anchor="middle">WROOM-32 Wi-Fi + BLE</text>
+    <text x="120" y="95" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">Wi-Fi Config &amp; OLED Lab</text>
+    
+    <rect x="30" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="44" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">EN</text>
+    <rect x="182" y="315" width="28" height="20" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="196" y="328" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">BOOT</text>
+
+    <!-- Left Pin Headers -->
+    <circle cx="15" cy="150" r="4" fill="#ef4444"/>
+    <text x="25" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">3V3 (Power)</text>
+    <circle cx="15" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="25" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+    <circle cx="15" cy="230" r="4" fill="#10b981"/>
+    <text x="25" y="233" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 0 (SW1)</text>
+    <circle cx="15" cy="265" r="4" fill="#22c55e"/>
+    <text x="25" y="268" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 21 (SDA)</text>
+    <circle cx="15" cy="295" r="4" fill="#eab308"/>
+    <text x="25" y="298" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">GPIO 22 (SCL)</text>
+
+    <!-- Right Pin Headers -->
+    <circle cx="225" cy="150" r="4" fill="#ef4444"/>
+    <text x="215" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">5V (VIN)</text>
+    <circle cx="225" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="215" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GND</text>
+    <circle cx="225" cy="200" r="4" fill="#f43f5e"/>
+    <text x="215" y="203" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">GPIO 2 (Status LED)</text>
+  </g>
+
+  <!-- ================= RIGHT SIDE MODULES ================= -->
+  <!-- 1. Status LED & Resistor (Right Middle) -->
+  <g transform="translate(670, 75)" filter="url(#shadow32)">
+    <rect width="230" height="125" rx="6" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+    <text x="20" y="28" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="12" font-weight="600">STATUS LED (GPIO 2)</text>
+    <text x="20" y="44" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">Wi-Fi Status &amp; Reset Indicator</text>
+    
+    <!-- LED Bulb -->
+    <circle cx="45" cy="85" r="14" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+    <circle cx="40" cy="80" r="4" fill="#fca5a5" opacity="0.8"/>
+    <circle cx="45" cy="85" r="4" fill="#f43f5e"/>
+    
+    <!-- 220 Ohm Resistor -->
+    <rect x="95" y="79" width="36" height="12" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1"/>
+    <rect x="101" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="108" y="79" width="3" height="12" fill="#ef4444"/>
+    <rect x="115" y="79" width="3" height="12" fill="#78350f"/>
+    <rect x="123" y="79" width="3" height="12" fill="#eab308"/>
+    <text x="113" y="105" fill="#f8fafc" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">220 Ω</text>
+    
+    <!-- Wire to GND -->
+    <line x1="131" y1="85" x2="185" y2="85" stroke="#64748b" stroke-width="2"/>
+    <circle cx="185" cy="85" r="3" fill="#64748b"/>
+    <text x="185" y="102" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- 2. SoftAP / Captive Portal Info Box (Right Bottom) -->
+  <g transform="translate(670, 220)" filter="url(#shadow32)">
+    <rect width="230" height="155" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect x="12" y="12" width="206" height="24" rx="4" fill="#0f172a"/>
+    <text x="115" y="28" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" text-anchor="middle">📡 SOFTAP &amp; CAPTIVE PORTAL</text>
+    
+    <text x="20" y="58" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• SSID : <tspan fill="#38bdf8" font-weight="bold">ESP_WiFi_Config</tspan></text>
+    <text x="20" y="76" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• AP IP: <tspan fill="#4ade80" font-weight="bold">192.168.4.1</tspan></text>
+    <text x="20" y="94" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• DNS  : <tspan fill="#fbbf24">Port 53 (Wildcard *)</tspan></text>
+    <text x="20" y="112" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8.5">• Web  : <tspan fill="#a7f3d0">Port 80 (LittleFS)</tspan></text>
+    <text x="20" y="132" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="7.5">⚡ Auto-Fallback: 30s Timeout</text>
+  </g>
+</svg>
+            </div>
+          </div>
         </div>
 
         <!-- โครงร่างโค้ดโปรแกรมพร้อมช่องเติมคำตอบ -->
