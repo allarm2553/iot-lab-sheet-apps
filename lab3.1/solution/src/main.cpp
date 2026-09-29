@@ -6,17 +6,21 @@
  * 
  *  คุณสมบัติเด่น (Key Features):
  *   1. เชื่อมต่อ Wi-Fi SSID "iot_512", Password "iot123456"
- *   2. เมานต์ระบบไฟล์ LittleFS Flash Memory
- *   3. สตรีมไฟล์ Static (.html, .css, .js) ด้วย server.streamFile()
- *   4. REST API Endpoint:
- *      - GET /api/data    : ส่งค่าเซ็นเซอร์ (raw, temp) และสถานะรีเลย์ (JSON)
- *      - GET /api/control : ควบคุม Relay พัดลม (GPIO 5) และปั๊มหมอก (GPIO 23)
- *   5. Safety Automation: ตรวจสอบอุณหภูมิ > 35°C สั่งเปิดพัดลมอัตโนมัติ
+ *   2. อ่านค่าอุณหภูมิและความชื้นจาก DHT11 (GPIO 33) และสัญญาณอนาล็อก (GPIO 36)
+ *   3. เมานต์ระบบไฟล์ LittleFS Flash Memory
+ *   4. สตรีมไฟล์ Static (.html, .css, .js) ด้วย server.streamFile()
+ *   5. REST API Endpoint:
+ *      - GET /api/data    : ส่งค่าเซ็นเซอร์ (temp, hum, analog) และสถานะรีเลย์ (JSON)
+ *      - GET /api/control : ควบคุม Relay 1 พัดลม (GPIO 5) และ Relay 2 ปั๊มหมอก (GPIO 23)
+ *   6. Dual Automation Thresholds:
+ *      - อุณหภูมิ DHT11 >= 35.0 °C -> เปิด Relay 1 พัดลม (GPIO 5) อัตโนมัติ (ปิดเมื่อ < 32.0 °C)
+ *      - สัญญาณอนาล็อก > 2500 -> เปิด Relay 2 ปั๊มหมอก (GPIO 23) อัตโนมัติ (ปิดเมื่อ <= 2000)
  * 
  *  วงจรฮาร์ดแวร์ (ใช้วงจรเดิมจาก Lab 1):
- *   - Analog Sensor (Potentiometer) : GPIO 36 (VP / ADC1)
- *   - Fan Relay (พัดลม)            : GPIO 5 (Active-LOW)
- *   - Mist Relay (ปั๊มพ่นหมอก)      : GPIO 23 (Active-LOW)
+ *   - DHT11 Sensor                : GPIO 33 (Data)
+ *   - Analog Sensor (VR / LDR)    : GPIO 36 (VP / ADC1)
+ *   - Relay 1 (พัดลมระบายความร้อน) : GPIO 5 (Active-LOW)
+ *   - Relay 2 (ปั๊มพ่นหมอก / รดน้ำ) : GPIO 23 (Active-LOW)
  *   - Status LED                  : GPIO 2
  * =====================================================================
  */
@@ -34,21 +38,27 @@
 #endif
 
 #include <LittleFS.h>
+#include <DHT.h>
 
 // ─── ข้อมูลการเชื่อมต่อ Wi-Fi ──────────────────────────────────────────
 const char* ssid     = "iot_512";
 const char* password = "iot123456";
 
 // ─── นิยามขาใช้งาน (Pin Definition) ──────────────────────────────────
-#define SENSOR_PIN     36   // Analog Input (ADC1_CH0 / VP)
-#define FAN_RELAY_PIN   5   // Fan Relay (Active-LOW)
-#define MIST_RELAY_PIN 23   // Mist Relay (Active-LOW)
+#define DHTPIN         33   // ขาข้อมูล DHT11 จากวงจร Lab 1
+#define DHTTYPE        DHT11
+#define ANALOG_PIN     36   // Analog Input (ADC1_CH0 / VP)
+#define RELAY1_PIN      5   // Relay 1 พัดลม (Active-LOW)
+#define RELAY2_PIN     23   // Relay 2 ปั๊มพ่นหมอก (Active-LOW)
 #define STATUS_LED_PIN  2   // Onboard LED
 
+DHT dht(DHTPIN, DHTTYPE);
+
 // ─── ตัวแปรสถานะระบบ (System State) ───────────────────────────────────
-bool fanState   = false;
-bool mistState  = false;
-bool autoAlert  = false;
+bool relay1State = false;
+bool relay2State = false;
+bool autoAlert1  = false;
+bool autoAlert2  = false;
 
 // ─── ฟังก์ชันช่วยตรวจสอบ Content-Type (MIME Type) ───────────────────────────
 String getContentType(String path) {
@@ -65,15 +75,21 @@ String getContentType(String path) {
 
 // ─── 1. REST API: ส่งค่าเซ็นเซอร์และสถานะรีเลย์แบบ JSON ────────────────────
 void handleApiData() {
-  int rawAnalog = analogRead(SENSOR_PIN);
-  float tempC = (rawAnalog / 4095.0) * 100.0; // คำนวณเป็นอุณหภูมิจำลอง 0.0 - 100.0 °C
+  float tempC = dht.readTemperature();
+  float hum = dht.readHumidity();
+  int rawAnalog = analogRead(ANALOG_PIN);
+  
+  if (isnan(tempC)) tempC = 0.0;
+  if (isnan(hum)) hum = 0.0;
   
   String json = "{";
-  json += "\"raw\":" + String(rawAnalog) + ",";
   json += "\"temp\":" + String(tempC, 1) + ",";
-  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
-  json += "\"mist\":" + String(mistState ? "true" : "false") + ",";
-  json += "\"alert\":" + String(autoAlert ? "true" : "false");
+  json += "\"hum\":" + String(hum, 1) + ",";
+  json += "\"analog\":" + String(rawAnalog) + ",";
+  json += "\"relay1\":" + String(relay1State ? "true" : "false") + ",";
+  json += "\"relay2\":" + String(relay2State ? "true" : "false") + ",";
+  json += "\"alert1\":" + String(autoAlert1 ? "true" : "false") + ",";
+  json += "\"alert2\":" + String(autoAlert2 ? "true" : "false");
   json += "}";
   
   server.send(200, "application/json", json);
@@ -85,14 +101,14 @@ void handleApiControl() {
     String relay = server.arg("relay");
     bool state = (server.arg("state") == "1" || server.arg("state") == "true");
 
-    if (relay == "fan") {
-      fanState = state;
-      digitalWrite(FAN_RELAY_PIN, fanState ? LOW : HIGH); // Active-LOW
-      Serial.printf("[CONTROL] Fan Relay -> %s\n", fanState ? "ON" : "OFF");
-    } else if (relay == "mist") {
-      mistState = state;
-      digitalWrite(MIST_RELAY_PIN, mistState ? LOW : HIGH);
-      Serial.printf("[CONTROL] Mist Relay -> %s\n", mistState ? "ON" : "OFF");
+    if (relay == "1" || relay == "fan") {
+      relay1State = state;
+      digitalWrite(RELAY1_PIN, relay1State ? LOW : HIGH); // Active-LOW
+      Serial.printf("[CONTROL] Relay 1 (Fan) -> %s\n", relay1State ? "ON" : "OFF");
+    } else if (relay == "2" || relay == "mist") {
+      relay2State = state;
+      digitalWrite(RELAY2_PIN, relay2State ? LOW : HIGH);
+      Serial.printf("[CONTROL] Relay 2 (Mist) -> %s\n", relay2State ? "ON" : "OFF");
     }
     
     server.send(200, "application/json", "{\"success\":true}");
@@ -125,14 +141,17 @@ void setup() {
   Serial.begin(115200);
   delay(500);
 
+  // เริ่มต้นเซ็นเซอร์ DHT11
+  dht.begin();
+
   // กำหนดโหมดของขาเอาต์พุต
-  pinMode(FAN_RELAY_PIN, OUTPUT);
-  pinMode(MIST_RELAY_PIN, OUTPUT);
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
 
   // ปิดรีเลย์เริ่มต้น (Active-LOW: HIGH = OFF)
-  digitalWrite(FAN_RELAY_PIN, HIGH);
-  digitalWrite(MIST_RELAY_PIN, HIGH);
+  digitalWrite(RELAY1_PIN, HIGH);
+  digitalWrite(RELAY2_PIN, HIGH);
   digitalWrite(STATUS_LED_PIN, LOW);
 
   Serial.println("\n========================================================");
@@ -190,19 +209,42 @@ void loop() {
   // ประมวลผลคำขอ HTTP Request
   server.handleClient();
 
-  // Safety Automation: ตรวจสอบอุณหภูมิเซ็นเซอร์จำลอง (ADC GPIO 36)
-  int raw = analogRead(SENSOR_PIN);
-  float currentTemp = (raw / 4095.0) * 100.0;
-
-  if (currentTemp > 35.0) {
-    if (!fanState) {
-      fanState = true;
-      digitalWrite(FAN_RELAY_PIN, LOW); // เปิดพัดลมระบายความร้อน
-      Serial.println("[SAFETY ALERT] อุณหภูมิเกิน 35°C -> เปิดพัดลมอัตโนมัติ!");
+  // 1. เงื่อนไขอุณหภูมิควบคุม Relay 1 (พัดลม)
+  float tempC = dht.readTemperature();
+  if (!isnan(tempC)) {
+    if (tempC >= 35.0) {
+      if (!relay1State) {
+        relay1State = true;
+        digitalWrite(RELAY1_PIN, LOW); // เปิดพัดลมระบายความร้อน
+        Serial.println("[SAFETY ALERT] อุณหภูมิ >= 35°C -> เปิดพัดลมอัตโนมัติ!");
+      }
+      autoAlert1 = true;
+    } else if (tempC < 32.0) {
+      if (relay1State) {
+        relay1State = false;
+        digitalWrite(RELAY1_PIN, HIGH); // ปิดพัดลม
+        Serial.println("[INFO] อุณหภูมิต่ำกว่า 32°C -> ปิดพัดลมอัตโนมัติ");
+      }
+      autoAlert1 = false;
     }
-    autoAlert = true;
-  } else {
-    autoAlert = false;
+  }
+
+  // 2. เงื่อนไขสัญญาณอนาล็อกควบคุม Relay 2 (ปั๊มหมอก/รดน้ำ)
+  int rawAnalog = analogRead(ANALOG_PIN);
+  if (rawAnalog > 2500) {
+    if (!relay2State) {
+      relay2State = true;
+      digitalWrite(RELAY2_PIN, LOW); // เปิดปั๊มหมอก
+      Serial.println("[ANALOG ALERT] สัญญาณอนาล็อก > 2500 -> เปิดปั๊มหมอกอัตโนมัติ!");
+    }
+    autoAlert2 = true;
+  } else if (rawAnalog <= 2000) {
+    if (relay2State) {
+      relay2State = false;
+      digitalWrite(RELAY2_PIN, HIGH); // ปิดปั๊มหมอก
+      Serial.println("[INFO] สัญญาณอนาล็อก <= 2000 -> ปิดปั๊มหมอก");
+    }
+    autoAlert2 = false;
   }
 
   delay(2);

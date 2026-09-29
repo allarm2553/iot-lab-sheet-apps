@@ -23,16 +23,16 @@ function gradeSubmission(data) {
   
   var challengeKeywords = [
     "LittleFS",
-    "analogRead|SENSOR_PIN|handleApiData|api/data",
-    "handleApiControl|api/control|api/relay|digitalWrite",
-    "streamFile|exists",
-    "35|alert|tempC|fanState|mistState"
+    "dht|readtemperature|readhumidity|analogread|sensor_pin",
+    "handleapidata|/api/data|json",
+    "handleapicontrol|/api/control|digitalwrite",
+    "relay1|relay2|fan|mist|35|32|2500|threshold|tempc|rawanalog"
   ];
   
   var q1Keywords = [
     "get|api/data|คำขอ|request|ร้องขอ",
-    "json|format|ส่งกลับ|response|สถานะ|อุณหภูมิ",
-    "analogread|adc|เซ็นเซอร์|sensor"
+    "json|format|ส่งกลับ|response|สถานะ|อุณหภูมิ|ความชื้น|เซ็นเซอร์",
+    "analogread|adc|dht|sensor|temp|hum|analog"
   ];
   
   var q2Keywords = [
@@ -42,7 +42,7 @@ function gradeSubmission(data) {
   ];
   
   var q3Keywords = [
-    "แยก|decouple|modular|โครงสร้าง|ระเบียบ",
+    "แยก|decouple|modular|โครงสร้าง|ระเบียบ|ข้อดี",
     "บำรุงรักษา|maintain|แก้ไขง่าย|frontend|backend",
     "api|json|reusable|นำไปใช้ซ้ำ|แอปพลิเคชัน"
   ];

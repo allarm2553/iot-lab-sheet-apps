@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESP32 Smart IoT Dashboard</title>
+  <title>ESP32 Smart Environment Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -18,7 +18,7 @@
     }
     .container {
       width: 100%;
-      max-width: 800px;
+      max-width: 860px;
     }
     .header {
       text-align: center;
@@ -36,11 +36,10 @@
     
     .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
       margin-bottom: 1.5rem;
     }
-    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
     
     .card {
       background: rgba(30, 41, 59, 0.7);
@@ -55,28 +54,28 @@
     .card:hover { border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
     
     .card-title {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: #94a3b8;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
     }
     .card-val {
-      font-size: 2.75rem;
+      font-size: 2.5rem;
       font-weight: 700;
       color: #38bdf8;
       line-height: 1;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
-    .card-sub { font-size: 0.85rem; color: #64748b; }
+    .card-sub { font-size: 0.82rem; color: #64748b; }
     
     .btn-toggle {
       width: 100%;
-      padding: 0.85rem 1.25rem;
+      padding: 0.75rem 1.25rem;
       border-radius: 10px;
       border: none;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -106,11 +105,16 @@
       color: #fca5a5;
       padding: 0.85rem 1.25rem;
       border-radius: 12px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       font-weight: 600;
       align-items: center;
       gap: 0.6rem;
       animation: pulse 2s infinite;
+    }
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fcd34d;
     }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
   </style>
@@ -119,24 +123,49 @@
 
 <div class="container">
   <div class="header">
-    <h1><i class="fa-solid fa-microchip"></i> ESP32 IoT Dashboard</h1>
-    <p>Served directly from Flash Memory via LittleFS &amp; REST API</p>
+    <h1><i class="fa-solid fa-microchip"></i> ESP32 Smart Environment Dashboard</h1>
+    <p>Served directly from Flash Memory via LittleFS &amp; REST API (Port 80)</p>
   </div>
 
-  <div id="alertBox" class="alert-banner">
-    <i class="fa-solid fa-triangle-exclamation"></i>
-    <span>แจ้งเตือน: อุณหภูมิสูงเกิน 35.0 °C ระบบเปิดพัดลมระบายความร้อนอัตโนมัติ</span>
+  <div id="alertBox1" class="alert-banner">
+    <i class="fa-solid fa-temperature-arrow-up"></i>
+    <span>แจ้งเตือน: อุณหภูมิสูงเกิน 35.0 °C -> ระบบเปิดพัดลมระบายความร้อน (Relay 1) อัตโนมัติ</span>
+  </div>
+
+  <div id="alertBox2" class="alert-banner alert-warning">
+    <i class="fa-solid fa-droplet"></i>
+    <span>แจ้งเตือน: สัญญาณอนาล็อกเกิน 2500 -> ระบบเปิดปั๊มพ่นหมอก (Relay 2) อัตโนมัติ</span>
   </div>
 
   <div class="grid">
-    <!-- Temperature Sensor -->
+    <!-- Temperature Sensor (DHT11) -->
     <div class="card">
       <div class="card-title">
-        <span>อุณหภูมิเซ็นเซอร์ (GPIO 36)</span>
+        <span>อุณหภูมิ (DHT11 - GPIO 33)</span>
         <i class="fa-solid fa-temperature-half" style="color: #f59e0b;"></i>
       </div>
-      <div class="card-val" id="tempVal">--.- <span style="font-size:1.5rem;">°C</span></div>
-      <div class="card-sub" id="rawVal">ADC Raw: ---- / 4095</div>
+      <div class="card-val" id="tempVal" style="color: #fb923c;">--.- <span style="font-size:1.4rem;">°C</span></div>
+      <div class="card-sub">เกณฑ์ควบคุม: &ge; 35.0°C สั่งเปิดพัดลม</div>
+    </div>
+
+    <!-- Humidity Sensor (DHT11) -->
+    <div class="card">
+      <div class="card-title">
+        <span>ความชื้นสัมพัทธ์ (DHT11)</span>
+        <i class="fa-solid fa-droplet-percent" style="color: #38bdf8;"></i>
+      </div>
+      <div class="card-val" id="humVal" style="color: #38bdf8;">--.- <span style="font-size:1.4rem;">%</span></div>
+      <div class="card-sub">สถานะเซ็นเซอร์: พร้อมทำงาน</div>
+    </div>
+
+    <!-- Analog Sensor (GPIO 36) -->
+    <div class="card">
+      <div class="card-title">
+        <span>สัญญาณอนาล็อก (GPIO 36)</span>
+        <i class="fa-solid fa-wave-square" style="color: #a855f7;"></i>
+      </div>
+      <div class="card-val" id="analogVal" style="color: #c084fc;">---- <span style="font-size:1.3rem;">/ 4095</span></div>
+      <div class="card-sub">เกณฑ์ควบคุม: &gt; 2500 สั่งเปิดปั๊มหมอก</div>
     </div>
 
     <!-- System Status -->
@@ -145,39 +174,41 @@
         <span>สถานะการเชื่อมต่อ API</span>
         <i class="fa-solid fa-signal" style="color: #10b981;"></i>
       </div>
-      <div class="card-val" style="font-size: 2rem; color: #34d399;" id="statusVal">ONLINE</div>
-      <div class="card-sub" id="pollTime">Polling: ทุก 1 วินาที</div>
+      <div class="card-val" style="font-size: 1.8rem; color: #34d399;" id="statusVal">ONLINE</div>
+      <div class="card-sub" id="pollTime">Polling: ทุก 1 วินาที (/api/data)</div>
     </div>
+  </div>
 
-    <!-- Fan Relay Control -->
+  <div class="grid">
+    <!-- Relay 1 Control -->
     <div class="card">
       <div class="card-title">
-        <span>พัดลมระบายความร้อน (GPIO 5)</span>
+        <span>Relay 1: พัดลมระบายความร้อน (GPIO 5)</span>
         <i class="fa-solid fa-fan" style="color: #38bdf8;"></i>
       </div>
-      <div style="font-size: 1.25rem; font-weight: 600;" id="fanStatusText">สถานะ: ปิด (OFF)</div>
-      <button class="btn-toggle btn-off" id="fanBtn" onclick="toggleRelay('fan')">
-        <i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>
+      <div style="font-size: 1.15rem; font-weight: 600;" id="relay1StatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="relay1Btn" onclick="toggleRelay('1')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม (Relay 1)</span>
       </button>
     </div>
 
-    <!-- Mist Relay Control -->
+    <!-- Relay 2 Control -->
     <div class="card">
       <div class="card-title">
-        <span>ปั๊มพ่นหมอกความชื้น (GPIO 23)</span>
+        <span>Relay 2: ปั๊มพ่นหมอก/รดน้ำ (GPIO 23)</span>
         <i class="fa-solid fa-droplet" style="color: #60a5fa;"></i>
       </div>
-      <div style="font-size: 1.25rem; font-weight: 600;" id="mistStatusText">สถานะ: ปิด (OFF)</div>
-      <button class="btn-toggle btn-off" id="mistBtn" onclick="toggleRelay('mist')">
-        <i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>
+      <div style="font-size: 1.15rem; font-weight: 600;" id="relay2StatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="relay2Btn" onclick="toggleRelay('2')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก (Relay 2)</span>
       </button>
     </div>
   </div>
 </div>
 
 <script>
-  let currentFanState = false;
-  let currentMistState = false;
+  let currentRelay1State = false;
+  let currentRelay2State = false;
 
   async function fetchSensorData() {
     try {
@@ -185,44 +216,53 @@
       if (!res.ok) throw new Error('API Error');
       const data = await res.json();
       
-      document.getElementById('tempVal').innerHTML = `${data.temp.toFixed(1)} <span style="font-size:1.5rem;">°C</span>`;
-      document.getElementById('rawVal').textContent = `ADC Raw: ${data.raw} / 4095`;
+      document.getElementById('tempVal').innerHTML = `${Number(data.temp).toFixed(1)} <span style="font-size:1.4rem;">°C</span>`;
+      document.getElementById('humVal').innerHTML = `${Number(data.hum).toFixed(1)} <span style="font-size:1.4rem;">%</span>`;
+      document.getElementById('analogVal').innerHTML = `${data.analog} <span style="font-size:1.3rem;">/ 4095</span>`;
       document.getElementById('statusVal').textContent = 'ONLINE';
+      document.getElementById('statusVal').style.color = '#34d399';
 
-      // Update Fan State
-      currentFanState = data.fan;
-      const fanBtn = document.getElementById('fanBtn');
-      const fanText = document.getElementById('fanStatusText');
-      if (currentFanState) {
-        fanBtn.className = 'btn-toggle btn-on';
-        fanBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดพัดลม (ON)</span>';
-        fanText.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      // Update Relay 1 State
+      currentRelay1State = data.relay1 === true || data.relay1 === "true";
+      const r1Btn = document.getElementById('relay1Btn');
+      const r1Text = document.getElementById('relay1StatusText');
+      if (currentRelay1State) {
+        r1Btn.className = 'btn-toggle btn-on';
+        r1Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดพัดลม (ON)</span>';
+        r1Text.textContent = 'สถานะ: เปิดทำงาน (ON)';
       } else {
-        fanBtn.className = 'btn-toggle btn-off';
-        fanBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>';
-        fanText.textContent = 'สถานะ: ปิด (OFF)';
+        r1Btn.className = 'btn-toggle btn-off';
+        r1Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>';
+        r1Text.textContent = 'สถานะ: ปิด (OFF)';
       }
 
-      // Update Mist State
-      currentMistState = data.mist;
-      const mistBtn = document.getElementById('mistBtn');
-      const mistText = document.getElementById('mistStatusText');
-      if (currentMistState) {
-        mistBtn.className = 'btn-toggle btn-on';
-        mistBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดปั๊มหมอก (ON)</span>';
-        mistText.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      // Update Relay 2 State
+      currentRelay2State = data.relay2 === true || data.relay2 === "true";
+      const r2Btn = document.getElementById('relay2Btn');
+      const r2Text = document.getElementById('relay2StatusText');
+      if (currentRelay2State) {
+        r2Btn.className = 'btn-toggle btn-on';
+        r2Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดปั๊มหมอก (ON)</span>';
+        r2Text.textContent = 'สถานะ: เปิดทำงาน (ON)';
       } else {
-        mistBtn.className = 'btn-toggle btn-off';
-        mistBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>';
-        mistText.textContent = 'สถานะ: ปิด (OFF)';
+        r2Btn.className = 'btn-toggle btn-off';
+        r2Btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>';
+        r2Text.textContent = 'สถานะ: ปิด (OFF)';
       }
 
-      // Safety Alert Banner
-      const alertBox = document.getElementById('alertBox');
-      if (data.alert) {
-        alertBox.style.display = 'flex';
+      // Alert Banners
+      const alert1 = document.getElementById('alertBox1');
+      if (data.alert1 || data.temp >= 35.0) {
+        alert1.style.display = 'flex';
       } else {
-        alertBox.style.display = 'none';
+        alert1.style.display = 'none';
+      }
+
+      const alert2 = document.getElementById('alertBox2');
+      if (data.alert2 || data.analog > 2500) {
+        alert2.style.display = 'flex';
+      } else {
+        alert2.style.display = 'none';
       }
 
     } catch (err) {
@@ -232,7 +272,7 @@
   }
 
   async function toggleRelay(relay) {
-    const newState = relay === 'fan' ? !currentFanState : !currentMistState;
+    const newState = relay === '1' ? !currentRelay1State : !currentRelay2State;
     try {
       await fetch(`/api/control?relay=${relay}&state=${newState ? '1' : '0'}`);
       fetchSensorData();

@@ -1,6 +1,6 @@
 # 🌐 ใบงานที่ 3.1: การพัฒนา IoT Web Dashboard ด้วย LittleFS และ REST API
 
-คู่มือการทดลองสร้าง **Embedded HTTP Web Server (Port 80)** บนบอร์ดไมโครคอนโทรลเลอร์ ESP32 และ ESP8266 เพื่อให้บริการไฟล์หน้าเว็บ (HTML, CSS, JavaScript) จากระบบแฟ้มข้อมูล **LittleFS Flash Memory** พร้อมทั้งพัฒนา **REST API Endpoint (`/api/data` และ `/api/control`)** เพื่ออ่านค่าเซ็นเซอร์และควบคุมรีเลย์แบบ 2 ทิศทาง
+คู่มือการทดลองสร้าง **Embedded HTTP Web Server (Port 80)** บนบอร์ดไมโครคอนโทรลเลอร์ ESP32 และ ESP8266 เพื่อให้บริการไฟล์หน้าเว็บ (HTML, CSS, JavaScript) จากระบบแฟ้มข้อมูล **LittleFS Flash Memory** พร้อมทั้งพัฒนา **REST API Endpoint (`/api/data` และ `/api/control`)** เพื่ออ่านค่าเซ็นเซอร์ DHT11, สัญญาณอนาล็อก และควบคุมรีเลย์แบบ 2 ทิศทาง (ระบบอัตโนมัติ 2 เงื่อนไข: อุณหภูมิควบคุมพัดลม และอนาล็อกควบคุมปั๊มหมอก)
 
 ---
 
@@ -8,9 +8,9 @@
 
 1. เข้าใจหลักการทำงานของ **HTTP Protocol** (Port 80) และสถาปัตยกรรม Stateless Client-Server
 2. เข้าใจโครงสร้างพาร์ติชัน Flash Memory และการใช้งานระบบไฟล์ **LittleFS** ร่วมกับบอร์ดไมโครคอนโทรลเลอร์
-3. สามารถพัฒนา **REST API Endpoint (`/api/data` และ `/api/control`)** เพื่อแลกเปลี่ยนข้อมูลสถานะและคำสั่งในรูปแบบ JSON
+3. สามารถพัฒนา **REST API Endpoint (`/api/data` และ `/api/control`)** เพื่อแลกเปลี่ยนข้อมูลค่าอุณหภูมิ/ความชื้นจาก DHT11 และค่าอนาล็อกในรูปแบบ JSON
 4. รู้วิธีการใช้ฟังก์ชัน `server.streamFile()` เพื่อสตรีมไฟล์ขนาดใหญ่ไปยังเว็บเบราว์เซอร์โดยตรงโดยไม่สิ้นเปลืองหน่วยความจำ RAM (ป้องกัน Heap Overflow)
-5. สามารถพัฒนาเว็บแอปพลิเคชันแบบ Single Page Application (SPA) บน LittleFS ที่ดึงข้อมูลเซ็นเซอร์มาอัปเดตแบบเรียลไทม์ (Periodic Web Polling)
+5. สามารถพัฒนาตรรกะควบคุมอัตโนมัติ (Automation Thresholds): อุณหภูมิควบคุม Relay 1 (พัดลม) และค่าอนาล็อกควบคุม Relay 2 (ปั๊มหมอก) ควบคู่กับ Web Single Page Application (SPA) บน LittleFS
 
 ---
 
@@ -18,9 +18,10 @@
 
 | อุปกรณ์ / โมดูล | ขา ESP32 | ขา ESP8266 | โหมดการทำงาน | หน้าที่การทำงาน |
 | :--- | :---: | :---: | :---: | :--- |
-| **Analog Sensor** (Potentiometer) | `GPIO 36` (VP / A0) | `A0` | `ANALOG INPUT` | จำลองค่าเซ็นเซอร์สิ่งแวดล้อม (0–4095 / 0–100°C) |
-| **Fan Relay Module** (พัดลม) | `GPIO 5` | `D5` (`GPIO 14`) | `OUTPUT (Active-LOW)` | ควบคุมพัดลมระบายความร้อนผ่าน Web API / อัตโนมัติ |
-| **Mist Relay Module** (พ่นหมอก) | `GPIO 23` | `D6` (`GPIO 12`) | `OUTPUT (Active-LOW)` | ควบคุมปั๊มพ่นหมอกเพิ่มความชื้นผ่าน Web API |
+| **DHT11 Sensor** (Temp & Humidity) | `GPIO 33` | `D3` (`GPIO 0`) | `DIGITAL INPUT` | วัดค่าอุณหภูมิ (°C) และความชื้นสัมพัทธ์ (%RH) |
+| **Analog Sensor** (Potentiometer / VR) | `GPIO 36` (VP / A0) | `A0` | `ANALOG INPUT` | อ่านสัญญาณแรงดันอนาล็อก (0–4095) |
+| **Relay 1 Module** (พัดลมระบายความร้อน) | `GPIO 5` | `D7` (`GPIO 13`) | `OUTPUT (Active-LOW)` | ควบคุมพัดลมตามเงื่อนไขอุณหภูมิ DHT11 / สั่งผ่าน Web |
+| **Relay 2 Module** (ปั๊มพ่นหมอก / รดน้ำ) | `GPIO 23` | `D0` (`GPIO 16`) | `OUTPUT (Active-LOW)` | ควบคุมปั๊มหมอกตามเงื่อนไขสัญญาณอนาล็อก / สั่งผ่าน Web |
 | **Status LED** (Onboard LED) | `GPIO 2` | `D4` (`GPIO 2`) | `OUTPUT` | แสดงสถานะการเชื่อมต่อ Wi-Fi และการเรียก API |
 
 ---
@@ -31,19 +32,16 @@
 
 ```text
 lab3.1/
- ├── platformio.ini         (การตั้งค่าโปรเจกต์ PlatformIO พร้อม board_build.filesystem = littlefs)
+ ├── platformio.ini         (การตั้งค่าโปรเจกต์ PlatformIO พร้อม board_build.filesystem = littlefs และ lib_deps = DHT)
  ├── index.html             (เว็บแอปพลิเคชันใบงานออนไลน์พร้อมระบบ Auto-Grader)
  ├── Code.gs                (สคริปต์ Google Apps Script ตรวจคะแนนและบันทึก Google Sheets)
  ├── GUIDE.md               (คู่มือและเฉลยการทดลอง)
  └── solution/
       ├── platformio.ini
-      ├── lab3_1_solution.ino (ไฟล์โปรแกรมฉบับสมบูรณ์สำหรับ Arduino IDE)
       └── src/
            └── main.cpp     (ไฟล์โปรแกรมฉบับสมบูรณ์สำหรับ PlatformIO)
       └── data/
-           ├── index.html   (หน้าหลัก Web Dashboard)
-           ├── styles.css   (ไฟล์สไตล์ตกแต่ง Dark Glassmorphism)
-           └── app.js       (สคริปต์ Polling API /api/data และสั่ง /api/control)
+           └── index.html   (หน้าหลัก Web Dashboard พร้อมสคริปต์ Polling API /api/data และสั่ง /api/control)
 ```
 
 ---
@@ -52,7 +50,7 @@ lab3.1/
 
 ### การใช้งานผ่าน PlatformIO (แนะนำ)
 
-1. วางไฟล์เว็บทั้งหมด (`index.html`, `styles.css`, `app.js`) ไว้ในโฟลเดอร์ `solution/data/`
+1. วางไฟล์เว็บทั้งหมด (`index.html`) ไว้ในโฟลเดอร์ `solution/data/`
 2. ตรวจสอบว่าใน `platformio.ini` มีการกำหนด `board_build.filesystem = littlefs`
 3. เปิดหน้าต่าง Terminal ใน VS Code แล้วรันคำสั่ง:
    ```bash
@@ -95,7 +93,7 @@ lab3.1/
 ### 3. เฉลยคำถามวิเคราะห์เชิงลึก (Analytical Questions)
 
 **คำถามที่ 1: อธิบายกระบวนการทำงานเมื่อเบราว์เซอร์ส่งคำขอ `GET /api/data` ไปยังบอร์ด ESP32 จนกระทั่งได้รับข้อมูล JSON กลับมาแสดงผล**
-> **แนวคำตอบ:** เมื่อเบราว์เซอร์ส่งคำขอ HTTP Request มายัง URI `/api/data` ฟังก์ชัน `server.handleClient()` ในลูปจะจับคู่กับ Route Handler ที่ลงทะเบียนไว้คือ `handleApiData()` จากนั้นบอร์ดจะอ่านค่า Analog จากเซ็นเซอร์ (`GPIO 36`) แปลงเป็นอุณหภูมิ และอ่านสถานะรีเลย์พัดลม/ปั๊มหมอก แล้วจัดเรียงข้อความให้อยู่ในรูปแบบ JSON String (เช่น `{"raw":1420,"temp":34.7,"fan":false,"mist":false}`) และส่งกลับไปยัง Client ด้วยคำสั่ง `server.send(200, "application/json", json)` เพื่อให้สคริปต์ JavaScript บนหน้าเว็บนำไป Parse และอัปเดต Gauge / Badge บนหน้าจอ
+> **แนวคำตอบ:** เมื่อเบราว์เซอร์ส่งคำขอ HTTP Request มายัง URI `/api/data` ฟังก์ชัน `server.handleClient()` ในลูปจะจับคู่กับ Route Handler ที่ลงทะเบียนไว้คือ `handleApiData()` จากนั้นบอร์ดจะอ่านค่าอุณหภูมิและความชื้นจาก DHT11 (`GPIO 33`) และอ่านค่า Analog จากเซ็นเซอร์ (`GPIO 36`) รวมถึงตรวจสอบสถานะ Relay 1 และ Relay 2 แล้วจัดเรียงข้อความให้อยู่ในรูปแบบ JSON String (เช่น `{"temp":34.7,"hum":65.2,"analog":1420,"relay1":false,"relay2":false}`) และส่งกลับไปยัง Client ด้วยคำสั่ง `server.send(200, "application/json", json)` เพื่อให้สคริปต์ JavaScript บนหน้าเว็บนำไป Parse และอัปเดต Gauge / Badge บนหน้าจอ
 
 **คำถามที่ 2: การสตรีมไฟล์หน้าเว็บด้วย `server.streamFile()` แทนการอ่านไฟล์เป็น String ทั้งก้อนช่วยป้องกันปัญหา Heap Overflow ของ RAM ได้อย่างไร?**
 > **แนวคำตอบ:** เนื่องจากไมโครคอนโทรลเลอร์ ESP32/ESP8266 มีหน่วยความจำ RAM (Heap) จำกัด หากใช้การอ่านไฟล์เข้ามาเก็บในตัวแปร `String` แล้วสั่ง `server.send()` ไฟล์ขนาดใหญ่ (เช่น รูปภาพหรือ CSS/JS ขนาดหลายสิบ KB) จะทำให้ RAM เต็มและบอร์ดค้าง/รีสตาร์ต การใช้ `server.streamFile()` จะใช้วิธีอ่านข้อมูลจาก Flash เป็นก้อนย่อย (Chunk Buffer ขนาดเล็ก เช่น 256–512 ไบต์) แล้วส่งออกทาง TCP Socket ทันทีวนไปจนจบไฟล์ จึงใช้ RAM น้อยมากคงที่ตลอดเวลา
@@ -112,8 +110,8 @@ lab3.1/
 
 ```cpp
 /**
- * Lab 3.1 Challenge Solution: Interactive IoT Web Dashboard & REST API
- * Hardware: Sensor (GPIO 36), Fan Relay (GPIO 5), Mist Relay (GPIO 23)
+ * Lab 3.1 Challenge Solution: Smart Environment IoT Web Dashboard & REST API
+ * Hardware: DHT11 (GPIO 33), Analog (GPIO 36), Relay 1 Fan (GPIO 5), Relay 2 Mist (GPIO 23)
  */
 #include <Arduino.h>
 #if defined(ESP8266)
@@ -126,53 +124,63 @@ lab3.1/
   WebServer server(80);
 #endif
 #include <LittleFS.h>
+#include <DHT.h>
 
 const char* ssid = "iot_512";
 const char* password = "iot123456";
 
-#define SENSOR_PIN     36
-#define FAN_RELAY_PIN   5
-#define MIST_RELAY_PIN 23
+#define DHTPIN        33   // ขาเซ็นเซอร์ DHT11
+#define DHTTYPE       DHT11
+#define ANALOG_PIN    36   // สัญญาณอนาล็อก (Potentiometer / VR)
+#define RELAY1_PIN     5   // Relay 1 (พัดลมระบายความร้อน - Active-LOW)
+#define RELAY2_PIN    23   // Relay 2 (ปั๊มพ่นหมอก/รดน้ำ - Active-LOW)
 
-bool fanState = false;
-bool mistState = false;
-bool autoAlert = false;
+DHT dht(DHTPIN, DHTTYPE);
 
-// 1. REST API: อ่านค่าเซ็นเซอร์และสถานะรีเลย์ (JSON)
+bool relay1State = false;
+bool relay2State = false;
+bool autoMode = true;
+
+// 1. REST API: อ่านค่าเซ็นเซอร์ (DHT11 + Analog) และสถานะรีเลย์แบบ JSON
 void handleApiData() {
-  int rawAnalog = analogRead(SENSOR_PIN);
-  float tempC = (rawAnalog / 4095.0) * 100.0;
+  float tempC = dht.readTemperature();
+  float hum = dht.readHumidity();
+  int rawAnalog = analogRead(ANALOG_PIN);
   
+  if (isnan(tempC)) tempC = 0.0;
+  if (isnan(hum)) hum = 0.0;
+
   String json = "{";
-  json += "\"raw\":" + String(rawAnalog) + ",";
   json += "\"temp\":" + String(tempC, 1) + ",";
-  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
-  json += "\"mist\":" + String(mistState ? "true" : "false") + ",";
-  json += "\"alert\":" + String(autoAlert ? "true" : "false");
+  json += "\"hum\":" + String(hum, 1) + ",";
+  json += "\"analog\":" + String(rawAnalog) + ",";
+  json += "\"relay1\":" + String(relay1State ? "true" : "false") + ",";
+  json += "\"relay2\":" + String(relay2State ? "true" : "false") + ",";
+  json += "\"auto\":" + String(autoMode ? "true" : "false");
   json += "}";
   server.send(200, "application/json", json);
 }
 
-// 2. REST API: ควบคุมรีเลย์เปิด-ปิดจากเบราว์เซอร์
+// 2. REST API: ควบคุมรีเลย์เปิด-ปิด (Override Control)
 void handleApiControl() {
   if (server.hasArg("relay") && server.hasArg("state")) {
     String relay = server.arg("relay");
     bool state = (server.arg("state") == "1" || server.arg("state") == "true");
 
-    if (relay == "fan") {
-      fanState = state;
-      digitalWrite(FAN_RELAY_PIN, fanState ? LOW : HIGH); // Active-LOW
-    } else if (relay == "mist") {
-      mistState = state;
-      digitalWrite(MIST_RELAY_PIN, mistState ? LOW : HIGH);
+    if (relay == "1" || relay == "fan") {
+      relay1State = state;
+      digitalWrite(RELAY1_PIN, relay1State ? LOW : HIGH); // Active-LOW
+    } else if (relay == "2" || relay == "mist") {
+      relay2State = state;
+      digitalWrite(RELAY2_PIN, relay2State ? LOW : HIGH);
     }
     server.send(200, "application/json", "{\"success\":true}");
   } else {
-    server.send(400, "application/json", "{\"error\":\"Missing arguments\"}");
+    server.send(400, "application/json", "{\"error\":\"Missing parameters\"}");
   }
 }
 
-// 3. ฟังก์ชันสตรีมไฟล์จาก LittleFS Flash Memory
+// 3. Static Web Serving from LittleFS
 void handleFileRequest() {
   String path = server.uri();
   if (path.endsWith("/")) path += "index.html";
@@ -194,10 +202,11 @@ void handleFileRequest() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(FAN_RELAY_PIN, OUTPUT);
-  pinMode(MIST_RELAY_PIN, OUTPUT);
-  digitalWrite(FAN_RELAY_PIN, HIGH);
-  digitalWrite(MIST_RELAY_PIN, HIGH);
+  dht.begin();
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
+  digitalWrite(RELAY1_PIN, HIGH);
+  digitalWrite(RELAY2_PIN, HIGH);
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
@@ -218,17 +227,34 @@ void setup() {
 void loop() {
   server.handleClient();
 
-  // ระบบความปลอดภัยอัตโนมัติ (Safety Automation): อุณหภูมิ > 35°C สั่งเปิดพัดลมอัตโนมัติ
-  int rawAnalog = analogRead(SENSOR_PIN);
-  float tempC = (rawAnalog / 4095.0) * 100.0;
-  if (tempC > 35.0) {
-    if (!fanState) {
-      fanState = true;
-      digitalWrite(FAN_RELAY_PIN, LOW); // Active-LOW เปิดพัดลม
+  // 1. เงื่อนไขอุณหภูมิควบคุม Relay 1 (พัดลม)
+  float tempC = dht.readTemperature();
+  if (!isnan(tempC)) {
+    if (tempC >= 35.0) {
+      if (!relay1State) {
+        relay1State = true;
+        digitalWrite(RELAY1_PIN, LOW); // เปิดพัดลม (Active-LOW)
+      }
+    } else if (tempC < 32.0) {
+      if (relay1State) {
+        relay1State = false;
+        digitalWrite(RELAY1_PIN, HIGH); // ปิดพัดลม
+      }
     }
-    autoAlert = true;
-  } else {
-    autoAlert = false;
+  }
+
+  // 2. เงื่อนไขสัญญาณอนาล็อกควบคุม Relay 2 (ปั๊มหมอก/รดน้ำ)
+  int rawAnalog = analogRead(ANALOG_PIN);
+  if (rawAnalog > 2500) {
+    if (!relay2State) {
+      relay2State = true;
+      digitalWrite(RELAY2_PIN, LOW); // เปิดปั๊มหมอก (Active-LOW)
+    }
+  } else if (rawAnalog <= 2000) {
+    if (relay2State) {
+      relay2State = false;
+      digitalWrite(RELAY2_PIN, HIGH); // ปิดปั๊มหมอก
+    }
   }
 
   delay(2);
