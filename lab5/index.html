@@ -1030,6 +1030,460 @@
         color: #000000 !important;
       }
     }
+  
+    /* ============================================================= */
+    /* 🚀 Embedded Wokwi Interactive Simulation Styles              */
+    /* ============================================================= */
+    .wokwi-section-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      margin: 1.5rem 0 2rem 0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .wokwi-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.9));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .wokwi-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      font-family: var(--heading-font);
+    }
+
+    .wokwi-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .wokwi-ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .wokwi-ctrl-btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      transform: translateY(-1px);
+    }
+
+    .wokwi-ctrl-btn.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    .wokwi-ctrl-btn.external {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.35);
+      color: #c084fc;
+    }
+
+    .wokwi-ctrl-btn.external:hover {
+      background: rgba(168, 85, 247, 0.3);
+      border-color: #c084fc;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.vscode {
+      background: rgba(0, 122, 204, 0.2);
+      border-color: rgba(0, 122, 204, 0.45);
+      color: #38bdf8;
+    }
+
+    .wokwi-ctrl-btn.vscode:hover {
+      background: rgba(0, 122, 204, 0.4);
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.zip {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .wokwi-ctrl-btn.zip:hover {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #34d399;
+      color: #ffffff;
+    }
+
+    .wokwi-ctrl-btn.info {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    .wokwi-ctrl-btn.info:hover {
+      background: rgba(245, 158, 11, 0.3);
+      border-color: #fbbf24;
+      color: #ffffff;
+    }
+
+    .wokwi-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      background: #12151f;
+    }
+
+    .wokwi-iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .wokwi-guide-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(15, 23, 42, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .guide-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+
+    .guide-item span b {
+      color: #e2e8f0;
+    }
+
+    .guide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #38bdf8;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Wokwi Seamless Fullscreen Mode (Native & CSS Overlay) */
+    #wokwiSectionCard:fullscreen,
+    #wokwiSectionCard:-webkit-full-screen,
+    .wokwi-section-card.wokwi-fullscreen-mode {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-shadow: none !important;
+      background: #090d16 !important;
+      border: none !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    body.wokwi-body-fullscreen {
+      overflow: hidden !important;
+    }
+
+    body.wokwi-body-fullscreen .glass-card {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      overflow: visible !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-header-bar,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-header-bar,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-header-bar {
+      border-radius: 0 !important;
+      padding: 0.75rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      background: #0f172a !important;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3) !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-iframe-wrapper,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-iframe-wrapper,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-iframe-wrapper {
+      flex: 1 1 0% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      display: flex !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-iframe-wrapper iframe,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-iframe-wrapper iframe,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-iframe-wrapper iframe {
+      width: 100% !important;
+      height: 100% !important;
+      flex: 1 !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-guide-banner,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-guide-banner,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-guide-banner {
+      border-radius: 0 !important;
+      padding: 0.5rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      background: #0f172a !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #wokwiSectionCard:fullscreen .wokwi-print-diagram,
+    #wokwiSectionCard:-webkit-full-screen .wokwi-print-diagram,
+    .wokwi-section-card.wokwi-fullscreen-mode .wokwi-print-diagram {
+      display: none !important;
+    }
+
+    /* ========================================================= */
+    /* 📈 Web Serial Hardware Bridge CSS                        */
+    /* ========================================================= */
+    .lab-feature-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .lab-feature-header {
+      background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .lab-feature-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .lab-feature-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .feature-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(30, 41, 59, 0.7);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .feature-btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    .feature-btn.primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+    }
+    .feature-btn.primary:hover {
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .feature-btn.danger {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .feature-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.35);
+    }
+
+    .feature-btn.warning {
+      background: rgba(234, 179, 8, 0.18);
+      border-color: rgba(234, 179, 8, 0.4);
+      color: #facc15;
+    }
+    .feature-btn.warning:hover {
+      background: rgba(234, 179, 8, 0.3);
+    }
+
+    .feature-select {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-size: 0.76rem;
+      font-family: var(--mono-font), monospace;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .feature-select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+    }
+    .feature-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .serial-send-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+    }
+    .serial-send-bar input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 6px;
+      padding: 0.38rem 0.65rem;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.8rem;
+      color: #f8fafc;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .serial-send-bar input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .lab-feature-body {
+      padding: 1.15rem;
+    }
+
+    /* Web Serial Terminal */
+    .serial-terminal-box {
+      background: #020617;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 8px;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.8rem;
+      color: #a5f3fc;
+      height: 150px;
+      padding: 0.75rem;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.45;
+    }
+
+    .serial-terminal-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .serial-terminal-box::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 3px;
+    }
+
+    .serial-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .serial-status-tag.disconnected {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .serial-status-tag.connected {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    @media print {
+      .wokwi-section-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        margin: 1rem 0 !important;
+        page-break-inside: avoid !important;
+      }
+      .wokwi-header-bar, .wokwi-actions, .wokwi-iframe-wrapper, .wokwi-guide-banner, .lab-feature-card {
+        display: none !important;
+      }
+      .wokwi-print-diagram {
+        display: block !important;
+        padding: 0.75rem !important;
+        background: #ffffff !important;
+        text-align: center !important;
+      }
+      .wokwi-print-diagram svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1164,9 +1618,50 @@
           </table>
         </div>
 
-        <!-- แผนภาพการเชื่อมต่อวงจร (Interactive Realistic Vector SVG Schematic) -->
-        <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+        <!-- 1. วงจรจำลองเสมือนจริง (Wokwi Interactive Simulation) -->
+        <h2><i class="fa-solid fa-microchip" style="color: #38bdf8;"></i> วงจรจำลองเสมือนจริง (Wokwi Interactive Simulation)</h2>
+        <div class="wokwi-section-card" id="wokwiSectionCard">
+          <div class="wokwi-header-bar">
+            <div class="wokwi-title">
+              <i class="fa-solid fa-microchip" style="color: #38bdf8;"></i>
+              <span>พื้นที่จำลองการทำงานของวงจร (Wokwi Interactive Simulator)</span>
+            </div>
+            <div class="wokwi-actions">
+              <button type="button" class="wokwi-ctrl-btn active" id="btnToggleSimMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-gamepad"></i> <span>โหมดจำลอง Wokwi</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnToggleDiagramMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-diagram-project"></i> <span>ดูผังการต่อวงจร (SVG)</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnWokwiFullscreen" onclick="toggleWokwiFullscreen()" title="เปิด/ปิดโหมดเต็มหน้าจอ (Fullscreen)">
+                <i class="fa-solid fa-expand" id="wokwiFsIcon"></i> <span id="wokwiFsText">เต็มหน้าจอ</span>
+              </button>
+              <a id="wokwiExternalLink" href="https://wokwi.com/projects/new/esp32" target="_blank" rel="noopener noreferrer" class="wokwi-ctrl-btn external" title="เปิดแท็บใหม่บน Wokwi.com">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>เปิด Wokwi</span>
+              </a>
+              <button type="button" class="wokwi-ctrl-btn vscode" onclick="copyVsCodeCommand()" title="คัดลอกคำสั่งสำหรับรันโปรเจกต์นี้ใน VS Code + Wokwi Extension">
+                <i class="fa-solid fa-code"></i> <span>VS Code Wokwi</span>
+              </button>
+              <a href="lab5_vscode_wokwi_template.zip" download="lab5_vscode_wokwi_template.zip" class="wokwi-ctrl-btn zip" title="ดาวน์โหลดโปรเจกต์ต้นแบบ PlatformIO + Wokwi ไปเปิดใน VS Code">
+                <i class="fa-solid fa-download"></i> <span>โหลด Template (.zip)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Wokwi Frame Container -->
+          <div class="wokwi-iframe-wrapper" id="wokwiIframeWrapper">
+            <iframe id="wokwiEmbedFrame" 
+                    src="https://wokwi.com/projects/new/esp32" 
+                    loading="lazy" 
+                    allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+                    allowfullscreen="true"
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
+                    title="Wokwi ESP32 Lab 5 Cloud MQTT Simulation"></iframe>
+          </div>
+
+          <!-- Interactive Realistic Vector SVG Wiring Diagram -->
+          <div class="wokwi-diagram-wrapper" id="wokwiDiagramWrapper" style="display: none; padding: 1rem; background: #0f172a; text-align: center;">
             <svg viewBox="0 0 940 450" style="width: 100%; max-width: 820px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow5" x="-5%" y="-5%" width="110%" height="110%">
@@ -1385,6 +1880,305 @@
     <text x="15" y="94" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7.5">⚡ WebSockets: Port 8084 (WSS)</text>
   </g>
 </svg>
+          </div>
+
+          <!-- Bottom Guide Banner -->
+          <div class="wokwi-guide-banner">
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-play"></i> เริ่มต้นการทดลอง</span>
+              <span>กดปุ่มสีเขียว <b>Start Simulation (▶)</b> เพื่อรันโปรแกรมจำลองได้ทันทีโดยไม่ต้องล็อกอิน</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i> เข้าสู่ระบบ Wokwi</span>
+              <span>หากต้องการ Sign In บันทึกงาน ให้กดปุ่ม <b>[ ↗ เปิด Wokwi ]</b> (Google/GitHub ไม่อนุญาตให้ล็อกอินผ่าน iframe)</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-sliders"></i> ทดสอบ Publish/Subscribe</span>
+              <span>ปรับค่าอุณหภูมิและความชื้นบน DHT11 เพื่อทดสอบส่ง JSON telemetry ขึ้น Cloud MQTT Broker</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-cloud-arrow-up"></i> สังเกต Cloud MQTT</span>
+              <span>ตรวจสอบการ Publish ข้อมูลไปยัง Broker <code>broker.emqx.io:1883</code> และสถานะ Callback บน Serial Monitor</span>
+            </div>
+          </div>
+
+          <!-- Printable Diagram for Paper / PDF Export -->
+          <div class="wokwi-print-diagram" style="display: none;">
+            <svg viewBox="0 0 940 450" style="width: 100%; max-width: 820px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow5" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+    <linearGradient id="metalShield5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="oledBgGrad5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="relayBlue5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="terminalGreen5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="dhtWhite5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="940" height="450" fill="#090d16" rx="10"/>
+
+  <!-- Header Title -->
+  <rect x="0" y="0" width="940" height="38" fill="#1e293b" rx="10"/>
+  <text x="25" y="24" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="13" font-weight="700">ESP32 CLOUD MQTT (EMQX BROKER) &amp; MULTI-SENSOR HARDWARE SCHEMATIC</text>
+  <text x="820" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">LAB 5 STANDARD</text>
+
+  <!-- WIRING JUMPERS LAYER -->
+  <!-- OLED VCC -> 3V3 -->
+  <path d="M 75 69 C 75 40, 365 195, 365 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED GND -> GND -->
+  <path d="M 105 69 C 105 45, 365 220, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- OLED SCL -> GPIO 22 -->
+  <path d="M 135 69 C 135 50, 365 340, 365 350" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round"/>
+  <!-- OLED SDA -> GPIO 21 -->
+  <path d="M 165 69 C 165 55, 365 315, 365 320" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- POT SIG -> GPIO 36 -->
+  <path d="M 180 255 C 240 255, 290 255, 365 255" fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
+  <!-- POT VCC -> 3V3 -->
+  <path d="M 150 278 C 210 278, 290 205, 365 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- POT GND -> GND -->
+  <path d="M 120 278 C 190 278, 290 230, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- SW1 OUT -> GPIO 0 -->
+  <path d="M 150 395 C 230 395, 290 285, 365 285" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- SW1 GND -> GND -->
+  <path d="M 90 395 C 90 425, 320 230, 365 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- DHT11 DATA -> GPIO 33 -->
+  <path d="M 670 115 C 630 115, 610 260, 575 260" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/>
+  <!-- DHT11 VCC -> 3V3 (or 5V) -->
+  <path d="M 670 135 C 630 135, 610 205, 575 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- DHT11 GND -> GND -->
+  <path d="M 670 155 C 630 155, 610 230, 575 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Relay 1 IN -> GPIO 5 -->
+  <path d="M 670 235 C 630 235, 610 295, 575 295" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+  <!-- Relay 1 VCC -> 5V VIN -->
+  <path d="M 670 258 C 630 258, 610 205, 575 205" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Relay 1 GND -> GND -->
+  <path d="M 670 280 C 630 280, 610 230, 575 230" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ================= LEFT SIDE MODULES ================= -->
+  <!-- 1. OLED SSD1306 Display Module (Left Top) -->
+  <g transform="translate(30, 55)" filter="url(#shadow5)">
+    <rect width="180" height="125" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="15" y="28" width="150" height="85" rx="3" fill="url(#oledBgGrad5)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="20" y="33" width="140" height="12" fill="#38bdf8"/>
+    <text x="90" y="42" fill="#000000" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="bold" text-anchor="middle">MQTT DASHBOARD</text>
+    <text x="25" y="56" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="7">T:28.5C H:65.0%</text>
+    <text x="25" y="68" fill="#06b6d4" font-family="'JetBrains Mono', monospace" font-size="7">Soil: 45% (ADC: 36)</text>
+    <text x="25" y="80" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="7">FAN: OFF (MQTT Sub)</text>
+    <text x="25" y="92" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7">SW1: 3 Presses</text>
+    <text x="25" y="104" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="6.5">EMQX: Connected ✓</text>
+    
+    <!-- Pin Headers -->
+    <rect x="25" y="6" width="130" height="16" fill="#0f172a" rx="2"/>
+    <circle cx="45" cy="14" r="4" fill="#ef4444"/>
+    <text x="45" y="24" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">VCC</text>
+    <circle cx="75" cy="14" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="75" y="24" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">GND</text>
+    <circle cx="105" cy="14" r="4" fill="#eab308"/>
+    <text x="105" y="24" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SCL</text>
+    <circle cx="135" cy="14" r="4" fill="#22c55e"/>
+    <text x="135" y="24" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">SDA</text>
+  </g>
+
+  <!-- 2. Potentiometer 10k Module (Left Middle) -->
+  <g transform="translate(30, 195)" filter="url(#shadow5)">
+    <rect width="180" height="100" rx="6" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+    <circle cx="60" cy="48" r="24" fill="#334155" stroke="#06b6d4" stroke-width="2"/>
+    <circle cx="60" cy="48" r="8" fill="#06b6d4"/>
+    <line x1="60" y1="48" x2="75" y2="38" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <text x="125" y="38" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="11" font-weight="600">POT 10kΩ</text>
+    <text x="125" y="52" fill="#06b6d4" font-family="'JetBrains Mono', monospace" font-size="8">Soil Simulator</text>
+    <text x="125" y="66" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5">GPIO 36 (ADC)</text>
+    <circle cx="150" cy="85" r="4" fill="#06b6d4"/>
+    <text x="150" y="78" fill="#06b6d4" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">SIG</text>
+    <circle cx="120" cy="85" r="4" fill="#ef4444"/>
+    <text x="120" y="78" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">VCC</text>
+    <circle cx="90" cy="85" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="90" y="78" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- 3. Push Button SW1 Module (Left Bottom) -->
+  <g transform="translate(30, 310)" filter="url(#shadow5)">
+    <rect width="180" height="115" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="25" y="20" width="50" height="50" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <circle cx="50" cy="45" r="18" fill="#10b981"/>
+    <text x="125" y="38" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="11" font-weight="600">SW1 BUTTON</text>
+    <text x="125" y="52" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8">GPIO 0 (Active-LOW)</text>
+    <text x="125" y="66" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7">Press Counter</text>
+    <circle cx="120" cy="95" r="4" fill="#10b981"/>
+    <text x="120" y="88" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">OUT (GPIO 0)</text>
+    <circle cx="60" cy="95" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="60" y="88" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- ================= CENTER: ESP32 DEVKITC BOARD ================= -->
+  <g transform="translate(350, 55)" filter="url(#shadow5)">
+    <rect width="240" height="375" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+    <rect x="40" y="20" width="160" height="110" rx="6" fill="url(#metalShield5)" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="120" y="60" fill="#1e293b" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" text-anchor="middle">ESP32</text>
+    <text x="120" y="78" fill="#334155" font-family="'JetBrains Mono', monospace" font-size="9" text-anchor="middle">WROOM-32 Wi-Fi + BLE</text>
+    <text x="120" y="95" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="7.5" text-anchor="middle">Cloud MQTT Client Node</text>
+    
+    <rect x="30" y="335" width="28" height="22" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="44" y="350" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">EN</text>
+    <rect x="182" y="335" width="28" height="22" rx="3" fill="#0f172a" stroke="#64748b"/>
+    <text x="196" y="350" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="7" text-anchor="middle">BOOT</text>
+
+    <!-- Left Pin Headers -->
+    <circle cx="15" cy="150" r="4" fill="#ef4444"/>
+    <text x="25" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">3V3</text>
+    <circle cx="15" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="25" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+    <circle cx="15" cy="200" r="4" fill="#06b6d4"/>
+    <text x="25" y="203" fill="#06b6d4" font-family="'JetBrains Mono', monospace" font-size="8">GPIO 36 (VP)</text>
+    <circle cx="15" cy="230" r="4" fill="#10b981"/>
+    <text x="25" y="233" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="8">GPIO 0 (SW1)</text>
+    <circle cx="15" cy="265" r="4" fill="#22c55e"/>
+    <text x="25" y="268" fill="#22c55e" font-family="'JetBrains Mono', monospace" font-size="8">GPIO 21 (SDA)</text>
+    <circle cx="15" cy="295" r="4" fill="#eab308"/>
+    <text x="25" y="298" fill="#eab308" font-family="'JetBrains Mono', monospace" font-size="8">GPIO 22 (SCL)</text>
+
+    <!-- Right Pin Headers -->
+    <circle cx="225" cy="150" r="4" fill="#ef4444"/>
+    <text x="215" y="153" fill="#ef4444" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" text-anchor="end">5V (VIN)</text>
+    <circle cx="225" cy="175" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="215" y="178" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GND</text>
+    <circle cx="225" cy="205" r="4" fill="#4ade80"/>
+    <text x="215" y="208" fill="#4ade80" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GPIO 33 (DHT)</text>
+    <circle cx="225" cy="240" r="4" fill="#3b82f6"/>
+    <text x="215" y="243" fill="#3b82f6" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GPIO 5 (Fan)</text>
+    <circle cx="225" cy="275" r="4" fill="#f43f5e"/>
+    <text x="215" y="278" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">GPIO 18 (LED)</text>
+  </g>
+
+  <!-- ================= RIGHT SIDE MODULES ================= -->
+  <!-- 1. DHT11 Sensor (Right Top) -->
+  <g transform="translate(670, 55)" filter="url(#shadow5)">
+    <rect width="230" height="110" rx="6" fill="url(#dhtWhite5)" stroke="#cbd5e1" stroke-width="1.5"/>
+    <rect x="15" y="15" width="200" height="40" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.5"/>
+    <text x="115" y="75" fill="#0f172a" font-family="'Outfit', sans-serif" font-size="12" font-weight="700" text-anchor="middle">DHT11 SENSOR</text>
+    <text x="115" y="90" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="8.5" text-anchor="middle">Temp &amp; Humidity (GPIO 33)</text>
+    
+    <circle cx="0" cy="60" r="4" fill="#4ade80"/>
+    <text x="12" y="63" fill="#16a34a" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">DATA (33)</text>
+    <circle cx="0" cy="80" r="4" fill="#ef4444"/>
+    <text x="12" y="83" fill="#dc2626" font-family="'JetBrains Mono', monospace" font-size="8">VCC (3.3V)</text>
+    <circle cx="0" cy="100" r="4" fill="#000000" stroke="#64748b"/>
+    <text x="12" y="103" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+  </g>
+
+  <!-- 2. Songle Relay 1: Fan Module (Right Middle) -->
+  <g transform="translate(670, 180)" filter="url(#shadow5)">
+    <rect width="230" height="125" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect x="65" y="12" width="85" height="95" rx="4" fill="url(#relayBlue5)" stroke="#1d4ed8" stroke-width="1"/>
+    <text x="107" y="42" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="11" font-weight="bold" text-anchor="middle">SONGLE</text>
+    <text x="107" y="56" fill="#93c5fd" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">SRD-05VDC</text>
+    <text x="107" y="74" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="bold" text-anchor="middle">RELAY 1 (FAN)</text>
+    
+    <!-- Screw Terminals -->
+    <rect x="165" y="16" width="45" height="85" rx="3" fill="url(#terminalGreen5)"/>
+    <circle cx="187" cy="34" r="5" fill="#0f172a"/>
+    <circle cx="187" cy="58" r="5" fill="#0f172a"/>
+    <circle cx="187" cy="82" r="5" fill="#0f172a"/>
+    
+    <!-- Input Pins -->
+    <circle cx="0" cy="40" r="4" fill="#2563eb"/>
+    <text x="12" y="43" fill="#93c5fd" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold">IN (GPIO 5)</text>
+    <circle cx="0" cy="63" r="4" fill="#ef4444"/>
+    <text x="12" y="66" fill="#f87171" font-family="'JetBrains Mono', monospace" font-size="8">VCC (5V)</text>
+    <circle cx="0" cy="85" r="4" fill="#64748b"/>
+    <text x="12" y="88" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8">GND</text>
+  </g>
+
+  <!-- 3. Cloud MQTT Broker Card (Right Bottom) -->
+  <g transform="translate(670, 318)" filter="url(#shadow5)">
+    <rect width="230" height="110" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect x="10" y="8" width="210" height="20" rx="3" fill="#0f172a"/>
+    <text x="115" y="22" fill="#38bdf8" font-family="'Outfit', sans-serif" font-size="10" font-weight="700" text-anchor="middle">☁️ EMQX CLOUD MQTT BROKER</text>
+    <text x="15" y="44" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8">• Host: <tspan fill="#38bdf8">broker.emqx.io:1883</tspan></text>
+    <text x="15" y="60" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8">• Pub : <tspan fill="#4ade80">esp-node/state</tspan></text>
+    <text x="15" y="76" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="8">• Sub : <tspan fill="#fbbf24">esp-node/control/cmd</tspan></text>
+    <text x="15" y="94" fill="#a7f3d0" font-family="'JetBrains Mono', monospace" font-size="7.5">⚡ WebSockets: Port 8084 (WSS)</text>
+  </g>
+</svg>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 🌟 Feature: Web Serial API Real-time Hardware Bridge    -->
+        <!-- ======================================================= -->
+        <div class="lab-feature-card" id="webSerialCard">
+          <div class="lab-feature-header">
+            <div class="lab-feature-title">
+              <i class="fa-solid fa-terminal" style="color: #10b981;"></i>
+              <span>มอนิเตอร์และเชื่อมต่อบอร์ดฮาร์ดแวร์จริง (Web Serial API Monitor)</span>
+            </div>
+            <div class="lab-feature-actions">
+              <!-- Baud Rate Selector -->
+              <select id="serialBaudRateSelect" class="feature-select" onchange="onBaudRateChange()" title="เลือกความเร็ว Baud Rate ให้ตรงกับ Serial.begin() ในโค้ด">
+                <option value="115200" selected>115200 baud (ESP32/Lab5)</option>
+                <option value="9600">9600 baud (มาตรฐานทั่วไป)</option>
+                <option value="57600">57600 baud</option>
+                <option value="74880">74880 baud (ESP Boot Log)</option>
+                <option value="19200">19200 baud</option>
+                <option value="38400">38400 baud</option>
+              </select>
+
+              <span class="serial-status-tag disconnected" id="serialStatusBadge">
+                <span class="status-dot" style="background:#ef4444; width:8px; height:8px; border-radius:50%; display:inline-block;"></span>
+                <span id="serialStatusText">ยังไม่ได้เชื่อมต่อ USB</span>
+              </span>
+
+              <button type="button" class="feature-btn primary" id="btnConnectSerial" onclick="toggleWebSerial()">
+                <i class="fa-solid fa-plug"></i> <span id="btnConnectSerialText">เชื่อมต่อบอร์ดจริง (USB)</span>
+              </button>
+
+              <button type="button" class="feature-btn warning" id="btnResetBoard" onclick="resetEsp32Board()" title="ส่งสัญญาณ DTR/RTS เพื่อสั่งรีเซ็ตบอร์ดใหม่">
+                <i class="fa-solid fa-rotate-left"></i> <span>รีเซ็ต ESP32</span>
+              </button>
+
+              <button type="button" class="feature-btn" onclick="clearSerialTerminal()">
+                <i class="fa-solid fa-broom"></i> <span>ล้าง</span>
+              </button>
+              <button type="button" class="feature-btn" onclick="openSerialGuideModal()">
+                <i class="fa-solid fa-circle-question"></i> <span>วิธีใช้ / แก้ปัญหา</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lab-feature-body">
+            <div class="serial-terminal-box" id="serialTerminalWindow">[WEB SERIAL TERMINAL READY]
+รองรับการเชื่อมต่อบอร์ด ESP32 / ESP8266 ผ่านสาย USB (Chrome / Edge / Brave)
+1. เสียบสาย USB ระหว่างบอร์ดกับคอมพิวเตอร์
+2. กดปุ่ม "เชื่อมต่อบอร์ดจริง (USB)" ด้านบน แล้วเลือกพอร์ต COM (เช่น Silicon Labs CP210x หรือ USB-SERIAL CH340)
+3. หากเชื่อมต่อแล้วไม่มีข้อความขึ้น ให้กดปุ่ม "รีเซ็ต ESP32" หรือกดปุ่ม EN/RST บนบอร์ด และตรวจสอบ Baud Rate ให้ตรงกับโค้ด</div>
+
+            <!-- Command TX Bar -->
+            <div class="serial-send-bar">
+              <input type="text" id="serialInputText" placeholder="พิมพ์คำสั่งส่งไปยังบอร์ด (เช่น HELP, TEST หรือค่าควบคุม) แล้วกด Enter..." onkeydown="if(event.key==='Enter') sendSerialText()">
+              <button type="button" class="feature-btn primary" onclick="sendSerialText()"><i class="fa-solid fa-paper-plane"></i> ส่งคำสั่ง</button>
+            </div>
           </div>
         </div>
 
@@ -2998,6 +3792,389 @@ void loop() {
       setTimeout(initTeacherGasBox, 100);
     });
 
+  
+    // ============================================================
+    // 🚀 Wokwi Simulator & Diagram Switcher Helpers
+    // ============================================================
+    function toggleSimOrDiagram(btn) {
+      const isSim = btn.id === 'btnToggleSimMode';
+      const simWrapper = document.getElementById('wokwiIframeWrapper');
+      const diagWrapper = document.getElementById('wokwiDiagramWrapper');
+      const btnSim = document.getElementById('btnToggleSimMode');
+      const btnDiag = document.getElementById('btnToggleDiagramMode');
+
+      if (isSim) {
+        if (simWrapper) simWrapper.style.display = 'block';
+        if (diagWrapper) diagWrapper.style.display = 'none';
+        if (btnSim) btnSim.classList.add('active');
+        if (btnDiag) btnDiag.classList.remove('active');
+      } else {
+        if (simWrapper) simWrapper.style.display = 'none';
+        if (diagWrapper) diagWrapper.style.display = 'block';
+        if (btnDiag) btnDiag.classList.add('active');
+        if (btnSim) btnSim.classList.remove('active');
+      }
+    }
+
+    function toggleWokwiFullscreen() {
+      const card = document.getElementById('wokwiSectionCard');
+      const fsIcon = document.getElementById('wokwiFsIcon');
+      const fsText = document.getElementById('wokwiFsText');
+      if (!card) return;
+
+      const isFs = document.fullscreenElement || document.webkitFullscreenElement || card.classList.contains('wokwi-fullscreen-mode');
+
+      if (!isFs) {
+        if (card.requestFullscreen) {
+          card.requestFullscreen().catch(err => {
+            console.warn('Native requestFullscreen failed, using CSS fallback:', err);
+            enableCssFullscreen(card, fsIcon, fsText);
+          });
+        } else if (card.webkitRequestFullscreen) {
+          card.webkitRequestFullscreen();
+        } else {
+          enableCssFullscreen(card, fsIcon, fsText);
+        }
+        if (fsIcon) fsIcon.className = 'fa-solid fa-compress';
+        if (fsText) fsText.textContent = 'ย่อหน้าจอ';
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(e => disableCssFullscreen(card, fsIcon, fsText));
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else {
+          disableCssFullscreen(card, fsIcon, fsText);
+        }
+        if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
+        if (fsText) fsText.textContent = 'เต็มหน้าจอ';
+      }
+    }
+
+    function enableCssFullscreen(card, fsIcon, fsText) {
+      card.classList.add('wokwi-fullscreen-mode');
+      document.body.classList.add('wokwi-body-fullscreen');
+      if (fsIcon) fsIcon.className = 'fa-solid fa-compress';
+      if (fsText) fsText.textContent = 'ย่อหน้าจอ';
+    }
+
+    function disableCssFullscreen(card, fsIcon, fsText) {
+      card.classList.remove('wokwi-fullscreen-mode');
+      document.body.classList.remove('wokwi-body-fullscreen');
+      if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
+      if (fsText) fsText.textContent = 'เต็มหน้าจอ';
+    }
+
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    function handleFsChange() {
+      const card = document.getElementById('wokwiSectionCard');
+      const fsIcon = document.getElementById('wokwiFsIcon');
+      const fsText = document.getElementById('wokwiFsText');
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (card) card.classList.remove('wokwi-fullscreen-mode');
+        document.body.classList.remove('wokwi-body-fullscreen');
+        if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
+        if (fsText) fsText.textContent = 'เต็มหน้าจอ';
+      }
+    }
+
+    function copyVsCodeCommand() {
+      const guideText = `// PlatformIO + Wokwi Extension Setup for Lab 5:
+1. ติดตั้งส่วนขยาย 'Wokwi Simulator' ใน VS Code
+2. ดาวน์โหลด template: 'lab5_vscode_wokwi_template.zip' แล้วแตกไฟล์เปิดใน VS Code
+3. กด F1 -> พิมพ์ 'Wokwi: Start Simulator' เพื่อเริ่มจำลองวงจรใน VS Code ทันที!`;
+      navigator.clipboard.writeText(guideText).then(() => {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'คัดลอกขั้นตอนแล้ว!',
+            text: 'ท่านสามารถดาวน์โหลดไฟล์ template .zip ไปเปิดใน VS Code ได้ทันที',
+            confirmButtonColor: '#3b82f6'
+          });
+        } else {
+          alert('คัดลอกขั้นตอนเปิดใช้งาน VS Code + Wokwi เรียบร้อยแล้วครับ! ท่านสามารถดาวน์โหลดไฟล์ template .zip ไปเปิดได้ทันที');
+        }
+      });
+    }
+
+    // ============================================================
+    // ⚡ Web Serial API Hardware Bridge Functions
+    // ============================================================
+    let serialPort = null;
+    let serialReader = null;
+    let serialKeepReading = false;
+    let serialLineBuffer = '';
+
+    function openSerialGuideModal() {
+      const m = document.getElementById('serialGuideModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeSerialGuideModal() {
+      const m = document.getElementById('serialGuideModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function clearSerialTerminal() {
+      const term = document.getElementById('serialTerminalWindow');
+      if (term) term.textContent = '';
+    }
+
+    async function onBaudRateChange() {
+      if (serialPort && serialPort.readable) {
+        if (typeof Swal !== 'undefined') {
+          const res = await Swal.fire({
+            title: 'เปลี่ยน Baud Rate?',
+            text: 'การเปลี่ยน Baud Rate ต้องทำการ Reconnect พอร์ตใหม่ ต้องการดำเนินการทันทีหรือไม่?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'เปลี่ยนและเชื่อมต่อใหม่',
+            cancelButtonText: 'ยกเลิก'
+          });
+          if (res.isConfirmed) {
+            await disconnectWebSerial();
+            await connectWebSerial();
+          }
+        } else {
+          if (confirm('การเปลี่ยน Baud Rate ต้องเชื่อมต่อใหม่ ต้องการเชื่อมต่อใหม่หรือไม่?')) {
+            await disconnectWebSerial();
+            await connectWebSerial();
+          }
+        }
+      }
+    }
+
+    async function toggleWebSerial() {
+      if (serialPort) {
+        await disconnectWebSerial();
+      } else {
+        await connectWebSerial();
+      }
+    }
+
+    async function connectWebSerial() {
+      if (!('serial' in navigator)) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'เบราว์เซอร์ไม่รองรับ Web Serial API',
+            html: 'กรุณาใช้งานผ่านเบราว์เซอร์ <b>Google Chrome</b>, <b>Microsoft Edge</b>, <b>Brave</b> หรือ <b>Opera</b> บนเครื่องคอมพิวเตอร์',
+            confirmButtonColor: '#ef4444'
+          });
+        } else {
+          alert('เบราว์เซอร์นี้ไม่รองรับ Web Serial API กรุณาเปิดผ่าน Chrome / Edge');
+        }
+        return;
+      }
+
+      const baudSelect = document.getElementById('serialBaudRateSelect');
+      const baudRate = baudSelect ? (parseInt(baudSelect.value, 10) || 115200) : 115200;
+
+      try {
+        if (!serialPort) {
+          serialPort = await navigator.serial.requestPort();
+        }
+        
+        await serialPort.open({ baudRate: baudRate });
+
+        try {
+          await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        } catch (sigErr) {
+          console.warn('Cannot set DTR/RTS signals:', sigErr);
+        }
+
+        updateSerialUI(true, baudRate);
+        appendSerialTerminal(`\n[CONNECTED] เชื่อมต่อพอร์ตฮาร์ดแวร์สำเร็จ (Baud Rate: ${baudRate})\n`);
+
+        readSerialLoop();
+
+      } catch (err) {
+        console.error('Serial Connection Error:', err);
+        serialPort = null;
+        updateSerialUI(false);
+        if (err.name !== 'NotFoundError') {
+          appendSerialTerminal(`\n[ERROR] ไม่สามารถเชื่อมต่อพอร์ตได้: ${err.message || err}\n`);
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'error',
+              title: 'เชื่อมต่อพอร์ตไม่สำเร็จ',
+              text: (err.message || 'โปรดตรวจสอบว่าไม่มีโปรแกรมอื่นเปิดพอร์ตนี้อยู่ (เช่น Arduino IDE / PlatformIO Serial Monitor)'),
+              confirmButtonColor: '#ef4444'
+            });
+          }
+        }
+      }
+    }
+
+    async function readSerialLoop() {
+      if (!serialPort || !serialPort.readable) return;
+
+      serialKeepReading = true;
+      const textDecoder = new TextDecoderStream();
+      const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
+      serialReader = textDecoder.readable.getReader();
+
+      try {
+        while (serialKeepReading) {
+          const { value, done } = await serialReader.read();
+          if (done) break;
+          if (value) {
+            appendSerialTerminal(value);
+          }
+        }
+      } catch (err) {
+        console.warn('Serial Read Loop Error:', err);
+      } finally {
+        if (serialReader) {
+          try { serialReader.releaseLock(); } catch(e){}
+          serialReader = null;
+        }
+        try { await readableStreamClosed.catch(() => {}); } catch(e){}
+      }
+    }
+
+    async function resetEsp32Board() {
+      if (!serialPort) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'info',
+            title: 'ยังไม่ได้เชื่อมต่อ USB',
+            text: 'กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนใช้งานฟังก์ชั่นรีเซ็ต'
+          });
+        } else {
+          alert('กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนใช้งาน');
+        }
+        return;
+      }
+
+      try {
+        appendSerialTerminal('\n[RESET] กำลังส่งสัญญาณฮาร์ดแวร์รีเซ็ตบอร์ด (EN / RST Pulse)...\n');
+        await serialPort.setSignals({ dataTerminalReady: true, requestToSend: true });
+        await new Promise(r => setTimeout(r, 120));
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        appendSerialTerminal('[RESET] ส่งคำสั่งรีเซ็ตเรียบร้อยแล้ว กำลังรอรับ Boot Log...\n');
+      } catch (err) {
+        appendSerialTerminal(`\n[RESET ERROR] รีเซ็ตไม่สำเร็จ: ${err.message || err}\n`);
+      }
+    }
+
+    async function sendSerialText() {
+      const input = document.getElementById('serialInputText');
+      if (!input) return;
+      const cmd = input.value.trim();
+      if (!cmd) return;
+
+      if (!serialPort || !serialPort.writable) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ยังไม่ได้เชื่อมต่อ USB',
+            text: 'กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนส่งคำสั่ง'
+          });
+        } else {
+          alert('กรุณากดเชื่อมต่อบอร์ดจริง (USB) ก่อนส่งคำสั่ง');
+        }
+        return;
+      }
+
+      try {
+        const encoder = new TextEncoder();
+        const writer = serialPort.writable.getWriter();
+        await writer.write(encoder.encode(cmd + '\r\n'));
+        writer.releaseLock();
+        appendSerialTerminal(`\n> [TX] ${cmd}\n`);
+        input.value = '';
+      } catch (err) {
+        appendSerialTerminal(`\n[TX ERROR] ส่งคำสั่งไม่สำเร็จ: ${err.message || err}\n`);
+      }
+    }
+
+    async function disconnectWebSerial() {
+      serialKeepReading = false;
+      if (serialReader) {
+        try { await serialReader.cancel(); } catch(e){}
+        try { serialReader.releaseLock(); } catch(e){}
+        serialReader = null;
+      }
+      if (serialPort) {
+        try { await serialPort.close(); } catch(e){}
+        serialPort = null;
+      }
+      updateSerialUI(false);
+      appendSerialTerminal('\n[DISCONNECTED] ตัดการเชื่อมต่อพอร์ต USB เรียบร้อยแล้ว\n');
+    }
+
+    function updateSerialUI(connected, baudRate = 115200) {
+      const badge = document.getElementById('serialStatusBadge');
+      const text = document.getElementById('serialStatusText');
+      const btn = document.getElementById('btnConnectSerial');
+      const btnText = document.getElementById('btnConnectSerialText');
+
+      if (connected) {
+        if (badge) badge.className = 'serial-status-tag connected';
+        if (text) text.textContent = `เชื่อมต่อแล้ว (${baudRate} baud)`;
+        if (btn) {
+          btn.className = 'feature-btn danger';
+          if (btnText) btnText.textContent = 'ตัดการเชื่อมต่อ USB';
+        }
+      } else {
+        if (badge) badge.className = 'serial-status-tag disconnected';
+        if (text) text.textContent = 'ยังไม่ได้เชื่อมต่อ USB';
+        if (btn) {
+          btn.className = 'feature-btn primary';
+          if (btnText) btnText.textContent = 'เชื่อมต่อบอร์ดจริง (USB)';
+        }
+      }
+    }
+
+    function appendSerialTerminal(text) {
+      const term = document.getElementById('serialTerminalWindow');
+      if (term) {
+        term.textContent += text;
+        if (term.textContent.length > 20000) {
+          term.textContent = term.textContent.slice(-10000);
+        }
+        term.scrollTop = term.scrollHeight;
+      }
+    }
+
   </script>
+
+  <!-- Web Serial API Guide Modal -->
+  <div class="modal-overlay" id="serialGuideModal" style="display: none; z-index: 10000;">
+    <div class="theory-modal-content" style="max-width: 680px; max-height: 88vh; overflow-y: auto;">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-plug" style="color: #4ade80;"></i> คู่มือการเชื่อมต่อฮาร์ดแวร์จริงผ่าน Web Serial API</h2>
+        <button type="button" class="theory-close-x" onclick="closeSerialGuideModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="theory-modal-body" style="padding: 1.5rem;">
+        <div class="info-frame" style="margin-bottom: 1rem;">
+          <h4><i class="fa-solid fa-circle-info"></i> Web Serial API คืออะไร?</h4>
+          <p>เป็นมาตรฐานเว็บสมัยใหม่ที่ช่วยให้หน้าเว็บสามารถสื่อสารกับไมโครคอนโทรลเลอร์ (ESP32 / ESP8266 / Arduino) ผ่านสาย USB ได้โดยตรง <b>โดยไม่ต้องลงโปรแกรมเพิ่มเติม</b></p>
+        </div>
+
+        <div class="theory-card" style="margin-bottom: 1rem;">
+          <h4><i class="fa-solid fa-list-ol"></i> ขั้นตอนการเชื่อมต่อบอร์ดจริง:</h4>
+          <ol style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li>เสียบสาย USB เชื่อมต่อบอร์ด ESP32 / ESP8266 เข้ากับคอมพิวเตอร์</li>
+            <li>กดปุ่ม <b>"เชื่อมต่อบอร์ดจริง (USB)"</b> บนกล่อง Web Serial</li>
+            <li>เบราว์เซอร์จะแสดงหน้าต่างเลือกพอร์ต ให้เลือก <b>USB-Serial (เช่น CH340, CP2102 หรือ FTDI)</b> แล้วกด <b>Connect</b></li>
+            <li>หน้าต่าง Terminal จะเริ่มสตรีมข้อความ Serial Log และ JSON Payload จากบอร์ดจริงทันที</li>
+          </ol>
+        </div>
+
+        <div class="theory-card warning" style="margin-bottom: 1rem;">
+          <h4><i class="fa-solid fa-triangle-exclamation"></i> ข้อควรระวังและวิธีแก้ปัญหา:</h4>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><b>เบราว์เซอร์ที่รองรับ:</b> Google Chrome, Microsoft Edge, Opera, Brave (ไม่รองรับ Safari และ Firefox)</li>
+            <li><b>ปัญหาหาพอร์ตไม่เจอ:</b> ตรวจสอบว่าได้ติดตั้ง Driver ชิป USB-to-UART ของบอร์ดแล้วหรือไม่ (เช่น CH340 Driver หรือ CP210x Driver)</li>
+            <li><b>ปัญหา Port Busy (เปิดไม่ขึ้น):</b> ตรวจสอบว่าไม่ได้เปิดโปรแกรมอื่นที่ใช้พอร์ต COM ซ้ำกันอยู่ เช่น Arduino IDE Serial Monitor, PlatformIO Serial Monitor หรือ Putty</li>
+            <li><b>ตัวอักษรภาษาต่างดาว:</b> เลือก Baud Rate ให้ตรงกับ <code>Serial.begin(...)</code> ในโค้ดของบอร์ด (เช่น 115200)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
