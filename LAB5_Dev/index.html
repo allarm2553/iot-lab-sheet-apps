@@ -2259,8 +2259,13 @@ void loop() {
         </div>
 
         <div class="challenge-frame">
-          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> พัฒนาโปรแกรมบนบอร์ด ESP32/ESP8266 ให้เชื่อมต่อ Cloud MQTT Broker (<code>broker.emqx.io</code>) โดยทำการ Publish รายงานข้อมูล Telemetry แบบ JSON ไปยัง Topic <code>esp-node/state</code> ทุก 5 วินาที ประกอบด้วย: อุณหภูมิ (<code>temp</code>), ความชื้น (<code>humidity</code>), เปอร์เซ็นต์แอนะล็อก (<code>soil</code>), สถานะพัดลม (<code>fan</code>), และจำนวนครั้งการกดปุ่ม (<code>press</code>/<code>toggleCount</code>) พร้อมทั้งเขียนฟังก์ชัน <code>callback()</code> เพื่อรับคำสั่ง JSON จาก Topic <code>esp-node/control/cmd</code> (เช่น <code>{"action":"toggle_fan","value":true}</code>) สั่งเปิด-ปิดรีเลย์พัดลมจริงบนบอร์ด</p>
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge: การพัฒนา Full-Stack Web Dashboard &amp; Cross-Platform App)</h3>
+          <p><strong>โจทย์:</strong> ให้นักศึกษาพัฒนาและปรับแต่งระบบ <b>Full-Stack IoT Dashboard &amp; Cross-Platform Application</b> เพื่อเชื่อมต่อและควบคุมบอร์ด ESP32/ESP8266 ข้ามเครือข่ายอินเทอร์เน็ต โดยปฏิบัติดังนี้:</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><b>1. Web Dashboard (MQTT.js / WSS:8084):</b> ปรับแต่งไฟล์ในโฟลเดอร์ <code>data/</code> (<code>index.html</code>, <code>styles.css</code>) ให้เชื่อมต่อกับ Cloud Broker ผ่าน WebSocket Secure เพื่อแสดงผลเกจวัดอุณหภูมิ/ความชื้นแบบเรียลไทม์ และปุ่มกดสวิตช์สั่งงานรีเลย์พัดลมสองทิศทาง</li>
+            <li><b>2. Cross-Platform Packaging (.exe / .apk):</b> นำหน้าเว็บแดชบอร์ดมาแพ็กเกจเป็น <b>แอปพลิเคชันเดสก์ท็อป Windows (ไฟล์ .exe)</b> ด้วย Electron/NeutralinoJS หรือ <b>แอปพลิเคชันมือถือ Android (ไฟล์ .apk)</b> ด้วย Capacitor/Cordova</li>
+            <li><b>3. การบันทึกผล:</b> แคปเจอร์ภาพหน้าต่างแอปพลิเคชันเดสก์ท็อปหรือมือถือขณะควบคุมบอร์ดจริงผ่านอินเทอร์เน็ต พร้อมแนบซอร์สโค้ดและไฟล์ติดตั้งแอปพลิเคชัน</li>
+          </ul>
         </div>
       </div>
 
@@ -2405,7 +2410,7 @@ void loop() {
 
             <!-- Screenshot upload -->
             <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพผลงานมอนิเตอร์และสั่งงานผ่านโปรแกรม MQTT Explorer หรือ Web Client</label>
+              <label>1. รูปภาพผลงานหน้าเว็บแดชบอร์ด / แอปพลิเคชันเดสก์ท็อป (.exe) หรือแอปมือถือ (.apk)</label>
               <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
                 <i class="fa-regular fa-images upload-icon"></i>
                 <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
@@ -2425,7 +2430,7 @@ void loop() {
 
             <!-- Code file upload -->
             <div class="form-group">
-              <label>2. ไฟล์โค้ดปรับปรุงใหม่ (.ino หรือ .zip)</label>
+              <label>2. ไฟล์โค้ดโปรเจกต์แดชบอร์ดและไฟล์ติดตั้งแอปพลิเคชัน (.zip / .exe / .apk)</label>
               <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
                 <i class="fa-regular fa-file-code upload-icon"></i>
                 <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>

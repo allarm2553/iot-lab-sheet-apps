@@ -2258,8 +2258,13 @@ void loop() {
         </div>
 
         <div class="challenge-frame">
-          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge)</h3>
-          <p><strong>โจทย์:</strong> พัฒนาโปรแกรมบนบอร์ด ESP32/ESP8266 ให้เชื่อมต่อ Cloud MQTT Broker (<code>broker.emqx.io</code>) โดยทำการ Publish รายงานข้อมูล Telemetry แบบ JSON ไปยัง Topic <code>esp-node/state</code> ทุก 5 วินาที ประกอบด้วย: อุณหภูมิ (<code>temp</code>), ความชื้น (<code>humidity</code>), เปอร์เซ็นต์แอนะล็อก (<code>soil</code>), สถานะพัดลม (<code>fan</code>), และจำนวนครั้งการกดปุ่ม (<code>press</code>/<code>toggleCount</code>) พร้อมทั้งเขียนฟังก์ชัน <code>callback()</code> เพื่อรับคำสั่ง JSON จาก Topic <code>esp-node/control/cmd</code> (เช่น <code>{"action":"toggle_fan","value":true}</code>) สั่งเปิด-ปิดรีเลย์พัดลมจริงบนบอร์ด</p>
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge: การทดสอบผ่านโปรแกรม MQTTBox / MQTT Explorer)</h3>
+          <p><strong>โจทย์:</strong> ให้นักศึกษาใช้โปรแกรมทดสอบ MQTT Client ภายนอก (เช่น <b>MQTTBox</b>, <b>MQTT Explorer</b> หรือ <b>EMQX Online Client</b>) เพื่อทดสอบการรับ-ส่งข้อมูลสองทิศทางกับบอร์ด ESP32/ESP8266 ผ่าน Public Broker (<code>broker.emqx.io:1883</code>) โดยปฏิบัติดังนี้:</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><b>1. การดักรับข้อมูลเซ็นเซอร์ (Subscribe):</b> ตั้งค่าโปรแกรมทดสอบให้ Subscribe หัวข้อ <code>esp-node/state</code> เพื่อดักจับและตรวจสอบโครงสร้าง JSON Telemetry (อุณหภูมิ, ความชื้น, แอนะล็อก, สถานะพัดลม) ที่บอร์ด Publish ขึ้นมาทุก 5 วินาที</li>
+            <li><b>2. การส่งคำสั่งควบคุมโหลด (Publish):</b> ใช้โปรแกรมทดสอบ Publish ข้อความ JSON คำสั่ง เช่น <code>{"action":"toggle_fan","value":true}</code> หรือ <code>{"fan": 1}</code> ไปยังหัวข้อ <code>esp-node/control/cmd</code> เพื่อสั่งเปิด-ปิดรีเลย์พัดลมและหลอดไฟ LED บนบอร์ดจริง</li>
+            <li><b>3. การบันทึกผล:</b> แคปเจอร์ภาพหน้าต่างโปรแกรมทดสอบ MQTT ขณะดักรับข้อมูลและส่งคำสั่งสำเร็จ พร้อมสังเกตผลตอบสนองบน Serial Monitor และหน้าจอ OLED</li>
+          </ul>
         </div>
       </div>
 
@@ -2404,7 +2409,7 @@ void loop() {
 
             <!-- Screenshot upload -->
             <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพผลงานมอนิเตอร์และสั่งงานผ่านโปรแกรม MQTT Explorer หรือ Web Client</label>
+              <label>1. รูปภาพผลงานการดักรับและสั่งงานผ่านโปรแกรม MQTTBox / MQTT Explorer</label>
               <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
                 <i class="fa-regular fa-images upload-icon"></i>
                 <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
