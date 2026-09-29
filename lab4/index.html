@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <script src="../config.js"></script>
 
@@ -1166,7 +1167,12 @@
             <div class="code-container">
               <div class="code-header">
                 <span>esp_websocket.ino</span>
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <button type="button" class="copy-btn" onclick="downloadLittleFsData(event)" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd;" title="ดาวน์โหลดชุดไฟล์ Web UI (index.html, styles.css) สำหรับใส่ในโฟลเดอร์ data/ เพื่ออัปโหลดลง LittleFS Flash Memory">
+                  <i class="fa-solid fa-file-zipper"></i> โหลด Web UI (data.zip)
+                </button>
                 <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+              </div>
               </div>
               <pre><code>#if defined(ESP8266)
 #include &lt;ESP8266WiFi.h&gt;
@@ -2159,6 +2165,77 @@ function toggleFan(state) {
     }
 
     // ── 3. Code Smart Copy & Template Paste ──
+    // ── 3. Download LittleFS Assets & Smart Code Copy ──
+    async function downloadLittleFsData(e) {
+      if (e) e.preventDefault();
+      if (typeof JSZip === 'undefined') {
+        window.open('./data/index.html', '_blank');
+        return;
+      }
+
+      try {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'กำลังเตรียมชุดไฟล์ Web UI...',
+            text: 'กำลังรวบรวม index.html และ styles.css เข้าสู่ data.zip',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+        }
+
+        const files = ['index.html', 'styles.css'];
+        const zip = new JSZip();
+        const folder = zip.folder("data");
+
+        for (const f of files) {
+          const res = await fetch(`./data/${f}`);
+          if (!res.ok) throw new Error(`ไม่สามารถโหลดไฟล์ ${f} ได้`);
+          const content = await res.text();
+          folder.file(f, content);
+        }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = window.URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'data.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'ดาวน์โหลดสำเร็จ! 🎉',
+            html: `
+              <div style="text-align: left; font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+                <p>ดาวน์โหลดไฟล์ <strong>data.zip</strong> เรียบร้อยแล้ว!</p>
+                <p style="margin-top: 0.5rem;"><strong>ขั้นตอนการใช้งาน:</strong></p>
+                <ol style="padding-left: 1.25rem;">
+                  <li>แตกไฟล์ zip จะได้โฟลเดอร์ <code>data/</code> ที่มี <code>index.html</code>, <code>styles.css</code></li>
+                  <li>นำโฟลเดอร์ <code>data/</code> ไปวางในไดเรกทอรีโปรเจกต์ PlatformIO หรือ Arduino IDE</li>
+                  <li>สั่ง <strong>Upload Filesystem Image (LittleFS)</strong> ลงบอร์ด ESP32 / ESP8266</li>
+                </ol>
+              </div>
+            `,
+            confirmButtonColor: '#3b82f6'
+          });
+        }
+      } catch (err) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ดาวน์โหลดไฟล์เดี่ยว',
+            text: 'ไม่สามารถรวม zip ได้ กำลังเปิดหน้า index.html ให้ดาวน์โหลดแทน',
+            confirmButtonColor: '#3b82f6'
+          });
+        }
+        window.open('./data/index.html', '_blank');
+      }
+    }
+
     function copySkeletonCode() {
       const b1 = document.getElementById('codeBlank1')?.value.trim() || 'LittleFS.open(path, "r")';
       const b2 = document.getElementById('codeBlank2')?.value.trim() || 'deserializeJson(doc, payload, length)';
