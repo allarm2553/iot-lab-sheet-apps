@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบงานที่ 5 (Dev): การสื่อสารผ่านระบบคลาวด์และแดชบอร์ดข้ามแพลตฟอร์ม (Cloud MQTT)</title>
+  <title>ใบงานที่ 5 (Dev): การสื่อสารผ่านคลาวด์และแดชบอร์ด Progressive Web App (PWA Cloud MQTT)</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1494,7 +1494,7 @@
     <header>
       <div class="logo-container">
         <i class="fa-solid fa-cloud-arrow-up logo-icon"></i>
-        <h1>ใบงานที่ 5 (Dev): การสื่อสารผ่านระบบคลาวด์และแดชบอร์ดข้ามแพลตฟอร์ม</h1>
+        <h1>ใบงานที่ 5 (Dev): การสื่อสารผ่านคลาวด์และแดชบอร์ด Progressive Web App (PWA)</h1>
       </div>
       <p class="subtitle">หลักสูตรการพัฒนาระบบ Hybrid Local/Cloud IoT Node ด้วย ESP32 / ESP8266</p>
       <div class="header-badges">
@@ -2259,12 +2259,12 @@ void loop() {
         </div>
 
         <div class="challenge-frame">
-          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge: การพัฒนา Full-Stack Web Dashboard &amp; Cross-Platform App)</h3>
-          <p><strong>โจทย์:</strong> ให้นักศึกษาพัฒนาและปรับแต่งระบบ <b>Full-Stack IoT Dashboard &amp; Cross-Platform Application</b> เพื่อเชื่อมต่อและควบคุมบอร์ด ESP32/ESP8266 ข้ามเครือข่ายอินเทอร์เน็ต โดยปฏิบัติดังนี้:</p>
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (Challenge: การพัฒนา Full-Stack Web Dashboard &amp; ติดตั้ง Progressive Web App - PWA)</h3>
+          <p><strong>โจทย์:</strong> ให้นักศึกษาพัฒนาและปรับแต่งระบบ <b>Full-Stack IoT Dashboard &amp; Progressive Web App (PWA)</b> เพื่อเชื่อมต่อและควบคุมบอร์ด ESP32/ESP8266 ข้ามเครือข่ายอินเทอร์เน็ต โดยปฏิบัติดังนี้:</p>
           <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
             <li><b>1. Web Dashboard (MQTT.js / WSS:8084):</b> ปรับแต่งไฟล์ในโฟลเดอร์ <code>data/</code> (<code>index.html</code>, <code>styles.css</code>) ให้เชื่อมต่อกับ Cloud Broker ผ่าน WebSocket Secure เพื่อแสดงผลเกจวัดอุณหภูมิ/ความชื้นแบบเรียลไทม์ และปุ่มกดสวิตช์สั่งงานรีเลย์พัดลมสองทิศทาง</li>
-            <li><b>2. Cross-Platform Packaging (.exe / .apk):</b> นำหน้าเว็บแดชบอร์ดมาแพ็กเกจเป็น <b>แอปพลิเคชันเดสก์ท็อป Windows (ไฟล์ .exe)</b> ด้วย Electron/NeutralinoJS หรือ <b>แอปพลิเคชันมือถือ Android (ไฟล์ .apk)</b> ด้วย Capacitor/Cordova</li>
-            <li><b>3. การบันทึกผล:</b> แคปเจอร์ภาพหน้าต่างแอปพลิเคชันเดสก์ท็อปหรือมือถือขณะควบคุมบอร์ดจริงผ่านอินเทอร์เน็ต พร้อมแนบซอร์สโค้ดและไฟล์ติดตั้งแอปพลิเคชัน</li>
+            <li><b>2. Progressive Web App (PWA Implementation):</b> ติดตั้งมาตรฐาน PWA โดยสร้างไฟล์ <code>manifest.json</code> และ Service Worker (<code>sw.js</code>) เพื่อให้หน้าเว็บแดชบอร์ดสามารถกด <b>"Install App" / "เพิ่มลงในหน้าจอหลัก"</b> ติดตั้งเป็น Web App บนมือถือ (Android/iOS) และคอมพิวเตอร์ (Windows/Mac) ใช้งานได้เสมือน Native App แบบไร้รอยต่อ</li>
+            <li><b>3. การบันทึกผล:</b> แคปเจอร์ภาพหน้าจอขณะติดตั้ง PWA หรือภาพแอปพลิเคชันบนหน้าจอหลักขณะสั่งการบอร์ด ESP32 ข้ามอินเทอร์เน็ตจริง พร้อมแนบไฟล์ซอร์สโค้ดและชุดไฟล์แดชบอร์ด PWA (<code>data.zip</code>)</li>
           </ul>
         </div>
       </div>
@@ -2410,7 +2410,7 @@ void loop() {
 
             <!-- Screenshot upload -->
             <div class="form-group" style="margin-bottom: 1rem;">
-              <label>1. รูปภาพผลงานหน้าเว็บแดชบอร์ด / แอปพลิเคชันเดสก์ท็อป (.exe) หรือแอปมือถือ (.apk)</label>
+              <label>1. รูปภาพผลงานหน้าเว็บแดชบอร์ดและการติดตั้ง Progressive Web App (PWA) บนอุปกรณ์</label>
               <div class="upload-area" id="screenshotArea" onclick="document.getElementById('screenshotInput').click()">
                 <i class="fa-regular fa-images upload-icon"></i>
                 <div class="upload-text">ลากและวางรูปภาพที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
@@ -2430,7 +2430,7 @@ void loop() {
 
             <!-- Code file upload -->
             <div class="form-group">
-              <label>2. ไฟล์โค้ดโปรเจกต์แดชบอร์ดและไฟล์ติดตั้งแอปพลิเคชัน (.zip / .exe / .apk)</label>
+              <label>2. ไฟล์โค้ดโปรเจกต์แดชบอร์ดและชุดไฟล์ PWA (.zip / .ino)</label>
               <div class="upload-area" id="codeArea" onclick="document.getElementById('codeInput').click()">
                 <i class="fa-regular fa-file-code upload-icon"></i>
                 <div class="upload-text">ลากและวางไฟล์ที่นี่ หรือ <strong>คลิกเพื่ออัปโหลด</strong></div>
