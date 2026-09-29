@@ -3528,7 +3528,35 @@ void loop() {
           <div style="display:flex;align-items:center;gap:0.6rem;flex:1;min-width:240px;">
             <i class="fa-solid fa-lock" style="font-size:1.1rem;"></i>
             <span>ใบงานนี้ถูกส่งเรียบร้อยแล้วเมื่อ <strong>${submittedTime}</strong> (โหมดดูอย่างเดียว) สามารถกดพิมพ์ PDF หรือเริ่มทำสำหรับคนใหม่ได้</span>
+          
+        <div class="theory-tab-panel" id="theory-tab-mqtttools">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-laptop-code"></i> 6.1 การติดตั้งและตั้งค่าโปรแกรมทดสอบ MQTT</h4>
+            <p>โปรแกรมทดสอบ MQTT (MQTT Client Testing Tools) เช่น <strong>MQTTBox</strong>, <strong>MQTT Explorer</strong> หรือ <strong>EMQX Online WebSocket Client</strong> ช่วยให้นักพัฒนาสามารถดักจับ (Monitor) และจำลองส่งคำสั่ง (Simulate Publish) ไปยังบอร์ดไมโครคอนโทรลเลอร์ได้โดยตรง:</p>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 0.85rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-top: 0.75rem;">
+              <table style="width: 100%; font-size: 0.85rem; line-height: 1.6;">
+                <tr><td style="width: 30%; color: #38bdf8; font-weight: 600;">MQTT Broker Host:</td><td><code>broker.emqx.io</code></td></tr>
+                <tr><td style="color: #38bdf8; font-weight: 600;">TCP Port (MQTTBox/Explorer):</td><td><code>1883</code> (Plain) หรือ <code>8883</code> (SSL/TLS)</td></tr>
+                <tr><td style="color: #38bdf8; font-weight: 600;">WebSocket Port (Web Client):</td><td><code>8083</code> (WS) หรือ <code>8084</code> (WSS) / Path: <code>/mqtt</code></td></tr>
+                <tr><td style="color: #38bdf8; font-weight: 600;">Client ID:</td><td>ตั้งชื่อไม่ซ้ำ เช่น <code>Tester-512-Room1</code></td></tr>
+              </table>
+            </div>
           </div>
+
+          <div class="theory-card" style="margin-top: 1rem;">
+            <h4><i class="fa-solid fa-satellite-dish"></i> 6.2 ขั้นตอนการดักรับและส่งคำสั่งทดสอบ</h4>
+            <ol style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+              <li><b>สร้างการเชื่อมต่อ (Connect):</b> กรอกค่า Broker ด้านบน แล้วกดปุ่ม <b>Connect</b> (สถานะจะเปลี่ยนเป็นสีเขียว <i>Connected</i>)</li>
+              <li><b>ดักรับข้อมูลจากบอร์ด (Subscribe):</b> กรอก Topic <code>esp-node/state</code> (หรือ <code>kku/iot/lab5/state</code>) เลือก QoS 0 แล้วกด <b>Subscribe</b> ข้อความ JSON จาก ESP32 จะปรากฏแบบ Real-Time ทุก 5 วินาที</li>
+              <li><b>ส่งคำสั่งควบคุมบอร์ด (Publish):</b> กรอก Topic <code>esp-node/control/cmd</code> และใส่ JSON Payload ในช่องข้อความ เช่น:
+                <pre style="background:#020617; padding: 0.5rem; border-radius: 6px; margin: 0.4rem 0; color:#a5f3fc;"><code>{"action": "toggle_fan", "value": true}</code></pre>
+                แล้วกดปุ่ม <b>Publish</b> เพื่อสังเกตรีเลย์พัดลมบนบอร์ดทำงานทันที
+              </li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
           <button type="button" class="btn-new-student" onclick="confirmResetForNewStudent()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#ffffff;padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all 0.2s;">
             <i class="fa-solid fa-user-plus"></i> เริ่มทำสำหรับ นศ. คนใหม่
           </button>
