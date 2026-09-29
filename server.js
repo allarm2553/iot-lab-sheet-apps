@@ -119,10 +119,11 @@ const gradingRules = {
     q2Keywords: ['STA|Station|สถานีลูกข่าย', 'AP|Access Point|จุดเชื่อมต่อ', 'WIFI_AP_STA|AP_STA|ทั้งสอง', 'เชื่อมต่อ|กระจาย|ให้บริการ']
   },
   'lab3.1': {
-    blankKeywords: ['LittleFS.begin', 'handleFileRequest', 'handleClient', 'streamFile'],
-    challengeKeywords: ['LittleFS', 'exists', 'open', 'streamFile'],
-    q1Keywords: ['LittleFS', 'SPIFFS', 'ความเร็ว', 'เสถียร', 'directory', 'ย่อย'],
-    q2Keywords: ['streamFile', 'send', 'RAM', 'หน่วยความจำ', 'สตรีม', 'ขนาดใหญ่']
+    blankKeywords: ['LittleFS.begin|begin', 'handleApiData|/api/data|server.on', 'LittleFS.exists|exists', 'server.streamFile|streamFile', 'server.handleClient|handleClient'],
+    challengeKeywords: ['LittleFS', 'analogRead|SENSOR_PIN|handleApiData|api/data', 'handleApiControl|api/control|api/relay|digitalWrite', 'streamFile|exists', '35|alert|tempC|fanState|mistState'],
+    q1Keywords: ['get|api/data|คำขอ|request|ร้องขอ', 'json|format|ส่งกลับ|response|สถานะ|อุณหภูมิ', 'analogread|adc|เซ็นเซอร์|sensor'],
+    q2Keywords: ['chunk|ก้อน|ทีละส่วน|สตรีม|stream', 'ram|heap|หน่วยความจำ|ล้น|overflow', 'flash|ตรงจากแฟลช|ไม่พักข้อมูล|ประหยัด'],
+    q3Keywords: ['แยก|decouple|modular|โครงสร้าง|ระเบียบ', 'บำรุงรักษา|maintain|แก้ไขง่าย|frontend|backend', 'api|json|reusable|นำไปใช้ซ้ำ|แอปพลิเคชัน']
   },
   'lab4': {
     blankKeywords: ['broadcastTXT', 'msg'],

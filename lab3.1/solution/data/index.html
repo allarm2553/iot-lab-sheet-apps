@@ -1,44 +1,250 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 LittleFS Web Server</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            padding: 3rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        h1 {
-            font-size: 2.5rem;
-            color: #6366f1;
-            margin-bottom: 1rem;
-        }
-        p {
-            font-size: 1.1rem;
-            color: #94a3b8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Smart IoT Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #1e1b4b, #0f172a, #020617);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .header p { color: #94a3b8; font-size: 0.95rem; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover { border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+    
+    .card-title {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .card-val {
+      font-size: 2.75rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .card-sub { font-size: 0.85rem; color: #64748b; }
+    
+    .btn-toggle {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+    }
+    .btn-off {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .btn-off:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
+    
+    .btn-on {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .alert-banner {
+      display: none;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      align-items: center;
+      gap: 0.6rem;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Hello, World from ESP32 LittleFS!</h1>
-        <p>ใบงานที่ 3: ระบบไฟล์เมมโมรีเว็บบอร์ดผ่านทางเซิร์ฟเวอร์เสร็จสมบูรณ์แล้ว</p>
+
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-microchip"></i> ESP32 IoT Dashboard</h1>
+    <p>Served directly from Flash Memory via LittleFS &amp; REST API</p>
+  </div>
+
+  <div id="alertBox" class="alert-banner">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span>แจ้งเตือน: อุณหภูมิสูงเกิน 35.0 °C ระบบเปิดพัดลมระบายความร้อนอัตโนมัติ</span>
+  </div>
+
+  <div class="grid">
+    <!-- Temperature Sensor -->
+    <div class="card">
+      <div class="card-title">
+        <span>อุณหภูมิเซ็นเซอร์ (GPIO 36)</span>
+        <i class="fa-solid fa-temperature-half" style="color: #f59e0b;"></i>
+      </div>
+      <div class="card-val" id="tempVal">--.- <span style="font-size:1.5rem;">°C</span></div>
+      <div class="card-sub" id="rawVal">ADC Raw: ---- / 4095</div>
     </div>
+
+    <!-- System Status -->
+    <div class="card">
+      <div class="card-title">
+        <span>สถานะการเชื่อมต่อ API</span>
+        <i class="fa-solid fa-signal" style="color: #10b981;"></i>
+      </div>
+      <div class="card-val" style="font-size: 2rem; color: #34d399;" id="statusVal">ONLINE</div>
+      <div class="card-sub" id="pollTime">Polling: ทุก 1 วินาที</div>
+    </div>
+
+    <!-- Fan Relay Control -->
+    <div class="card">
+      <div class="card-title">
+        <span>พัดลมระบายความร้อน (GPIO 5)</span>
+        <i class="fa-solid fa-fan" style="color: #38bdf8;"></i>
+      </div>
+      <div style="font-size: 1.25rem; font-weight: 600;" id="fanStatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="fanBtn" onclick="toggleRelay('fan')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>
+      </button>
+    </div>
+
+    <!-- Mist Relay Control -->
+    <div class="card">
+      <div class="card-title">
+        <span>ปั๊มพ่นหมอกความชื้น (GPIO 23)</span>
+        <i class="fa-solid fa-droplet" style="color: #60a5fa;"></i>
+      </div>
+      <div style="font-size: 1.25rem; font-weight: 600;" id="mistStatusText">สถานะ: ปิด (OFF)</div>
+      <button class="btn-toggle btn-off" id="mistBtn" onclick="toggleRelay('mist')">
+        <i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentFanState = false;
+  let currentMistState = false;
+
+  async function fetchSensorData() {
+    try {
+      const res = await fetch('/api/data');
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      document.getElementById('tempVal').innerHTML = `${data.temp.toFixed(1)} <span style="font-size:1.5rem;">°C</span>`;
+      document.getElementById('rawVal').textContent = `ADC Raw: ${data.raw} / 4095`;
+      document.getElementById('statusVal').textContent = 'ONLINE';
+
+      // Update Fan State
+      currentFanState = data.fan;
+      const fanBtn = document.getElementById('fanBtn');
+      const fanText = document.getElementById('fanStatusText');
+      if (currentFanState) {
+        fanBtn.className = 'btn-toggle btn-on';
+        fanBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดพัดลม (ON)</span>';
+        fanText.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      } else {
+        fanBtn.className = 'btn-toggle btn-off';
+        fanBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดพัดลม</span>';
+        fanText.textContent = 'สถานะ: ปิด (OFF)';
+      }
+
+      // Update Mist State
+      currentMistState = data.mist;
+      const mistBtn = document.getElementById('mistBtn');
+      const mistText = document.getElementById('mistStatusText');
+      if (currentMistState) {
+        mistBtn.className = 'btn-toggle btn-on';
+        mistBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>ปิดปั๊มหมอก (ON)</span>';
+        mistText.textContent = 'สถานะ: เปิดทำงาน (ON)';
+      } else {
+        mistBtn.className = 'btn-toggle btn-off';
+        mistBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>เปิดปั๊มหมอก</span>';
+        mistText.textContent = 'สถานะ: ปิด (OFF)';
+      }
+
+      // Safety Alert Banner
+      const alertBox = document.getElementById('alertBox');
+      if (data.alert) {
+        alertBox.style.display = 'flex';
+      } else {
+        alertBox.style.display = 'none';
+      }
+
+    } catch (err) {
+      document.getElementById('statusVal').textContent = 'DISCONNECTED';
+      document.getElementById('statusVal').style.color = '#f87171';
+    }
+  }
+
+  async function toggleRelay(relay) {
+    const newState = relay === 'fan' ? !currentFanState : !currentMistState;
+    try {
+      await fetch(`/api/control?relay=${relay}&state=${newState ? '1' : '0'}`);
+      fetchSensorData();
+    } catch (err) {
+      console.error('Error controlling relay:', err);
+    }
+  }
+
+  // Periodic Polling every 1 second
+  setInterval(fetchSensorData, 1000);
+  fetchSensorData();
+</script>
+
 </body>
 </html>

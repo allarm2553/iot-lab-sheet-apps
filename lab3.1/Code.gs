@@ -6,7 +6,7 @@
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)')
+    .setTitle('ใบงานที่ 3.1: การพัฒนา IoT Web Dashboard ด้วย LittleFS และ REST API')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -15,7 +15,7 @@ function doGet(e) {
 function gradeSubmission(data) {
   var blankKeywords = [
     "LittleFS.begin|begin",
-    "server.onNotFound|onNotFound",
+    "handleApiData|/api/data|server.on",
     "LittleFS.exists|exists",
     "server.streamFile|streamFile",
     "server.handleClient|handleClient"
@@ -23,16 +23,16 @@ function gradeSubmission(data) {
   
   var challengeKeywords = [
     "LittleFS",
-    "getContentType|dataType|mime",
-    "exists",
-    "open|streamFile",
-    "send|404|onNotFound"
+    "analogRead|SENSOR_PIN|handleApiData|api/data",
+    "handleApiControl|api/control|api/relay|digitalWrite",
+    "streamFile|exists",
+    "35|alert|tempC|fanState|mistState"
   ];
   
   var q1Keywords = [
-    "wear leveling|กระจายการเขียน|ยืดอายุ",
-    "power-loss|ไฟดับ|เสถียร|ทนทาน|ไม่พัง",
-    "directory|โครงสร้างแฟ้ม|ย่อย|แรม|ram"
+    "get|api/data|คำขอ|request|ร้องขอ",
+    "json|format|ส่งกลับ|response|สถานะ|อุณหภูมิ",
+    "analogread|adc|เซ็นเซอร์|sensor"
   ];
   
   var q2Keywords = [
@@ -42,9 +42,9 @@ function gradeSubmission(data) {
   ];
   
   var q3Keywords = [
-    "mime|content-type|text/plain|text/css",
-    "ไม่แสดงผล|ไม่เรนเดอร์|plain text|ตัวหนังสือเปล่า",
-    "css ไม่ทำงาน|ไม่โหลดสไตล์|เพี้ยน"
+    "แยก|decouple|modular|โครงสร้าง|ระเบียบ",
+    "บำรุงรักษา|maintain|แก้ไขง่าย|frontend|backend",
+    "api|json|reusable|นำไปใช้ซ้ำ|แอปพลิเคชัน"
   ];
   
   // เฉลยแบบทดสอบแบบเลือกตอบ 5 ข้อ (Quiz Answer Keys)

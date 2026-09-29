@@ -1,19 +1,23 @@
 /**
  * =====================================================================
  *  Lab 3.1 — Solution Code (PlatformIO / C++)
- *  ชื่อ: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266 (LittleFS Web Server)
+ *  ชื่อ: การพัฒนา IoT Web Dashboard ด้วย LittleFS และ REST API
  * =====================================================================
  * 
  *  คุณสมบัติเด่น (Key Features):
  *   1. เชื่อมต่อ Wi-Fi SSID "iot_512", Password "iot123456"
  *   2. เมานต์ระบบไฟล์ LittleFS Flash Memory
- *   3. สตรีมไฟล์ Static (.html, .css, .js, .png, .ico) ด้วย server.streamFile()
- *   4. ดักจับและตอบกลับกรณีไม่พบไฟล์ (404 Not Found)
- *   5. ทำงานแบบประหยัด RAM (Heap Memory Safe)
+ *   3. สตรีมไฟล์ Static (.html, .css, .js) ด้วย server.streamFile()
+ *   4. REST API Endpoint:
+ *      - GET /api/data    : ส่งค่าเซ็นเซอร์ (raw, temp) และสถานะรีเลย์ (JSON)
+ *      - GET /api/control : ควบคุม Relay พัดลม (GPIO 5) และปั๊มหมอก (GPIO 23)
+ *   5. Safety Automation: ตรวจสอบอุณหภูมิ > 35°C สั่งเปิดพัดลมอัตโนมัติ
  * 
- *  รองรับบอร์ด:
- *   - ESP32   : IPST-WiFi, ESP32 DevKitC
- *   - ESP8266 : AX-WiFi, NodeMCU v2
+ *  วงจรฮาร์ดแวร์ (ใช้วงจรเดิมจาก Lab 1):
+ *   - Analog Sensor (Potentiometer) : GPIO 36 (VP / ADC1)
+ *   - Fan Relay (พัดลม)            : GPIO 5 (Active-LOW)
+ *   - Mist Relay (ปั๊มพ่นหมอก)      : GPIO 23 (Active-LOW)
+ *   - Status LED                  : GPIO 2
  * =====================================================================
  */
 
@@ -31,9 +35,20 @@
 
 #include <LittleFS.h>
 
-// ─── กำหนดข้อมูลการเชื่อมต่อ Wi-Fi ──────────────────────────────────────────
-const char* ssid     = "ALLARM_HOME_WiFi";
-const char* password = "arm123456";
+// ─── ข้อมูลการเชื่อมต่อ Wi-Fi ──────────────────────────────────────────
+const char* ssid     = "iot_512";
+const char* password = "iot123456";
+
+// ─── นิยามขาใช้งาน (Pin Definition) ──────────────────────────────────
+#define SENSOR_PIN     36   // Analog Input (ADC1_CH0 / VP)
+#define FAN_RELAY_PIN   5   // Fan Relay (Active-LOW)
+#define MIST_RELAY_PIN 23   // Mist Relay (Active-LOW)
+#define STATUS_LED_PIN  2   // Onboard LED
+
+// ─── ตัวแปรสถานะระบบ (System State) ───────────────────────────────────
+bool fanState   = false;
+bool mistState  = false;
+bool autoAlert  = false;
 
 // ─── ฟังก์ชันช่วยตรวจสอบ Content-Type (MIME Type) ───────────────────────────
 String getContentType(String path) {
@@ -43,35 +58,63 @@ String getContentType(String path) {
   else if (path.endsWith(".json"))                     return "application/json";
   else if (path.endsWith(".png"))                      return "image/png";
   else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-  else if (path.endsWith(".gif"))                      return "image/gif";
   else if (path.endsWith(".ico"))                      return "image/x-icon";
   else if (path.endsWith(".svg"))                      return "image/svg+xml";
   return "text/plain";
 }
 
-// ─── ฟังก์ชันอ่านและสตรีมไฟล์จาก LittleFS ไปยัง Client ───────────────────────
+// ─── 1. REST API: ส่งค่าเซ็นเซอร์และสถานะรีเลย์แบบ JSON ────────────────────
+void handleApiData() {
+  int rawAnalog = analogRead(SENSOR_PIN);
+  float tempC = (rawAnalog / 4095.0) * 100.0; // คำนวณเป็นอุณหภูมิจำลอง 0.0 - 100.0 °C
+  
+  String json = "{";
+  json += "\"raw\":" + String(rawAnalog) + ",";
+  json += "\"temp\":" + String(tempC, 1) + ",";
+  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
+  json += "\"mist\":" + String(mistState ? "true" : "false") + ",";
+  json += "\"alert\":" + String(autoAlert ? "true" : "false");
+  json += "}";
+  
+  server.send(200, "application/json", json);
+}
+
+// ─── 2. REST API: ควบคุมการเปิด-ปิด Relay จากคำสั่งบนเว็บ ──────────────────
+void handleApiControl() {
+  if (server.hasArg("relay") && server.hasArg("state")) {
+    String relay = server.arg("relay");
+    bool state = (server.arg("state") == "1" || server.arg("state") == "true");
+
+    if (relay == "fan") {
+      fanState = state;
+      digitalWrite(FAN_RELAY_PIN, fanState ? LOW : HIGH); // Active-LOW
+      Serial.printf("[CONTROL] Fan Relay -> %s\n", fanState ? "ON" : "OFF");
+    } else if (relay == "mist") {
+      mistState = state;
+      digitalWrite(MIST_RELAY_PIN, mistState ? LOW : HIGH);
+      Serial.printf("[CONTROL] Mist Relay -> %s\n", mistState ? "ON" : "OFF");
+    }
+    
+    server.send(200, "application/json", "{\"success\":true}");
+  } else {
+    server.send(400, "application/json", "{\"error\":\"Missing relay or state parameter\"}");
+  }
+}
+
+// ─── 3. ฟังก์ชันอ่านและสตรีมไฟล์จาก LittleFS ไปยัง Client ───────────────────────
 void handleFileRequest() {
   String path = server.uri();
-  
-  // หากเข้าถึง Path หลัก ("/") ให้เรียกไฟล์ index.html เป็นค่าเริ่มต้น
-  if (path.endsWith("/")) {
-    path += "index.html";
-  }
+  if (path.endsWith("/")) path += "index.html";
   
   String dataType = getContentType(path);
   
-  // ตรวจสอบว่ามีไฟล์ดังกล่าวอยู่ใน LittleFS หรือไม่
   if (LittleFS.exists(path)) {
     File file = LittleFS.open(path, "r");
-    // สตรีมไฟล์ตรงจาก Flash Memory ไปยัง Client โดยไม่เปลือง RAM
     server.streamFile(file, dataType);
     file.close();
-    Serial.printf("[200 OK] ให้บริการไฟล์: %s (Content-Type: %s)\n", path.c_str(), dataType.c_str());
   } else {
-    // กรณีไม่พบไฟล์ ให้ตอบกลับ Error 404
-    String notFoundMsg = "404: File Not Found\n\nURI: " + path + "\n";
+    String notFoundMsg = "404: File Not Found\nURI: " + path;
     server.send(404, "text/plain", notFoundMsg);
-    Serial.printf("[404 NOT FOUND] ไม่พบไฟล์: %s\n", path.c_str());
   }
 }
 
@@ -80,13 +123,23 @@ void handleFileRequest() {
 // =============================================================================
 void setup() {
   Serial.begin(115200);
-  delay(1000);
-  
-  Serial.println("\n==========================================");
-  Serial.println("  Lab 3.1: LittleFS Embedded Web Server");
-  Serial.println("==========================================");
+  delay(500);
 
-  // 1. เชื่อมต่อ Wi-Fi ในโหมด Station
+  // กำหนดโหมดของขาเอาต์พุต
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(MIST_RELAY_PIN, OUTPUT);
+  pinMode(STATUS_LED_PIN, OUTPUT);
+
+  // ปิดรีเลย์เริ่มต้น (Active-LOW: HIGH = OFF)
+  digitalWrite(FAN_RELAY_PIN, HIGH);
+  digitalWrite(MIST_RELAY_PIN, HIGH);
+  digitalWrite(STATUS_LED_PIN, LOW);
+
+  Serial.println("\n========================================================");
+  Serial.println("  Lab 3.1: IoT Web Dashboard & REST API Server (Port 80)");
+  Serial.println("========================================================");
+
+  // เชื่อมต่อ Wi-Fi
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.printf("กำลังเชื่อมต่อ Wi-Fi \"%s\"", ssid);
@@ -99,40 +152,58 @@ void setup() {
   }
   
   if (WiFi.status() == WL_CONNECTED) {
+    digitalWrite(STATUS_LED_PIN, HIGH);
     Serial.println("\n[OK] เชื่อมต่อ Wi-Fi สำเร็จ!");
-    Serial.print("  IP Address: http://");
+    Serial.print("  Dashboard URL: http://");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\n[WARN] ไม่สามารถเชื่อมต่อ Wi-Fi ได้ (จะทำงานในโหมดออฟไลน์/ทดสอบระบบไฟล์)");
+    Serial.println("\n[WARN] ไม่สามารถเชื่อมต่อ Wi-Fi ได้");
   }
 
-  // 2. เริ่มต้นเมานต์ระบบไฟล์ LittleFS
+  // เมานต์ระบบไฟล์ LittleFS
   #if defined(ESP8266)
   if (!LittleFS.begin()) {
   #else
-  if (!LittleFS.begin(true)) { // true = formatOnFail ถ้าเมานต์ไม่สำเร็จให้ฟอร์แมต
+  if (!LittleFS.begin(true)) {
   #endif
-    Serial.println("[FAIL] การเมานต์ระบบไฟล์ LittleFS ล้มเหลว!");
+    Serial.println("[FAIL] การเมานต์ LittleFS ล้มเหลว!");
     return;
   }
   Serial.println("[OK] เมานต์ระบบไฟล์ LittleFS สำเร็จ");
 
-  // 3. กำหนด Route สำหรับจัดการคำขอไฟล์ทั้งหมด (Catch-All / onNotFound)
+  // ลงทะเบียน REST API Endpoints
+  server.on("/api/data", HTTP_GET, handleApiData);
+  server.on("/api/control", HTTP_GET, handleApiControl);
+
+  // กำหนด Catch-All สำหรับสตรีมไฟล์หน้าเว็บจาก LittleFS
   server.onNotFound(handleFileRequest);
 
-  // 4. เริ่มต้นการทำงานของ HTTP Web Server
+  // เริ่มต้น Web Server
   server.begin();
-  Serial.println("[OK] HTTP Web Server เริ่มทำงานที่พอร์ต 80 เรียบร้อยแล้ว");
-  Serial.println("พิมพ์ IP Address ของบอร์ดลงในเว็บบราวเซอร์เพื่อเปิดหน้าเว็บ");
+  Serial.println("[OK] HTTP Web Server พร้อมให้บริการ!");
 }
 
 // =============================================================================
 //  LOOP
 // =============================================================================
 void loop() {
-  // ประมวลผลคำขอจาก Client ที่เข้ามายัง Web Server
+  // ประมวลผลคำขอ HTTP Request
   server.handleClient();
-  
-  // หน่วงเวลาเล็กน้อยเพื่อให้ Background Tasks (Wi-Fi stack) ทำงานได้อย่างราบรื่น
+
+  // Safety Automation: ตรวจสอบอุณหภูมิเซ็นเซอร์จำลอง (ADC GPIO 36)
+  int raw = analogRead(SENSOR_PIN);
+  float currentTemp = (raw / 4095.0) * 100.0;
+
+  if (currentTemp > 35.0) {
+    if (!fanState) {
+      fanState = true;
+      digitalWrite(FAN_RELAY_PIN, LOW); // เปิดพัดลมระบายความร้อน
+      Serial.println("[SAFETY ALERT] อุณหภูมิเกิน 35°C -> เปิดพัดลมอัตโนมัติ!");
+    }
+    autoAlert = true;
+  } else {
+    autoAlert = false;
+  }
+
   delay(2);
 }

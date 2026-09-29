@@ -1124,9 +1124,9 @@
   <header>
     <div class="logo-container">
       <i class="fa-solid fa-server logo-icon"></i>
-      <h1>ใบงานที่ 3.1: เว็บเซิร์ฟเวอร์บนบอร์ด ESP32 / ESP8266</h1>
+      <h1>ใบงานที่ 3.1: การพัฒนา IoT Web Dashboard ด้วย LittleFS และ REST API</h1>
     </div>
-    <p class="subtitle">การพัฒนา Embedded HTTP Web Server และให้บริการหน้าเว็บด้วยระบบไฟล์ Flash Memory (LittleFS)</p>
+    <p class="subtitle">การพัฒนา Embedded HTTP Web Server ด้วย Flash Memory (LittleFS) และ REST API เชื่อมต่อเซ็นเซอร์/รีเลย์</p>
     
     <div class="header-badges">
       <div class="course-badge">
@@ -1159,40 +1159,50 @@
           <ul>
             <li>เข้าใจสถาปัตยกรรม Client-Server และหลักการทำงานของ HTTP Web Server บนพอร์ต 80</li>
             <li>สามารถจัดเก็บไฟล์ HTML, CSS, JavaScript ลงใน Flash Memory ด้วยระบบไฟล์ <strong>LittleFS</strong></li>
-            <li>เข้าใจการสตรีมไฟล์ขนาดใหญ่ด้วย <code>server.streamFile()</code> เพื่อป้องกันปัญหา RAM หมด (Heap Overflow)</li>
-            <li>สามารถดักจับและส่งการตอบกลับกรณีไม่พบไฟล์ (404 File Not Found) ได้อย่างถูกต้อง</li>
+            <li>เข้าใจการพัฒนา <strong>REST API Endpoint (`/api/data` และ `/api/control`)</strong> เพื่อส่งข้อมูลเซ็นเซอร์และควบคุมรีเลย์</li>
+            <li>เข้าใจการสตรีมไฟล์ด้วย <code>server.streamFile()</code> เพื่อป้องกันปัญหา RAM หมด (Heap Overflow)</li>
           </ul>
         </div>
 
         <!-- รายการอุปกรณ์ -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-microchip" style="color: var(--accent);"></i> รายการอุปกรณ์ที่ต้องใช้
+            <i class="fa-solid fa-microchip" style="color: var(--accent);"></i> การเชื่อมต่อวงจรฮาร์ดแวร์ (ใช้วงจรเดิมจาก Lab 1)
           </h3>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>รายการอุปกรณ์</th>
-                  <th>รายละเอียด</th>
-                  <th style="text-align: center;">จำนวน</th>
+                  <th>อุปกรณ์ / โมดูล</th>
+                  <th>ขา ESP32 / ESP8266</th>
+                  <th>โหมดการทำงาน</th>
+                  <th>หน้าที่การทำงาน</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>บอร์ดไมโครคอนโทรลเลอร์</td>
-                  <td>ESP32 (IPST-WiFi) หรือ ESP8266 (AX-WiFi / NodeMCU)</td>
-                  <td style="text-align: center;">1 บอร์ด</td>
+                  <td><strong>Analog Sensor</strong> (Potentiometer)</td>
+                  <td><span class="badge-pin">GPIO 36 (VP / A0)</span></td>
+                  <td><code>ANALOG INPUT</code></td>
+                  <td>จำลองค่าเซ็นเซอร์สิ่งแวดล้อม (0–4095 / 0–100°C)</td>
                 </tr>
                 <tr>
-                  <td>สายเชื่อมต่อ USB</td>
-                  <td>สาย Micro-USB หรือ USB-C สำหรับ Flash & Data Upload</td>
-                  <td style="text-align: center;">1 เส้น</td>
+                  <td><strong>Fan Relay Module</strong> (พัดลม)</td>
+                  <td><span class="badge-pin">GPIO 5</span> (ESP8266: D5/14)</td>
+                  <td><code>OUTPUT (Active-LOW)</code></td>
+                  <td>ควบคุมพัดลมระบายความร้อนผ่าน Web / อัตโนมัติ</td>
                 </tr>
                 <tr>
-                  <td>คอมพิวเตอร์ / เบราว์เซอร์</td>
-                  <td>ติดตั้ง VS Code (PlatformIO) พร้อมปลั๊กอิน LittleFS Upload</td>
-                  <td style="text-align: center;">1 ชุด</td>
+                  <td><strong>Mist Relay Module</strong> (พ่นหมอก)</td>
+                  <td><span class="badge-pin">GPIO 23</span> (ESP8266: D6/12)</td>
+                  <td><code>OUTPUT (Active-LOW)</code></td>
+                  <td>ควบคุมปั๊มพ่นหมอกเพิ่มความชื้นผ่าน Web API</td>
+                </tr>
+                <tr>
+                  <td><strong>Status LED</strong> (Onboard LED)</td>
+                  <td><span class="badge-pin">GPIO 2</span></td>
+                  <td><code>OUTPUT</code></td>
+                  <td>แสดงสถานะการเชื่อมต่อ Wi-Fi และการเรียก API</td>
                 </tr>
               </tbody>
             </table>
@@ -1202,42 +1212,42 @@
         <!-- การเชื่อมต่อวงจรและสถาปัตยกรรมระบบไฟล์ -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-network-wired" style="color: var(--accent);"></i> โครงสร้างไฟล์และสถาปัตยกรรม LittleFS
+            <i class="fa-solid fa-network-wired" style="color: var(--accent);"></i> สถาปัตยกรรม LittleFS และ REST API Endpoints
           </h3>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>พาธของไฟล์ (URI)</th>
-                  <th>ตำแหน่งใน Flash (data/)</th>
-                  <th>Content-Type (MIME)</th>
-                  <th>คำอธิบาย</th>
+                  <th>URI Endpoint / พาธ</th>
+                  <th>ชนิด / MIME Type</th>
+                  <th>คำอธิบายการทำงาน</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><span class="badge-pin">/</span> หรือ <span class="badge-pin">/index.html</span></td>
-                  <td><code>data/index.html</code></td>
-                  <td><code>text/html</code></td>
-                  <td>หน้าหลัก User Interface สำหรับควบคุมบอร์ด</td>
+                  <td><code>text/html</code> (LittleFS)</td>
+                  <td>หน้าหลัก IoT Web Dashboard ควบคุมและมอนิเตอร์บอร์ด</td>
                 </tr>
                 <tr>
-                  <td><span class="badge-pin">/styles.css</span></td>
-                  <td><code>data/styles.css</code></td>
-                  <td><code>text/css</code></td>
-                  <td>ไฟล์ตกแต่งหน้าตาและ Glassmorphism Theme</td>
+                  <td><span class="badge-pin">/styles.css</span> &amp; <span class="badge-pin">/app.js</span></td>
+                  <td><code>text/css</code>, <code>application/javascript</code></td>
+                  <td>ไฟล์ตกแต่ง Glassmorphism Theme และสคริปต์ Polling API</td>
                 </tr>
                 <tr>
-                  <td><span class="badge-pin">/app.js</span></td>
-                  <td><code>data/app.js</code></td>
-                  <td><code>application/javascript</code></td>
-                  <td>สคริปต์ประมวลผลฝั่ง Client และเชื่อมต่อ API</td>
+                  <td><span class="badge-pin">/api/data</span></td>
+                  <td><code>application/json</code> (Dynamic API)</td>
+                  <td>อ่านค่าเซ็นเซอร์ (raw, temp) และสถานะรีเลย์ (fan, mist)</td>
+                </tr>
+                <tr>
+                  <td><span class="badge-pin">/api/control</span></td>
+                  <td><code>application/json</code> (Control API)</td>
+                  <td>รับคำสั่งเปิด-ปิดรีเลย์พัดลมและปั๊มหมอกผ่าน Web Client</td>
                 </tr>
                 <tr>
                   <td><span class="badge-pin">อื่นๆ (URI ที่ไม่มีไฟล์)</span></td>
-                  <td>-</td>
                   <td><code>text/plain</code></td>
-                  <td>ดักจับด้วย <code>onNotFound</code> ส่ง 404</td>
+                  <td>ดักจับด้วย <code>server.onNotFound()</code> ส่งรหัส 404</td>
                 </tr>
               </tbody>
             </table>
@@ -1247,11 +1257,11 @@
         <!-- โครงร่างโค้ดโปรแกรมพร้อมช่องเติมคำตอบ -->
         <div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (LittleFS Web Server Skeleton)
+            <i class="fa-solid fa-code" style="color: var(--accent);"></i> โครงร่างโค้ดโปรแกรม (LittleFS Web Server &amp; REST API Starter)
           </h3>
           <div class="code-container">
             <div class="code-header">
-              <span>lab3_1_webserver.ino</span>
+              <span>lab3_1_iot_webserver.ino</span>
               <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
             </div>
             <pre><code>#include &lt;Arduino.h&gt;
@@ -1269,6 +1279,28 @@
 const char* ssid = "iot_512";
 const char* password = "iot123456";
 
+#define SENSOR_PIN    36   // Analog Input จากวงจร Lab 1
+#define FAN_RELAY_PIN  5   // Relay พัดลม (Active-LOW)
+#define MIST_RELAY_PIN 23  // Relay ปั๊มพ่นหมอก (Active-LOW)
+
+bool fanState = false;
+bool mistState = false;
+
+// ฟังก์ชัน REST API ส่งค่าเซ็นเซอร์และสถานะรีเลย์แบบ JSON
+void handleApiData() {
+  int rawAnalog = analogRead(SENSOR_PIN);
+  float tempC = (rawAnalog / 4095.0) * 100.0; // แปลงเป็นอุณหภูมิจำลอง 0-100°C
+  
+  String json = "{";
+  json += "\"raw\":" + String(rawAnalog) + ",";
+  json += "\"temp\":" + String(tempC, 1) + ",";
+  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
+  json += "\"mist\":" + String(mistState ? "true" : "false");
+  json += "}";
+  server.send(200, "application/json", json);
+}
+
+// ฟังก์ชันสตรีมไฟล์หน้าเว็บจาก LittleFS
 void handleFileRequest() {
   String path = server.uri();
   if (path.endsWith("/")) path += "index.html";
@@ -1277,36 +1309,44 @@ void handleFileRequest() {
   else if (path.endsWith(".css")) dataType = "text/css";
   else if (path.endsWith(".js")) dataType = "application/javascript";
 
-  // ตรวจสอบว่ามีไฟล์ในระบบแฟ้มข้อมูลหรือไม่
+  // ตรวจสอบว่ามีไฟล์ใน LittleFS Flash Memory หรือไม่
   if (<input type="text" id="codeBlank3" name="codeBlank3" class="code-blank" placeholder="ช่องที่ 3 (เช่น LittleFS.exists(path))" style="width: 220px;" required>) {
     File file = LittleFS.open(path, "r");
-    // สตรีมไฟล์ไปยัง Client โดยตรง
+    // สตรีมไฟล์ไปยัง Client โดยไม่กิน RAM Heap
     <input type="text" id="codeBlank4" name="codeBlank4" class="code-blank" placeholder="ช่องที่ 4 (เช่น server.streamFile(file, dataType))" style="width: 270px;" required>;
     file.close();
   } else {
-    server.send(404, "text/plain", "File Not Found");
+    server.send(404, "text/plain", "404: File Not Found");
   }
 }
 
 void setup() {
   Serial.begin(115200);
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(MIST_RELAY_PIN, OUTPUT);
+  digitalWrite(FAN_RELAY_PIN, HIGH); // ปิดรีเลย์เริ่มต้น (Active-LOW)
+  digitalWrite(MIST_RELAY_PIN, HIGH);
+
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.print("Web Server IP: "); Serial.println(WiFi.localIP());
 
-  // 1. เมานต์ระบบไฟล์ LittleFS
+  // 1. เมานต์ระบบไฟล์ LittleFS บน Flash Memory
   if (!<input type="text" id="codeBlank1" name="codeBlank1" class="code-blank" placeholder="ช่องที่ 1 (เช่น LittleFS.begin(true))" style="width: 210px;" required>) {
     Serial.println("Mount Failed");
     return;
   }
 
-  // 2. กำหนดฟังก์ชันดักรับคำขอไฟล์ที่ไม่ตรงกับ Route อื่น
-  <input type="text" id="codeBlank2" name="codeBlank2" class="code-blank" placeholder="ช่องที่ 2 (เช่น server.onNotFound(handleFileRequest))" style="width: 320px;" required>;
+  // 2. กำหนด REST API Route สำหรับอ่านค่าเซ็นเซอร์
+  <input type="text" id="codeBlank2" name="codeBlank2" class="code-blank" placeholder="ช่องที่ 2 (เช่น server.on(&quot;/api/data&quot;, HTTP_GET, handleApiData))" style="width: 340px;" required>;
 
+  // 3. กำหนด Catch-all Handler สำหรับไฟล์หน้าเว็บ
+  server.onNotFound(handleFileRequest);
   server.begin();
 }
 
 void loop() {
-  // 3. ประมวลผลคำขอจาก Client
+  // 4. ประมวลผลคำขอ HTTP Request จาก Web Browser
   <input type="text" id="codeBlank5" name="codeBlank5" class="code-blank" placeholder="ช่องที่ 5 (เช่น server.handleClient())" style="width: 210px;" required>;
   delay(2);
 }</code></pre>
@@ -1317,8 +1357,13 @@ void loop() {
         <div class="challenge-frame">
           <h4><i class="fa-solid fa-trophy"></i> โจทย์ท้าทาย (Challenge Mission)</h4>
           <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.4rem;">
-            ให้นักศึกษาเขียนหน้าเว็บ <code>index.html</code> ลงในโฟลเดอร์ <code>data/</code> พร้อมเขียนโค้ดเพิ่มฟังก์ชันตอบสนอง Content-Type ครบถ้วน (.html, .css, .js, .png, .ico) และอัปโหลดไฟล์สู่ LittleFS Flash Memory ผ่านคำสั่ง <code>Upload Filesystem Image</code> ให้เว็บเซิร์ฟเวอร์เปิดหน้าเว็บได้จริง
+            ให้นักศึกษาต่อยอดจากโค้ดตั้งต้นด้านบน ให้กลายเป็น <strong>Interactive IoT Control Dashboard</strong> แบบ 2 ทิศทาง:
           </p>
+          <ul style="color: #cbd5e1; font-size: 0.88rem; padding-left: 1.25rem; line-height: 1.6;">
+            <li><strong>1. REST API ควบคุมรีเลย์ (`/api/control`):</strong> รับคำสั่งเปิด/ปิด Fan Relay หรือ Mist Relay ผ่าน Web API (เช่น Query URL <code>/api/control?relay=fan&amp;state=1</code> หรือ POST JSON) และสั่งงาน Active-LOW ขา GPIO 5 / 23</li>
+            <li><strong>2. ระบบอัตโนมัติ Safety Threshold:</strong> หากค่าอุณหภูมิที่แปลงจาก Analog Sensor (GPIO 36) สูงเกิน <strong>35.0 °C</strong> ให้ระบบสั่งเปิด Fan Relay อัตโนมัติเพื่อระบายความร้อน และส่งสถานะแจ้งเตือนใน JSON</li>
+            <li><strong>3. Web Polling ใน LittleFS (`data/app.js`):</strong> เขียน JavaScript ดึง <code>fetch('/api/data')</code> ทุกๆ 1 วินาที เพื่ออัปเดตค่าเซ็นเซอร์และสถานะรีเลย์บนหน้าเว็บสดแบบเรียลไทม์</li>
+          </ul>
         </div>
       </div>
 
@@ -1405,8 +1450,8 @@ void loop() {
 
         <!-- คำอธิบายตรรกะควบคุม -->
         <div class="form-group">
-          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของ Web Server และการสตรีมไฟล์</label>
-          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่ผู้ใช้เปิด URL บนเบราว์เซอร์ จนถึงการอ่านไฟล์จาก LittleFS และสตรีมข้อมูลกลับ..." required></textarea>
+          <label for="controlLogic"><i class="fa-solid fa-brain"></i> คำอธิบายตรรกะการทำงานของ Web Server, REST API และการสตรีมไฟล์ LittleFS</label>
+          <textarea id="controlLogic" name="controlLogic" placeholder="อธิบายขั้นตอนตั้งแต่ผู้ใช้เปิด URL บนเบราว์เซอร์ การส่งคำขอ REST API /api/data, การอ่านไฟล์ LittleFS และการควบคุมรีเลย์..." required></textarea>
         </div>
 
         <!-- คำถามท้ายการทดลอง 3 ข้อ (Anti-Cheat Protected) -->
@@ -1416,43 +1461,20 @@ void loop() {
           </h3>
 
           <div class="form-group">
-            <label for="question1">1. ระบบแฟ้มข้อมูล LittleFS มีข้อดีอย่างไรเมื่อเทียบกับระบบ SPIFFS รุ่นเก่า และช่วยยืดอายุ Flash Memory ได้อย่างไร?</label>
+            <label for="question1">1. อธิบายกระบวนการทำงานเมื่อเบราว์เซอร์ส่งคำขอ <code>GET /api/data</code> ไปยังบอร์ด ESP32 จนกระทั่งได้รับข้อมูล JSON กลับมาแสดงผล</label>
             <textarea id="question1" name="question1" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label for="question2">2. เหตุใดการใช้คำสั่ง <code>server.streamFile()</code> จึงป้องกันปัญหา Heap Overflow (RAM ไม่พอ) เมื่อให้บริการไฟล์ขนาดใหญ่ได้?</label>
+            <label for="question2">2. การสตรีมไฟล์หน้าเว็บด้วย <code>server.streamFile()</code> แทนการอ่านไฟล์เป็น String ทั้งก้อน ช่วยป้องกันปัญหา Heap Overflow ของ RAM ได้อย่างไร?</label>
             <textarea id="question2" name="question2" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label for="question3">3. หากเบราว์เซอร์ร้องขอไฟล์ <code>styles.css</code> แต่เซิร์ฟเวอร์ส่ง Content-Type เป็น <code>text/plain</code> จะเกิดผลกระทบอย่างไรต่อหน้าเว็บ?</label>
+            <label for="question3">3. ในระบบ IoT การแยกบริการไฟล์หน้าเว็บ (LittleFS Static Files) ออกจาก API รับส่งข้อมูลเซ็นเซอร์ (REST API / JSON) มีข้อดีเชิงสถาปัตยกรรมอย่างไรเมื่อเทียบกับการรวมโค้ด HTML ไว้ใน String ตัวเดียวใน C++?</label>
             <textarea id="question3" name="question3" data-protected="true" placeholder="พิมพ์คำตอบด้วยตนเอง (ห้ามคัดลอก/วาง)..." required></textarea>
           </div>
         </div>
-
-        <!-- แนบไฟล์ผลการทดลอง -->
-        <div class="form-group-row">
-          <div class="form-group">
-            <label><i class="fa-solid fa-image"></i> ภาพถ่ายหน้าจอการเปิดหน้าเว็บจาก ESP32</label>
-            <div class="upload-area" onclick="document.getElementById('screenshotFile').click()">
-              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์รูปภาพ (.png, .jpg) มาวางที่นี่</div>
-              <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
-              <div id="screenshotBadge" class="file-badge"></div>
-              <img id="screenshotPreview" class="preview-img" alt="Preview Screenshot">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label><i class="fa-solid fa-file-code"></i> ไฟล์โค้ดโปรแกรม (.ino / .cpp / .zip)</label>
-            <div class="upload-area" onclick="document.getElementById('codeFile').click()">
-              <i class="fa-solid fa-file-zipper upload-icon"></i>
-              <div class="upload-text">คลิกหรือลากไฟล์โค้ดหรือ data folder มาวางที่นี่</div>
-              <input type="file" id="codeFile" accept=".ino,.cpp,.zip,.h" style="display: none;" onchange="handleCodeFileUpload(event)">
-              <div id="codeFileBadge" class="file-badge"></div>
-            </div>
-          </div>
         </div>
 
         <!-- สรุปผลการทดลอง -->
@@ -1850,9 +1872,9 @@ void loop() {
   }
 
   // ── 3. Smart Code Copy with Injected Blanks ──
-  function copySkeletonCode() {
+    function copySkeletonCode() {
     const b1 = document.getElementById('codeBlank1')?.value.trim() || 'LittleFS.begin(true)';
-    const b2 = document.getElementById('codeBlank2')?.value.trim() || 'server.onNotFound(handleFileRequest)';
+    const b2 = document.getElementById('codeBlank2')?.value.trim() || 'server.on("/api/data", HTTP_GET, handleApiData)';
     const b3 = document.getElementById('codeBlank3')?.value.trim() || 'LittleFS.exists(path)';
     const b4 = document.getElementById('codeBlank4')?.value.trim() || 'server.streamFile(file, dataType)';
     const b5 = document.getElementById('codeBlank5')?.value.trim() || 'server.handleClient()';
@@ -1872,6 +1894,26 @@ void loop() {
 const char* ssid = "iot_512";
 const char* password = "iot123456";
 
+#define SENSOR_PIN    36   // Analog Input จากวงจร Lab 1
+#define FAN_RELAY_PIN  5   // Relay พัดลม (Active-LOW)
+#define MIST_RELAY_PIN 23  // Relay ปั๊มพ่นหมอก (Active-LOW)
+
+bool fanState = false;
+bool mistState = false;
+
+void handleApiData() {
+  int rawAnalog = analogRead(SENSOR_PIN);
+  float tempC = (rawAnalog / 4095.0) * 100.0;
+  
+  String json = "{";
+  json += "\"raw\":" + String(rawAnalog) + ",";
+  json += "\"temp\":" + String(tempC, 1) + ",";
+  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
+  json += "\"mist\":" + String(mistState ? "true" : "false");
+  json += "}";
+  server.send(200, "application/json", json);
+}
+
 void handleFileRequest() {
   String path = server.uri();
   if (path.endsWith("/")) path += "index.html";
@@ -1885,12 +1927,17 @@ void handleFileRequest() {
     ${b4};
     file.close();
   } else {
-    server.send(404, "text/plain", "File Not Found");
+    server.send(404, "text/plain", "404: File Not Found");
   }
 }
 
 void setup() {
   Serial.begin(115200);
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(MIST_RELAY_PIN, OUTPUT);
+  digitalWrite(FAN_RELAY_PIN, HIGH);
+  digitalWrite(MIST_RELAY_PIN, HIGH);
+
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
 
@@ -1900,6 +1947,7 @@ void setup() {
   }
 
   ${b2};
+  server.onNotFound(handleFileRequest);
   server.begin();
 }
 
@@ -1917,9 +1965,10 @@ void loop() {
     });
   }
 
-  function pasteChallengeTemplate() {
+    function pasteChallengeTemplate() {
     const template = `/**
- * Lab 3.1 Challenge Solution: LittleFS Web Server with MIME Handling
+ * Lab 3.1 Challenge Solution: Interactive IoT Web Dashboard & REST API
+ * Circuit: Sensor (GPIO 36), Fan Relay (GPIO 5), Mist Relay (GPIO 23)
  */
 #include <Arduino.h>
 #if defined(ESP8266)
@@ -1936,25 +1985,63 @@ void loop() {
 const char* ssid = "iot_512";
 const char* password = "iot123456";
 
-String getContentType(String path) {
-  if (path.endsWith(".html")) return "text/html";
-  else if (path.endsWith(".css")) return "text/css";
-  else if (path.endsWith(".js")) return "application/javascript";
-  else if (path.endsWith(".png")) return "image/png";
-  else if (path.endsWith(".ico")) return "image/x-icon";
-  return "text/plain";
+#define SENSOR_PIN     36
+#define FAN_RELAY_PIN   5
+#define MIST_RELAY_PIN 23
+
+bool fanState = false;
+bool mistState = false;
+bool autoAlert = false;
+
+// 1. REST API: อ่านค่าเซ็นเซอร์และสถานะ
+void handleApiData() {
+  int rawAnalog = analogRead(SENSOR_PIN);
+  float tempC = (rawAnalog / 4095.0) * 100.0;
+  
+  String json = "{";
+  json += "\"raw\":" + String(rawAnalog) + ",";
+  json += "\"temp\":" + String(tempC, 1) + ",";
+  json += "\"fan\":" + String(fanState ? "true" : "false") + ",";
+  json += "\"mist\":" + String(mistState ? "true" : "false") + ",";
+  json += "\"alert\":" + String(autoAlert ? "true" : "false");
+  json += "}";
+  server.send(200, "application/json", json);
 }
 
+// 2. REST API: ควบคุมรีเลย์เปิด-ปิด
+void handleApiControl() {
+  if (server.hasArg("relay") && server.hasArg("state")) {
+    String relay = server.arg("relay");
+    bool state = (server.arg("state") == "1" || server.arg("state") == "true");
+
+    if (relay == "fan") {
+      fanState = state;
+      digitalWrite(FAN_RELAY_PIN, fanState ? LOW : HIGH); // Active-LOW
+    } else if (relay == "mist") {
+      mistState = state;
+      digitalWrite(MIST_RELAY_PIN, mistState ? LOW : HIGH);
+    }
+    server.send(200, "application/json", "{\"success\":true}");
+  } else {
+    server.send(400, "application/json", "{\"error\":\"Missing arguments\"}");
+  }
+}
+
+// 3. Static Web Serving from LittleFS
 void handleFileRequest() {
   String path = server.uri();
   if (path.endsWith("/")) path += "index.html";
-  String dataType = getContentType(path);
+  String dataType = "text/plain";
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js")) dataType = "application/javascript";
+  else if (path.endsWith(".png")) dataType = "image/png";
+  else if (path.endsWith(".ico")) dataType = "image/x-icon";
 
   if (LittleFS.exists(path)) {
     File file = LittleFS.open(path, "r");
     server.streamFile(file, dataType);
     file.close();
-    Serial.printf("Served: %s\\n", path.c_str());
   } else {
     server.send(404, "text/plain", "404: File Not Found");
   }
@@ -1962,8 +2049,15 @@ void handleFileRequest() {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(FAN_RELAY_PIN, OUTPUT);
+  pinMode(MIST_RELAY_PIN, OUTPUT);
+  digitalWrite(FAN_RELAY_PIN, HIGH);
+  digitalWrite(MIST_RELAY_PIN, HIGH);
+
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.printf("Dashboard URL: http://%s
+", WiFi.localIP().toString().c_str());
 
   #if defined(ESP8266)
   if (!LittleFS.begin()) return;
@@ -1971,13 +2065,28 @@ void setup() {
   if (!LittleFS.begin(true)) return;
   #endif
 
+  server.on("/api/data", HTTP_GET, handleApiData);
+  server.on("/api/control", HTTP_GET, handleApiControl);
   server.onNotFound(handleFileRequest);
   server.begin();
-  Serial.println("Server started!");
 }
 
 void loop() {
   server.handleClient();
+
+  // Safety Automation: เกิน 35°C สั่งเปิดพัดลมอัตโนมัติ
+  int rawAnalog = analogRead(SENSOR_PIN);
+  float tempC = (rawAnalog / 4095.0) * 100.0;
+  if (tempC > 35.0) {
+    if (!fanState) {
+      fanState = true;
+      digitalWrite(FAN_RELAY_PIN, LOW); // เปิดพัดลม
+    }
+    autoAlert = true;
+  } else {
+    autoAlert = false;
+  }
+
   delay(2);
 }`;
     const ta = document.getElementById('challengeCode');
@@ -2079,7 +2188,7 @@ void loop() {
 
   // ── 6. Pre-Submission Score Check System ──
   
-  // ===== REGEX EVALUATION ENGINE (LAB 3.1) =====
+    // ===== REGEX EVALUATION ENGINE (LAB 3.1) =====
   function evaluateLab31Challenge(code) {
     if (!code || code.trim().length === 0) {
       return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
@@ -2087,28 +2196,31 @@ void loop() {
     let score = 0.0;
     let matched = [];
 
-    // Criterion 1: Scan & target SSID search (+1.0)
-    if (/(scanNetworks|WiFi\.SSID\(i\)|iot_512)/i.test(code)) {
-      score += 1.0;
-      matched.push('✓ มีการค้นหาเครือข่ายเป้าหมาย "iot_512" จากรายการที่สแกน');
+    // Criterion 1: LittleFS Mounting & File Serving (+0.9)
+    if (/(LittleFS\.begin|LittleFS\.exists|streamFile)/i.test(code)) {
+      score += 0.9;
+      matched.push('✓ มีระบบจัดการไฟล์ Flash (LittleFS.begin / streamFile / exists)');
     } else {
-      matched.push('✗ ขาดการสแกนและค้นหาชื่อเครือข่าย "iot_512"');
+      matched.push('✗ ขาดการจัดการระบบไฟล์ LittleFS หรือ streamFile');
     }
 
-    // Criterion 2: Extract RSSI & auto connect (+0.8)
-    if (/(WiFi\.RSSI|RSSI)/i.test(code) && /(WiFi\.begin|begin\s*\()/i.test(code)) {
+    // Criterion 2: REST API / Sensor Reading (+0.8)
+    if (/(analogRead|SENSOR_PIN|handleApiData|api\/data|json)/i.test(code)) {
       score += 0.8;
-      matched.push('✓ อ่านค่า RSSI และสั่งเชื่อมต่ออัตโนมัติ (WiFi.begin)');
+      matched.push('✓ มีฟังก์ชัน REST API ส่งค่าเซ็นเซอร์ (analogRead / JSON)');
     } else {
-      matched.push('✗ ขาดการอ่านค่าความแรงสัญญาณ (RSSI) หรือคำสั่ง WiFi.begin()');
+      matched.push('✗ ขาดการอ่านค่าเซ็นเซอร์ Analog หรือ REST API (/api/data)');
     }
 
-    // Criterion 3: Blink LED 3 times on GPIO 2 (+0.7)
-    if (/(for|while).*3/i.test(code) || /digitalWrite\s*\(\s*(2|LED_PIN|LED_BUILTIN)/i.test(code)) {
-      score += 0.7;
-      matched.push('✓ มีตรรกะสั่งให้ไฟ LED กะพริบ 3 ครั้งเมื่อเชื่อมต่อสำเร็จ');
+    // Criterion 3: Relay Control & Safety Automation (+0.8)
+    if (/(api\/control|api\/relay|FAN_RELAY_PIN|MIST_RELAY_PIN|digitalWrite)/i.test(code) && /(35|tempC|rawAnalog|alert)/i.test(code)) {
+      score += 0.8;
+      matched.push('✓ มี REST API ควบคุมรีเลย์ และตรรกะความปลอดภัยอัตโนมัติ (Safety Threshold)');
+    } else if (/(api\/control|api\/relay|FAN_RELAY_PIN|MIST_RELAY_PIN|digitalWrite)/i.test(code)) {
+      score += 0.5;
+      matched.push('✓ มีคำสั่งควบคุมรีเลย์ (digitalWrite) แต่ยังขาดตรรกะแจ้งเตือนอัตโนมัติ');
     } else {
-      matched.push('✗ ขาดคำสั่งกะพริบไฟ LED (GPIO 2) 3 ครั้ง');
+      matched.push('✗ ขาดคำสั่งควบคุมรีเลย์ (GPIO 5/23) หรือตรรกะอัตโนมัติ');
     }
 
     return {
