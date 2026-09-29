@@ -112,6 +112,30 @@ void updateOledDisplay(const char* statusMsg = "") {
 }
 
 // MQTT Callback Function
+// Publish Sensor & State Data (Event-driven and Periodic)
+void publishSensorState() {
+  temperature = dht.readTemperature();
+  humidity = dht.readHumidity();
+  int rawAnalog = analogRead(ANALOG_PIN);
+  analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
+  
+  updateOledDisplay();
+
+  JsonDocument doc;
+  doc["temp"] = isnan(temperature) ? 0 : temperature;
+  doc["humidity"] = isnan(humidity) ? 0 : humidity;
+  doc["soil"] = analogPercent;
+  doc["fan"] = fanState;
+  doc["press"] = toggleCount;
+  
+  String output;
+  serializeJson(doc, output);
+  mqttClient.publish(pubTopic, output.c_str());
+  Serial.print("[MQTT PUB] Payload: ");
+  Serial.println(output);
+  Serial.printf("MQTT Published: %s -> Topic: %s\n", output.c_str(), pubTopic);
+}
+
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived on topic: [");
   Serial.print(topic);
@@ -135,6 +159,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
         Serial.printf("MQTT Control: Fan toggled to %s\n", fanState ? "ON" : "OFF");
         updateOledDisplay("Command Recv!");
+        publishSensorState(); // ⚡ Event-driven Instant Publish!
       }
     }
   }
@@ -266,19 +291,7 @@ void loop() {
         // Update OLED immediately
         updateOledDisplay("Button Pressed!");
         
-        // Immediately publish updated state
-        JsonDocument doc;
-        doc["temp"] = temperature;
-        doc["humidity"] = humidity;
-        doc["soil"] = analogPercent;
-        doc["fan"] = fanState;
-        doc["press"] = toggleCount;
-        
-        String output;
-        serializeJson(doc, output);
-        mqttClient.publish(pubTopic, output.c_str());
-  Serial.print("[MQTT PUB] Payload: ");
-  Serial.println(output);
+        publishSensorState(); // ⚡ Event-driven Instant Publish!
       }
     }
   }
@@ -295,25 +308,7 @@ void loop() {
     int rawAnalog = analogRead(ANALOG_PIN);
     analogPercent = (rawAnalog / ADC_RESOLUTION) * 100.0;
     
-    if (!isnan(temperature) && !isnan(humidity)) {
-      // Update OLED screen
-      updateOledDisplay();
-
-      // Pack into JSON payload
-      JsonDocument doc;
-      doc["temp"] = temperature;
-      doc["humidity"] = humidity;
-      doc["soil"] = analogPercent;
-      doc["fan"] = fanState;
-      doc["press"] = toggleCount;
-      
-      String output;
-      serializeJson(doc, output);
-      mqttClient.publish(pubTopic, output.c_str());
-      Serial.printf("MQTT Published: %s -> Topic: %s\n", output.c_str(), pubTopic);
-    } else {
-      Serial.println("DHT11 read failed, skipping MQTT publish");
-    }
+    publishSensorState(); // Periodic Telemetry
   }
   
   delay(1);

@@ -2203,18 +2203,56 @@
 
 #define DHTPIN 33
 #define DHTTYPE DHT11
+#define FAN_PIN 18
 DHT dht(DHTPIN, DHTTYPE);
 
 const char* ssid = "iot_512";
 const char* password = "iot123456";
 const char* mqttServer = "broker.emqx.io";
 const int mqttPort = 1883;
+const char* pubTopic = "esp-node/state";
+const char* subTopic = "esp-node/control/cmd";
+
+bool fanState = false;
 
 WiFiClient espClient;
 PubSubClient mqttClient( <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น espClient)" style="width: 175px;"> );
 
+// ฟังก์ชัน Publish ข้อมูล Telemetry และสถานะรีเลย์ (ทำงานทั้งแบบ Periodic และ Event-Driven)
+void publishState() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  if (isnan(t) || isnan(h)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+  JsonDocument doc;
+  doc["temp"] = t;
+  doc["humidity"] = h;
+  doc["fan"] = fanState ? 1 : 0;
+  String payload;
+  serializeJson(doc, payload);
+  mqttClient.publish( <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น pubTopic)" style="width: 175px;"> , payload.c_str());
+  Serial.print("Published Payload: ");
+  Serial.println(payload);
+}
+
+// ฟังก์ชัน Callback เมื่อได้รับคำสั่ง JSON จากคลาวด์
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.printf("[MQTT SUB &lt;- %s] ", topic);
+  JsonDocument doc;
+  deserializeJson(doc, payload, length);
+  if (doc["action"] == "toggle_fan") {
+    fanState = doc["value"];
+    digitalWrite(FAN_PIN, fanState ? HIGH : LOW);
+    // ⚡ Event-Driven: ส่งสถานะใหม่กลับ Broker ทันทีแบบ Real-Time!
+    publishState();
+  }
+}
+
 void setup() {
   Serial.begin(115200);
+  pinMode(FAN_PIN, OUTPUT);
   dht.begin();
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
@@ -2236,24 +2274,11 @@ void loop() {
   if (!mqttClient.connected()) { reconnectMqtt(); }
   mqttClient.loop();
 
+  // Periodic Telemetry: ส่งค่าเซ็นเซอร์ตามรอบเวลาปกติทุก 5 วินาที
   static unsigned long lastMsg = 0;
-  if (millis() - lastMsg > 5000) {
+  if (millis() - lastMsg &gt; 5000) {
     lastMsg = millis();
-    float t = dht.readTemperature();
-    float h = dht.readHumidity();
-    if (isnan(t) || isnan(h)) {
-      Serial.println("Failed to read from DHT sensor!");
-      return;
-    }
-    JsonDocument doc;
-    doc["temp"] = t;
-    doc["humidity"] = h;
-    doc["fan"] = 1;
-    String payload;
-    serializeJson(doc, payload);
-    mqttClient.publish( <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น pubTopic)" style="width: 175px;"> , payload.c_str());
-    Serial.print("Published Payload: ");
-    Serial.println(payload);
+    publishState();
   }
 }</code></pre>
         </div>
