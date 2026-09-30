@@ -1,0 +1,32 @@
+{
+  "name": "LAB 6 Perform: Hybrid IoT Controller",
+  "short_name": "IoT Controller",
+  "description": "ระบบควบคุมและตรวจวัด IoT แบบไฮบริดสองโปรโตคอล (WebSockets & Cloud MQTT)",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "scope": "./",
+  "categories": ["utilities", "productivity", "smart home"],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

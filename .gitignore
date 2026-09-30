@@ -11,11 +11,13 @@ yarn-error.log*
 
 # OS files
 .DS_Store
+**/.DS_Store
 Thumbs.db
 desktop.ini
 
 # Editor directories
 .vscode/
+**/.vscode/
 .idea/
 *.suo
 *.ntvs*
@@ -38,8 +40,7 @@ logs/
 
 # PlatformIO & Submissions
 .pio/
-*/.pio/
-*/*/.pio/
+**/.pio/
 submissions/
 scratch/
 

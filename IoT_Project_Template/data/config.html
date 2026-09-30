@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚙️ MCU Hardware & Network Configuration - LAB6_Perform</title>
+
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IoT Controller">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>⚙️ MCU Hardware & Network Configuration</h1>
+        <p>ระบบกำหนดค่าเครือข่าย พินฮาร์ดแวร์ และสร้าง MQTT Topic อัตโนมัติด้วย MAC Address</p>
+      </div>
+      <div>
+        <a href="index.html" class="btn-secondary">📊 กลับหน้า Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Alert Box -->
+    <div id="alertBox" class="alert"></div>
+
+    <form id="configForm" onsubmit="saveConfig(event)">
+      <!-- 1. Network & WiFi Settings -->
+      <section class="config-section">
+        <h2>📶 1. การตั้งค่า Wi-Fi (Network Configuration)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="ssid">ชื่อสัญญาณ Wi-Fi (SSID):</label>
+            <input type="text" id="ssid" name="ssid" class="form-control" value="iot_512" placeholder="เช่น iot_512 หรือ Home-WiFi" required>
+          </div>
+          <div class="form-group">
+            <label for="password">รหัสผ่าน Wi-Fi (Password):</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="เว้นว่างหากไม่ต้องการเปลี่ยนรหัสผ่าน">
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. MQTT Broker Settings & Auto MAC Topics -->
+      <section class="config-section">
+        <h2>☁️ 2. การตั้งค่า Cloud MQTT & หัวข้อ Topic อัตโนมัติ</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="mqttServer">MQTT Server (Broker URL / IP):</label>
+            <input type="text" id="mqttServer" name="mqttServer" class="form-control" value="broker.emqx.io" required>
+          </div>
+          <div class="form-group">
+            <label for="mqttPort">MQTT Port:</label>
+            <input type="number" id="mqttPort" name="mqttPort" class="form-control" value="1883" required>
+          </div>
+          <div class="form-group">
+            <label for="mqttUser">MQTT Username:</label>
+            <input type="text" id="mqttUser" name="mqttUser" class="form-control" placeholder="เช่น elec">
+          </div>
+          <div class="form-group">
+            <label for="mqttPassword">MQTT Password:</label>
+            <input type="password" id="mqttPassword" name="mqttPassword" class="form-control" placeholder="เช่น elec1234">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="topicPrefix">ขอบเขตกลุ่ม / โดเมนเฉพาะ (Topic Prefix):</label>
+            <input type="text" id="topicPrefix" name="topicPrefix" class="form-control" value="allarm-iot" placeholder="เช่น allarm-iot, myfarm-zone1" oninput="updateTopicPreview()">
+            <small style="color: var(--text-muted); font-size: 0.78rem;">💡 ใช้แยกกลุ่มอุปกรณ์ของคุณบน Public Broker เพื่อป้องกันข้อมูลปนกับอุปกรณ์ของผู้อื่น</small>
+          </div>
+        </div>
+
+        <!-- Dynamic MAC & Generated Topics Preview -->
+        <div class="topic-preview-box">
+          <div class="topic-row">
+            <span><strong>Device MAC Address:</strong></span>
+            <span id="txtMac" class="topic-badge">กำลังโหลด...</span>
+          </div>
+          <div class="topic-row">
+            <span><strong>Subscribe Topic (รับคำสั่ง):</strong></span>
+            <span id="txtSubTopic" class="topic-badge">allarm-iot/esp-node/--/control/cmd</span>
+          </div>
+          <div class="topic-row">
+            <span><strong>Publish Topic (ส่งสถานะ):</strong></span>
+            <span id="txtPubTopic" class="topic-badge">allarm-iot/esp-node/--/state</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+            💡 <em>ระบบจะสร้าง Topic โดยนำ Topic Prefix และ Clean MAC Address มาประกอบอัตโนมัติ เพื่อแยกเครือข่ายให้ปลอดภัย 100%</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- 3. Sensors Configuration -->
+      <section class="config-section">
+        <h2>🌿 3. การกำหนดค่าเซ็นเซอร์ (Sensors Configuration)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          💡 เลือกเปิด/ปิดและกำหนดขาเชื่อมต่อสำหรับเซ็นเซอร์วัดค่าต่างๆ ในระบบ (เซ็นเซอร์ที่ปิดไว้จะไม่ส่งข้อมูลให้เปลืองแบนด์วิดท์)
+        </p>
+
+        <div class="form-grid">
+          <!-- 1. DHT Sensor Card -->
+          <div class="pin-config-card" id="cardDht">
+            <div class="pin-header">
+              <span class="pin-title">🌡️ เซ็นเซอร์วัดอุณหภูมิ/ความชื้น (DHT)</span>
+              <label class="toggle-label">
+                <span id="lblEnableDht">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableDht" name="enableDht" checked onchange="toggleModuleCard('enableDht', 'cardDht', 'lblEnableDht')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="dhtType">ชนิดเซ็นเซอร์ (DHT Type):</label>
+              <select id="dhtType" name="dhtType" class="form-control">
+                <option value="11">DHT11 (สีฟ้า / เซ็นเซอร์พื้นฐาน)</option>
+                <option value="22">DHT22 / AM2302 (สีขาว / ความแม่นยำสูง)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dhtPin">ขาเชื่อมต่อเซ็นเซอร์ (DHT_PIN):</label>
+              <input type="number" id="dhtPin" name="dhtPin" class="form-control" value="33" required>
+            </div>
+          </div>
+
+          <!-- 2. Unified Analog / ADC Sensor Card -->
+          <div class="pin-config-card" id="cardGas">
+            <div class="pin-header">
+              <span class="pin-title">🔌 เซ็นเซอร์แอนะล็อก (Analog / ADC Sensor)</span>
+              <label class="toggle-label">
+                <span id="lblEnableGas">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableGas" name="enableGas" checked onchange="toggleModuleCard('enableGas', 'cardGas', 'lblEnableGas')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="mqType">ชนิดเซ็นเซอร์แอนะล็อก (Sensor Model):</label>
+              <select id="mqType" name="mqType" class="form-control" onchange="onAnalogTypeChange()">
+                <option value="2">🚨 MQ-2 (ตรวจจับควัน, LPG, ก๊าซไวไฟ)</option>
+                <option value="135">🍃 MQ-135 (ตรวจวัดคุณภาพอากาศ, CO2, ควัน)</option>
+                <option value="10">🌿 เซ็นเซอร์วัดความชื้นในดิน (Soil Moisture Sensor)</option>
+                <option value="20">☀️ เซ็นเซอร์วัดแสง (LDR Light Photoresistor)</option>
+                <option value="0">🎛️ แอนะล็อกทั่วไป / โพเทนชิโอมิเตอร์ (ADC / VR 0-100%)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="analogPin">ขาเชื่อมต่อ ADC (ANALOG_PIN):</label>
+              <input type="number" id="analogPin" name="analogPin" class="form-control" value="36" required>
+            </div>
+            <!-- ADC Calibration Min/Max -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+              <div class="form-group">
+                <label for="adcMin" id="lblAdcMin">ค่าดินแห้ง 0% (Dry/Air Raw):</label>
+                <input type="number" id="adcMin" name="adcMin" class="form-control" value="3500" min="0" max="4095" step="1" required>
+              </div>
+              <div class="form-group">
+                <label for="adcMax" id="lblAdcMax">ค่าดินแฉะ 100% (Wet/Water Raw):</label>
+                <input type="number" id="adcMax" name="adcMax" class="form-control" value="1200" min="0" max="4095" step="1" required>
+              </div>
+            </div>
+            <div id="hintAdcCalib" style="font-size: 0.8rem; color: #94a3b8; margin-top: -6px; margin-bottom: 10px; line-height: 1.3;">
+              💡 <strong>ความชื้นในดิน:</strong> ใส่ค่า Raw ขณะเซ็นเซอร์แห้งในอากาศ (0%) และค่าขณะจุ่มน้ำ (100%)
+            </div>
+            <div class="form-group" id="grpGasThreshold" style="display: none;">
+              <label for="gasThreshold" id="lblGasThreshold">เกณฑ์เตือนภัยแก๊ส/ควัน (% Gas/Smoke Alarm Threshold):</label>
+              <input type="number" id="gasThreshold" name="gasThreshold" class="form-control" value="40" min="5" max="100" step="1">
+            </div>
+          </div>
+
+          <!-- 3. BME280 Sensor Card -->
+          <div class="pin-config-card" id="cardBme">
+            <div class="pin-header">
+              <span class="pin-title">🌡️ เซ็นเซอร์ BME280 (I2C Temp/Hum/Press)</span>
+              <label class="toggle-label">
+                <span id="lblEnableBme">ปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableBme" name="enableBme" onchange="toggleModuleCard('enableBme', 'cardBme', 'lblEnableBme')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="bmeAddress">I2C Address:</label>
+              <select id="bmeAddress" name="bmeAddress" class="form-control">
+                <option value="0x76">0x76 (ค่ามาตรฐาน / Default)</option>
+                <option value="0x77">0x77 (Alternate Address)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 4. DS18B20 Sensor Card -->
+          <div class="pin-config-card" id="cardDs18b20">
+            <div class="pin-header">
+              <span class="pin-title">💧 เซ็นเซอร์วัดอุณหภูมิน้ำ (DS18B20 1-Wire)</span>
+              <label class="toggle-label">
+                <span id="lblEnableDs18b20">ปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableDs18b20" name="enableDs18b20" onchange="toggleModuleCard('enableDs18b20', 'cardDs18b20', 'lblEnableDs18b20')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="ds18b20Pin">ขาเชื่อมต่อ 1-Wire (DS18B20_PIN):</label>
+              <input type="number" id="ds18b20Pin" name="ds18b20Pin" class="form-control" value="4" required>
+            </div>
+          </div>
+
+          <!-- 5. PIR Motion Sensor Card -->
+          <div class="pin-config-card" id="cardPir">
+            <div class="pin-header">
+              <span class="pin-title">🏃 เซ็นเซอร์ตรวจจับความเคลื่อนไหว (PIR)</span>
+              <label class="toggle-label">
+                <span id="lblEnablePir">ปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enablePir" name="enablePir" onchange="toggleModuleCard('enablePir', 'cardPir', 'lblEnablePir')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="pirPin">ขาเชื่อมต่อ Digital (PIR_PIN):</label>
+              <input type="number" id="pirPin" name="pirPin" class="form-control" value="27" required>
+            </div>
+          </div>
+
+          <!-- 6. HC-SR04 Ultrasonic Sensor Card -->
+          <div class="pin-config-card" id="cardUltrasonic">
+            <div class="pin-header">
+              <span class="pin-title">📏 เซ็นเซอร์วัดระยะ/ระดับน้ำ (HC-SR04)</span>
+              <label class="toggle-label">
+                <span id="lblEnableUltrasonic">ปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableUltrasonic" name="enableUltrasonic" onchange="toggleModuleCard('enableUltrasonic', 'cardUltrasonic', 'lblEnableUltrasonic')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="trigPin">ขา TRIG (TRIG_PIN):</label>
+              <input type="number" id="trigPin" name="trigPin" class="form-control" value="12" required>
+            </div>
+            <div class="form-group">
+              <label for="echoPin">ขา ECHO (ECHO_PIN):</label>
+              <input type="number" id="echoPin" name="echoPin" class="form-control" value="14" required>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Relays & Actuators Configuration -->
+      <section class="config-section">
+        <h2>⚡ 4. การกำหนดค่ารีเลย์และโหลดเอาต์พุต (Relays & Actuators Configuration)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          💡 กำหนดชื่อและขาพินสำหรับควบคุมรีเลย์เปิด/ปิดอุปกรณ์ไฟฟ้า เช่น พัดลมระบายอากาศ, หัวพ่นหมอก หรือหลอดไฟ
+        </p>
+
+        <div class="form-grid">
+          <!-- 1. Fan Relay Card -->
+          <div class="pin-config-card" id="cardFan">
+            <div class="pin-header">
+              <span class="pin-title">🌀 รีเลย์ 1 (Relay 1 / Fan)</span>
+              <label class="toggle-label">
+                <span id="lblEnableFan">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableFan" name="enableFan" checked onchange="toggleModuleCard('enableFan', 'cardFan', 'lblEnableFan')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="fanName">ชื่อรีเลย์ 1 (Relay Name):</label>
+              <input type="text" id="fanName" name="fanName" class="form-control" value="พัดลมระบายอากาศ (Fan)" required>
+            </div>
+            <div class="form-group">
+              <label for="fanRelayPin">ขารีเลย์พัดลม (FAN_RELAY_PIN):</label>
+              <input type="number" id="fanRelayPin" name="fanRelayPin" class="form-control" value="5" required>
+            </div>
+            <div class="form-group" style="margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+              <label for="fanSensor">🎯 เซ็นเซอร์ควบคุมอัตโนมัติ (Sensor Source):</label>
+              <select id="fanSensor" name="fanSensor" class="form-control">
+                <option value="temp">🌡️ อุณหภูมิ DHT (°C)</option>
+                <option value="hum">💧 ความชื้นอากาศ DHT (%)</option>
+                <option value="soil">🌿 ความชื้นในดิน (%)</option>
+                <option value="gas">⚠️ แก๊สและควัน (%)</option>
+                <option value="ldr">☀️ ความเข้มแสง (%)</option>
+                <option value="ds18b20">💧 อุณหภูมิน้ำ DS18B20 (°C)</option>
+                <option value="bme_temp">🌡️ อุณหภูมิ BME280 (°C)</option>
+                <option value="bme_hum">💧 ความชื้น BME280 (%)</option>
+                <option value="bme_press">🌀 ความกดอากาศ BME280 (hPa)</option>
+                <option value="none">⛔ ปิดระบบอัตโนมัติ (Manual Only)</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label for="fanOperator">เงื่อนไขการทำงาน:</label>
+                <select id="fanOperator" name="fanOperator" class="form-control">
+                  <option value=">">สูงกว่าเกณฑ์ทำงาน ( &gt; )</option>
+                  <option value="<">ต่ำกว่าเกณฑ์ทำงาน ( &lt; )</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fanThreshold">ค่าเกณฑ์ (Threshold):</label>
+                <input type="number" step="0.5" id="fanThreshold" name="fanThreshold" class="form-control" value="30.0" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="fanHysteresis">ค่าหน่วงกันสวิตช์เด้ง (Hysteresis):</label>
+              <input type="number" step="0.1" id="fanHysteresis" name="fanHysteresis" class="form-control" value="0.5" required>
+            </div>
+          </div>
+
+          <!-- 2. Mist Relay Card -->
+          <div class="pin-config-card" id="cardMist">
+            <div class="pin-header">
+              <span class="pin-title">🌫️ รีเลย์ 2 (Relay 2 / Mist)</span>
+              <label class="toggle-label">
+                <span id="lblEnableMist">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableMist" name="enableMist" checked onchange="toggleModuleCard('enableMist', 'cardMist', 'lblEnableMist')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="mistName">ชื่อรีเลย์ 2 (Relay Name):</label>
+              <input type="text" id="mistName" name="mistName" class="form-control" value="หัวพ่นหมอก (Mist)" required>
+            </div>
+            <div class="form-group">
+              <label for="mistRelayPin">ขารีเลย์พ่นหมอก (MIST_RELAY_PIN):</label>
+              <input type="number" id="mistRelayPin" name="mistRelayPin" class="form-control" value="23" required>
+            </div>
+            <div class="form-group" style="margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+              <label for="mistSensor">🎯 เซ็นเซอร์ควบคุมอัตโนมัติ (Sensor Source):</label>
+              <select id="mistSensor" name="mistSensor" class="form-control">
+                <option value="soil">🌿 ความชื้นในดิน (%)</option>
+                <option value="hum">💧 ความชื้นอากาศ DHT (%)</option>
+                <option value="temp">🌡️ อุณหภูมิ DHT (°C)</option>
+                <option value="gas">⚠️ แก๊สและควัน (%)</option>
+                <option value="ldr">☀️ ความเข้มแสง (%)</option>
+                <option value="ds18b20">💧 อุณหภูมิน้ำ DS18B20 (°C)</option>
+                <option value="bme_temp">🌡️ อุณหภูมิ BME280 (°C)</option>
+                <option value="bme_hum">💧 ความชื้น BME280 (%)</option>
+                <option value="bme_press">🌀 ความกดอากาศ BME280 (hPa)</option>
+                <option value="none">⛔ ปิดระบบอัตโนมัติ (Manual Only)</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label for="mistOperator">เงื่อนไขการทำงาน:</label>
+                <select id="mistOperator" name="mistOperator" class="form-control">
+                  <option value="<">ต่ำกว่าเกณฑ์ทำงาน ( &lt; )</option>
+                  <option value=">">สูงกว่าเกณฑ์ทำงาน ( &gt; )</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="mistThreshold">ค่าเกณฑ์ (Threshold):</label>
+                <input type="number" step="0.5" id="mistThreshold" name="mistThreshold" class="form-control" value="40.0" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mistHysteresis">ค่าหน่วงกันสวิตช์เด้ง (Hysteresis):</label>
+              <input type="number" step="0.1" id="mistHysteresis" name="mistHysteresis" class="form-control" value="2.0" required>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Switches & Physical Buttons Configuration -->
+      <section class="config-section">
+        <h2>🔘 5. การกำหนดค่าสวิตช์และปุ่มกด (Switches & Buttons Configuration)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          💡 กำหนดชื่อและขาพินสำหรับปุ่มกดทางกายภาพ (Push Button) เพื่อสั่งงานหน้าตู้ หรือกดรีเซ็ตระบบ
+        </p>
+
+        <div class="form-grid">
+          <!-- 1. Fan Switch Button Card -->
+          <div class="pin-config-card" id="cardFanBtn">
+            <div class="pin-header">
+              <span class="pin-title">🔘 สวิตช์ปุ่มกด 1 (Switch 1)</span>
+              <label class="toggle-label">
+                <span id="lblEnableFanBtn">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableFanBtn" name="enableFanBtn" checked onchange="toggleModuleCard('enableFanBtn', 'cardFanBtn', 'lblEnableFanBtn')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="fanBtnName">ชื่อสวิตช์ปุ่มกด 1 (Button Name):</label>
+              <input type="text" id="fanBtnName" name="fanBtnName" class="form-control" value="สวิตช์พัดลม (SW_FAN)" required>
+            </div>
+            <div class="form-group">
+              <label for="fanButtonPin">ขาสวิตช์กด (SW_FAN_PIN):</label>
+              <input type="number" id="fanButtonPin" name="fanButtonPin" class="form-control" value="18" required>
+            </div>
+          </div>
+
+          <!-- 2. Mist Switch Button Card -->
+          <div class="pin-config-card" id="cardMistBtn">
+            <div class="pin-header">
+              <span class="pin-title">🔘 สวิตช์ปุ่มกด 2 (Switch 2)</span>
+              <label class="toggle-label">
+                <span id="lblEnableMistBtn">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableMistBtn" name="enableMistBtn" checked onchange="toggleModuleCard('enableMistBtn', 'cardMistBtn', 'lblEnableMistBtn')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="mistBtnName">ชื่อสวิตช์ปุ่มกด 2 (Button Name):</label>
+              <input type="text" id="mistBtnName" name="mistBtnName" class="form-control" value="สวิตช์พ่นหมอก (SW_MIST)" required>
+            </div>
+            <div class="form-group">
+              <label for="mistButtonPin">ขาสวิตช์กด (SW_MIST_PIN):</label>
+              <input type="number" id="mistButtonPin" name="mistButtonPin" class="form-control" value="19" required>
+            </div>
+          </div>
+
+          <!-- 3. Factory Reset Button Card -->
+          <div class="pin-config-card" id="cardResetBtn">
+            <div class="pin-header">
+              <span class="pin-title">⚙️ สวิตช์ Reset ค่าโรงงาน (RESET)</span>
+              <label class="toggle-label">
+                <span id="lblEnableResetBtn">เปิด</span>
+                <label class="toggle-switch toggle-sm">
+                  <input type="checkbox" id="enableResetBtn" name="enableResetBtn" checked onchange="toggleModuleCard('enableResetBtn', 'cardResetBtn', 'lblEnableResetBtn')">
+                  <span class="slider-round"></span>
+                </label>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="resetBtnName">ชื่อปุ่มรีเซ็ต (Reset Button Name):</label>
+              <input type="text" id="resetBtnName" name="resetBtnName" class="form-control" value="สวิตช์ Reset ค่าโรงงาน" required>
+            </div>
+            <div class="form-group">
+              <label for="resetButtonPin">ขาสวิตช์ Reset (RESET_PIN [กดค้าง 3 วิ]):</label>
+              <input type="number" id="resetButtonPin" name="resetButtonPin" class="form-control" value="0" required>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Submit & Reset Actions -->
+      <div style="display: flex; gap: 16px; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" onclick="resetToFactory()" style="color: #fda4af;">🔄 คืนค่าเริ่มต้น (Factory Reset)</button>
+        <button type="submit" id="btnSubmit" class="btn-primary">💾 บันทึกและรีบูตบอร์ด (Save & Reboot)</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let currentConfig = {};
+
+    function toggleModuleCard(checkboxId, cardId, labelId) {
+      const isChecked = document.getElementById(checkboxId).checked;
+      const card = document.getElementById(cardId);
+      const label = document.getElementById(labelId);
+
+      if (label) label.innerText = isChecked ? 'เปิด' : 'ปิด';
+      if (card) {
+        if (isChecked) card.classList.remove('disabled');
+        else card.classList.add('disabled');
+      }
+    }
+
+    // Load initial config from ESP32 REST API
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          currentConfig = await res.json();
+          document.getElementById('ssid').value = currentConfig.ssid || '';
+          document.getElementById('mqttServer').value = currentConfig.mqttServer || 'broker.emqx.io';
+          document.getElementById('mqttPort').value = currentConfig.mqttPort || 1883;
+          document.getElementById('mqttUser').value = currentConfig.mqttUser || '';
+          document.getElementById('topicPrefix').value = currentConfig.topicPrefix || 'allarm-iot';
+          document.getElementById('dhtType').value = currentConfig.dhtType || 11;
+          document.getElementById('dhtPin').value = currentConfig.dhtPin || 33;
+          document.getElementById('mqType').value = currentConfig.mqType !== undefined ? currentConfig.mqType : 2;
+          document.getElementById('analogPin').value = currentConfig.analogPin || 36;
+          document.getElementById('adcMin').value = currentConfig.adcMin !== undefined ? currentConfig.adcMin : 3500;
+          document.getElementById('adcMax').value = currentConfig.adcMax !== undefined ? currentConfig.adcMax : 1200;
+          document.getElementById('gasThreshold').value = currentConfig.gasThreshold !== undefined ? currentConfig.gasThreshold : 40;
+          document.getElementById('fanRelayPin').value = currentConfig.fanRelayPin || 5;
+          document.getElementById('mistRelayPin').value = currentConfig.mistRelayPin || 23;
+          document.getElementById('fanButtonPin').value = currentConfig.fanButtonPin !== undefined ? currentConfig.fanButtonPin : 18;
+          document.getElementById('mistButtonPin').value = currentConfig.mistButtonPin !== undefined ? currentConfig.mistButtonPin : 19;
+          document.getElementById('resetButtonPin').value = currentConfig.resetButtonPin !== undefined ? currentConfig.resetButtonPin : 0;
+
+          // Custom Names
+          if (document.getElementById('fanName')) document.getElementById('fanName').value = currentConfig.fanName || 'พัดลมระบายอากาศ (Fan)';
+          if (document.getElementById('mistName')) document.getElementById('mistName').value = currentConfig.mistName || 'หัวพ่นหมอก (Mist)';
+          if (document.getElementById('fanBtnName')) document.getElementById('fanBtnName').value = currentConfig.fanBtnName || 'สวิตช์พัดลม (SW_FAN)';
+          if (document.getElementById('mistBtnName')) document.getElementById('mistBtnName').value = currentConfig.mistBtnName || 'สวิตช์พ่นหมอก (SW_MIST)';
+          if (document.getElementById('resetBtnName')) document.getElementById('resetBtnName').value = currentConfig.resetBtnName || 'สวิตช์ Reset ค่าโรงงาน';
+
+          // Relay Automation Rules
+          if (document.getElementById('fanSensor')) document.getElementById('fanSensor').value = currentConfig.fanSensor || 'temp';
+          if (document.getElementById('fanOperator')) document.getElementById('fanOperator').value = currentConfig.fanOperator || '>';
+          if (document.getElementById('fanThreshold')) document.getElementById('fanThreshold').value = currentConfig.fanThreshold !== undefined ? currentConfig.fanThreshold : 30;
+          if (document.getElementById('fanHysteresis')) document.getElementById('fanHysteresis').value = currentConfig.fanHysteresis !== undefined ? currentConfig.fanHysteresis : 0.5;
+
+          if (document.getElementById('mistSensor')) document.getElementById('mistSensor').value = currentConfig.mistSensor || 'soil';
+          if (document.getElementById('mistOperator')) document.getElementById('mistOperator').value = currentConfig.mistOperator || '<';
+          if (document.getElementById('mistThreshold')) document.getElementById('mistThreshold').value = currentConfig.mistThreshold !== undefined ? currentConfig.mistThreshold : 40;
+          if (document.getElementById('mistHysteresis')) document.getElementById('mistHysteresis').value = currentConfig.mistHysteresis !== undefined ? currentConfig.mistHysteresis : 2.0;
+
+          // Modular Sensor Elements
+          if (document.getElementById('bmeAddress')) document.getElementById('bmeAddress').value = currentConfig.bmeAddress ? ('0x' + currentConfig.bmeAddress.toString(16)) : '0x76';
+          if (document.getElementById('ds18b20Pin')) document.getElementById('ds18b20Pin').value = currentConfig.ds18b20Pin || 4;
+          if (document.getElementById('pirPin')) document.getElementById('pirPin').value = currentConfig.pirPin || 27;
+          if (document.getElementById('trigPin')) document.getElementById('trigPin').value = currentConfig.trigPin || 12;
+          if (document.getElementById('echoPin')) document.getElementById('echoPin').value = currentConfig.echoPin || 14;
+
+          // Set Enable/Disable Toggles
+          setCheckbox('enableDht', 'cardDht', 'lblEnableDht', currentConfig.enableDht !== undefined ? currentConfig.enableDht : true);
+          setCheckbox('enableGas', 'cardGas', 'lblEnableGas', currentConfig.enableGas !== undefined ? currentConfig.enableGas : true);
+          setCheckbox('enableFan', 'cardFan', 'lblEnableFan', currentConfig.enableFan !== undefined ? currentConfig.enableFan : true);
+          setCheckbox('enableMist', 'cardMist', 'lblEnableMist', currentConfig.enableMist !== undefined ? currentConfig.enableMist : true);
+          setCheckbox('enableFanBtn', 'cardFanBtn', 'lblEnableFanBtn', currentConfig.enableFanBtn !== undefined ? currentConfig.enableFanBtn : true);
+          setCheckbox('enableMistBtn', 'cardMistBtn', 'lblEnableMistBtn', currentConfig.enableMistBtn !== undefined ? currentConfig.enableMistBtn : true);
+          setCheckbox('enableResetBtn', 'cardResetBtn', 'lblEnableResetBtn', currentConfig.enableResetBtn !== undefined ? currentConfig.enableResetBtn : true);
+
+          setCheckbox('enableBme', 'cardBme', 'lblEnableBme', currentConfig.enableBme !== undefined ? currentConfig.enableBme : false);
+          setCheckbox('enableDs18b20', 'cardDs18b20', 'lblEnableDs18b20', currentConfig.enableDs18b20 !== undefined ? currentConfig.enableDs18b20 : false);
+          setCheckbox('enablePir', 'cardPir', 'lblEnablePir', currentConfig.enablePir !== undefined ? currentConfig.enablePir : false);
+          setCheckbox('enableUltrasonic', 'cardUltrasonic', 'lblEnableUltrasonic', currentConfig.enableUltrasonic !== undefined ? currentConfig.enableUltrasonic : false);
+
+          onAnalogTypeChange();
+
+          document.getElementById('txtMac').innerText = currentConfig.mac + ' (' + currentConfig.cleanMac + ')';
+          updateTopicPreview();
+        }
+      } catch (e) {
+        console.warn('Cannot fetch /api/config (Offline demo mode)');
+        document.getElementById('txtMac').innerText = '24:6F:28:AB:CD:EF';
+        updateTopicPreview();
+      }
+    }
+
+    function onAnalogTypeChange() {
+      const type = parseInt(document.getElementById('mqType').value);
+      const lblThresh = document.getElementById('lblGasThreshold');
+      const grpThresh = document.getElementById('grpGasThreshold');
+      if (type === 2 || type === 135) {
+        lblThresh.innerText = 'เกณฑ์เตือนภัยแก๊ส/ควัน (% Gas/Smoke Alarm Threshold):';
+        grpThresh.style.display = 'block';
+      } else {
+        // สำหรับความชื้นในดิน (Soil Moisture), แสง (LDR), ADC ทั่วไป เกณฑ์การทำงานถูกกำหนดที่ Relay แล้ว
+        grpThresh.style.display = 'none';
+      }
+
+      const lblMin = document.getElementById('lblAdcMin');
+      const lblMax = document.getElementById('lblAdcMax');
+      const hintCalib = document.getElementById('hintAdcCalib');
+      if (type === 10) {
+        if (lblMin) lblMin.innerText = 'ค่าดินแห้ง 0% (Dry/Air Raw):';
+        if (lblMax) lblMax.innerText = 'ค่าดินแฉะ 100% (Wet/Water Raw):';
+        if (hintCalib) hintCalib.innerHTML = '💡 <strong>ความชื้นในดิน:</strong> ใส่ค่า Raw ขณะเซ็นเซอร์แห้งในอากาศ (0%) และค่าขณะจุ่มน้ำ (100%)';
+      } else if (type === 20) {
+        if (lblMin) lblMin.innerText = 'ค่ามืดสนิท 0% (Dark Raw):';
+        if (lblMax) lblMax.innerText = 'ค่าสว่างจ้า 100% (Bright Raw):';
+        if (hintCalib) hintCalib.innerHTML = '💡 <strong>เซ็นเซอร์วัดแสง (LDR):</strong> กำหนดค่า Raw ตอนมืดสนิท (0%) และตอนแสงสว่างจ้า (100%)';
+      } else {
+        if (lblMin) lblMin.innerText = 'ADC ต่ำสุด 0% (Min Raw):';
+        if (lblMax) lblMax.innerText = 'ADC สูงสุด 100% (Max Raw):';
+        if (hintCalib) hintCalib.innerHTML = '💡 <strong>สเกลสัญญาณ ADC:</strong> กำหนดช่วงค่า Raw เพื่อแปลงเป็นสเกล 0–100%';
+      }
+    }
+
+    function setCheckbox(checkboxId, cardId, labelId, isChecked) {
+      const cb = document.getElementById(checkboxId);
+      if (cb) {
+        cb.checked = isChecked;
+        toggleModuleCard(checkboxId, cardId, labelId);
+      }
+    }
+
+    function updateTopicPreview() {
+      let pfx = document.getElementById('topicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+
+      const cleanMac = currentConfig.cleanMac || '246F28ABCDEF';
+      document.getElementById('txtSubTopic').innerText = `${pfx}esp-node/${cleanMac}/control/cmd`;
+      document.getElementById('txtPubTopic').innerText = `${pfx}esp-node/${cleanMac}/state`;
+    }
+
+    // Save configuration via POST /api/config
+    async function saveConfig(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerText = '⏳ กำลังบันทึกข้อมูล...';
+
+      let pfx = document.getElementById('topicPrefix').value.trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+
+      const payload = {
+        ssid: document.getElementById('ssid').value.trim(),
+        password: document.getElementById('password').value,
+        mqttServer: document.getElementById('mqttServer').value.trim(),
+        mqttPort: parseInt(document.getElementById('mqttPort').value),
+        mqttUser: document.getElementById('mqttUser').value.trim(),
+        mqttPassword: document.getElementById('mqttPassword').value,
+        topicPrefix: pfx,
+        dhtType: parseInt(document.getElementById('dhtType').value),
+        dhtPin: parseInt(document.getElementById('dhtPin').value),
+        mqType: parseInt(document.getElementById('mqType').value),
+        analogPin: parseInt(document.getElementById('analogPin').value),
+        adcMin: parseInt(document.getElementById('adcMin').value || 0),
+        adcMax: parseInt(document.getElementById('adcMax').value || 4095),
+        gasThreshold: parseFloat(document.getElementById('gasThreshold').value || 40),
+        fanRelayPin: parseInt(document.getElementById('fanRelayPin').value),
+        mistRelayPin: parseInt(document.getElementById('mistRelayPin').value),
+        fanButtonPin: parseInt(document.getElementById('fanButtonPin').value),
+        mistButtonPin: parseInt(document.getElementById('mistButtonPin').value),
+        resetButtonPin: parseInt(document.getElementById('resetButtonPin').value),
+
+        fanName: document.getElementById('fanName') ? document.getElementById('fanName').value.trim() : 'พัดลมระบายอากาศ (Fan)',
+        mistName: document.getElementById('mistName') ? document.getElementById('mistName').value.trim() : 'หัวพ่นหมอก (Mist)',
+        fanBtnName: document.getElementById('fanBtnName') ? document.getElementById('fanBtnName').value.trim() : 'สวิตช์พัดลม (SW_FAN)',
+        mistBtnName: document.getElementById('mistBtnName') ? document.getElementById('mistBtnName').value.trim() : 'สวิตช์พ่นหมอก (SW_MIST)',
+        resetBtnName: document.getElementById('resetBtnName') ? document.getElementById('resetBtnName').value.trim() : 'สวิตช์ Reset ค่าโรงงาน',
+
+        fanSensor: document.getElementById('fanSensor') ? document.getElementById('fanSensor').value : 'temp',
+        fanOperator: document.getElementById('fanOperator') ? document.getElementById('fanOperator').value : '>',
+        fanThreshold: document.getElementById('fanThreshold') ? parseFloat(document.getElementById('fanThreshold').value) : 30.0,
+        fanHysteresis: document.getElementById('fanHysteresis') ? parseFloat(document.getElementById('fanHysteresis').value) : 0.5,
+
+        mistSensor: document.getElementById('mistSensor') ? document.getElementById('mistSensor').value : 'soil',
+        mistOperator: document.getElementById('mistOperator') ? document.getElementById('mistOperator').value : '<',
+        mistThreshold: document.getElementById('mistThreshold') ? parseFloat(document.getElementById('mistThreshold').value) : 40.0,
+        mistHysteresis: document.getElementById('mistHysteresis') ? parseFloat(document.getElementById('mistHysteresis').value) : 2.0,
+
+        bmeAddress: parseInt(document.getElementById('bmeAddress').value),
+        ds18b20Pin: parseInt(document.getElementById('ds18b20Pin').value),
+        pirPin: parseInt(document.getElementById('pirPin').value),
+        trigPin: parseInt(document.getElementById('trigPin').value),
+        echoPin: parseInt(document.getElementById('echoPin').value),
+
+        enableDht: document.getElementById('enableDht').checked,
+        enableGas: document.getElementById('enableGas').checked,
+        enableFan: document.getElementById('enableFan').checked,
+        enableMist: document.getElementById('enableMist').checked,
+        enableFanBtn: document.getElementById('enableFanBtn').checked,
+        enableMistBtn: document.getElementById('enableMistBtn').checked,
+        enableResetBtn: document.getElementById('enableResetBtn').checked,
+
+        enableBme: document.getElementById('enableBme').checked,
+        enableDs18b20: document.getElementById('enableDs18b20').checked,
+        enablePir: document.getElementById('enablePir').checked,
+        enableUltrasonic: document.getElementById('enableUltrasonic').checked
+      };
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.reboot) {
+          const targetSSID = payload.ssid;
+          let seconds = 6;
+          showAlert(`✓ บันทึกสำเร็จ! บอร์ดกำลังเชื่อมต่อ Wi-Fi "${targetSSID}" (กำลังเปิด Dashboard ในอีก ${seconds} วินาที...)`, 'success');
+
+          const timer = setInterval(() => {
+            seconds--;
+            if (seconds > 0) {
+              showAlert(`✓ บอร์ดกำลังเชื่อมต่อ Wi-Fi "${targetSSID}" (กำลังเปิด Dashboard ในอีก ${seconds} วินาที...)`, 'success');
+            } else {
+              clearInterval(timer);
+              window.location.href = 'index.html';
+            }
+          }, 1000);
+        } else {
+          showAlert((data.message || '✓ บันทึกการตั้งค่าสำเร็จ!') + ' กำลังกลับสู่หน้า Dashboard...', 'success');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1200);
+        }
+      } catch (err) {
+        showAlert('เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง', 'danger');
+        btn.disabled = false;
+        btn.innerText = '💾 บันทึกการตั้งค่า (Save Settings)';
+      }
+    }
+
+    async function resetToFactory() {
+      if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการคืนค่าคอนฟิกเริ่มต้นของฮาร์ดแวร์ทั้งหมด?')) return;
+      try {
+        const res = await fetch('/api/reset', { method: 'POST' });
+        const data = await res.json();
+        showAlert(data.message || 'คืนค่าเริ่มต้นเรียบร้อย กำลังรีบูต...', 'success');
+        setTimeout(() => { window.location.href = 'config.html'; }, 3000);
+      } catch (err) {
+        showAlert('ไม่สามารถส่งคำสั่งรีเซ็ตได้', 'danger');
+      }
+    }
+
+    function showAlert(msg, type) {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = 'alert alert-' + type;
+      alertBox.innerText = msg;
+      alertBox.style.display = 'block';
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadConfig);
+  </script>
+</body>
+</html>
