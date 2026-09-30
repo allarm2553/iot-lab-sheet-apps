@@ -80,8 +80,10 @@ const char* TOPIC_PUB_MIST_STATE    = "esp32-climate-node/switch/mist_pump_relay
 #elif defined(ESP32)
 #define DHTPIN         33      // พอร์ต 33 สำหรับ IPST-WiFi
 #define ANALOG_PIN     36      // GPIO 36 / KNOB-S สำหรับ IPST-WiFi
-#define FAN_RELAY_PIN  5       // พอร์ต 5 สำหรับ IPST-WiFi
-#define MIST_RELAY_PIN 23      // พอร์ต 23 สำหรับ IPST-WiFi
+#define FAN_RELAY_PIN  19      // พอร์ต 19 (Relay 1: Fan)
+#define MIST_RELAY_PIN 23      // พอร์ต 23 (Relay 2: Mist)
+#define SW1_PIN        0       // GPIO 0 (Switch 1 / Button 1)
+#define SW2_PIN        5       // GPIO 5 (Switch 2 / Button 2)
 #define ADC_RESOLUTION 4095.0
 #endif
 #define DHTTYPE DHT11
@@ -461,6 +463,36 @@ void setup() {
 void loop() {
   server.handleClient();
   webSocket.loop();
+  
+  // ── Physical Switch Button Debounce (SW1: Pin 0, SW2: Pin 5) ──
+  #if defined(ESP32)
+  static bool lastSw1 = HIGH, lastSw2 = HIGH;
+  static unsigned long lastBtnTime = 0;
+  if (millis() - lastBtnTime > 50) {
+    bool currSw1 = digitalRead(SW1_PIN);
+    bool currSw2 = digitalRead(SW2_PIN);
+    
+    if (lastSw1 == HIGH && currSw1 == LOW) { // SW1 Pressed -> Toggle Relay 1
+      fanState = !fanState;
+      autoMode = false;
+      digitalWrite(FAN_RELAY_PIN, fanState ? HIGH : LOW);
+      Serial.printf("[BUTTON SW1] Fan Toggled to %s\n", fanState ? "ON" : "OFF");
+      broadcastSensorState();
+      lastBtnTime = millis();
+    }
+    if (lastSw2 == HIGH && currSw2 == LOW) { // SW2 Pressed -> Toggle Relay 2
+      mistState = !mistState;
+      autoMistMode = false;
+      digitalWrite(MIST_RELAY_PIN, mistState ? HIGH : LOW);
+      Serial.printf("[BUTTON SW2] Mist Toggled to %s\n", mistState ? "ON" : "OFF");
+      broadcastSensorState();
+      lastBtnTime = millis();
+    }
+    lastSw1 = currSw1;
+    lastSw2 = currSw2;
+  }
+  #endif
+  
 
   // Non-blocking MQTT maintenance
   reconnectMqttNonBlocking();
