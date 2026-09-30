@@ -12,16 +12,16 @@ function doGet(e) {
 }
 
 const ANSWER_KEY = {
-  codeBlank1: ["81", "81.0", "webSocketPort"],
-  codeBlank2: ["espClient", "&espClient", "WiFiClient"],
-  codeBlank3: ["esp32-climate-node/state", "esp32-node/state", "esp-node/state", "pubTopic", "pub_topic", ""esp32-climate-node/state""],
-  codeBlank4: ["webSocketEvent", "onWebSocketEvent", "webSocketCallback"],
-  codeBlank5: ["esp32-climate-node/control/cmd", "esp32-node/control/cmd", "esp-node/control/cmd", "subTopic", "sub_topic", ""esp32-climate-node/control/cmd""],
-  quiz1: "A",
-  quiz2: "A",
-  quiz3: "A",
-  quiz4: "A",
-  quiz5: "A"
+  codeBlank1: ["81", "81.0", "webSocketPort", "WEBSOCKETS_PORT"],
+  codeBlank2: ["espClient", "&espClient", "WiFiClient", "client"],
+  codeBlank3: ["esp32-climate-node/state", "esp32-node/state", "esp-node/state", "pubTopic", "pub_topic", "\"esp32-climate-node/state\""],
+  codeBlank4: ["webSocketEvent", "onWebSocketEvent", "webSocketCallback", "&webSocketEvent"],
+  codeBlank5: ["esp32-climate-node/control/cmd", "esp32-node/control/cmd", "esp-node/control/cmd", "subTopic", "sub_topic", "\"esp32-climate-node/control/cmd\""],
+  quiz1: ["1B", "B", "1b", "b"],
+  quiz2: ["2C", "C", "2c", "c"],
+  quiz3: ["3C", "C", "3c", "c"],
+  quiz4: ["4B", "B", "4b", "b"],
+  quiz5: ["5B", "B", "5b", "b"]
 };
 
 function gradeSubmission(data) {
@@ -43,8 +43,9 @@ function gradeSubmission(data) {
 
   for (var j = 1; j <= 5; j++) {
     var qKey = "quiz" + j;
-    var qAns = (data[qKey] || "").toString().trim().toUpperCase();
-    if (qAns === ANSWER_KEY[qKey]) {
+    var qAns = (data[qKey] || "").toString().trim().toLowerCase();
+    var validQuiz = ANSWER_KEY[qKey].map(function(v) { return v.toString().toLowerCase(); });
+    if (validQuiz.indexOf(qAns) !== -1) {
       score += 1;
       breakdown[qKey] = { correct: true, points: 1 };
     } else {

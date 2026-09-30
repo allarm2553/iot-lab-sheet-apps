@@ -1675,7 +1675,7 @@
                     allowfullscreen="true"
                     webkitallowfullscreen="true"
                     mozallowfullscreen="true"
-                    title="Wokwi ESP32 Lab 5 Cloud MQTT Simulation"></iframe>
+                    title="Wokwi ESP32 Lab 6 Hybrid Simulation"></iframe>
           </div>
 
           <!-- Interactive Realistic Vector SVG Wiring Diagram -->
@@ -2100,7 +2100,6 @@
   <text x="500" y="475" fill="#64748b" font-size="11" text-anchor="middle" font-family="'Sarabun', sans-serif">⚡ Allarm IoT Architecture: Relay 1=Pin 19 | Relay 2=Pin 23 | SW1=Pin 0 | SW2=Pin 5 | DHT=Pin 33 | Analog=Pin 36</text>
 </svg>
           </div>
-        </div>
 
         <!-- ======================================================= -->
         <!-- 🌟 Feature: Web Serial API Real-time Hardware Bridge    -->
@@ -2114,7 +2113,7 @@
             <div class="lab-feature-actions">
               <!-- Baud Rate Selector -->
               <select id="serialBaudRateSelect" class="feature-select" onchange="onBaudRateChange()" title="เลือกความเร็ว Baud Rate ให้ตรงกับ Serial.begin() ในโค้ด">
-                <option value="115200" selected>115200 baud (ESP32/Lab5)</option>
+                <option value="115200" selected>115200 baud (ESP32/Lab6)</option>
                 <option value="9600">9600 baud (มาตรฐานทั่วไป)</option>
                 <option value="57600">57600 baud</option>
                 <option value="74880">74880 baud (ESP Boot Log)</option>
@@ -2335,13 +2334,13 @@ void loop() {
                       </div>
                       <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         <input type="text" id="teacherGasUrlInput" placeholder="วางลิงก์ https://script.google.com/macros/s/.../exec ที่นี่..." style="flex: 1; min-width: 240px; background: rgba(11, 17, 32, 0.9); border: 1px solid #334155; border-radius: 7px; padding: 0.45rem 0.75rem; color: #f8fafc; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; outline: none;">
-                        <button type="button" onclick="saveTeacherGasUrl('lab5')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                        <button type="button" onclick="saveTeacherGasUrl('lab6')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
                           <i class="fa-solid fa-floppy-disk"></i> บันทึก URL
                         </button>
-                        <button type="button" onclick="copyStudentShareLink('lab5')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="คัดลอกลิงก์ที่แนบ Google Apps Script ส่งให้นักเรียน">
+                        <button type="button" onclick="copyStudentShareLink('lab6')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="คัดลอกลิงก์ที่แนบ Google Apps Script ส่งให้นักเรียน">
                           <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์ให้นักเรียน
                         </button>
-                        <button type="button" onclick="testTeacherGasUrl('lab5')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
+                        <button type="button" onclick="testTeacherGasUrl('lab6')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
                           <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
                         </button>
                       </div>
@@ -2846,7 +2845,7 @@ void loop() {
   </div>
 
   <script>
-    const _LAB_STORAGE_KEY = 'submitted_iot_lab5_';
+    const _LAB_STORAGE_KEY = 'submitted_iot_lab6_';
 
     // ── 1. Online / Offline Status Detection ──
     function initOnlineStatus() {
@@ -3172,7 +3171,7 @@ void loop() {
     }
 
     // ── 6. Regex Evaluation Engines (Lab 5) ──
-    function evaluateLab5Blanks() {
+    function evaluateLab6Blanks() {
       const b1 = (document.getElementById('codeBlank1')?.value || '').trim();
       const b2 = (document.getElementById('codeBlank2')?.value || '').trim();
       const b3 = (document.getElementById('codeBlank3')?.value || '').trim();
@@ -3196,7 +3195,7 @@ void loop() {
       return { score, correctCount: correct, totalCount: 5 };
     }
 
-    function evaluateLab5Challenge(code) {
+    function evaluateLab6Challenge(code) {
       if (!code || code.trim().length === 0) {
         return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
       }
@@ -3258,7 +3257,7 @@ void loop() {
       const isInfoComplete = !!(nameVal && idVal && groupVal);
 
       // 2. Code blanks (1.5 pts)
-      const blanksResult = evaluateLab5Blanks();
+      const blanksResult = evaluateLab6Blanks();
       const blankScore = blanksResult.score;
 
       // 3. Quiz (2.0 pts: 5 MCQs @ 0.4 pt)
@@ -3282,7 +3281,7 @@ void loop() {
 
       // 4. Challenge code (2.5 pts)
       const rawCode = (document.getElementById('challengeCode')?.value || '').trim();
-      const chEval = evaluateLab5Challenge(rawCode);
+      const chEval = evaluateLab6Challenge(rawCode);
       const chScore = chEval.score;
 
       // 5. Post-Lab Questions (2.5 pts: 3 questions)
@@ -3470,7 +3469,7 @@ void loop() {
         codeFileType: uploadedCodeFileType
       };
 
-      const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab5') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab6') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function(response) {
@@ -3585,7 +3584,7 @@ void loop() {
             <h4><i class="fa-solid fa-satellite-dish"></i> 6.2 ขั้นตอนการดักรับและส่งคำสั่งทดสอบ</h4>
             <ol style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
               <li><b>สร้างการเชื่อมต่อ (Connect):</b> กรอกค่า Broker ด้านบน แล้วกดปุ่ม <b>Connect</b> (สถานะจะเปลี่ยนเป็นสีเขียว <i>Connected</i>)</li>
-              <li><b>ดักรับข้อมูลจากบอร์ด (Subscribe):</b> กรอก Topic <code>esp-node/state</code> (หรือ <code>kku/iot/lab5/state</code>) เลือก QoS 0 แล้วกด <b>Subscribe</b> ข้อความ JSON จาก ESP32 จะปรากฏแบบ Real-Time ทุก 5 วินาที</li>
+              <li><b>ดักรับข้อมูลจากบอร์ด (Subscribe):</b> กรอก Topic <code>esp-node/state</code> (หรือ <code>kku/iot/lab6/state</code>) เลือก QoS 0 แล้วกด <b>Subscribe</b> ข้อความ JSON จาก ESP32 จะปรากฏแบบ Real-Time ทุก 5 วินาที</li>
               <li><b>ส่งคำสั่งควบคุมบอร์ด (Publish):</b> กรอก Topic <code>esp-node/control/cmd</code> และใส่ JSON Payload ในช่องข้อความ เช่น:
                 <pre style="background:#020617; padding: 0.5rem; border-radius: 6px; margin: 0.4rem 0; color:#a5f3fc;"><code>{"action": "toggle_fan", "value": true}</code></pre>
                 แล้วกดปุ่ม <b>Publish</b> เพื่อสังเกตรีเลย์พัดลมบนบอร์ดทำงานทันที
@@ -3737,7 +3736,7 @@ void loop() {
       const badge = document.getElementById('teacherGasBadge');
       if (!input || !badge) return;
 
-      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab5') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab6') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL') && !currentUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
         input.value = currentUrl;
         badge.style.background = 'rgba(16, 185, 129, 0.15)';
