@@ -355,12 +355,12 @@ app.get('/dashboard', (req, res) => {
 const validLabs = [
   'lab0', 'lab0-basic', 'lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab3.2_Wifi_UI_config', 'lab3.2',
   'lab4', 'lab4.1', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev',
-  'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi',
+  'LAB6.1Perform', 'lab6.1perform', 'LAB6.1_Perform', 'LAB6_2Perform', 'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi',
   'LAB6_Fleet', 'LAB6_AppInstall', 'LAB_Convert2app'
 ];
 
 validLabs.forEach(lab => {
-  const targetFolder = (lab === 'lab6_perform') ? 'LAB6_Perform' : 
+  const targetFolder = (lab === 'lab6_perform' || lab === 'LAB6_Perform' || lab === 'LAB6_2Perform' || lab === 'LAB6.1_Perform' || lab === 'lab6.1perform') ? 'LAB6.1Perform' : 
                        (lab === 'lab6_dev') ? 'LAB6_Dev' : 
                        (lab === 'lab5_dev') ? 'LAB5_Dev' : 
                        (lab === 'lab3.2') ? 'lab3.2_Wifi_UI_config' :
