@@ -4,17 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LAB 6 Perform: Hybrid Dual-Protocol IoT Dashboard</title>
+  
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IoT Controller">
+
   <link rel="stylesheet" href="styles.css">
-  <!-- MQTT.js CDN -->
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <!-- MQTT.js Local & CDN Fallback -->
+  <script src="mqtt.min.js"></script>
+  <script>
+    if (typeof mqtt === 'undefined') {
+      document.write('<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"><\/script>');
+    }
+  </script>
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <header>
-      <div class="logo-area">
-        <h1>⚡ LAB 6 Perform: Hybrid IoT Dashboard</h1>
-        <p>การสื่อสารคู่ขนาน Real-time (WebSockets Port 81 & Cloud MQTT)</p>
+      <div class="logo-area" style="display: flex; align-items: center; gap: 14px;">
+        <img src="icon.svg" alt="App Icon" style="width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);">
+        <div>
+          <h1>⚡ LAB 6 Perform: Hybrid IoT Dashboard</h1>
+          <p>การสื่อสารคู่ขนาน Real-time (WebSockets Port 81 & Cloud MQTT)</p>
+        </div>
       </div>
       <div class="protocol-badges">
         <div class="badge">
@@ -36,20 +54,24 @@
         <button id="btnModeMQTT" class="segmented-btn" onclick="setConnectionPreference('mqtt')">☁️ Cloud MQTT</button>
       </div>
 
-      <div style="display: flex; gap: 10px;">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button id="btnInstallPwa" class="btn-secondary" onclick="installPwaApp()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 9px 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);">📲 ติดตั้งแอป (Install App)</button>
         <a href="config.html" class="btn-primary" style="background: linear-gradient(135deg, #0ea5e9, #6366f1);">⚙️ ตั้งค่าบอร์ด MCU (Config)</a>
       </div>
     </div>
 
     <!-- Device Metadata Info Bar -->
-    <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.85rem;">
-      <div>🆔 <strong>Device ID / MAC:</strong> <span id="lblMac" class="topic-badge">Detecting...</span></div>
-      <div>📡 <strong>Sub Topic:</strong> <span id="lblSub" class="topic-badge">esp-node/--/control/cmd</span></div>
-      <div>📤 <strong>Pub Topic:</strong> <span id="lblPub" class="topic-badge">esp-node/--/state</span></div>
+    <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.85rem;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div>🆔 <strong>Device ID:</strong> <span id="lblMac" class="topic-badge">C82E18F87E7C</span></div>
+        <button onclick="openRemoteModal()" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 3px 10px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: 500;">✏️ สลับเครื่อง / Remote</button>
+      </div>
+      <div>📡 <strong>Sub Topic:</strong> <span id="lblSub" class="topic-badge">allarm-iot/esp-node/C82E18F87E7C/control/cmd</span></div>
+      <div>📤 <strong>Pub Topic:</strong> <span id="lblPub" class="topic-badge">allarm-iot/esp-node/C82E18F87E7C/state</span></div>
     </div>
 
     <!-- Master System Auto/Manual Mode Bar -->
-    <div style="background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow-sm);">
+    <div id="cardMasterMode" style="background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow-sm);">
       <div>
         <div style="font-size: 1rem; font-weight: 600; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
           <span>🎛️ โหมดควบคุมระบบรวม (Fan & Mist Control Mode)</span>
@@ -69,7 +91,7 @@
     <!-- Cards Grid -->
     <div class="grid">
       <!-- Temperature Card -->
-      <div class="card">
+      <div class="card" id="cardTemp">
         <div class="card-title">
           <span>อุณหภูมิ (DHT Sensor)</span>
           <span>🌡️</span>
@@ -84,7 +106,7 @@
       </div>
 
       <!-- Humidity Card -->
-      <div class="card">
+      <div class="card" id="cardHum">
         <div class="card-title">
           <span>ความชื้นสัมพัทธ์</span>
           <span>💧</span>
@@ -98,30 +120,35 @@
         </div>
       </div>
 
-      <!-- Soil / Potentiometer Card -->
-      <div class="card">
+      <!-- Smoke & Gas Sensor (MQ-2 / MQ-135) Card -->
+      <div class="card" id="cardGasSensor">
         <div class="card-title">
-          <span>แอนะล็อก / ลูกบิด VR</span>
-          <span>🌱</span>
+          <span id="txtGasTitle">เซ็นเซอร์ควัน & แก๊ส (MQ-2)</span>
+          <span id="iconGas">🚨</span>
         </div>
         <div class="card-value">
           <span id="valSoil">--</span>
           <span class="card-unit">%</span>
         </div>
-        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
-          ADC Input Pin
+        <div style="margin-top: 10px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: var(--text-muted);">ADC (RAW):</span>
+          <span id="valAdcRaw" style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">--</span>
+        </div>
+        <div style="margin-top: 8px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+          <span id="lblGasStatusText" style="color: var(--text-muted);">สถานะแก๊ส/ควัน:</span>
+          <span id="badgeGasStatus" class="topic-badge" style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7;">🟢 ปลอดภัย</span>
         </div>
       </div>
 
       <!-- Temp Threshold Slider Card -->
-      <div class="card">
+      <div class="card" id="cardTempSlider">
         <div class="card-title">
-          <span>ตั้งเกณฑ์อุณหภูมิพัดลม</span>
-          <span>🎯</span>
+          <span id="txtTempSliderTitle">ตั้งเกณฑ์ควบคุม: รีเลย์ 1</span>
+          <span id="iconTempSlider">🎯</span>
         </div>
         <div class="card-value">
           <span id="valThreshold">30.0</span>
-          <span class="card-unit">°C</span>
+          <span class="card-unit" id="unitThreshold">°C</span>
         </div>
         <div style="margin-top: 15px;">
           <input type="range" id="sliderThreshold" min="15" max="45" step="0.5" value="30.0" style="width: 100%; accent-color: var(--accent-cyan);" oninput="onThresholdChange(this.value)">
@@ -129,24 +156,39 @@
       </div>
 
       <!-- Mist Threshold Slider Card -->
-      <div class="card">
+      <div class="card" id="cardMistSlider">
         <div class="card-title">
-          <span>ตั้งเกณฑ์ความชื้นพ่นหมอก</span>
-          <span>💦</span>
+          <span id="txtMistSliderTitle">ตั้งเกณฑ์ควบคุม: รีเลย์ 2</span>
+          <span id="iconMistSlider">💦</span>
         </div>
         <div class="card-value">
-          <span id="valMistThreshold">60.0</span>
+          <span id="valMistThreshold">40.0</span>
+          <span class="card-unit" id="unitMistThreshold">%</span>
+        </div>
+        <div style="margin-top: 15px;">
+          <input type="range" id="sliderMistThreshold" min="5" max="95" step="1.0" value="40.0" style="width: 100%; accent-color: var(--accent-blue);" oninput="onMistThresholdChange(this.value)">
+        </div>
+      </div>
+
+      <!-- Gas / Smoke Alarm Threshold Slider Card (MQ-2 / MQ-135 only) -->
+      <div class="card" id="cardGasSlider" style="display: none;">
+        <div class="card-title">
+          <span id="txtGasSliderTitle">ตั้งเกณฑ์เตือนควัน/แก๊ส</span>
+          <span id="iconGasSlider">⚠️</span>
+        </div>
+        <div class="card-value">
+          <span id="valGasThreshold">40.0</span>
           <span class="card-unit">%</span>
         </div>
         <div style="margin-top: 15px;">
-          <input type="range" id="sliderMistThreshold" min="20" max="90" step="1.0" value="60.0" style="width: 100%; accent-color: var(--accent-blue);" oninput="onMistThresholdChange(this.value)">
+          <input type="range" id="sliderGasThreshold" min="10" max="90" step="1.0" value="40.0" style="width: 100%; accent-color: #f59e0b;" oninput="onGasThresholdChange(this.value)">
         </div>
       </div>
 
       <!-- Fan Control Card -->
-      <div class="card">
+      <div class="card" id="cardFan">
         <div class="card-title">
-          <span>พัดลมระบายอากาศ (Fan Relay)</span>
+          <span id="txtFanTitle">พัดลมระบายอากาศ (Fan Relay)</span>
           <span>🌀</span>
         </div>
         <div class="switch-wrapper">
@@ -157,19 +199,15 @@
           </label>
         </div>
         <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>โหมดพัดลม:</span>
+          <span>โหมด:</span>
           <span id="txtModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
-        </div>
-        <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>สวิตช์กด SW_FAN:</span>
-          <span id="txtFanBtnCount">0 ครั้ง</span>
         </div>
       </div>
 
       <!-- Mist Control Card -->
-      <div class="card">
+      <div class="card" id="cardMist">
         <div class="card-title">
-          <span>หัวพ่นหมอก (Mist Relay)</span>
+          <span id="txtMistTitle">หัวพ่นหมอก (Mist Relay)</span>
           <span>🌫️</span>
         </div>
         <div class="switch-wrapper">
@@ -180,12 +218,103 @@
           </label>
         </div>
         <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>โหมดพ่นหมอก:</span>
+          <span>โหมด:</span>
           <span id="txtMistModeStatus" style="color: var(--accent-cyan);">อัตโนมัติ (Auto)</span>
         </div>
-        <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>สวิตช์กด SW_MIST:</span>
-          <span id="txtMistBtnCount">0 ครั้ง</span>
+      </div>
+
+      <!-- Soil Moisture Card -->
+      <div class="card" id="cardSoilMoisture">
+        <div class="card-title">
+          <span>ความชื้นในดิน (Soil Moisture)</span>
+          <span>🌿</span>
+        </div>
+        <div class="card-value">
+          <span id="valSoilMoisture">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: var(--text-muted);">ADC (RAW):</span>
+          <span id="valSoilMoistureRaw" style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">--</span>
+        </div>
+        <div style="margin-top: 8px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: var(--text-muted);">สถานะดิน:</span>
+          <span id="badgeSoilStatus" class="topic-badge" style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7;">🟢 ปกติ</span>
+        </div>
+      </div>
+
+      <!-- BME280 Environmental Card -->
+      <div class="card" id="cardBme">
+        <div class="card-title">
+          <span>สภาพอากาศ BME280 (I2C)</span>
+          <span>🌡️</span>
+        </div>
+        <div class="card-value" style="font-size: 1.4rem;">
+          <span id="valBmeTemp">--</span><span style="font-size: 0.9rem;">°C</span> | <span id="valBmeHum">--</span><span style="font-size: 0.9rem;">%</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>ความกดอากาศ:</span>
+          <span id="valBmePress" style="color: var(--accent-cyan);">-- hPa</span>
+        </div>
+      </div>
+
+      <!-- DS18B20 Water Temperature Card -->
+      <div class="card" id="cardDs18b20">
+        <div class="card-title">
+          <span>อุณหภูมิน้ำ / ดิน (DS18B20)</span>
+          <span>💧</span>
+        </div>
+        <div class="card-value">
+          <span id="valWaterTemp">--</span>
+          <span class="card-unit">°C</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          เซ็นเซอร์: 1-Wire Waterproof Probe
+        </div>
+      </div>
+
+      <!-- LDR Light Sensor Card -->
+      <div class="card" id="cardLdr">
+        <div class="card-title">
+          <span>ความเข้มแสง (LDR Sensor)</span>
+          <span>☀️</span>
+        </div>
+        <div class="card-value">
+          <span id="valLdr">--</span>
+          <span class="card-unit">%</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          เซ็นเซอร์: Photoresistor ADC
+        </div>
+      </div>
+
+      <!-- PIR Motion Sensor Card -->
+      <div class="card" id="cardPir">
+        <div class="card-title">
+          <span>ตรวจจับการเคลื่อนไหว (PIR)</span>
+          <span>🏃</span>
+        </div>
+        <div class="card-value" style="font-size: 1.2rem; margin: 10px 0;">
+          <span id="badgePirStatus" class="topic-badge" style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7; font-size: 0.95rem; padding: 6px 14px;">🟢 ไม่พบการเคลื่อนไหว</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+          เซ็นเซอร์: HC-SR501 / AM312
+        </div>
+      </div>
+
+      <!-- HC-SR04 Ultrasonic Distance Card -->
+      <div class="card" id="cardUltrasonic">
+        <div class="card-title">
+          <span>ระยะทาง / ระดับน้ำ (HC-SR04)</span>
+          <span>📏</span>
+        </div>
+        <div class="card-value">
+          <span id="valDistance">--</span>
+          <span class="card-unit">cm</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>ระดับในถัง:</span>
+          <span id="valTank" style="color: var(--accent-cyan);">-- %</span>
         </div>
       </div>
     </div>
@@ -200,18 +329,65 @@
   </div>
 
   <script>
-    // System Configurations
-    let deviceCleanMac = '246F28ABCDEF';
-    let subTopic = 'esp-node/' + deviceCleanMac + '/control/cmd';
-    let pubTopic = 'esp-node/' + deviceCleanMac + '/state';
-    let mqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+    // Persistent Storage Keys
+    const LS_KEY_MAC = 'allarm_iot_device_mac';
+    const LS_KEY_CLEAN_MAC = 'allarm_iot_clean_mac';
+    const LS_KEY_PREFIX = 'allarm_iot_prefix';
+    const LS_KEY_BROKER = 'allarm_iot_broker';
+    const LS_KEY_CFG = 'allarm_iot_last_cfg';
+
+    // System Configurations with persistent storage & defaults
+    let deviceCleanMac = localStorage.getItem(LS_KEY_CLEAN_MAC) || 'C82E18F87E7C';
+    let deviceMac = localStorage.getItem(LS_KEY_MAC) || 'C8:2E:18:F8:7E:7C';
+    let topicPrefix = localStorage.getItem(LS_KEY_PREFIX) || 'allarm-iot';
+    let defaultBroker = (window.location.protocol === 'https:') ? 'wss://broker.emqx.io:8084/mqtt' : 'wss://broker.emqx.io:8084/mqtt';
+    let mqttBrokerUrl = localStorage.getItem(LS_KEY_BROKER) || defaultBroker;
+
+    let subTopic = '';
+    let pubTopic = '';
+
+    function buildTopics() {
+      let pfx = (topicPrefix || 'allarm-iot').trim();
+      while (pfx.endsWith('/')) pfx = pfx.substring(0, pfx.length - 1);
+      if (pfx.length > 0) pfx += '/';
+
+      subTopic = pfx + 'esp-node/' + deviceCleanMac + '/control/cmd';
+      pubTopic = pfx + 'esp-node/' + deviceCleanMac + '/state';
+    }
+    buildTopics();
 
     let ws = null;
     let mqttClient = null;
     let preferredMode = 'auto'; // 'auto', 'ws', 'mqtt'
+    let currentConfig = {};
+
+    // Sensor Metadata Definition for Dynamic Rule Engine
+    const SENSOR_META = {
+      temp:      { label: 'อุณหภูมิ DHT', unit: '°C', min: 15, max: 50, step: 0.5 },
+      hum:       { label: 'ความชื้นอากาศ DHT', unit: '%', min: 20, max: 95, step: 1.0 },
+      soil:      { label: 'ความชื้นในดิน', unit: '%', min: 5, max: 95, step: 1.0 },
+      gas:       { label: 'แก๊สและควัน', unit: '%', min: 10, max: 90, step: 1.0 },
+      ldr:       { label: 'ความเข้มแสง', unit: '%', min: 5, max: 95, step: 1.0 },
+      ds18b20:   { label: 'อุณหภูมิน้ำ DS18B20', unit: '°C', min: 10, max: 60, step: 0.5 },
+      bme_temp:  { label: 'อุณหภูมิ BME280', unit: '°C', min: 15, max: 50, step: 0.5 },
+      bme_hum:   { label: 'ความชื้น BME280', unit: '%', min: 20, max: 95, step: 1.0 },
+      bme_press: { label: 'ความกดอากาศ BME280', unit: 'hPa', min: 900, max: 1100, step: 1.0 },
+      none:      { label: 'กำหนดเอง (Manual Only)', unit: '', min: 0, max: 100, step: 1.0 }
+    };
+
+    let curFanSensor = 'temp';
+    let curFanOperator = '>';
+    let curFanThreshold = 30.0;
+    let curFanName = 'พัดลมระบายอากาศ (Fan)';
+
+    let curMistSensor = 'soil';
+    let curMistOperator = '<';
+    let curMistThreshold = 40.0;
+    let curMistName = 'หัวพ่นหมอก (Mist)';
 
     function log(msg, source = 'System') {
       const logArea = document.getElementById('logArea');
+      if (!logArea) return;
       const time = new Date().toLocaleTimeString();
       const div = document.createElement('div');
       div.innerHTML = `<span style="color: #64748b;">[${time}]</span> <strong style="color: ${source === 'WebSocket' ? '#38bdf8' : source === 'MQTT' ? '#a78bfa' : '#34d399'};">[${source}]</strong> ${msg}`;
@@ -219,49 +395,235 @@
       logArea.scrollTop = logArea.scrollHeight;
     }
 
-    // 1. Fetch Config from MCU API to synchronize MAC and Unique Topics
+    function updateSliderConfig(sliderId, titleId, unitId, valId, relayName, sensorKey, op, thresh) {
+      const meta = SENSOR_META[sensorKey] || SENSOR_META['temp'];
+      const slider = document.getElementById(sliderId);
+      const titleEl = document.getElementById(titleId);
+      const unitEl = document.getElementById(unitId);
+      const valEl = document.getElementById(valId);
+
+      if (titleEl) {
+        if (sensorKey === 'none') {
+          titleEl.innerText = `${relayName} (ควบคุมด้วยมือ)`;
+        } else {
+          titleEl.innerText = `เกณฑ์: ${relayName} [${meta.label} ${op}]`;
+        }
+      }
+      if (unitEl) unitEl.innerText = meta.unit;
+      if (slider) {
+        slider.min = meta.min;
+        slider.max = meta.max;
+        slider.step = meta.step;
+      }
+    }
+
+    // Module Visibility & Adaptive Dashboard Manager
+    function applyModuleVisibility(cfg) {
+      if (!cfg) return;
+
+      const hasDht = cfg.enableDht !== undefined ? cfg.enableDht : true;
+      const hasGas = cfg.enableGas !== undefined ? cfg.enableGas : true;
+      const hasFan = cfg.enableFan !== undefined ? cfg.enableFan : true;
+      const hasMist = cfg.enableMist !== undefined ? cfg.enableMist : true;
+      const hasFanBtn = cfg.enableFanBtn !== undefined ? cfg.enableFanBtn : true;
+      const hasMistBtn = cfg.enableMistBtn !== undefined ? cfg.enableMistBtn : true;
+
+      const hasSoil = cfg.enableSoil !== undefined ? cfg.enableSoil : false;
+      const hasBme = cfg.enableBme !== undefined ? cfg.enableBme : false;
+      const hasDs18b20 = cfg.enableDs18b20 !== undefined ? cfg.enableDs18b20 : false;
+      const hasLdr = cfg.enableLdr !== undefined ? cfg.enableLdr : false;
+      const hasPir = cfg.enablePir !== undefined ? cfg.enablePir : false;
+      const hasUltrasonic = cfg.enableUltrasonic !== undefined ? cfg.enableUltrasonic : false;
+
+      // Update Dynamic Rule State from Cfg
+      if (cfg.fanSensor !== undefined) curFanSensor = cfg.fanSensor;
+      if (cfg.fanOperator !== undefined) curFanOperator = cfg.fanOperator;
+      if (cfg.fanThreshold !== undefined) curFanThreshold = parseFloat(cfg.fanThreshold);
+      if (cfg.fanName) curFanName = cfg.fanName;
+
+      if (cfg.mistSensor !== undefined) curMistSensor = cfg.mistSensor;
+      if (cfg.mistOperator !== undefined) curMistOperator = cfg.mistOperator;
+      if (cfg.mistThreshold !== undefined) curMistThreshold = parseFloat(cfg.mistThreshold);
+      if (cfg.mistName) curMistName = cfg.mistName;
+
+      // 1. DHT Sensor Cards (Temperature & Humidity)
+      toggleElementVisibility('cardTemp', hasDht);
+      toggleElementVisibility('cardHum', hasDht);
+
+      // 2. Gas / Smoke Sensor Card
+      toggleElementVisibility('cardGasSensor', hasGas);
+
+      // 3. Dynamic Threshold Sliders
+      updateSliderConfig('sliderThreshold', 'txtTempSliderTitle', 'unitThreshold', 'valThreshold', curFanName, curFanSensor, curFanOperator, curFanThreshold);
+      updateSliderConfig('sliderMistThreshold', 'txtMistSliderTitle', 'unitMistThreshold', 'valMistThreshold', curMistName, curMistSensor, curMistOperator, curMistThreshold);
+
+      const isGasAlarm = (cfg.mqType == 2 || cfg.mqType == 135);
+      toggleElementVisibility('cardTempSlider', hasFan && curFanSensor !== 'none');
+      toggleElementVisibility('cardMistSlider', hasMist && curMistSensor !== 'none');
+      toggleElementVisibility('cardGasSlider', hasGas && isGasAlarm);
+
+      // 4. Relay Actuator Cards
+      toggleElementVisibility('cardFan', hasFan);
+      toggleElementVisibility('cardMist', hasMist);
+
+      // 5. Master Auto/Manual Bar (visible if at least Fan or Mist is enabled)
+      toggleElementVisibility('cardMasterMode', hasFan || hasMist);
+
+      // 6. Modular Sensor Cards
+      toggleElementVisibility('cardSoilMoisture', hasSoil);
+      toggleElementVisibility('cardBme', hasBme);
+      toggleElementVisibility('cardDs18b20', hasDs18b20);
+      toggleElementVisibility('cardLdr', hasLdr);
+      toggleElementVisibility('cardPir', hasPir);
+      toggleElementVisibility('cardUltrasonic', hasUltrasonic);
+
+      // 7. Apply Custom Relay Names
+      if (cfg.fanName) {
+        const el = document.getElementById('txtFanTitle');
+        if (el) el.innerText = cfg.fanName;
+      }
+      if (cfg.mistName) {
+        const el = document.getElementById('txtMistTitle');
+        if (el) el.innerText = cfg.mistName;
+      }
+
+      // 9. Update Analog Sensor Card Title & Icon based on mqType
+      if (cfg.mqType !== undefined) {
+        const titleEl = document.getElementById('txtGasTitle');
+        const iconEl = document.getElementById('iconGas');
+        const lblStatus = document.getElementById('lblGasStatusText');
+        const mType = parseInt(cfg.mqType);
+        if (mType === 2) {
+          if (titleEl) titleEl.innerText = 'เซ็นเซอร์ควัน & แก๊ส (MQ-2)';
+          if (iconEl) iconEl.innerText = '🚨';
+          if (lblStatus) lblStatus.innerText = 'สถานะแก๊ส/ควัน:';
+        } else if (mType === 135) {
+          if (titleEl) titleEl.innerText = 'เซ็นเซอร์คุณภาพอากาศ & ควัน (MQ-135)';
+          if (iconEl) iconEl.innerText = '🍃';
+          if (lblStatus) lblStatus.innerText = 'สถานะคุณภาพอากาศ:';
+        } else if (mType === 10) {
+          if (titleEl) titleEl.innerText = 'ความชื้นในดิน (Soil Moisture)';
+          if (iconEl) iconEl.innerText = '🌿';
+          if (lblStatus) lblStatus.innerText = 'สถานะความชื้นดิน:';
+        } else if (mType === 20) {
+          if (titleEl) titleEl.innerText = 'ความเข้มแสง (LDR Photoresistor)';
+          if (iconEl) iconEl.innerText = '☀️';
+          if (lblStatus) lblStatus.innerText = 'ระดับความเข้มแสง:';
+        } else {
+          if (titleEl) titleEl.innerText = 'แอนะล็อก / ลูกบิด VR (0-100%)';
+          if (iconEl) iconEl.innerText = '🎛️';
+          if (lblStatus) lblStatus.innerText = 'ระดับสัญญาณ:';
+        }
+      }
+    }
+
+    function toggleElementVisibility(id, isVisible) {
+      const el = document.getElementById(id);
+      if (el) {
+        if (isVisible) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      }
+    }
+
+    // 1. Synchronize Metadata (Immediate local storage + Non-blocking LAN Fetch)
     async function initDeviceMetadata() {
+      // Restore labels from stored/default state immediately
+      document.getElementById('lblMac').innerText = deviceCleanMac;
+      document.getElementById('lblSub').innerText = subTopic;
+      document.getElementById('lblPub').innerText = pubTopic;
+
       try {
-        const res = await fetch('/api/config');
+        const savedCfg = JSON.parse(localStorage.getItem(LS_KEY_CFG) || '{}');
+        currentConfig = savedCfg;
+        applyModuleVisibility(savedCfg);
+      } catch (e) {}
+
+      // Start Cloud MQTT and WebSocket immediately
+      initMQTT();
+      initWebSocket();
+
+      // Non-blocking background fetch from local MCU /api/config
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch('/api/config', { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           const cfg = await res.json();
-          deviceCleanMac = cfg.cleanMac;
-          subTopic = cfg.subTopic;
-          pubTopic = cfg.pubTopic;
-          document.getElementById('lblMac').innerText = cfg.mac + ' (' + cfg.cleanMac + ')';
-          document.getElementById('lblSub').innerText = cfg.subTopic;
-          document.getElementById('lblPub').innerText = cfg.pubTopic;
-          log(`Device Identified: MAC=${cfg.mac}, Topics synchronized!`);
+          currentConfig = cfg;
+          let changed = false;
+          if (cfg.cleanMac && cfg.cleanMac !== deviceCleanMac) {
+            deviceCleanMac = cfg.cleanMac;
+            deviceMac = cfg.mac || cfg.cleanMac;
+            changed = true;
+          }
+          if (cfg.topicPrefix && cfg.topicPrefix !== topicPrefix) {
+            topicPrefix = cfg.topicPrefix;
+            changed = true;
+          }
+
+          buildTopics();
+
+          localStorage.setItem(LS_KEY_MAC, deviceMac);
+          localStorage.setItem(LS_KEY_CLEAN_MAC, deviceCleanMac);
+          localStorage.setItem(LS_KEY_PREFIX, topicPrefix);
+          localStorage.setItem(LS_KEY_CFG, JSON.stringify(cfg));
+
+          document.getElementById('lblMac').innerText = deviceCleanMac;
+          document.getElementById('lblSub').innerText = subTopic;
+          document.getElementById('lblPub').innerText = pubTopic;
+          applyModuleVisibility(cfg);
+          log(`✓ ตรวจพบบอร์ดในวง LAN (MAC: ${deviceMac}) ซิงค์การตั้งค่าสำเร็จ!`, 'System');
+
+          // Immediately fetch current state to populate values without waiting for next WS/MQTT tick
+          try {
+            const sRes = await fetch('/api/state');
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              updateUI(sData, 'LAN');
+            }
+          } catch (errState) {}
+
+          if (changed && mqttClient && mqttClient.connected) {
+            mqttClient.subscribe(pubTopic);
+          }
         }
       } catch (e) {
-        document.getElementById('lblMac').innerText = deviceCleanMac;
-        document.getElementById('lblSub').innerText = subTopic;
-        document.getElementById('lblPub').innerText = pubTopic;
+        log(`☁️ โหมดรีโมท Cloud MQTT: ใช้งานเป้าหมาย Device ID [${deviceCleanMac}]`, 'System');
       }
-      initWebSocket();
-      initMQTT();
     }
 
     // 2. Local WebSockets Initialization (Port 81)
+    let wsRetryTimer = null;
     function initWebSocket() {
-      const wsUrl = `ws://${window.location.hostname || '192.168.4.1'}:81/`;
-      log(`Connecting to WebSocket: ${wsUrl}`, 'WebSocket');
+      const hostname = window.location.hostname || '192.168.0.144';
+      const wsUrl = `ws://${hostname}:81/`;
 
       try {
+        if (ws) {
+          ws.onclose = null;
+          ws.onerror = null;
+          try { ws.close(); } catch(e) {}
+        }
         ws = new WebSocket(wsUrl);
         ws.onopen = () => {
           document.getElementById('wsDot').classList.add('connected');
           document.getElementById('wsStatus').innerText = 'Connected';
           log('Connected to Local WebSocket Server', 'WebSocket');
+          sendCommand({ command: 'get_state' });
         };
         ws.onclose = () => {
           document.getElementById('wsDot').classList.remove('connected');
           document.getElementById('wsStatus').innerText = 'Disconnected';
-          setTimeout(initWebSocket, 3000);
+          clearTimeout(wsRetryTimer);
+          wsRetryTimer = setTimeout(initWebSocket, 2500);
         };
         ws.onerror = (e) => {
           document.getElementById('wsDot').classList.remove('connected');
-          document.getElementById('wsStatus').innerText = 'Error';
+          document.getElementById('wsStatus').innerText = 'Disconnected';
+          clearTimeout(wsRetryTimer);
+          wsRetryTimer = setTimeout(initWebSocket, 2500);
         };
         ws.onmessage = (event) => {
           try {
@@ -271,32 +633,45 @@
         };
       } catch (e) {
         console.warn(e);
+        clearTimeout(wsRetryTimer);
+        wsRetryTimer = setTimeout(initWebSocket, 2500);
       }
     }
 
     // 3. Cloud MQTT Initialization (WSS Port 8084)
     function initMQTT() {
-      log(`Connecting to Cloud MQTT Broker: ${mqttBrokerUrl}`, 'MQTT');
-      const clientId = 'web_client_' + Math.random().toString(16).substring(2, 8);
+      log(`Connecting to Cloud MQTT: ${mqttBrokerUrl}`, 'MQTT');
+      const clientId = 'pwa_client_' + Math.random().toString(16).substring(2, 8);
 
       try {
+        if (mqttClient) {
+          try { mqttClient.end(true); } catch(e) {}
+        }
+
         mqttClient = mqtt.connect(mqttBrokerUrl, {
           clientId: clientId,
           clean: true,
-          connectTimeout: 5000,
+          connectTimeout: 6000,
           reconnectPeriod: 3000
         });
 
         mqttClient.on('connect', () => {
           document.getElementById('mqttDot').classList.add('connected');
           document.getElementById('mqttStatus').innerText = 'Connected';
-          log(`Connected! Subscribing to state topic: ${pubTopic}`, 'MQTT');
+          log(`Connected! Subscribing to: ${pubTopic}`, 'MQTT');
           mqttClient.subscribe(pubTopic);
+          sendCommand({ command: 'get_state' });
         });
 
         mqttClient.on('close', () => {
           document.getElementById('mqttDot').classList.remove('connected');
           document.getElementById('mqttStatus').innerText = 'Disconnected';
+        });
+
+        mqttClient.on('error', (err) => {
+          console.warn('[MQTT] Error:', err);
+          document.getElementById('mqttDot').classList.remove('connected');
+          document.getElementById('mqttStatus').innerText = 'Error';
         });
 
         mqttClient.on('message', (topic, payload) => {
@@ -310,64 +685,265 @@
       }
     }
 
-    // 4. Update UI Components with incoming telemetry
+    // 4. Update UI Components with incoming telemetry or instant events
     function updateUI(data, source) {
+      if (!data) return;
+
+      // Fast-path: Instant Actuator/Switch State Event (<1ms DOM update)
+      if (data.event === 'actuator_change') {
+        if (data.fanState !== undefined) {
+          document.getElementById('switchFan').checked = data.fanState;
+          document.getElementById('txtFanStatus').innerText = data.fanState ? 'เปิด (ON)' : 'ปิด (OFF)';
+        }
+        if (data.mistState !== undefined) {
+          document.getElementById('switchMist').checked = data.mistState;
+          document.getElementById('txtMistStatus').innerText = data.mistState ? 'เปิด (ON)' : 'ปิด (OFF)';
+        }
+        if (data.autoMode !== undefined) {
+          applyModeUI(data.autoMode);
+        }
+        log(`⚡ สวิตช์อัปเดต (${data.reason || 'Real-time'}): พัดลม=${data.fanState ? 'ON' : 'OFF'}, ปั๊ม=${data.mistState ? 'ON' : 'OFF'}`, source);
+        return;
+      }
+
+      // Automatically adapt module layout based on enable flags
+      applyModuleVisibility(data);
+
       if (data.temperature !== undefined) {
-        document.getElementById('valTemp').innerText = parseFloat(data.temperature).toFixed(1);
+        document.getElementById('valTemp').innerText = isNaN(data.temperature) ? '--' : parseFloat(data.temperature).toFixed(1);
       }
       if (data.humidity !== undefined) {
-        document.getElementById('valHum').innerText = parseFloat(data.humidity).toFixed(1);
+        document.getElementById('valHum').innerText = isNaN(data.humidity) ? '--' : parseFloat(data.humidity).toFixed(1);
       }
-      if (data.analogPercent !== undefined) {
-        document.getElementById('valSoil').innerText = parseFloat(data.analogPercent).toFixed(1);
-      }
-      if (data.tempThreshold !== undefined) {
-        document.getElementById('valThreshold').innerText = parseFloat(data.tempThreshold).toFixed(1);
-        document.getElementById('sliderThreshold').value = parseFloat(data.tempThreshold);
-      }
-      if (data.mistThreshold !== undefined) {
-        document.getElementById('valMistThreshold').innerText = parseFloat(data.mistThreshold).toFixed(1);
-        document.getElementById('sliderMistThreshold').value = parseFloat(data.mistThreshold);
-      }
-      if (data.fanState !== undefined) {
-        document.getElementById('switchFan').checked = data.fanState;
-        document.getElementById('txtFanStatus').innerText = data.fanState ? 'เปิด (ON)' : 'ปิด (OFF)';
-      }
-      if (data.mistState !== undefined) {
-        document.getElementById('switchMist').checked = data.mistState;
-        document.getElementById('txtMistStatus').innerText = data.mistState ? 'เปิด (ON)' : 'ปิด (OFF)';
-      }
-      if (data.autoMode !== undefined) {
-        const isAuto = data.autoMode;
-        document.getElementById('txtModeStatus').innerText = isAuto ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
-        document.getElementById('txtMistModeStatus').innerText = isAuto ? 'อัตโนมัติ (Auto)' : 'กำหนดเอง (Manual)';
-        
-        const badge = document.getElementById('badgeMasterMode');
-        const btnAuto = document.getElementById('btnSysAuto');
-        const btnManual = document.getElementById('btnSysManual');
+      
+      // Update Analog Sensor Type, Labels & Reading
+      const currentMqType = (data.mqType !== undefined) ? parseInt(data.mqType) : ((currentConfig && currentConfig.mqType !== undefined) ? parseInt(currentConfig.mqType) : 10);
 
-        if (isAuto) {
-          badge.style.background = 'rgba(16, 185, 129, 0.2)';
-          badge.style.color = '#6ee7b7';
-          badge.innerText = 'Auto Mode (พัดลม & พ่นหมอก)';
-          btnAuto.classList.add('active');
-          btnManual.classList.remove('active');
-        } else {
-          badge.style.background = 'rgba(245, 158, 11, 0.2)';
-          badge.style.color = '#fcd34d';
-          badge.innerText = 'Manual Mode (ควบคุมเอง)';
-          btnAuto.classList.remove('active');
-          btnManual.classList.add('active');
+      const titleEl = document.getElementById('txtGasTitle');
+      const iconEl = document.getElementById('iconGas');
+      const lblStatus = document.getElementById('lblGasStatusText');
+      const isGasAlarm = (currentMqType === 2 || currentMqType === 135);
+
+      const hasGasEnabled = (data.enableGas !== undefined) ? data.enableGas : ((currentConfig && currentConfig.enableGas !== undefined) ? currentConfig.enableGas : true);
+      toggleElementVisibility('cardGasSlider', hasGasEnabled && isGasAlarm);
+
+      if (currentMqType === 2) {
+        if (titleEl) titleEl.innerText = 'เซ็นเซอร์ควัน & แก๊ส (MQ-2)';
+        if (iconEl) iconEl.innerText = '🚨';
+        if (lblStatus) lblStatus.innerText = 'สถานะแก๊ส/ควัน:';
+      } else if (currentMqType === 135) {
+        if (titleEl) titleEl.innerText = 'เซ็นเซอร์คุณภาพอากาศ & ควัน (MQ-135)';
+        if (iconEl) iconEl.innerText = '🍃';
+        if (lblStatus) lblStatus.innerText = 'สถานะคุณภาพอากาศ:';
+      } else if (currentMqType === 10) {
+        if (titleEl) titleEl.innerText = 'ความชื้นในดิน (Soil Moisture)';
+        if (iconEl) iconEl.innerText = '🌿';
+        if (lblStatus) lblStatus.innerText = 'สถานะความชื้นดิน:';
+      } else if (currentMqType === 20) {
+        if (titleEl) titleEl.innerText = 'ความเข้มแสง (LDR Photoresistor)';
+        if (iconEl) iconEl.innerText = '☀️';
+        if (lblStatus) lblStatus.innerText = 'ระดับความเข้มแสง:';
+      } else {
+        if (titleEl) titleEl.innerText = 'แอนะล็อก / ลูกบิด VR (0-100%)';
+        if (iconEl) iconEl.innerText = '🎛️';
+        if (lblStatus) lblStatus.innerText = 'ระดับสัญญาณ:';
+      }
+
+      let gasVal = null;
+      if (currentMqType === 10) {
+        if (data.soilMoisture !== undefined) gasVal = parseFloat(data.soilMoisture);
+        else if (data.gasPercent !== undefined) gasVal = parseFloat(data.gasPercent);
+        else if (data.analogPercent !== undefined) gasVal = parseFloat(data.analogPercent);
+      } else if (currentMqType === 20) {
+        if (data.lightPercent !== undefined) gasVal = parseFloat(data.lightPercent);
+        else if (data.gasPercent !== undefined) gasVal = parseFloat(data.gasPercent);
+        else if (data.analogPercent !== undefined) gasVal = parseFloat(data.analogPercent);
+      } else {
+        if (data.gasPercent !== undefined) gasVal = parseFloat(data.gasPercent);
+        else if (data.analogPercent !== undefined) gasVal = parseFloat(data.analogPercent);
+      }
+
+      if (gasVal !== null && !isNaN(gasVal)) {
+        document.getElementById('valSoil').innerText = gasVal.toFixed(1);
+        
+        const badgeGas = document.getElementById('badgeGasStatus');
+        const curThreshold = data.gasThreshold !== undefined ? parseFloat(data.gasThreshold) : parseFloat(document.getElementById('sliderGasThreshold') ? document.getElementById('sliderGasThreshold').value : 40);
+        
+        if (badgeGas) {
+          if (currentMqType === 10) {
+            if (gasVal < 30) {
+              badgeGas.style.background = 'rgba(239, 68, 68, 0.25)';
+              badgeGas.style.color = '#f87171';
+              badgeGas.innerText = '🔴 ดินแห้งมาก';
+            } else if (gasVal > 80) {
+              badgeGas.style.background = 'rgba(59, 130, 246, 0.25)';
+              badgeGas.style.color = '#93c5fd';
+              badgeGas.innerText = '💧 ดินชุ่มชื้นสูง';
+            } else {
+              badgeGas.style.background = 'rgba(16, 185, 129, 0.2)';
+              badgeGas.style.color = '#6ee7b7';
+              badgeGas.innerText = '🟢 ปกติ (เหมาะสม)';
+            }
+          } else if (currentMqType === 20) {
+            if (gasVal < 20) {
+              badgeGas.style.background = 'rgba(100, 116, 139, 0.25)';
+              badgeGas.style.color = '#cbd5e1';
+              badgeGas.innerText = '🌑 มืด (Dark)';
+            } else if (gasVal > 70) {
+              badgeGas.style.background = 'rgba(245, 158, 11, 0.25)';
+              badgeGas.style.color = '#fbbf24';
+              badgeGas.innerText = '☀️ สว่างมาก (Bright)';
+            } else {
+              badgeGas.style.background = 'rgba(16, 185, 129, 0.2)';
+              badgeGas.style.color = '#6ee7b7';
+              badgeGas.innerText = '⛅ แสงปานกลาง';
+            }
+          } else if (currentMqType === 0) {
+            badgeGas.style.background = 'rgba(100, 116, 139, 0.2)';
+            badgeGas.style.color = '#cbd5e1';
+            badgeGas.innerText = '🎛️ ระดับสัญญาณ ADC';
+          } else if (data.gasAlarm || gasVal >= curThreshold) {
+            badgeGas.style.background = 'rgba(239, 68, 68, 0.25)';
+            badgeGas.style.color = '#f87171';
+            badgeGas.innerText = '🔴 อันตราย! ตรวจพบควัน/แก๊ส';
+          } else if (gasVal >= curThreshold * 0.7) {
+            badgeGas.style.background = 'rgba(245, 158, 11, 0.25)';
+            badgeGas.style.color = '#fbbf24';
+            badgeGas.innerText = '🟡 เฝ้าระวัง (ปานกลาง)';
+          } else {
+            badgeGas.style.background = 'rgba(16, 185, 129, 0.2)';
+            badgeGas.style.color = '#6ee7b7';
+            badgeGas.innerText = '🟢 ปลอดภัย (ปกติ)';
+          }
         }
       }
-      if (data.fanBtnCount !== undefined) {
-        document.getElementById('txtFanBtnCount').innerText = data.fanBtnCount + ' ครั้ง';
-      }
-      if (data.mistBtnCount !== undefined) {
-        document.getElementById('txtMistBtnCount').innerText = data.mistBtnCount + ' ครั้ง';
+
+      const rawAdc = (data.adcRaw !== undefined) ? data.adcRaw : data.gasRaw;
+      if (rawAdc !== undefined) {
+        const elAdcRaw = document.getElementById('valAdcRaw');
+        if (elAdcRaw) elAdcRaw.innerText = rawAdc;
+        const elSoilRaw = document.getElementById('valSoilMoistureRaw');
+        if (elSoilRaw) elSoilRaw.innerText = rawAdc;
       }
 
-      log(`State updated (T:${data.temperature}°C, H:${data.humidity}%, Fan:${data.fanState ? 'ON' : 'OFF'}, Mist:${data.mistState ? 'ON' : 'OFF'}, Mode:${data.autoMode ? 'AUTO' : 'MANUAL'})`, source);
+      if (data.fanSensor !== undefined) curFanSensor = data.fanSensor;
+      if (data.fanOperator !== undefined) curFanOperator = data.fanOperator;
+      if (data.fanThreshold !== undefined) curFanThreshold = parseFloat(data.fanThreshold);
+      if (data.mistSensor !== undefined) curMistSensor = data.mistSensor;
+      if (data.mistOperator !== undefined) curMistOperator = data.mistOperator;
+      if (data.mistThreshold !== undefined) curMistThreshold = parseFloat(data.mistThreshold);
+
+      if (data.tempThreshold !== undefined) curFanThreshold = parseFloat(data.tempThreshold);
+      if (data.mistThreshold !== undefined) curMistThreshold = parseFloat(data.mistThreshold);
+
+      if (data.fanSensor !== undefined || data.mistSensor !== undefined || data.fanName || data.mistName) {
+        updateSliderConfig('sliderThreshold', 'txtTempSliderTitle', 'unitThreshold', 'valThreshold', curFanName, curFanSensor, curFanOperator, curFanThreshold);
+        updateSliderConfig('sliderMistThreshold', 'txtMistSliderTitle', 'unitMistThreshold', 'valMistThreshold', curMistName, curMistSensor, curMistOperator, curMistThreshold);
+      }
+
+      if (data.gasThreshold !== undefined) {
+        if (document.activeElement !== document.getElementById('sliderGasThreshold') && !gasThresholdTimeout) {
+          document.getElementById('valGasThreshold').innerText = parseFloat(data.gasThreshold).toFixed(1);
+          document.getElementById('sliderGasThreshold').value = parseFloat(data.gasThreshold);
+        }
+      }
+      if (data.tempThreshold !== undefined || data.fanThreshold !== undefined) {
+        if (document.activeElement !== document.getElementById('sliderThreshold') && !thresholdTimeout) {
+          document.getElementById('valThreshold').innerText = curFanThreshold.toFixed(1);
+          document.getElementById('sliderThreshold').value = curFanThreshold;
+        }
+      }
+      if (data.mistThreshold !== undefined) {
+        if (document.activeElement !== document.getElementById('sliderMistThreshold') && !mistThresholdTimeout) {
+          document.getElementById('valMistThreshold').innerText = curMistThreshold.toFixed(1);
+          document.getElementById('sliderMistThreshold').value = curMistThreshold;
+        }
+      }
+
+      // 7. Soil Moisture
+      if (data.soilMoisture !== undefined) {
+        const soilVal = parseFloat(data.soilMoisture);
+        document.getElementById('valSoilMoisture').innerText = soilVal.toFixed(1);
+        const badgeSoil = document.getElementById('badgeSoilStatus');
+        if (badgeSoil) {
+          if (soilVal < 30) {
+            badgeSoil.style.background = 'rgba(239, 68, 68, 0.25)';
+            badgeSoil.style.color = '#f87171';
+            badgeSoil.innerText = '🔴 ดินแห้งมาก';
+          } else if (soilVal > 80) {
+            badgeSoil.style.background = 'rgba(59, 130, 246, 0.25)';
+            badgeSoil.style.color = '#93c5fd';
+            badgeSoil.innerText = '💧 ดินชุ่มชื้นสูง';
+          } else {
+            badgeSoil.style.background = 'rgba(16, 185, 129, 0.2)';
+            badgeSoil.style.color = '#6ee7b7';
+            badgeSoil.innerText = '🟢 ความชื้นปกติ';
+          }
+        }
+      }
+
+      // 8. BME280 Environmental
+      if (data.bmeTemp !== undefined) document.getElementById('valBmeTemp').innerText = parseFloat(data.bmeTemp).toFixed(1);
+      if (data.bmeHum !== undefined) document.getElementById('valBmeHum').innerText = parseFloat(data.bmeHum).toFixed(1);
+      if (data.bmePress !== undefined) document.getElementById('valBmePress').innerText = parseFloat(data.bmePress).toFixed(1) + ' hPa';
+
+      // 9. DS18B20 Water Temperature
+      if (data.waterTemp !== undefined) {
+        document.getElementById('valWaterTemp').innerText = parseFloat(data.waterTemp).toFixed(1);
+      }
+
+      // 10. LDR Light Sensor
+      if (data.lightPercent !== undefined) {
+        document.getElementById('valLdr').innerText = parseFloat(data.lightPercent).toFixed(1);
+      }
+
+      // 11. PIR Motion Sensor
+      if (data.motionDetected !== undefined) {
+        const badgePir = document.getElementById('badgePirStatus');
+        if (badgePir) {
+          if (data.motionDetected) {
+            badgePir.style.background = 'rgba(239, 68, 68, 0.25)';
+            badgePir.style.color = '#f87171';
+            badgePir.innerText = '🚨 ตรวจพบความเคลื่อนไหว!';
+          } else {
+            badgePir.style.background = 'rgba(16, 185, 129, 0.2)';
+            badgePir.style.color = '#6ee7b7';
+            badgePir.innerText = '🟢 ปกติ (ไม่มีความเคลื่อนไหว)';
+          }
+        }
+      }
+
+      // 12. HC-SR04 Ultrasonic Sensor
+      if (data.distanceCm !== undefined) document.getElementById('valDistance').innerText = parseFloat(data.distanceCm).toFixed(1);
+      if (data.tankPercent !== undefined) document.getElementById('valTank').innerText = parseFloat(data.tankPercent).toFixed(0);
+
+      // Smart Lean Logging: Format summary of active parameters only
+      let summary = [];
+      if (data.temperature !== undefined) summary.push(`T:${data.temperature}°C`);
+      if (data.humidity !== undefined) summary.push(`H:${data.humidity}%`);
+      if (gasVal !== null) summary.push(`Gas:${gasVal.toFixed(1)}%`);
+      if (data.soilMoisture !== undefined) summary.push(`Soil:${data.soilMoisture}%`);
+      if (data.bmeTemp !== undefined) summary.push(`BME:${data.bmeTemp}°C/${data.bmeHum}%`);
+      if (data.waterTemp !== undefined) summary.push(`H2O:${data.waterTemp}°C`);
+      if (data.lightPercent !== undefined) summary.push(`Light:${data.lightPercent}%`);
+      if (data.motionDetected !== undefined) summary.push(`PIR:${data.motionDetected ? 'ACTIVE' : 'IDLE'}`);
+      if (data.distanceCm !== undefined) summary.push(`Dist:${data.distanceCm}cm`);
+      if (data.fanState !== undefined) summary.push(`Fan:${data.fanState ? 'ON' : 'OFF'}`);
+      if (data.mistState !== undefined) summary.push(`Mist:${data.mistState ? 'ON' : 'OFF'}`);
+      if (data.autoMode !== undefined) summary.push(`Mode:${data.autoMode ? 'AUTO' : 'MANUAL'}`);
+
+      log(`State updated (${summary.join(', ')})`, source);
+    }
+
+    function setConnectionPreference(mode) {
+      preferredMode = mode;
+      const btnAuto = document.getElementById('btnModeAuto');
+      const btnWS = document.getElementById('btnModeWS');
+      const btnMQTT = document.getElementById('btnModeMQTT');
+      if (btnAuto) btnAuto.classList.toggle('active', mode === 'auto');
+      if (btnWS) btnWS.classList.toggle('active', mode === 'ws');
+      if (btnMQTT) btnMQTT.classList.toggle('active', mode === 'mqtt');
+      log(`สลับโหมดการเชื่อมต่อหลักเป็น: ${mode === 'auto' ? 'Hybrid Dual Mode (ส่งคู่ขนาน)' : mode === 'ws' ? 'Local WebSockets (วง LAN)' : 'Cloud MQTT (อินเทอร์เน็ต)'}`, 'System');
     }
 
     // 5. Send Command (Hybrid Routing Strategy)
@@ -387,16 +963,66 @@
       }
     }
 
+    function applyModeUI(isAuto) {
+      const txtMode = document.getElementById('txtModeStatus');
+      const txtMistMode = document.getElementById('txtMistModeStatus');
+      
+      const fanMeta = SENSOR_META[curFanSensor] || SENSOR_META['temp'];
+      const mistMeta = SENSOR_META[curMistSensor] || SENSOR_META['soil'];
+
+      if (txtMode) {
+        if (isAuto) {
+          txtMode.innerText = curFanSensor === 'none' ? 'Manual Only' : `Auto [${fanMeta.label} ${curFanOperator} ${curFanThreshold}${fanMeta.unit}]`;
+        } else {
+          txtMode.innerText = 'กำหนดเอง (Manual)';
+        }
+      }
+      if (txtMistMode) {
+        if (isAuto) {
+          txtMistMode.innerText = curMistSensor === 'none' ? 'Manual Only' : `Auto [${mistMeta.label} ${curMistOperator} ${curMistThreshold}${mistMeta.unit}]`;
+        } else {
+          txtMistMode.innerText = 'กำหนดเอง (Manual)';
+        }
+      }
+      
+      const badge = document.getElementById('badgeMasterMode');
+      const btnAuto = document.getElementById('btnSysAuto');
+      const btnManual = document.getElementById('btnSysManual');
+
+      if (badge && btnAuto && btnManual) {
+        if (isAuto) {
+          badge.style.background = 'rgba(16, 185, 129, 0.2)';
+          badge.style.color = '#6ee7b7';
+          badge.innerText = 'Auto Mode (พัดลม & พ่นหมอก)';
+          btnAuto.classList.add('active');
+          btnManual.classList.remove('active');
+        } else {
+          badge.style.background = 'rgba(245, 158, 11, 0.2)';
+          badge.style.color = '#fcd34d';
+          badge.innerText = 'Manual Mode (ควบคุมเอง)';
+          btnAuto.classList.remove('active');
+          btnManual.classList.add('active');
+        }
+      }
+    }
+
     function sendModeCommand(isAuto) {
-      sendCommand({ command: 'set_mode', autoMode: isAuto });
+      applyModeUI(isAuto);
+      sendCommand({ command: 'set_mode', autoMode: Boolean(isAuto), mode: isAuto ? 'auto' : 'manual' });
     }
 
     function sendFanCommand(state) {
-      sendCommand({ command: 'set_fan', state: state });
+      document.getElementById('switchFan').checked = state;
+      document.getElementById('txtFanStatus').innerText = state ? 'เปิด (ON)' : 'ปิด (OFF)';
+      applyModeUI(false);
+      sendCommand({ command: 'set_fan', state: Boolean(state) });
     }
 
     function sendMistCommand(state) {
-      sendCommand({ command: 'set_mist', state: state });
+      document.getElementById('switchMist').checked = state;
+      document.getElementById('txtMistStatus').innerText = state ? 'เปิด (ON)' : 'ปิด (OFF)';
+      applyModeUI(false);
+      sendCommand({ command: 'set_mist', state: Boolean(state) });
     }
 
     let thresholdTimeout = null;
@@ -417,16 +1043,215 @@
       }, 300);
     }
 
-    function setConnectionPreference(mode) {
-      preferredMode = mode;
-      document.querySelectorAll('.segmented-btn').forEach(b => b.classList.remove('active'));
-      if (mode === 'auto') document.getElementById('btnModeAuto').classList.add('active');
-      else if (mode === 'ws') document.getElementById('btnModeWS').classList.add('active');
-      else if (mode === 'mqtt') document.getElementById('btnModeMQTT').classList.add('active');
-      log(`Routing mode changed to: ${mode.toUpperCase()}`);
+    let gasThresholdTimeout = null;
+    function onGasThresholdChange(val) {
+      document.getElementById('valGasThreshold').innerText = parseFloat(val).toFixed(1);
+      clearTimeout(gasThresholdTimeout);
+      gasThresholdTimeout = setTimeout(() => {
+        sendCommand({ command: 'set_gas_threshold', threshold: parseFloat(val) });
+      }, 300);
     }
 
-    window.addEventListener('DOMContentLoaded', initDeviceMetadata);
+    // 6. Progressive Web App (PWA) Registration & Install Manager
+    let deferredInstallPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => {
+            console.log('[PWA] Service Worker registered successfully, scope:', reg.scope);
+          })
+          .catch((err) => {
+            console.warn('[PWA] Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    function checkStandaloneMode() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const btnInstall = document.getElementById('btnInstallPwa');
+      if (btnInstall) {
+        if (isStandalone) {
+          btnInstall.style.display = 'none';
+        } else {
+          btnInstall.style.display = 'inline-flex';
+        }
+      }
+    }
+
+    // Capture install prompt event for PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const btnInstall = document.getElementById('btnInstallPwa');
+      if (btnInstall) {
+        btnInstall.style.display = 'inline-flex';
+      }
+      log('PWA ready to install!', 'System');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      log('Application installed successfully as PWA!', 'System');
+      const btnInstall = document.getElementById('btnInstallPwa');
+      if (btnInstall) btnInstall.style.display = 'none';
+      deferredInstallPrompt = null;
+    });
+
+    // Remote Target Device Modal Controls
+    function openRemoteModal() {
+      document.getElementById('inputRemoteMac').value = deviceCleanMac;
+      document.getElementById('inputRemotePrefix').value = topicPrefix;
+      document.getElementById('inputRemoteBroker').value = mqttBrokerUrl;
+      const modal = document.getElementById('remoteModal');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeRemoteModal(e) {
+      if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains('modal-close') && !e.target.classList.contains('btn-modal-close-remote')) return;
+      const modal = document.getElementById('remoteModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function saveRemoteSettings(e) {
+      e.preventDefault();
+      const rawMac = document.getElementById('inputRemoteMac').value.trim();
+      const rawPrefix = document.getElementById('inputRemotePrefix').value.trim();
+      const rawBroker = document.getElementById('inputRemoteBroker').value.trim();
+
+      if (!rawMac) return;
+
+      let clean = rawMac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      if (clean.length < 4) {
+        alert('กรุณากรอก Device ID หรือ MAC Address ให้ถูกต้อง (เช่น C82E18F87E7C)');
+        return;
+      }
+
+      deviceCleanMac = clean;
+      deviceMac = rawMac.includes(':') ? rawMac.toUpperCase() : clean;
+      topicPrefix = rawPrefix || 'allarm-iot';
+      mqttBrokerUrl = rawBroker || 'wss://broker.emqx.io:8084/mqtt';
+
+      buildTopics();
+
+      localStorage.setItem(LS_KEY_MAC, deviceMac);
+      localStorage.setItem(LS_KEY_CLEAN_MAC, deviceCleanMac);
+      localStorage.setItem(LS_KEY_PREFIX, topicPrefix);
+      localStorage.setItem(LS_KEY_BROKER, mqttBrokerUrl);
+
+      document.getElementById('lblMac').innerText = deviceCleanMac;
+      document.getElementById('lblSub').innerText = subTopic;
+      document.getElementById('lblPub').innerText = pubTopic;
+
+      log(`สลับเป้าหมายเป็น Device ID: [${deviceCleanMac}] (Prefix: ${topicPrefix})`, 'MQTT');
+
+      // Reconnect MQTT immediately
+      initMQTT();
+      closeRemoteModal();
+    }
+
+    function openPwaModal() {
+      const modal = document.getElementById('pwaModal');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closePwaModal(e) {
+      if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains('modal-close') && !e.target.classList.contains('btn-modal-close')) return;
+      const modal = document.getElementById('pwaModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    async function installPwaApp() {
+      if (deferredInstallPrompt) {
+        try {
+          deferredInstallPrompt.prompt();
+          const choice = await deferredInstallPrompt.userChoice;
+          if (choice.outcome === 'accepted') {
+            console.log('[PWA] User accepted installation prompt');
+            const btnInstall = document.getElementById('btnInstallPwa');
+            if (btnInstall) btnInstall.style.display = 'none';
+          }
+          deferredInstallPrompt = null;
+        } catch (err) {
+          console.warn('[PWA] Prompt error, falling back to guide modal:', err);
+          openPwaModal();
+        }
+      } else {
+        openPwaModal();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initDeviceMetadata();
+      checkStandaloneMode();
+    });
   </script>
+
+  <!-- Remote Device Config Modal -->
+  <div id="remoteModal" class="modal-backdrop" onclick="closeRemoteModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🔗 ตั้งค่าเชื่อมต่อระยะไกล (Cloud Remote)</h3>
+        <button class="modal-close" onclick="closeRemoteModal(event)">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        หากเปิด Dashboard ผ่านเน็ตมือถือ (4G/5G) หรือคนละ Wi-Fi กับตัวบอร์ด ท่านสามารถระบุ <strong>Device ID / MAC</strong> เพื่อควบคุมผ่าน Cloud MQTT ได้จากทุกที่ทั่วโลก:
+      </p>
+      <form onsubmit="saveRemoteSettings(event)" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">🆔 Device ID หรือ MAC Address ของบอร์ด:</label>
+          <input type="text" id="inputRemoteMac" class="form-control" placeholder="เช่น C82E18F87E7C หรือ C8:2E:18:F8:7E:7C" required style="font-family: monospace; font-size: 0.95rem;">
+        </div>
+        <div class="form-group">
+          <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">🏷️ MQTT Topic Prefix (คำนำหน้า Topic):</label>
+          <input type="text" id="inputRemotePrefix" class="form-control" placeholder="allarm-iot" style="font-family: monospace; font-size: 0.95rem;">
+        </div>
+        <div class="form-group">
+          <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">☁️ Cloud MQTT Broker (WSS URL):</label>
+          <input type="text" id="inputRemoteBroker" class="form-control" placeholder="wss://broker.emqx.io:8084/mqtt" style="font-family: monospace; font-size: 0.85rem;">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 6px;">
+          <button type="submit" class="btn-primary" style="flex: 1; background: linear-gradient(135deg, #0ea5e9, #6366f1); border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; color: white;">💾 บันทึกและเชื่อมต่อทันที</button>
+          <button type="button" class="btn-secondary btn-modal-close-remote" onclick="closeRemoteModal(event)" style="padding: 10px 14px; border-radius: 8px; cursor: pointer;">ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PWA Install Guide Modal -->
+  <div id="pwaModal" class="modal-backdrop" onclick="closePwaModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📲 วิธีติดตั้งแอป IoT Controller</h3>
+        <button class="modal-close" onclick="closePwaModal(event)">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        ติดตั้ง Dashboard ลงบนอุปกรณ์ของคุณเพื่อเปิดใช้งานแบบเต็มหน้าจอ (Full Screen) ทำงานได้รวดเร็ว และใช้งานได้เสมือนแอป Native:
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="install-step">
+          <div class="step-num">🍎</div>
+          <div>
+            <strong>iPhone / iPad (iOS Safari):</strong><br>
+            แตะปุ่มแชร์ <strong>Share (⎋)</strong> ที่แถบด้านล่าง ➔ เลื่อนลงแล้วเลือก <strong>"เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen)</strong>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">🤖</div>
+          <div>
+            <strong>Android (Google Chrome):</strong><br>
+            แตะเมนู <strong>(⋮) 3 จุด</strong> มุมขวาบน ➔ เลือก <strong>"ติดตั้งแอป" (Install App)</strong> หรือ <strong>"เพิ่มลงในหน้าจอหลัก"</strong>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">💻</div>
+          <div>
+            <strong>คอมพิวเตอร์ (Chrome / Edge):</strong><br>
+            คลิกไอคอน <strong>ติดตั้ง (⊕ หรือ คอมพิวเตอร์)</strong> บนแถบ URL ด้านขวา หรือกดเมนู 3 จุด ➔ เลือก <strong>"ติดตั้ง IoT Controller..."</strong>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary btn-modal-close" onclick="closePwaModal(event)" style="width: 100%; margin-top: 4px; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; color: white;">✓ รับทราบ / ปิดหน้าต่าง</button>
+    </div>
+  </div>
 </body>
 </html>

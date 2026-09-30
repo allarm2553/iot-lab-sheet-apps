@@ -1216,6 +1216,42 @@
                 <td>SDA: 4 / SCL: 5</td>
                 <td>I2C Address <code>0x3C</code> แสดงผลโหนด &amp; MAC</td>
               </tr>
+              <tr>
+                <td><b>เซ็นเซอร์วัดความชื้นในดิน (Soil Moisture)</b></td>
+                <td><code style="color:#38bdf8; font-weight:bold;">GPIO 34 (ADC1_CH6)</code></td>
+                <td>A0 (ADC0)</td>
+                <td>เปิด/ปิดและปรับช่วงสอบเทียบ ADC Min/Max ได้</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์สภาพอากาศ BME280</b></td>
+                <td><code style="color:#fbbf24; font-weight:bold;">SDA: 21 / SCL: 22</code></td>
+                <td>SDA: 4 / SCL: 5</td>
+                <td>I2C Address <code>0x76</code> หรือ <code>0x77</code> (อุณหภูมิ/ความชื้น/ความกดอากาศ)</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์วัดอุณหภูมิน้ำ DS18B20</b></td>
+                <td><code style="color:#38bdf8; font-weight:bold;">GPIO 4 (1-Wire)</code></td>
+                <td>GPIO 4 (D2)</td>
+                <td>เชื่อมต่อแบบ 1-Wire Bus กำหนดพินผ่าน WebConfig</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์แสงสว่าง (LDR Light)</b></td>
+                <td><code style="color:#a78bfa; font-weight:bold;">GPIO 35 (ADC1_CH7)</code></td>
+                <td>A0 (ADC0)</td>
+                <td>คำนวณเปอร์เซ็นต์ความสว่าง (0 - 100%)</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์ตรวจจับการเคลื่อนไหว (PIR Motion)</b></td>
+                <td><code style="color:#f43f5e; font-weight:bold;">GPIO 27</code></td>
+                <td>GPIO 14 (D5)</td>
+                <td>Digital Input ตรวจจับวัตถุ/คนผ่าน</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์วัดระดับน้ำ/ระยะทาง (Ultrasonic)</b></td>
+                <td><code style="color:#38bdf8; font-weight:bold;">Trig: 12 / Echo: 14</code></td>
+                <td>Trig: D1 / Echo: D2</td>
+                <td>คำนวณระยะทาง (cm) และเปอร์เซ็นต์ระดับน้ำในแท็งก์</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -2182,6 +2218,7 @@ void loop() {
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('resetflow', this)"><i class="fa-solid fa-rotate-left"></i> 3. Factory Reset &amp; Debounce</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('captiveap', this)"><i class="fa-solid fa-wifi"></i> 4. Captive Portal AP Mode</button>
           <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('littlefs', this)"><i class="fa-solid fa-hard-drive"></i> 5. LittleFS File System</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('multisensor', this)"><i class="fa-solid fa-network-wired"></i> 6. Dynamic Rules &amp; Sensors</button>
         </div>
 
         <div class="theory-tab-panel active" id="theory-tab-webconfig">
@@ -2244,6 +2281,18 @@ void loop() {
               serializeJson(doc, file);<br>
               file.close();
             </div>
+          </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-multisensor">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-network-wired"></i> 6.1 Dynamic Automation Rules &amp; Multi-Sensor Ecosystem</h4>
+            <p>ในเฟิร์มแวร์เวอร์ชันอัปเกรดล่าสุด รองรับระบบ <b>Dynamic Automation Rules Binding</b> ซึ่งสามารถเลือกผูกตัวแปรเซ็นเซอร์ (Sensor Source) เข้ากับรีเลย์แต่ละช่องได้อย่างอิสระผ่าน WebConfig:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.35rem; line-height: 1.6;">
+              <li><b>แหล่งข้อมูลเซ็นเซอร์ที่รองรับ:</b> อุณหภูมิ/ความชื้น DHT (<code>temp</code>, <code>hum</code>), ความชื้นในดิน (<code>soil</code>), ก๊าซ/ควัน (<code>gas</code>), ความเข้มแสง (<code>ldr</code>), อุณหภูมิน้ำ (<code>ds18b20</code>), สภาพอากาศ BME280 (<code>bme_temp</code>, <code>bme_hum</code>, <code>bme_press</code>)</li>
+              <li><b>เงื่อนไขเปรียบเทียบ (Operator):</b> มากกว่า (<code>&gt;</code>) หรือ น้อยกว่า (<code>&lt;</code>) พร้อมค่า <b>Hysteresis</b> ป้องกันรีเลย์ตัด-ต่อถี่เกินไป (Chattering Protection)</li>
+              <li><b>ระบบ MQTT Prefix Namespace:</b> รองรับตัวแปร <code>topicPrefix</code> (ค่าเริ่มต้น: <code>allarm-iot</code>) เพื่อแบ่งกลุ่มหรือแยกโปรเจกต์ระดับองค์กร</li>
+            </ul>
           </div>
         </div>
       </div>
