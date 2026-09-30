@@ -1,59 +1,146 @@
-# 🏆 ใบงานที่ 6: การบูรณาการโครงงาน Hybrid Node ขั้นสูง (Grand Challenge)
+# คู่มือการเรียนรู้ Lab 6: การบูรณาการระบบ Hybrid Dual-Mode IoT Node (Local WebSockets & Cloud MQTT)
 
-คู่มือการบูรณาการระบบ IoT เต็มรูปแบบที่รวมการทำงานของ **Local Web Server (Port 80)**, **Local WebSockets (Port 81)**, **Cloud MQTT Broker (EMQX)**, **จอแสดงผล OLED SSD1306**, เซ็นเซอร์ **DHT11**, สวิตช์ปุ่มกด และการควบคุมรีเลย์แบบอัตโนมัติ
-
----
-
-## 🎯 วัตถุประสงค์ (Objectives)
-
-1. สามารถบูรณาการฮาร์ดแวร์และซอฟต์แวร์ทั้งหมด (GPIO, ADC, I2C OLED, LittleFS, WebSockets, MQTT) ให้ทำงานร่วมกันได้อย่างมีเสถียรภาพ
-2. เข้าใจสถาปัตยกรรมแบบ **Hybrid IoT Node** ที่สามารถควบคุมและอ่านค่าได้พร้อมกันทั้งผ่านเครือข่ายภายใน (Local LAN WebSockets) และเครือข่ายภายนอก (Cloud MQTT)
-3. สามารถเขียนโปรแกรมแบบ **Non-blocking Loop** โดยใช้ฟังก์ชัน `millis()` เพื่อเชื่อมต่อ Wi-Fi และ MQTT ใหม่อัตโนมัติโดยไม่ทำให้ระบบฮาร์ดแวร์หยุดชะงัก
-4. สามารถจัดการสถานะควบคุมแบบ **Hysteresis Dual-loop** (คุมพัดลมตามอุณหภูมิ และคุมหัวพ่นหมอกตามความชื้น/ดิน)
+คู่มือนี้อธิบายขั้นตอนการพัฒนาและบูรณาการระบบ IoT ขั้นสูง โดยรวมจุดเด่นของ **Local WebSockets (Lab 4.1)** ที่ทำงานได้รวดเร็วแบบ 0-Latency ภายในวง LAN เข้ากับ **Cloud MQTT (LAB5_Dev)** ที่สามารถควบคุมข้ามเครือข่ายอินเทอร์เน็ตได้จากทุกที่ทั่วโลก ให้อยู่ร่วมกันบนบอร์ดไมโครคอนโทรลเลอร์ (ESP32 / ESP8266) พร้อมการควบคุมผ่านหน้าเว็บแดชบอร์ด **Progressive Web App (PWA)** แบบ Multi-Protocol
 
 ---
 
-## 🏗️ โครงสร้างสถาปัตยกรรม Hybrid Node
+## สารบัญ
+1. [ภาพรวมสถาปัตยกรรมระบบ Dual-Mode Coexistence](#1-ภาพรวมสถาปัตยกรรมระบบ-dual-mode-coexistence)
+2. [การเชื่อมต่อวงจรฮาร์ดแวร์ (Hardware Pinouts)](#2-การเชื่อมต่อวงจรฮาร์ดแวร์)
+3. [ขั้นตอนที่ 1: การเขียนโปรแกรมเฟิร์มแวร์ฝั่งบอร์ด (C++ / PlatformIO)](#3-ขั้นตอนที่-1-การเขียนโปรแกรมเฟิร์มแวร์ฝั่งบอร์ด)
+4. [ขั้นตอนที่ 2: กลไก Bidirectional State Synchronization](#4-ขั้นตอนที่-2-กลไก-bidirectional-state-synchronization)
+5. [ขั้นตอนที่ 3: การพัฒนาหน้าเว็บแดชบอร์ดและการติดตั้ง PWA](#5-ขั้นตอนที่-3-การพัฒนาหน้าเว็บแดชบอร์ดและการติดตั้ง-pwa)
+6. [การทดสอบและการวิเคราะห์ผลการทำงาน](#6-การทดสอบและการวิเคราะห์ผลการทำงาน)
 
+---
+
+## 1. ภาพรวมสถาปัตยกรรมระบบ Dual-Mode Coexistence
+
+ระบบ Hybrid IoT Node ทำหน้าที่เปิดบริการสื่อสาร 2 ช่องทางขนานกันบนอุปกรณ์ตัวเดียว:
+1. **Local WebSockets Server (Port 81):** สื่อสารตรงกับเครื่องลูกข่าย (Clients) ในวง Wi-Fi เดียวกัน ตอบสนองทันทีแบบ 0-Latency แม้อินเทอร์เน็ตภายนอกจะล่ม
+2. **Cloud MQTT Client (Port 1883 / WSS:8084):** เชื่อมต่อกับ Public MQTT Broker (`broker.emqx.io`) เพื่อรายงานค่าเซ็นเซอร์และรับคำสั่งจากระยะไกล
+
+```mermaid
+flowchart TD
+    subgraph LAN [Local Area Network (ภายในบ้าน / โรงงาน)]
+        DashboardLocal[Web Dashboard Local\nPort 80 / WS :81]
+        ESP32[ESP32 Hybrid Node\nDHT11 + Relays + OLED]
+    end
+
+    subgraph WAN [Cloud & Internet (ภายนอก)]
+        Broker((Cloud MQTT Broker\nbroker.emqx.io:1883))
+        DashboardCloud[Web Dashboard Cloud\nWSS :8084 PWA App]
+    end
+
+    DashboardLocal <-->|WebSocket :81\n0-Latency| ESP32
+    ESP32 <-->|MQTT :1883\nTelemetry & Control| Broker
+    Broker <-->|MQTT over WSS :8084| DashboardCloud
 ```
-                               ┌────────────────────────┐
-                               │   EMQX Cloud Broker    │
-                               │    (broker.emqx.io)    │
-                               └───────────┬────────────┘
-                                           │ MQTT (Port 1883)
-                                           ▼
-┌─────────────────┐  WebSocket   ┌────────────────────────┐   I2C   ┌─────────────────┐
-│ Local Dashboard │◄────────────►│      ESP32 / ESP8266   │────────►│  OLED Display   │
-│ (Browser / LAN) │  (Port 81)   │      Hybrid Controller │         │  (SSD1306 128x64│
-└─────────────────┘              └─────────┬──────────────┘         └─────────────────┘
-                                           │
-                      ┌────────────────────┼────────────────────┐
-                      ▼                    ▼                    ▼
-               ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-               │ DHT11 Temp/ │      │ Potentiometer/     │ Fan & Mist  │
-               │  Humidity   │      │ Soil Moisture      │   Relays    │
-               └─────────────┘      └─────────────┘      └─────────────┘
-```
 
 ---
 
-## 🔌 การต่อวงจรและพินฮาร์ดแวร์ (Hardware Pinouts)
+## 2. การเชื่อมต่อวงจรฮาร์ดแวร์
 
-| อุปกรณ์ | บอร์ด ESP32 (IPST-WiFi) | บอร์ด ESP8266 (AX-WiFi) | คำอธิบาย |
+| อุปกรณ์ | ขาพิน ESP32 (IPST-WiFi) | ขาพิน ESP8266 (AX-WiFi) | หน้าที่การทำงาน |
 | :--- | :--- | :--- | :--- |
-| **DHT11 Data** | `GPIO 33` | `GPIO 2` (`D4`) | เซ็นเซอร์อุณหภูมิและความชื้น |
-| **Analog ADC (KNOB/Soil)** | `GPIO 36` (VP) | `ADC0` (`A0`) | แรงดันแอนะล็อก |
-| **OLED SDA / SCL** | `GPIO 21` / `GPIO 22` | `GPIO 4` (`D2`) / `GPIO 5` (`D1`) | จอแสดงผล I2C |
-| **Fan Relay** | `GPIO 5` | `GPIO 13` (`D7`) | ควบคุมพัดลม |
-| **Mist Relay** | `GPIO 23` | `GPIO 16` (`D0`) | ควบคุมพ่นหมอก |
-| **Push Button** | `GPIO 0` (SW1) | `GPIO 0` (`D3`) | ปุ่มกดควบคุมบนบอร์ด |
+| **DHT11 Sensor** | GPIO 33 | GPIO 0 (D3) | วัดอุณหภูมิและความชื้น |
+| **Analog VR (Soil)** | GPIO 36 (VP) | A0 (ADC0) | จำลองเซ็นเซอร์ความชื้นในดิน |
+| **Relay 1 (พัดลม)** | GPIO 18 (หรือ GPIO 5) | GPIO 14 (D5) | รีเลย์ควบคุมพัดลมระบายอากาศ |
+| **Relay 2 (พ่นหมอก)** | GPIO 19 (หรือ GPIO 13) | GPIO 12 (D6) | รีเลย์ควบคุมปั๊มน้ำพ่นหมอก |
+| **OLED Display** | SDA: 21, SCL: 22 | SDA: 4, SCL: 5 | แสดงผลค่าและสถานะการเชื่อมต่อ |
 
 ---
 
-## ✍️ คำถามสรุปผลการทดลอง (Review Questions)
+## 3. ขั้นตอนที่ 1: การเขียนโปรแกรมเฟิร์มแวร์ฝั่งบอร์ด
 
-**คำถามที่ 1: เหตุใดการเชื่อมต่อ Wi-Fi และ MQTT ในระบบ Hybrid Node จึงต้องใช้โค้ดแบบ Non-blocking (ใช้ `millis()`) แทนการใช้ `while (!client.connected()) delay(500);`?**
-> **แนวคำตอบ:** หากใช้คำสั่งลูปดักรอแบบ Blocking เมื่อสัญญาณ Wi-Fi หรือเน็ตหลุด CPU จะหยุดค้างอยู่ตรงจุดนั้นทันที ทำให้ไม่สามารถสั่งงานรีเลย์ ไม่สามารถอ่านค่าเซ็นเซอร์มาตัดการทำงาน และเว็บเซิร์ฟเวอร์/หน้าจอ OLED จะค้างทั้งหมด การใช้ Non-blocking Timer ช่วยให้ลูปหลักยังคงอ่านค่าเซ็นเซอร์และควบคุมความปลอดภัยของระบบได้ตามปกติ และค่อยๆ พยายามเชื่อมต่อใหม่เป็นระยะโดยระบบไม่ค้าง
+### การประกาศตัวแปรและการจัดการพอร์ต:
+```cpp
+#include <WiFi.h>
+#include <WebServer.h>
+#include <WebSocketsServer.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <DHT.h>
 
-**คำถามที่ 2: สถาปัตยกรรม Hybrid Node (มีทั้ง Local WebSockets และ Cloud MQTT) มีข้อได้เปรียบอย่างไรในงานอุตสาหกรรมหรือสมาร์ทฟาร์ม?**
-> **แนวคำตอบ:** ข้อได้เปรียบคือมีความทนทานสูง (High Reliability) หากอินเทอร์เน็ตภายนอกหรือ Cloud Server ล่ม ผู้ใช้งานยังสามารถเข้าหน้าเว็บ Local LAN ผ่าน IP ภายในเพื่อควบคุมและดูค่าสดผ่าน WebSocket ได้อย่างรวดเร็ว และเมื่ออินเทอร์เน็ตกลับมาใช้งานได้ตามปกติ ระบบก็จะส่งข้อมูลขึ้น Cloud MQTT ให้ผู้ใช้ดูผ่านแอปพลิเคชันจากระยะไกลได้ทันที
+WebServer server(80);
+WebSocketsServer webSocket = WebSocketsServer(81);
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+```
+
+### การจัดการ Non-blocking Reconnect Loop ใน `loop()`:
+```cpp
+void loop() {
+  server.handleClient();
+  webSocket.loop();
+  
+  // ตรวจสอบและเชื่อมต่อ MQTT ใหม่แบบ Non-blocking (ห้ามใช้ while / delay)
+  static unsigned long lastMqttCheck = 0;
+  if (!mqttClient.connected() && (millis() - lastMqttCheck > 5000)) {
+    lastMqttCheck = millis();
+    String clientId = "ESP32-Hybrid-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    if (mqttClient.connect(clientId.c_str())) {
+      mqttClient.subscribe("esp32-climate-node/control/cmd");
+    }
+  }
+  if (mqttClient.connected()) {
+    mqttClient.loop();
+  }
+
+  // Periodic Heartbeat ส่งค่าทุก 5 วินาที
+  static unsigned long lastMsg = 0;
+  if (millis() - lastMsg > 5000) {
+    lastMsg = millis();
+    broadcastHybridState();
+  }
+}
+```
+
+---
+
+## 4. ขั้นตอนที่ 2: กลไก Bidirectional State Synchronization
+
+เมื่อมีคำสั่งเปลี่ยนสถานะรีเลย์ (ไม่ว่าจะสั่งผ่าน Local WebSocket หรือ Cloud MQTT) ฟังก์ชัน `broadcastHybridState()` จะถูกเรียกใช้งานทันที เพื่อส่งสถานะใหม่กระจายไปให้ทุกช่องทาง:
+
+```cpp
+void broadcastHybridState() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  
+  JsonDocument doc;
+  doc["temp"] = isnan(t) ? 0 : t;
+  doc["humidity"] = isnan(h) ? 0 : h;
+  doc["fan"] = fanState ? 1 : 0;
+  doc["mist"] = mistState ? 1 : 0;
+  doc["mqtt"] = mqttClient.connected();
+  
+  String payload;
+  serializeJson(doc, payload);
+  
+  // 1. Broadcast ส่งหา Client ทุกเครื่องบนวง LAN
+  webSocket.broadcastTXT(payload);
+  
+  // 2. Publish ส่งขึ้น Cloud MQTT Broker
+  if (mqttClient.connected()) {
+    mqttClient.publish("esp32-climate-node/state", payload.c_str());
+  }
+}
+```
+
+---
+
+## 5. ขั้นตอนที่ 3: การพัฒนาหน้าเว็บแดชบอร์ดและการติดตั้ง PWA
+
+1. **ดาวน์โหลดชุดไฟล์ Web UI:** กดปุ่ม **"โหลด Web UI (data.zip)"** บนหน้าใบงาน
+2. **แตกไฟล์ลงในโฟลเดอร์ `data/`:** จะประกอบด้วย `index.html`, `styles.css`, `manifest.json`, และ `sw.js`
+3. **การติดตั้งใช้งาน PWA (Progressive Web App):**
+   * บน **Google Chrome / Edge (Desktop):** กดไอคอนรูปคอมพิวเตอร์พร้อมลูกศรดาวน์โหลดบนแถบ Address Bar เพื่อติดตั้งเป็น Standalone App
+   * บน **สมาร์ตโฟน (Android / iOS):** กดเมนูตัวเลือก (3 จุด) -> เลือก **"เพิ่มลงในหน้าจอหลัก (Add to Home Screen)"** หรือ **"ติดตั้งแอป (Install App)"**
+
+---
+
+## 6. การทดสอบและการวิเคราะห์ผลการทำงาน
+
+* **การทดสอบ Zero-Latency:** สั่งงานผ่าน Local WebSocket (Port 81) จะพบว่ารีเลย์ทำงานทันทีโดยไม่ต้องพึ่งพาอินเทอร์เน็ต
+* **การทดสอบ Fault Tolerance (WAN Offline):** เมื่อถอดสายอินเทอร์เน็ตของ Router ออก บอร์ดจะยังคงทำงานในโหมด Local WebSocket ต่อไปได้ 100% โดยไม่เกิดอาการค้าง เนื่องจากใช้ Non-blocking Reconnect Timer
