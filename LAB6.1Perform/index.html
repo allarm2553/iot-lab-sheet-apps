@@ -3,548 +3,3095 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบงานที่ 6 Perform: ระบบกำหนดค่าผ่าน WebConfig & ระบบสร้าง Topic ด้วย MAC Address</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap">
+  <title>ใบงานที่ 6.1: การพัฒนาระบบ IoT เกรดอุตสาหกรรมด้วย WebConfig แบบไดนามิก & Auto MAC-Based Topics</title>
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- SweetAlert2 for polished dialogs -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- MQTT.js for live telemetry test -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
   <style>
     :root {
-      --bg-color: #0b132b;
-      --card-bg: rgba(28, 37, 65, 0.75);
-      --card-border: rgba(255, 255, 255, 0.12);
-      --primary: #48cae4;
-      --secondary: #5390d9;
-      --accent-pink: #f72585;
-      --success: #4ea8de;
-      --success-green: #2ec4b6;
-      --danger: #e63946;
-      --warning: #ffb703;
-      --text-main: #edf2f4;
-      --text-muted: #8d99ae;
-      --radius-lg: 18px;
-      --radius-md: 12px;
-      --transition: all 0.3s ease;
+      --bg-dark: #090d16;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-card: rgba(56, 189, 248, 0.2);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --primary: #38bdf8;
+      --secondary: #818cf8;
+      --purple: #a855f7;
+      --green: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --glass-blur: blur(16px);
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --mono-font: 'JetBrains Mono', monospace;
+      --challenge-frame-bg: rgba(245, 158, 11, 0.08);
+      --challenge-frame-border: #f59e0b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
-      font-family: 'Kanit', 'Outfit', sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Sarabun', sans-serif;
+      background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(at 10% 10%, rgba(72, 202, 228, 0.12) 0px, transparent 50%),
-        radial-gradient(at 90% 90%, rgba(83, 144, 217, 0.12) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.8) 0px, transparent 100%);
       background-attachment: fixed;
       color: var(--text-main);
-      line-height: 1.6;
-      padding: 20px;
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1440px;
       margin: 0 auto;
     }
 
-    .header-banner {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 30px;
-      margin-bottom: 25px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
       position: relative;
-      overflow: hidden;
     }
 
-    .header-banner h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #48cae4, #5390d9, #f72585);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-    }
-
-    .header-banner p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .student-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-      background: rgba(11, 19, 43, 0.5);
-      padding: 15px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--card-border);
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--primary);
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: #fff;
-      font-size: 0.9rem;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .input-group input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(72, 202, 228, 0.3);
-    }
-
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    .card h2 {
-      font-size: 1.25rem;
-      color: var(--primary);
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 10px;
-    }
-
-    .btn {
-      padding: 10px 22px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
+    .logo-container {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
-      transition: var(--transition);
-      text-decoration: none;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #0b132b;
+    .logo-icon {
+      font-size: 2.2rem;
+      color: var(--accent);
+      filter: drop-shadow(0 0 12px var(--accent-glow));
     }
 
-    .btn-primary:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
+    h1 {
+      font-family: 'Outfit', 'Sarabun', sans-serif;
+      font-size: 1.95rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8 20%, #818cf8 60%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .code-block {
-      background: #050a17;
-      padding: 16px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.88rem;
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 820px;
+      margin: 0.35rem auto 0 auto;
+      line-height: 1.5;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .course-badge {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
       color: #38bdf8;
-      overflow-x: auto;
-      margin: 12px 0;
-      border: 1px solid var(--card-border);
-    }
-
-    textarea.form-control {
-      width: 100%;
-      height: 120px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: #fff;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 0.88rem;
-      outline: none;
-    }
-
-    textarea.form-control:focus {
-      border-color: var(--primary);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
     .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.online {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.offline {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
       display: inline-block;
-      padding: 4px 10px;
+    }
+
+    .status-badge.online .status-dot {
+      background-color: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse-dot 2s infinite;
+    }
+
+    .status-badge.offline .status-dot {
+      background-color: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    @keyframes pulse-dot {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* 2-Column Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent);
+    }
+
+    .btn-theory-toggle {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #d8b4fe;
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-theory-toggle:hover {
+      background: rgba(168, 85, 247, 0.3);
+      border-color: #c084fc;
+      color: #fff;
+    }
+
+    .info-frame {
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 4px solid var(--accent);
+      padding: 1rem 1.2rem;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    .info-frame h3 {
+      font-size: 0.95rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .info-frame ol, .info-frame ul {
+      margin-left: 1.25rem;
+    }
+
+    .info-frame li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* Headings & Tables */
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 1.25rem 0 0.6rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(11, 17, 32, 0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    th {
+      background: rgba(30, 41, 59, 0.8);
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Code Container & Blanks */
+    .code-container {
+      background: #030712;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .code-header {
+      background: #111827;
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--mono-font);
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e5e7eb;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    pre {
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono-font);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    .code-blank {
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px dashed #818cf8;
+      border-radius: 6px;
+      padding: 0.15rem 0.55rem;
+      color: #38bdf8;
+      font-family: var(--mono-font), monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      display: inline-block;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+    }
+
+    .code-blank:focus {
+      border-style: solid;
+      border-color: #38bdf8;
+      background: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+
+    .code-blank::placeholder {
+      color: rgba(165, 180, 252, 0.65);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
+    /* Challenge Frame */
+    .challenge-frame {
+      background: var(--challenge-frame-bg);
+      border-left: 4px solid var(--challenge-frame-border);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .challenge-frame h3 {
+      color: #fbbf24;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .challenge-frame p {
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    /* Form Fields & Sections */
+    .form-section {
+      margin-bottom: 1.5rem;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+    }
+
+    .form-section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 75px;
+      line-height: 1.5;
+    }
+
+    /* Quiz Cards */
+    .quiz-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .quiz-q-title {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #f1f5f9;
+      margin-bottom: 0.65rem;
+      line-height: 1.5;
+      display: flex;
+      gap: 0.45rem;
+    }
+
+    .quiz-q-badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      height: fit-content;
+      white-space: nowrap;
+    }
+
+    .quiz-options-grid {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-option-label:hover {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    .quiz-option-label input[type="radio"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* File Upload Box */
+    .upload-area {
+      border: 2px dashed rgba(56, 189, 248, 0.35);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 0.75rem;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .upload-icon {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .upload-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .file-preview-badge {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 0.4rem 0.8rem;
       border-radius: 6px;
       font-size: 0.8rem;
-      font-weight: 600;
-      background: rgba(78, 168, 222, 0.2);
-      color: var(--primary);
+      margin-top: 0.5rem;
     }
-  
-    .btn-theory-toggle {
-      background: linear-gradient(135deg, rgba(72, 202, 228, 0.2), rgba(83, 144, 217, 0.3));
-      border: 1px solid var(--primary);
-      color: #edf2f4;
-      padding: 0.45rem 1.1rem;
+
+    /* Action Buttons */
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border: none;
       border-radius: 8px;
+      font-family: inherit;
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
-      transition: all 0.25s ease;
-      font-family: inherit;
-    }
-    .btn-theory-toggle:hover {
-      background: linear-gradient(135deg, rgba(72, 202, 228, 0.4), rgba(83, 144, 217, 0.5));
-      color: #ffffff;
-      box-shadow: 0 0 14px rgba(72, 202, 228, 0.4);
-      transform: translateY(-1px);
-    }
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(2, 6, 17, 0.85); backdrop-filter: blur(8px);
-      z-index: 9999; display: none; align-items: center; justify-content: center; padding: 1rem;
-    }
-    .theory-modal-content {
-      background: #1c2541; border: 1px solid var(--card-border); border-radius: 16px;
-      max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7); overflow: hidden;
-    }
-    .theory-modal-header {
-      padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex; justify-content: space-between; align-items: center; background: rgba(11, 19, 43, 0.6);
-    }
-    .theory-close-x {
-      background: transparent; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;
-    }
-    .theory-modal-body {
-      padding: 1.5rem; overflow-y: auto; flex: 1; line-height: 1.7;
-    }
-    .theory-tab-bar {
-      display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 0.75rem;
-    }
-    .theory-tab-btn {
-      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-muted); padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.85rem;
-      cursor: pointer; font-family: inherit;
-    }
-    .theory-tab-btn.active, .theory-tab-btn:hover {
-      background: rgba(72, 202, 228, 0.2); border-color: var(--primary); color: #edf2f4;
-    }
-    .theory-tab-panel { display: none; }
-    .theory-tab-panel.active { display: block; }
-    .theory-card {
-      background: rgba(11, 19, 43, 0.5); border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
     }
 
-  
-    /* Anti-Cheat Toast Warning */
+    .btn-check-score {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-check-score:hover {
+      background: rgba(16, 185, 129, 0.28);
+      border-color: #34d399;
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* Wokwi Simulation Card */
+    .wokwi-section-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius-lg);
+      margin: 1.25rem 0;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      transition: all 0.3s ease;
+    }
+
+    .wokwi-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .wokwi-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .wokwi-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .wokwi-ctrl-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .wokwi-ctrl-btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #fff;
+    }
+
+    .wokwi-ctrl-btn.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .wokwi-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background: #000;
+    }
+
+    .wokwi-iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .wokwi-guide-banner {
+      background: rgba(15, 23, 42, 0.85);
+      padding: 0.8rem 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .guide-badge {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    /* Web Serial Card */
+    .lab-feature-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin: 1.25rem 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .lab-feature-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .lab-feature-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .lab-feature-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .feature-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .feature-btn.primary {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #34d399;
+    }
+
+    .feature-btn.primary:hover {
+      background: rgba(16, 185, 129, 0.35);
+      color: #fff;
+    }
+
+    .feature-btn.warning {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+    }
+
+    .feature-select {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      outline: none;
+    }
+
+    .serial-terminal-box {
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.75rem;
+      height: 160px;
+      overflow-y: auto;
+      font-family: var(--mono-font);
+      font-size: 0.78rem;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: 0.6rem;
+    }
+
+    .serial-send-bar {
+      display: flex;
+      gap: 0.45rem;
+    }
+
+    .serial-send-bar input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 0.4rem 0.7rem;
+      color: #fff;
+      font-size: 0.82rem;
+      font-family: var(--mono-font);
+      outline: none;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .theory-modal-content {
+      background: #0b1120;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 850px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .theory-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      background: rgba(15, 23, 42, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .theory-close-x {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .theory-modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .theory-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .theory-tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .theory-tab-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent);
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .theory-tab-panel {
+      display: none;
+    }
+
+    .theory-tab-panel.active {
+      display: block;
+    }
+
+    .theory-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .theory-card h4 {
+      color: #38bdf8;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .theory-formula {
+      background: #020617;
+      border-left: 3px solid #818cf8;
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-family: var(--mono-font);
+      font-size: 0.82rem;
+      color: #c7d2fe;
+      margin: 0.75rem 0;
+    }
+
+    .theory-modal-footer {
+      padding: 1rem 1.5rem;
+      background: rgba(15, 23, 42, 0.8);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: right;
+    }
+
+    .score-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.85rem;
+    }
+
+    .score-status-badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .score-status-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .score-status-badge.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Anti-cheat Toast */
     .anti-cheat-toast {
       position: fixed;
       bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+      right: 25px;
+      background: rgba(239, 68, 68, 0.95);
       color: #ffffff;
-      padding: 0.75rem 1.5rem;
-      border-radius: 50px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
       align-items: center;
-      gap: 0.6rem;
-      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      z-index: 10000;
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
-    }
-    .anti-cheat-toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
+      gap: 0.5rem;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Print / PDF Styles */
+    .wokwi-print-diagram {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .dashboard-grid {
+        display: block !important;
+      }
+      .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        color: #000000 !important;
+        margin-bottom: 2rem !important;
+        page-break-inside: avoid;
+      }
+      header, .course-badge, .status-badge, .btn-theory-toggle, .btn-check-score, .btn, .btn-new-student, .upload-area, .modal-overlay, .anti-cheat-toast,
+      .wokwi-header-bar, .wokwi-actions, .wokwi-iframe-wrapper, .wokwi-guide-banner, .wokwi-diagram-wrapper, .lab-feature-card {
+        display: none !important;
+      }
+      .wokwi-section-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        margin: 1rem 0 !important;
+        page-break-inside: avoid !important;
+      }
+      .wokwi-print-diagram {
+        display: block !important;
+        padding: 0.75rem !important;
+        background: #ffffff !important;
+        text-align: center !important;
+      }
+      .wokwi-print-diagram svg {
+        max-width: 100% !important;
+        height: auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      input[type="text"], input[type="date"], textarea {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px dotted #000 !important;
+        color: #000000 !important;
+      }
+      .quiz-card, .quiz-option-label {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #000000 !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+      }
+      th, td {
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+      }
+    }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <!-- Header Banner -->
-    <div class="header-banner">
-      <h1>🚀 ใบงานที่ 6 Perform: ระบบกำหนดค่าผ่าน WebConfig & ระบบสร้าง Topic ด้วย MAC Address</h1>
-      <p>การแยกหน้า Dashboard (/index.html) ออกจากหน้า Config (/config.html) และการสร้าง Sub/Pub Topic อัตโนมัติตาม MAC Address</p>
-
-      <div class="student-info-grid">
-        <div class="input-group">
-          <label>ชื่อ-นามสกุล นักศึกษา</label>
-          <input type="text" id="studentName" placeholder="เช่น นายธนกฤต วิศวกรรม">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <i class="fa-solid fa-sliders logo-icon"></i>
+        <h1>ใบงานที่ 6.1: การพัฒนาระบบ IoT เกรดอุตสาหกรรมด้วย WebConfig &amp; Auto MAC Topics</h1>
+      </div>
+      <p class="subtitle">การแยกหน้าเว็บกำหนดค่าระบบ (/config.html), การปรับแต่งพินฮาร์ดแวร์แบบไดนามิกบน LittleFS, การป้องกัน Topic ชนกันด้วย Device MAC และระบบ Factory Reset ฉุกเฉิน</p>
+      <div class="header-badges">
+        <div class="course-badge">
+          <i class="fa-solid fa-graduation-cap"></i> ระบบส่งใบงานปฏิบัติการออนไลน์ (Industrial Grade)
         </div>
-        <div class="input-group">
-          <label>รหัสนักศึกษา</label>
-          <input type="text" id="studentId" placeholder="เช่น 65010001">
-        </div>
-        <div class="input-group">
-          <label>กลุ่มเรียน / แผนก</label>
-          <input type="text" id="studentGroup" placeholder="เช่น D1 / อส.บ.โทรคมนาคม">
-        </div>
-        <div class="input-group">
-          <label>Device MAC Address</label>
-          <input type="text" id="deviceMacInput" placeholder="เช่น 24:6F:28:AB:CD:EF">
+        <div id="onlineStatusBadge" class="status-badge online">
+          <span class="status-dot"></span>
+          <span id="onlineStatusText">ออนไลน์ (พร้อมส่งรายงาน)</span>
         </div>
       </div>
-    </div>
+    </header>
 
-    <!-- Quick Navigation to Live Demo -->
-    <div class="card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(99, 102, 241, 0.15));">
-      <h2>🌐 หน้าเว็บระบบควบคุม & กำหนดค่า (Live Web Pages)</h2>
-      <p style="color: var(--text-muted); margin-bottom: 15px;">
-        คุณสามารถทดสอบเข้าชมหน้า Web Application ทั้ง 2 ส่วนที่แยกออกจากกันอย่างสมบูรณ์:
-      </p>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <a href="/LAB6_Perform/solution/data/index.html" target="_blank" class="btn btn-primary">📊 เปิดหน้า Dashboard (/index.html)</a>
-        <a href="/LAB6_Perform/solution/data/config.html" target="_blank" class="btn" style="background: rgba(255, 255, 255, 0.1); color: #fff;">⚙️ เปิดหน้า MCU Config Portal (/config.html)</a>
-      </div>
-    </div>
-
-    <!-- Section 1: Objective & Concept -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 12px;">
-        <h2 style="margin-bottom: 0;">🎯 1. วัตถุประสงค์และการทำงานของ LAB6_Perform</h2>
-        <button type="button" class="btn-theory-toggle" onclick="openTheoryModal()">
-          💡 <span>ดูเนื้อหาทฤษฎีที่เกี่ยวข้อง</span>
-        </button>
-      </div>
-      <ul style="margin-left: 20px; color: var(--text-muted); font-size: 0.95rem;">
-        <li><strong style="color: var(--text-main);">การแยกหน้า Config ออกจาก Dashboard:</strong> เพื่อความปลอดภัยและความสะดวกของผู้ใช้ทั่วไป ไม่ให้เห็นหรือแก้ไขค่า Network/Hardware พร่ำเพรื่อ</li>
-        <li><strong style="color: var(--text-main);">การบันทึกค่าลง LittleFS:</strong> จัดเก็บค่า `config.json` ลงใน Flash Memory ไม่สูญหายเมื่อปิดไฟ</li>
-        <li><strong style="color: var(--text-main);">การสร้าง Sub/Pub Topic อัตโนมัติ:</strong> ดึง Clean MAC Address เช่น `246F28ABCDEF` มาสร้าง Sub: `esp-node/246F28ABCDEF/control/cmd` และ Pub: `esp-node/246F28ABCDEF/state` ทำให้ทุกบอร์ดในห้องเรียนไม่เกิดปัญหา Topic ชนกัน</li>
-      </ul>
-    </div>
-
-    <!-- Section 2: Code Submission & Questions -->
-    <div class="card">
-      <h2>📝 2. คำถามท้ายการทดลองและการประเมินผล</h2>
+    <div class="dashboard-grid">
       
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
-          คำถามที่ 1: เหตุใดจึงต้องนำ MAC Address มาต่อท้าย MQTT Topic และถ้าไม่ใส่จะเกิดผลกระทบอย่างไรในการใช้งานจริงบน Cloud Broker สาธารณะ?
-        </label>
-        <textarea id="ans1" class="form-control" placeholder="พิมพ์คำอธิบายของคุณที่นี่..."></textarea>
+      <!-- Left Column: Lab Sheet Manual -->
+      <div class="glass-card">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-book-open"></i>
+            <span>คู่มือใบงานการทดลอง</span>
+          </div>
+          <button type="button" class="btn-theory-toggle" onclick="openTheoryModal()">
+            <i class="fa-solid fa-lightbulb"></i> <span>ดูเนื้อหาทฤษฎีที่เกี่ยวข้อง</span>
+          </button>
+        </div>
+
+        <div class="info-frame">
+          <h3><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์การทดลอง</h3>
+          <ol>
+            <li>เพื่อเรียนรู้สถาปัตยกรรมการแยกหน้าเว็บควบคุม (<b>Dashboard: <code>/index.html</code></b>) ออกจากหน้าเว็บกำหนดค่า (<b>WebConfig Portal: <code>/config.html</code></b>)</li>
+            <li>เพื่อพัฒนาฟังก์ชันบันทึกและอ่านค่าการตั้งค่าระบบ (Wi-Fi, MQTT, ขาพินเซ็นเซอร์, ขารีเลย์, สวิตช์) ลงใน <b>LittleFS Flash Memory (<code>/config.json</code>)</b> แบบไดนามิก</li>
+            <li>เพื่อสร้างกลไก <b>Auto Unique MQTT Topics</b> โดยดึงค่า <b>Device MAC Address</b> มาประกอบเป็น Topic ประจำโหนด ป้องกันปัญหา Topic Collision บน Cloud Broker</li>
+            <li>เพื่อพัฒนาระบบความปลอดภัย <b>Factory Reset Button (กดค้าง &ge; 3 วินาที บน GPIO 0)</b> และระบบ <b>Fallback Captive Portal AP Mode (192.168.4.1)</b> เมื่อเกิดข้อผิดพลาด</li>
+          </ol>
+        </div>
+
+        <h2>อุปกรณ์และการกำหนดขาพิน (Hardware Pinouts)</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อุปกรณ์ / โมดูล</th>
+                <th>ขาพินเริ่มต้น ESP32</th>
+                <th>ขาพินเริ่มต้น ESP8266</th>
+                <th>สถานะการตั้งค่าผ่าน WebConfig</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Relay 1 (พัดลมระบายอากาศ)</b></td>
+                <td><code style="color:#4ade80; font-weight:bold;">GPIO 5</code></td>
+                <td>GPIO 14 (D5)</td>
+                <td>ปรับเปลี่ยนได้อิสระผ่าน WebConfig (OUTPUT)</td>
+              </tr>
+              <tr>
+                <td><b>Relay 2 (ปั๊มพ่นหมอก)</b></td>
+                <td><code style="color:#4ade80; font-weight:bold;">GPIO 23</code></td>
+                <td>GPIO 12 (D6)</td>
+                <td>ปรับเปลี่ยนได้อิสระผ่าน WebConfig (OUTPUT)</td>
+              </tr>
+              <tr>
+                <td><b>สวิตช์ปุ่มกดพัดลม (SW_FAN)</b></td>
+                <td><code style="color:#f43f5e; font-weight:bold;">GPIO 18</code></td>
+                <td>GPIO 13 (D7)</td>
+                <td>ปรับเปลี่ยนได้อิสระผ่าน WebConfig (INPUT_PULLUP)</td>
+              </tr>
+              <tr>
+                <td><b>สวิตช์ปุ่มกดพ่นหมอก (SW_MIST)</b></td>
+                <td><code style="color:#f43f5e; font-weight:bold;">GPIO 19</code></td>
+                <td>GPIO 15 (D8)</td>
+                <td>ปรับเปลี่ยนได้อิสระผ่าน WebConfig (INPUT_PULLUP)</td>
+              </tr>
+              <tr>
+                <td><b>ปุ่ม Factory Reset (กดค้าง &ge; 3s)</b></td>
+                <td><code style="color:#fbbf24; font-weight:bold;">GPIO 0 (Flash)</code></td>
+                <td>GPIO 0 (D3)</td>
+                <td>พินกู้คืนค่าโรงงานฉุกเฉิน (Active LOW)</td>
+              </tr>
+              <tr>
+                <td><b>เซ็นเซอร์ DHT11 / DHT22</b></td>
+                <td><code style="color:#38bdf8; font-weight:bold;">GPIO 33</code></td>
+                <td>GPIO 2 (D4)</td>
+                <td>เลือก Type 11/22 และพินได้ผ่าน WebConfig</td>
+              </tr>
+              <tr>
+                <td><b>Analog Sensor (MQ Gas / VR)</b></td>
+                <td><code style="color:#a78bfa; font-weight:bold;">GPIO 36 (VP)</code></td>
+                <td>A0 (ADC0)</td>
+                <td>พินรับสัญญาณแอนะล็อก ปรับพินได้</td>
+              </tr>
+              <tr>
+                <td><b>จอ OLED SSD1306</b></td>
+                <td><code style="color:#fbbf24; font-weight:bold;">SDA: 21 / SCL: 22</code></td>
+                <td>SDA: 4 / SCL: 5</td>
+                <td>I2C Address <code>0x3C</code> แสดงผลโหนด &amp; MAC</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 1. Wokwi Simulation & Realistic Vector SVG Diagram -->
+        <h2><i class="fa-solid fa-microchip" style="color: #38bdf8;"></i> วงจรจำลองเสมือนจริง (Wokwi Interactive Simulation)</h2>
+        <div class="wokwi-section-card" id="wokwiSectionCard">
+          <div class="wokwi-header-bar">
+            <div class="wokwi-title">
+              <i class="fa-solid fa-microchip" style="color: #38bdf8;"></i>
+              <span>พื้นที่จำลองการทำงานของวงจร (Wokwi Interactive Simulator)</span>
+            </div>
+            <div class="wokwi-actions">
+              <button type="button" class="wokwi-ctrl-btn active" id="btnToggleSimMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-gamepad"></i> <span>โหมดจำลอง Wokwi</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnToggleDiagramMode" onclick="toggleSimOrDiagram(this)">
+                <i class="fa-solid fa-diagram-project"></i> <span>ดูผังการต่อวงจร (SVG)</span>
+              </button>
+              <button type="button" class="wokwi-ctrl-btn" id="btnWokwiFullscreen" onclick="toggleWokwiFullscreen()" title="เปิด/ปิดโหมดเต็มหน้าจอ">
+                <i class="fa-solid fa-expand" id="wokwiFsIcon"></i> <span id="wokwiFsText">เต็มหน้าจอ</span>
+              </button>
+              <a id="wokwiExternalLink" href="https://wokwi.com/projects/new/esp32" target="_blank" rel="noopener noreferrer" class="wokwi-ctrl-btn external" title="เปิดแท็บใหม่บน Wokwi.com">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>เปิด Wokwi</span>
+              </a>
+              <button type="button" class="wokwi-ctrl-btn vscode" onclick="copyVsCodeCommand()" title="คัดลอกคำสั่งสำหรับรันใน VS Code">
+                <i class="fa-solid fa-code"></i> <span>VS Code Wokwi</span>
+              </button>
+              <a href="lab6_1_vscode_wokwi_template.zip" download="lab6_1_vscode_wokwi_template.zip" class="wokwi-ctrl-btn zip" title="ดาวน์โหลดโปรเจกต์ต้นแบบไปเปิดใน VS Code">
+                <i class="fa-solid fa-download"></i> <span>โหลด Template (.zip)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Wokwi Frame Container -->
+          <div class="wokwi-iframe-wrapper" id="wokwiIframeWrapper">
+            <iframe id="wokwiEmbedFrame" 
+                    src="https://wokwi.com/projects/new/esp32" 
+                    loading="lazy" 
+                    allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+                    allowfullscreen="true"
+                    title="Wokwi ESP32 Lab 6.1 Industrial WebConfig Simulation"></iframe>
+          </div>
+
+          <!-- Interactive Realistic Vector SVG Wiring Diagram -->
+          <div class="wokwi-diagram-wrapper" id="wokwiDiagramWrapper" style="display: none; padding: 1rem; background: #0f172a; text-align: center;">
+            <svg viewBox="0 0 1000 500" style="width: 100%; max-width: 880px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="metalShield61" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#e2e8f0"/>
+                  <stop offset="50%" stop-color="#94a3b8"/>
+                  <stop offset="100%" stop-color="#64748b"/>
+                </linearGradient>
+                <linearGradient id="oledGrad61" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#030712"/>
+                  <stop offset="100%" stop-color="#0b1329"/>
+                </linearGradient>
+                <linearGradient id="webCfgGrad61" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <linearGradient id="macMqttGrad61" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Background Canvas -->
+              <rect width="1000" height="500" fill="#0b1120" rx="10"/>
+              <rect x="10" y="10" width="980" height="480" fill="none" stroke="#1e293b" stroke-width="1.5" rx="8"/>
+
+              <!-- Title & Legend -->
+              <text x="30" y="36" fill="#f8fafc" font-size="16" font-weight="bold" font-family="'Outfit', 'Sarabun', sans-serif">ESP32 Industrial Node: WebConfig Portal &amp; Auto MAC-Based MQTT Topics</text>
+              <text x="30" y="54" fill="#94a3b8" font-size="11.5" font-family="'Sarabun', sans-serif">Relay 1 (Pin 5) | Relay 2 (Pin 23) | SW_FAN (Pin 18) | SW_MIST (Pin 19) | Reset Button (Pin 0) | DHT (Pin 33) | Analog (Pin 36)</text>
+
+              <!-- 1. ESP32 Dev Board (Left) -->
+              <g transform="translate(35, 80)">
+                <rect width="260" height="380" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+                <rect x="5" y="5" width="250" height="370" rx="8" fill="#1e293b"/>
+                
+                <!-- ESP32 Metal Shield -->
+                <rect x="75" y="50" width="110" height="135" rx="6" fill="url(#metalShield61)" stroke="#475569" stroke-width="1.5"/>
+                <text x="130" y="105" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle" font-family="sans-serif">ESP-WROOM-32</text>
+                <path d="M 95 135 Q 130 120 165 135" fill="none" stroke="#1e293b" stroke-width="2"/>
+                <path d="M 105 145 Q 130 135 155 145" fill="none" stroke="#1e293b" stroke-width="2"/>
+                <path d="M 115 155 Q 130 150 145 155" fill="none" stroke="#1e293b" stroke-width="2"/>
+
+                <!-- Micro USB Port -->
+                <rect x="100" y="355" width="60" height="25" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+                <text x="130" y="372" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">USB / SERIAL</text>
+
+                <!-- Pin Headers Left -->
+                <g font-size="9" fill="#94a3b8" font-family="monospace">
+                  <circle cx="15" cy="45" r="4" fill="#e2e8f0"/> <text x="25" y="48">3V3</text>
+                  <circle cx="15" cy="70" r="4" fill="#e2e8f0"/> <text x="25" y="73">EN</text>
+                  <circle cx="15" cy="95" r="4" fill="#a78bfa"/> <text x="25" y="98" fill="#a78bfa" font-weight="bold">GPIO 36 (VP)</text>
+                  <circle cx="15" cy="120" r="4" fill="#e2e8f0"/> <text x="25" y="123">GPIO 39</text>
+                  <circle cx="15" cy="145" r="4" fill="#e2e8f0"/> <text x="25" y="148">GPIO 34</text>
+                  <circle cx="15" cy="170" r="4" fill="#e2e8f0"/> <text x="25" y="173">GPIO 35</text>
+                  <circle cx="15" cy="195" r="4" fill="#38bdf8"/> <text x="25" y="198" fill="#38bdf8" font-weight="bold">GPIO 33 (DHT)</text>
+                  <circle cx="15" cy="220" r="4" fill="#e2e8f0"/> <text x="25" y="223">GPIO 25</text>
+                  <circle cx="15" cy="245" r="4" fill="#e2e8f0"/> <text x="25" y="248">GPIO 26</text>
+                  <circle cx="15" cy="270" r="4" fill="#e2e8f0"/> <text x="25" y="273">GND</text>
+                  <circle cx="15" cy="295" r="4" fill="#e2e8f0"/> <text x="25" y="298">VIN (5V)</text>
+                  <circle cx="15" cy="320" r="4" fill="#fbbf24"/> <text x="25" y="323" fill="#fbbf24" font-weight="bold">GPIO 0 (Reset)</text>
+                </g>
+
+                <!-- Pin Headers Right -->
+                <g font-size="9" fill="#94a3b8" font-family="monospace" text-anchor="end">
+                  <circle cx="245" cy="45" r="4" fill="#e2e8f0"/> <text x="235" y="48">GND</text>
+                  <circle cx="245" cy="70" r="4" fill="#4ade80"/> <text x="235" y="73" fill="#4ade80" font-weight="bold">GPIO 23 (Mist)</text>
+                  <circle cx="245" cy="95" r="4" fill="#fbbf24"/> <text x="235" y="98" fill="#fbbf24" font-weight="bold">GPIO 22 (SCL)</text>
+                  <circle cx="245" cy="120" r="4" fill="#e2e8f0"/> <text x="235" y="123">GPIO 1</text>
+                  <circle cx="245" cy="145" r="4" fill="#e2e8f0"/> <text x="235" y="148">GPIO 3</text>
+                  <circle cx="245" cy="170" r="4" fill="#fbbf24"/> <text x="235" y="173" fill="#fbbf24" font-weight="bold">GPIO 21 (SDA)</text>
+                  <circle cx="245" cy="195" r="4" fill="#f43f5e"/> <text x="235" y="198" fill="#f43f5e" font-weight="bold">GPIO 19 (SW_M)</text>
+                  <circle cx="245" cy="220" r="4" fill="#f43f5e"/> <text x="235" y="223" fill="#f43f5e" font-weight="bold">GPIO 18 (SW_F)</text>
+                  <circle cx="245" cy="245" r="4" fill="#4ade80"/> <text x="235" y="248" fill="#4ade80" font-weight="bold">GPIO 5 (Fan)</text>
+                  <circle cx="245" cy="270" r="4" fill="#e2e8f0"/> <text x="235" y="273">GPIO 17</text>
+                  <circle cx="245" cy="295" r="4" fill="#e2e8f0"/> <text x="235" y="298">3V3</text>
+                </g>
+              </g>
+
+              <!-- 2. DHT11 / DHT22 Sensor (Top Middle) -->
+              <g transform="translate(340, 75)">
+                <rect width="135" height="95" rx="8" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="22" y="10" width="90" height="48" rx="4" fill="#0369a1" stroke="#bae6fd"/>
+                <line x1="38" y1="15" x2="38" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="53" y1="15" x2="53" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="68" y1="15" x2="68" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="83" y1="15" x2="83" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <text x="67" y="74" fill="#f0f9ff" font-size="10.5" font-weight="bold" text-anchor="middle">DHT11 / DHT22</text>
+                <text x="67" y="88" fill="#bae6fd" font-size="8.5" text-anchor="middle">DATA: GPIO 33</text>
+              </g>
+
+              <!-- 3. Dual Relays (Top Right) -->
+              <g transform="translate(505, 75)">
+                <rect width="210" height="135" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <!-- Relay 1 (Fan - Pin 5) -->
+                <rect x="15" y="12" width="85" height="75" rx="5" fill="#0284c7" stroke="#38bdf8"/>
+                <text x="57" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">RELAY 1 (Fan)</text>
+                <text x="57" y="55" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">GPIO 5</text>
+                <circle cx="57" cy="72" r="5" fill="#10b981"/>
+                
+                <!-- Relay 2 (Mist - Pin 23) -->
+                <rect x="110" y="12" width="85" height="75" rx="5" fill="#0284c7" stroke="#38bdf8"/>
+                <text x="152" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">RELAY 2 (Mist)</text>
+                <text x="152" y="55" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">GPIO 23</text>
+                <circle cx="152" cy="72" r="5" fill="#10b981"/>
+
+                <text x="105" y="108" fill="#f8fafc" font-size="10" font-weight="bold" text-anchor="middle">Dynamic Config Relays</text>
+                <text x="105" y="122" fill="#94a3b8" font-size="8.5" text-anchor="middle">IN1: Pin 5 | IN2: Pin 23 | VCC 5V</text>
+              </g>
+
+              <!-- 4. Push Buttons: SW_FAN (GPIO 18) & SW_MIST (GPIO 19) -->
+              <g transform="translate(340, 185)">
+                <rect width="135" height="95" rx="8" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+                <!-- SW_FAN -->
+                <circle cx="38" cy="38" r="14" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+                <circle cx="38" cy="38" r="7" fill="#f43f5e"/>
+                <text x="38" y="65" fill="#fecdd3" font-size="8.5" font-weight="bold" text-anchor="middle">SW_F (18)</text>
+
+                <!-- SW_MIST -->
+                <circle cx="97" cy="38" r="14" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+                <circle cx="97" cy="38" r="7" fill="#f43f5e"/>
+                <text x="97" y="65" fill="#fecdd3" font-size="8.5" font-weight="bold" text-anchor="middle">SW_M (19)</text>
+                <text x="67" y="84" fill="#94a3b8" font-size="8.5" text-anchor="middle">Dedicated Buttons</text>
+              </g>
+
+              <!-- 5. I2C OLED SSD1306 -->
+              <g transform="translate(340, 295)">
+                <rect width="155" height="120" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="10" y="10" width="135" height="72" rx="4" fill="url(#oledGrad61)" stroke="#1e293b"/>
+                <text x="77" y="28" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle" font-family="monospace">MAC: 246F28ABCDEF</text>
+                <text x="77" y="44" fill="#38bdf8" font-size="8" text-anchor="middle" font-family="monospace">WebConfig: /config</text>
+                <text x="77" y="58" fill="#4ade80" font-size="8" text-anchor="middle" font-family="monospace">Fan: 5 | Mist: 23</text>
+                <text x="77" y="72" fill="#a855f7" font-size="8" text-anchor="middle" font-family="monospace">Auto MAC MQTT OK</text>
+                <text x="77" y="102" fill="#94a3b8" font-size="8.5" text-anchor="middle">I2C OLED (SDA:21, SCL:22)</text>
+              </g>
+
+              <!-- 6. Analog MQ Gas Sensor / Potentiometer (GPIO 36) -->
+              <g transform="translate(505, 225)">
+                <rect width="210" height="90" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <circle cx="55" cy="45" r="26" fill="#0f172a" stroke="#64748b" stroke-width="2"/>
+                <circle cx="55" cy="45" r="14" fill="#3b82f6"/>
+                <line x1="55" y1="45" x2="67" y2="35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="135" y="38" fill="#f8fafc" font-size="10" font-weight="bold">MQ Gas / Analog VR</text>
+                <text x="135" y="54" fill="#38bdf8" font-size="9" font-family="monospace">GPIO 36 (VP)</text>
+                <text x="135" y="70" fill="#94a3b8" font-size="8">VCC | OUT | GND</text>
+              </g>
+
+              <!-- 7. Architecture Badges (Far Right) -->
+              <!-- WebConfig Portal Badge -->
+              <g transform="translate(740, 75)">
+                <rect width="225" height="160" rx="10" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5"/>
+                <rect x="15" y="15" width="195" height="32" rx="6" fill="url(#webCfgGrad61)"/>
+                <text x="112" y="36" fill="#ffffff" font-size="11.5" font-weight="bold" text-anchor="middle">⚙️ Dynamic WebConfig</text>
+                
+                <text x="25" y="72" fill="#f59e0b" font-size="10" font-weight="bold">• URL: /config.html</text>
+                <text x="25" y="90" fill="#cbd5e1" font-size="9.5">• LittleFS: /config.json</text>
+                <text x="25" y="108" fill="#cbd5e1" font-size="9.5">• Dynamic Pin Assignment</text>
+                <text x="25" y="126" fill="#94a3b8" font-size="9">• Factory Reset: GPIO 0 &ge; 3s</text>
+              </g>
+
+              <!-- Auto MAC Topics Badge -->
+              <g transform="translate(740, 250)">
+                <rect width="225" height="160" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="15" y="15" width="195" height="32" rx="6" fill="url(#macMqttGrad61)"/>
+                <text x="112" y="36" fill="#ffffff" font-size="11.5" font-weight="bold" text-anchor="middle">🔑 Auto MAC-Based Topics</text>
+                
+                <text x="25" y="70" fill="#38bdf8" font-size="9.5" font-weight="bold">• Sub: esp-node/&lt;MAC&gt;/cmd</text>
+                <text x="25" y="88" fill="#4ade80" font-size="9.5" font-weight="bold">• Pub: esp-node/&lt;MAC&gt;/state</text>
+                <text x="25" y="108" fill="#cbd5e1" font-size="9.5">• No Client ID Collisions</text>
+                <text x="25" y="126" fill="#94a3b8" font-size="9">• Multi-Node Industrial Ready</text>
+              </g>
+
+              <!-- Wiring Traces -->
+              <!-- DHT11: GPIO 33 to DHT11 -->
+              <path d="M 50 275 C 180 275, 250 120, 340 120" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,2"/>
+              
+              <!-- Analog VR: GPIO 36 to VR -->
+              <path d="M 50 175 C 180 175, 360 270, 505 270" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="5,3"/>
+
+              <!-- Relay 1 (Fan): GPIO 5 to Relay 1 -->
+              <path d="M 280 325 C 380 325, 420 120, 520 120" fill="none" stroke="#4ade80" stroke-width="2.5"/>
+              
+              <!-- Relay 2 (Mist): GPIO 23 to Relay 2 -->
+              <path d="M 280 150 C 380 150, 480 145, 620 145" fill="none" stroke="#4ade80" stroke-width="2.5"/>
+
+              <!-- SW_MIST (Pin 19): GPIO 19 to SW_MIST -->
+              <path d="M 280 275 C 310 275, 360 230, 437 230" fill="none" stroke="#f43f5e" stroke-width="2"/>
+
+              <!-- SW_FAN (Pin 18): GPIO 18 to SW_FAN -->
+              <path d="M 280 300 C 310 300, 330 230, 378 230" fill="none" stroke="#f43f5e" stroke-width="2"/>
+
+              <!-- Reset Button (Pin 0): GPIO 0 -->
+              <path d="M 50 400 C 120 400, 160 380, 200 380" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3,2"/>
+
+              <!-- OLED I2C: GPIO 21 & 22 to OLED -->
+              <path d="M 280 175 C 310 175, 310 330, 340 330" fill="none" stroke="#fbbf24" stroke-width="2"/>
+              <path d="M 280 250 C 310 250, 310 350, 340 350" fill="none" stroke="#fbbf24" stroke-width="2"/>
+
+              <!-- Footer Info -->
+              <text x="500" y="475" fill="#64748b" font-size="11" text-anchor="middle" font-family="'Sarabun', sans-serif">⚡ Industrial Architecture: Relay 1=Pin 5 | Relay 2=Pin 23 | SW_F=Pin 18 | SW_M=Pin 19 | Reset=Pin 0 | DHT=Pin 33 | Analog=Pin 36</text>
+            </svg>
+          </div>
+
+          <!-- Bottom Guide Banner -->
+          <div class="wokwi-guide-banner">
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-play"></i> เริ่มต้นการทดลอง</span>
+              <span>กดปุ่มสีเขียว <b>Start Simulation (▶)</b> เพื่อรันระบบจำลอง WebConfig และ MQTT Auto MAC</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-sliders"></i> WebConfig Portal</span>
+              <span>เข้าหน้า <code>/config.html</code> เพื่อทดสอบแก้ไขพินรีเลย์และ Wi-Fi บันทึกลง Flash Memory</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-key"></i> Auto MAC Topics</span>
+              <span>สังเกตว่า Sub/Pub Topics จะถูกสร้างโดยอัตโนมัติจาก MAC Address ของบอร์ด</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge"><i class="fa-solid fa-rotate-left"></i> Factory Reset</span>
+              <span>กดปุ่ม Flash (GPIO 0) ค้างไว้ &ge; 3 วินาที เพื่อทดสอบระบบลบไฟล์คอนฟิกและคืนค่าโรงงาน</span>
+            </div>
+          </div>
+
+          <!-- Printable Diagram for Paper / PDF Export -->
+          <div class="wokwi-print-diagram" style="display: none;">
+            <svg viewBox="0 0 1000 500" style="width: 100%; max-width: 880px; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="metalShield61_p" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#e2e8f0"/>
+                  <stop offset="50%" stop-color="#94a3b8"/>
+                  <stop offset="100%" stop-color="#64748b"/>
+                </linearGradient>
+                <linearGradient id="oledGrad61_p" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#030712"/>
+                  <stop offset="100%" stop-color="#0b1329"/>
+                </linearGradient>
+                <linearGradient id="webCfgGrad61_p" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <linearGradient id="macMqttGrad61_p" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Background Canvas -->
+              <rect width="1000" height="500" fill="#0b1120" rx="10"/>
+              <rect x="10" y="10" width="980" height="480" fill="none" stroke="#1e293b" stroke-width="1.5" rx="8"/>
+
+              <!-- Title & Legend -->
+              <text x="30" y="36" fill="#f8fafc" font-size="16" font-weight="bold" font-family="'Outfit', 'Sarabun', sans-serif">ESP32 Industrial Node: WebConfig Portal &amp; Auto MAC-Based MQTT Topics</text>
+              <text x="30" y="54" fill="#94a3b8" font-size="11.5" font-family="'Sarabun', sans-serif">Relay 1 (Pin 5) | Relay 2 (Pin 23) | SW_FAN (Pin 18) | SW_MIST (Pin 19) | Reset Button (Pin 0) | DHT (Pin 33) | Analog (Pin 36)</text>
+
+              <!-- 1. ESP32 Dev Board (Left) -->
+              <g transform="translate(35, 80)">
+                <rect width="260" height="380" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+                <rect x="5" y="5" width="250" height="370" rx="8" fill="#1e293b"/>
+                
+                <!-- ESP32 Metal Shield -->
+                <rect x="75" y="50" width="110" height="135" rx="6" fill="url(#metalShield61_p)" stroke="#475569" stroke-width="1.5"/>
+                <text x="130" y="105" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle" font-family="sans-serif">ESP-WROOM-32</text>
+                <path d="M 95 135 Q 130 120 165 135" fill="none" stroke="#1e293b" stroke-width="2"/>
+                <path d="M 105 145 Q 130 135 155 145" fill="none" stroke="#1e293b" stroke-width="2"/>
+                <path d="M 115 155 Q 130 150 145 155" fill="none" stroke="#1e293b" stroke-width="2"/>
+
+                <!-- Micro USB Port -->
+                <rect x="100" y="355" width="60" height="25" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+                <text x="130" y="372" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">USB / SERIAL</text>
+
+                <!-- Pin Headers Left -->
+                <g font-size="9" fill="#94a3b8" font-family="monospace">
+                  <circle cx="15" cy="45" r="4" fill="#e2e8f0"/> <text x="25" y="48">3V3</text>
+                  <circle cx="15" cy="70" r="4" fill="#e2e8f0"/> <text x="25" y="73">EN</text>
+                  <circle cx="15" cy="95" r="4" fill="#a78bfa"/> <text x="25" y="98" fill="#a78bfa" font-weight="bold">GPIO 36 (VP)</text>
+                  <circle cx="15" cy="120" r="4" fill="#e2e8f0"/> <text x="25" y="123">GPIO 39</text>
+                  <circle cx="15" cy="145" r="4" fill="#e2e8f0"/> <text x="25" y="148">GPIO 34</text>
+                  <circle cx="15" cy="170" r="4" fill="#e2e8f0"/> <text x="25" y="173">GPIO 35</text>
+                  <circle cx="15" cy="195" r="4" fill="#38bdf8"/> <text x="25" y="198" fill="#38bdf8" font-weight="bold">GPIO 33 (DHT)</text>
+                  <circle cx="15" cy="220" r="4" fill="#e2e8f0"/> <text x="25" y="223">GPIO 25</text>
+                  <circle cx="15" cy="245" r="4" fill="#e2e8f0"/> <text x="25" y="248">GPIO 26</text>
+                  <circle cx="15" cy="270" r="4" fill="#e2e8f0"/> <text x="25" y="273">GND</text>
+                  <circle cx="15" cy="295" r="4" fill="#e2e8f0"/> <text x="25" y="298">VIN (5V)</text>
+                  <circle cx="15" cy="320" r="4" fill="#fbbf24"/> <text x="25" y="323" fill="#fbbf24" font-weight="bold">GPIO 0 (Reset)</text>
+                </g>
+
+                <!-- Pin Headers Right -->
+                <g font-size="9" fill="#94a3b8" font-family="monospace" text-anchor="end">
+                  <circle cx="245" cy="45" r="4" fill="#e2e8f0"/> <text x="235" y="48">GND</text>
+                  <circle cx="245" cy="70" r="4" fill="#4ade80"/> <text x="235" y="73" fill="#4ade80" font-weight="bold">GPIO 23 (Mist)</text>
+                  <circle cx="245" cy="95" r="4" fill="#fbbf24"/> <text x="235" y="98" fill="#fbbf24" font-weight="bold">GPIO 22 (SCL)</text>
+                  <circle cx="245" cy="120" r="4" fill="#e2e8f0"/> <text x="235" y="123">GPIO 1</text>
+                  <circle cx="245" cy="145" r="4" fill="#e2e8f0"/> <text x="235" y="148">GPIO 3</text>
+                  <circle cx="245" cy="170" r="4" fill="#fbbf24"/> <text x="235" y="173" fill="#fbbf24" font-weight="bold">GPIO 21 (SDA)</text>
+                  <circle cx="245" cy="195" r="4" fill="#f43f5e"/> <text x="235" y="198" fill="#f43f5e" font-weight="bold">GPIO 19 (SW_M)</text>
+                  <circle cx="245" cy="220" r="4" fill="#f43f5e"/> <text x="235" y="223" fill="#f43f5e" font-weight="bold">GPIO 18 (SW_F)</text>
+                  <circle cx="245" cy="245" r="4" fill="#4ade80"/> <text x="235" y="248" fill="#4ade80" font-weight="bold">GPIO 5 (Fan)</text>
+                  <circle cx="245" cy="270" r="4" fill="#e2e8f0"/> <text x="235" y="273">GPIO 17</text>
+                  <circle cx="245" cy="295" r="4" fill="#e2e8f0"/> <text x="235" y="298">3V3</text>
+                </g>
+              </g>
+
+              <!-- 2. DHT11 / DHT22 Sensor (Top Middle) -->
+              <g transform="translate(340, 75)">
+                <rect width="135" height="95" rx="8" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="22" y="10" width="90" height="48" rx="4" fill="#0369a1" stroke="#bae6fd"/>
+                <line x1="38" y1="15" x2="38" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="53" y1="15" x2="53" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="68" y1="15" x2="68" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <line x1="83" y1="15" x2="83" y2="52" stroke="#bae6fd" stroke-width="1.5"/>
+                <text x="67" y="74" fill="#f0f9ff" font-size="10.5" font-weight="bold" text-anchor="middle">DHT11 / DHT22</text>
+                <text x="67" y="88" fill="#bae6fd" font-size="8.5" text-anchor="middle">DATA: GPIO 33</text>
+              </g>
+
+              <!-- 3. Dual Relays (Top Right) -->
+              <g transform="translate(505, 75)">
+                <rect width="210" height="135" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <!-- Relay 1 (Fan - Pin 5) -->
+                <rect x="15" y="12" width="85" height="75" rx="5" fill="#0284c7" stroke="#38bdf8"/>
+                <text x="57" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">RELAY 1 (Fan)</text>
+                <text x="57" y="55" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">GPIO 5</text>
+                <circle cx="57" cy="72" r="5" fill="#10b981"/>
+                
+                <!-- Relay 2 (Mist - Pin 23) -->
+                <rect x="110" y="12" width="85" height="75" rx="5" fill="#0284c7" stroke="#38bdf8"/>
+                <text x="152" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">RELAY 2 (Mist)</text>
+                <text x="152" y="55" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">GPIO 23</text>
+                <circle cx="152" cy="72" r="5" fill="#10b981"/>
+
+                <text x="105" y="108" fill="#f8fafc" font-size="10" font-weight="bold" text-anchor="middle">Dynamic Config Relays</text>
+                <text x="105" y="122" fill="#94a3b8" font-size="8.5" text-anchor="middle">IN1: Pin 5 | IN2: Pin 23 | VCC 5V</text>
+              </g>
+
+              <!-- 4. Push Buttons: SW_FAN (GPIO 18) & SW_MIST (GPIO 19) -->
+              <g transform="translate(340, 185)">
+                <rect width="135" height="95" rx="8" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+                <!-- SW_FAN -->
+                <circle cx="38" cy="38" r="14" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+                <circle cx="38" cy="38" r="7" fill="#f43f5e"/>
+                <text x="38" y="65" fill="#fecdd3" font-size="8.5" font-weight="bold" text-anchor="middle">SW_F (18)</text>
+
+                <!-- SW_MIST -->
+                <circle cx="97" cy="38" r="14" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+                <circle cx="97" cy="38" r="7" fill="#f43f5e"/>
+                <text x="97" y="65" fill="#fecdd3" font-size="8.5" font-weight="bold" text-anchor="middle">SW_M (19)</text>
+                <text x="67" y="84" fill="#94a3b8" font-size="8.5" text-anchor="middle">Dedicated Buttons</text>
+              </g>
+
+              <!-- 5. I2C OLED SSD1306 -->
+              <g transform="translate(340, 295)">
+                <rect width="155" height="120" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="10" y="10" width="135" height="72" rx="4" fill="url(#oledGrad61_p)" stroke="#1e293b"/>
+                <text x="77" y="28" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle" font-family="monospace">MAC: 246F28ABCDEF</text>
+                <text x="77" y="44" fill="#38bdf8" font-size="8" text-anchor="middle" font-family="monospace">WebConfig: /config</text>
+                <text x="77" y="58" fill="#4ade80" font-size="8" text-anchor="middle" font-family="monospace">Fan: 5 | Mist: 23</text>
+                <text x="77" y="72" fill="#a855f7" font-size="8" text-anchor="middle" font-family="monospace">Auto MAC MQTT OK</text>
+                <text x="77" y="102" fill="#94a3b8" font-size="8.5" text-anchor="middle">I2C OLED (SDA:21, SCL:22)</text>
+              </g>
+
+              <!-- 6. Analog MQ Gas Sensor / Potentiometer (GPIO 36) -->
+              <g transform="translate(505, 225)">
+                <rect width="210" height="90" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <circle cx="55" cy="45" r="26" fill="#0f172a" stroke="#64748b" stroke-width="2"/>
+                <circle cx="55" cy="45" r="14" fill="#3b82f6"/>
+                <line x1="55" y1="45" x2="67" y2="35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="135" y="38" fill="#f8fafc" font-size="10" font-weight="bold">MQ Gas / Analog VR</text>
+                <text x="135" y="54" fill="#38bdf8" font-size="9" font-family="monospace">GPIO 36 (VP)</text>
+                <text x="135" y="70" fill="#94a3b8" font-size="8">VCC | OUT | GND</text>
+              </g>
+
+              <!-- 7. Architecture Badges (Far Right) -->
+              <!-- WebConfig Portal Badge -->
+              <g transform="translate(740, 75)">
+                <rect width="225" height="160" rx="10" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5"/>
+                <rect x="15" y="15" width="195" height="32" rx="6" fill="url(#webCfgGrad61_p)"/>
+                <text x="112" y="36" fill="#ffffff" font-size="11.5" font-weight="bold" text-anchor="middle">⚙️ Dynamic WebConfig</text>
+                
+                <text x="25" y="72" fill="#f59e0b" font-size="10" font-weight="bold">• URL: /config.html</text>
+                <text x="25" y="90" fill="#cbd5e1" font-size="9.5">• LittleFS: /config.json</text>
+                <text x="25" y="108" fill="#cbd5e1" font-size="9.5">• Dynamic Pin Assignment</text>
+                <text x="25" y="126" fill="#94a3b8" font-size="9">• Factory Reset: GPIO 0 &ge; 3s</text>
+              </g>
+
+              <!-- Auto MAC Topics Badge -->
+              <g transform="translate(740, 250)">
+                <rect width="225" height="160" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="15" y="15" width="195" height="32" rx="6" fill="url(#macMqttGrad61_p)"/>
+                <text x="112" y="36" fill="#ffffff" font-size="11.5" font-weight="bold" text-anchor="middle">🔑 Auto MAC-Based Topics</text>
+                
+                <text x="25" y="70" fill="#38bdf8" font-size="9.5" font-weight="bold">• Sub: esp-node/&lt;MAC&gt;/cmd</text>
+                <text x="25" y="88" fill="#4ade80" font-size="9.5" font-weight="bold">• Pub: esp-node/&lt;MAC&gt;/state</text>
+                <text x="25" y="108" fill="#cbd5e1" font-size="9.5">• No Client ID Collisions</text>
+                <text x="25" y="126" fill="#94a3b8" font-size="9">• Multi-Node Industrial Ready</text>
+              </g>
+
+              <!-- Wiring Traces -->
+              <path d="M 50 275 C 180 275, 250 120, 340 120" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,2"/>
+              <path d="M 50 175 C 180 175, 360 270, 505 270" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="5,3"/>
+              <path d="M 280 325 C 380 325, 420 120, 520 120" fill="none" stroke="#4ade80" stroke-width="2.5"/>
+              <path d="M 280 150 C 380 150, 480 145, 620 145" fill="none" stroke="#4ade80" stroke-width="2.5"/>
+              <path d="M 280 275 C 310 275, 360 230, 437 230" fill="none" stroke="#f43f5e" stroke-width="2"/>
+              <path d="M 280 300 C 310 300, 330 230, 378 230" fill="none" stroke="#f43f5e" stroke-width="2"/>
+              <path d="M 50 400 C 120 400, 160 380, 200 380" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3,2"/>
+              <path d="M 280 175 C 310 175, 310 330, 340 330" fill="none" stroke="#fbbf24" stroke-width="2"/>
+              <path d="M 280 250 C 310 250, 310 350, 340 350" fill="none" stroke="#fbbf24" stroke-width="2"/>
+
+              <text x="500" y="475" fill="#64748b" font-size="11" text-anchor="middle" font-family="'Sarabun', sans-serif">⚡ Industrial Architecture: Relay 1=Pin 5 | Relay 2=Pin 23 | SW_F=Pin 18 | SW_M=Pin 19 | Reset=Pin 0 | DHT=Pin 33 | Analog=Pin 36</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 2. Web Serial API Real-time Hardware Bridge -->
+        <div class="lab-feature-card" id="webSerialCard">
+          <div class="lab-feature-header">
+            <div class="lab-feature-title">
+              <i class="fa-solid fa-terminal" style="color: #10b981;"></i>
+              <span>มอนิเตอร์และเชื่อมต่อบอร์ดฮาร์ดแวร์จริง (Web Serial API Monitor)</span>
+            </div>
+            <div class="lab-feature-actions">
+              <select id="serialBaudRateSelect" class="feature-select" onchange="onBaudRateChange()" title="เลือกความเร็ว Baud Rate ให้ตรงกับโค้ด">
+                <option value="115200" selected>115200 baud (ESP32/Lab6.1)</option>
+                <option value="9600">9600 baud</option>
+                <option value="57600">57600 baud</option>
+                <option value="74880">74880 baud (ESP Boot Log)</option>
+              </select>
+
+              <span class="status-badge offline" id="serialStatusBadge">
+                <span class="status-dot"></span>
+                <span id="serialStatusText">ยังไม่ได้เชื่อมต่อ USB</span>
+              </span>
+
+              <button type="button" class="feature-btn primary" id="btnConnectSerial" onclick="toggleWebSerial()">
+                <i class="fa-solid fa-plug"></i> <span id="btnConnectSerialText">เชื่อมต่อบอร์ดจริง (USB)</span>
+              </button>
+              <button type="button" class="feature-btn warning" id="btnResetBoard" onclick="resetEsp32Board()" title="ส่งสัญญาณ DTR/RTS รีเซ็ตบอร์ด">
+                <i class="fa-solid fa-rotate-left"></i> <span>รีเซ็ต ESP32</span>
+              </button>
+              <button type="button" class="feature-btn" onclick="clearSerialTerminal()">
+                <i class="fa-solid fa-broom"></i> <span>ล้าง</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lab-feature-body">
+            <div class="serial-terminal-box" id="serialTerminalWindow">[WEB SERIAL TERMINAL READY - LAB 6.1 PERFORM]
+รองรับการเชื่อมต่อบอร์ด ESP32 / ESP8266 ผ่านสาย USB เพื่อดู Log การโหลด Config, MAC Topics และสถานะ Factory Reset
+1. เสียบสาย USB ระหว่างบอร์ดกับคอมพิวเตอร์
+2. กดปุ่ม "เชื่อมต่อบอร์ดจริง (USB)" แล้วเลือก COM Port
+3. หากกดปุ่ม Flash (GPIO 0) ค้าง &ge; 3 วินาที จะเห็นข้อความ [FACTORY RESET] ลบ /config.json และรีบูตระบบ</div>
+
+            <!-- Command TX Bar -->
+            <div class="serial-send-bar">
+              <input type="text" id="serialInputText" placeholder="พิมพ์คำสั่งส่งไปยังบอร์ด (เช่น STATUS, REBOOT หรือ TEST) แล้วกด Enter..." onkeydown="if(event.key==='Enter') sendSerialText()">
+              <button type="button" class="feature-btn primary" onclick="sendSerialText()"><i class="fa-solid fa-paper-plane"></i> ส่งคำสั่ง</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Skeleton Code & Inline Blanks -->
+        <h2>ขั้นตอนการทดลองและโค้ดโครงร่าง (Modular Dynamic WebConfig &amp; MAC Topics)</h2>
+        <p>ศึกษาโค้ดโครงร่างด้านล่างและเติมคำตอบลงในช่องว่าง <code>[ช่องที่ 1 - 5]</code> ให้ถูกต้องตามไวยากรณ์ภาษา C/C++:</p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>lab6_1_perform_skeleton.ino</span>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <a href="data.zip" download="data.zip" class="copy-btn" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดชุดไฟล์ Web UI (config.html, index.html, manifest.json) สำหรับโฟลเดอร์ data/">
+                <i class="fa-solid fa-file-zipper"></i> โหลด Web UI (data.zip)
+              </a>
+              <button type="button" class="copy-btn" onclick="copySkeletonCode()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+            </div>
+          </div>
+          <pre><code>#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+#include &lt;WebSocketsServer.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;LittleFS.h&gt;
+#include &lt;DHT.h&gt;
+
+// โครงสร้างเก็บข้อมูลการตั้งค่าระบบ (Dynamic Hardware Configuration)
+struct DeviceConfig {
+  String ssid = "iot_512";
+  String password = "iot123456";
+  String mqttServer = "broker.emqx.io";
+  int mqttPort = 1883;
+  int dhtPin = 33;
+  int analogPin = 36;
+  int fanRelayPin = 5;
+  int mistRelayPin = 23;
+  int fanButtonPin = 18;
+  int mistButtonPin = 19;
+  int resetButtonPin = 0; // GPIO 0 สำหรับ Factory Reset ค้าง &gt;= 3s
+} config;
+
+String cleanMac = "";
+String subTopic = "";
+String pubTopic = "";
+
+WebServer server(80);
+WebSocketsServer webSocket(81);
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+// 1. ฟังก์ชันโหลดการตั้งค่าจาก Flash Memory
+void loadConfiguration() {
+  if (LittleFS.exists("/config.json")) {
+    File file = LittleFS.open( <input type="text" id="codeBlank1" form="labForm" required class="code-blank" placeholder="ช่องที่ 1 (เช่น "/config.json", "r")" style="width: 220px;"> );
+    if (file) {
+      JsonDocument doc;
+      <input type="text" id="codeBlank2" form="labForm" required class="code-blank" placeholder="ช่องที่ 2 (เช่น deserializeJson(doc, file))" style="width: 240px;"> ;
+      file.close();
+      config.ssid = doc["ssid"].as&lt;String&gt;();
+      config.password = doc["password"].as&lt;String&gt;();
+      config.fanRelayPin = doc["fanRelayPin"].as&lt;int&gt;();
+      config.mistRelayPin = doc["mistRelayPin"].as&lt;int&gt;();
+    }
+  }
+}
+
+// 2. ฟังก์ชันสร้าง MQTT Topic อัตโนมัติตาม Device MAC Address
+void setupMacTopics() {
+  String rawMac = <input type="text" id="codeBlank3" form="labForm" required class="code-blank" placeholder="ช่องที่ 3 (เช่น WiFi.macAddress())" style="width: 200px;"> ;
+  cleanMac = rawMac;
+  cleanMac.replace(":", "");
+  cleanMac.toUpperCase();
+  
+  subTopic = "esp-node/" + cleanMac + "/control/cmd";
+  pubTopic = "esp-node/" + cleanMac + "/state";
+}
+
+// 3. ฟังก์ชันตรวจสอบการกดปุ่ม Reset ค้าง &gt;= 3 วินาที (Factory Reset)
+void checkFactoryResetButton() {
+  static unsigned long pressStart = 0;
+  if (digitalRead(config.resetButtonPin) == LOW) {
+    if (pressStart == 0) pressStart = millis();
+    if (millis() - pressStart &gt; 3000) {
+      Serial.println("[FACTORY RESET] Formatting Config...");
+      <input type="text" id="codeBlank5" form="labForm" required class="code-blank" placeholder="ช่องที่ 5 (เช่น LittleFS.remove("/config.json"))" style="width: 250px;"> ;
+      ESP.restart();
+    }
+  } else {
+    pressStart = 0;
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  LittleFS.begin(true);
+  loadConfiguration();
+  
+  pinMode(config.fanRelayPin, OUTPUT);
+  pinMode(config.mistRelayPin, OUTPUT);
+  pinMode(config.resetButtonPin, INPUT_PULLUP);
+  
+  setupMacTopics();
+  WiFi.begin(config.ssid.c_str(), config.password.c_str());
+  
+  server.begin();
+  webSocket.begin();
+  mqttClient.setServer(config.mqttServer.c_str(), config.mqttPort);
+}
+
+void loop() {
+  server.handleClient();
+  webSocket.loop();
+  checkFactoryResetButton();
+  
+  if (!mqttClient.connected()) {
+    String clientId = "ESP32_" + cleanMac;
+    if (mqttClient.connect(clientId.c_str())) {
+      mqttClient.subscribe( <input type="text" id="codeBlank4" form="labForm" required class="code-blank" placeholder="ช่องที่ 4 (เช่น subTopic.c_str())" style="width: 210px;"> );
+    }
+  } else {
+    mqttClient.loop();
+  }
+}</code></pre>
+        </div>
+
+        <!-- 4. Grand Project Challenge -->
+        <div class="challenge-frame">
+          <h3><i class="fa-solid fa-trophy"></i> โจทย์ท้าทายการทดลอง (The Grand Industrial IoT Node Challenge)</h3>
+          <p><strong>โจทย์:</strong> ให้นักศึกษาพัฒนาและทดสอบระบบ <b>Industrial Modular IoT Node</b> ร่วมกับหน้าเว็บ <b>WebConfig Portal (<code>config.html</code>)</b> และแดชบอร์ด <b>PWA</b> โดยปฏิบัติดังนี้:</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><b>1. การตั้งค่าผ่าน WebConfig Portal (Dynamic Reconfiguration):</b> เข้าใช้งานหน้า <code>/config.html</code> และทดลองปรับเปลี่ยนพารามิเตอร์ (เช่น เปลี่ยนพินรีเลย์พัดลมจาก 5 เป็น 19 หรือแก้ไขชื่ออุปกรณ์) และกดบันทึก ตรวจสอบว่าระบบเขียนไฟล์ <code>/config.json</code> และรีบูตบอร์ดเพื่อใช้การตั้งค่าใหม่สำเร็จ</li>
+            <li><b>2. การทดสอบ Auto MAC-Based Topics Isolation:</b> ตรวจสอบบนหน้าจอ OLED หรือ Serial Monitor ว่า Topic ที่ ESP32 ใช้งานเป็น Topic ประจำบอร์ด (เช่น <code>esp-node/&lt;MAC&gt;/state</code>) และสามารถ Publish/Subscribe ข้อมูลได้โดยไม่ชนกับกลุ่มเพื่อนในห้องปฏิบัติการ</li>
+            <li><b>3. การทดสอบ Factory Reset Button (Hardware Fail-Safe):</b> กดปุ่ม Flash (GPIO 0) ค้างไว้เป็นเวลา 3 วินาทีขึ้นไป สังเกตว่าระบบจะลบไฟล์คอนฟิก <code>/config.json</code> และรีเซ็ตกลับสู่ค่าโรงงาน (Factory Defaults) ได้อย่างสมบูรณ์</li>
+            <li><b>4. การบันทึกผล:</b> แคปเจอร์ภาพหน้าจอ WebConfig Portal ขณะบันทึกค่า, ภาพหน้าจอ Dashboard ขณะทำงาน, และภาพ Log ขณะทำ Factory Reset แนบส่งในรายงาน</li>
+          </ul>
+        </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
-          คำถามที่ 2: อธิบายขั้นตอนการทำงานเมื่อผู้ใช้กดบันทึกค่าผ่านหน้า `config.html` ข้อมูลถูกส่งไปที่ไหน บอร์ด MCU ดำเนินการอย่างไร และทำการ Reboot ตัวเองอย่างไร?
-        </label>
-        <textarea id="ans2" class="form-control" placeholder="พิมพ์คำอธิบายของคุณที่นี่..."></textarea>
-      </div>
+      <!-- Right Column: Submission Form -->
+      <div class="glass-card">
+        <div class="card-title">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>ฟอร์มบันทึกและส่งรายงานผล</span>
+        </div>
 
-      <div>
-        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--primary);">
-          แนบโค้ดฟังก์ชัน `loadConfiguration()` หรือ `saveConfiguration()` ที่คุณเขียนลงในโปรเจกต์:
-        </label>
-        <textarea id="ansCode" class="form-control" style="height: 160px;" placeholder="วางโค้ด C++ หรือ JSON Configuration..."></textarea>
-      </div>
+        <form id="labForm" onsubmit="return false;">
+          
+          <!-- เชื่อมต่อ Google Sheets ผู้สอน -->
+          <div class="gas-connect-box" style="background: rgba(15, 23, 42, 0.7); border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+              <div style="font-weight: 600; font-size: 0.92rem; color: #f8fafc; display: flex; align-items: center; gap: 0.45rem;">
+                <i class="fa-solid fa-link" style="color: #60a5fa;"></i> เชื่อมต่อ Google Sheets ผู้สอน (Teacher Web App URL):
+              </div>
+              <span id="teacherGasBadge" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.76rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">
+                นำลิงก์ Web App จาก Google Apps Script ของผู้สอนมาวาง เพื่อบันทึกคะแนนลงชีตของท่านโดยตรง
+              </div>
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                <a href="./Code.gs" download="Code_lab6_1.gs" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="ดาวน์โหลดไฟล์ Code.gs">
+                  <i class="fa-solid fa-download"></i> โหลด Code.gs
+                </a>
+                <button type="button" onclick="copyCodeGsContent('LAB6.1Perform')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding: 0.28rem 0.7rem; border-radius: 6px; font-size: 0.76rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <i class="fa-solid fa-copy"></i> คัดลอก Code.gs
+                </button>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="teacherGasUrlInput" placeholder="วางลิงก์ https://script.google.com/macros/s/.../exec ที่นี่..." style="flex: 1; min-width: 240px; background: rgba(11, 17, 32, 0.9); border: 1px solid #334155; border-radius: 7px; padding: 0.45rem 0.75rem; color: #f8fafc; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; outline: none;">
+              <button type="button" onclick="saveTeacherGasUrl('LAB6.1Perform')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
+                <i class="fa-solid fa-floppy-disk"></i> บันทึก URL
+              </button>
+              <button type="button" onclick="copyStudentShareLink('LAB6.1Perform')" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
+                <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์ให้นักเรียน
+              </button>
+              <button type="button" onclick="testTeacherGasUrl('LAB6.1Perform')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
+                <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
+              </button>
+            </div>
+          </div>
 
-      <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
-        <button type="button" class="btn btn-primary" onclick="submitLabReport()">📤 ส่งใบงานและบันทึกคะแนน</button>
+          <!-- 1. Student Metadata -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-user-graduate"></i> ข้อมูลผู้ส่งรายงาน
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName"><i class="fa-regular fa-user"></i> ชื่อ-นามสกุล นักศึกษา <span style="color:#f43f5e;">*</span></label>
+              <input type="text" id="studentName" name="studentName" form="labForm" required placeholder="เช่น นายสมชาย สายฟ้า">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="studentId"><i class="fa-solid fa-id-card"></i> รหัสนักศึกษา <span style="color:#f43f5e;">*</span></label>
+                <input type="text" id="studentId" name="studentId" form="labForm" required placeholder="เช่น 653040xxx-x">
+              </div>
+              <div class="form-group">
+                <label for="studentGroup"><i class="fa-solid fa-users"></i> กลุ่มเรียน/ตอน (Section) <span style="color:#f43f5e;">*</span></label>
+                <input type="text" id="studentGroup" name="studentGroup" form="labForm" required placeholder="เช่น Sec 1 หรือ กลุ่ม 2">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="labDate"><i class="fa-regular fa-calendar-days"></i> วันที่ทำการทดลอง <span style="color:#f43f5e;">*</span></label>
+              <input type="date" id="labDate" name="labDate" form="labForm" required>
+            </div>
+          </div>
+
+          <!-- 2. Post-Lab Analysis Questions -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-clipboard-question"></i> คำถามวิเคราะห์และสรุปผลหลังการทดลอง (Post-Lab Analysis)
+            </div>
+
+            <div class="form-group">
+              <label for="question1">
+                <strong>ข้อที่ 1:</strong> อธิบายประโยชน์ของการแยกหน้าเว็บตั้งค่าระบบฮาร์ดแวร์และเครือข่ายออกเป็น <code>/config.html</code> และบันทึกลงใน LittleFS Flash Memory (<code>/config.json</code>) แทนที่จะฝังค่าไว้ในโค้ด C++ (Hardcoding) <span style="color:#f43f5e;">*</span>
+              </label>
+              <textarea id="question1" name="question1" form="labForm" required class="anti-cheat-textarea" placeholder="พิมพ์คำอธิบายวิเคราะห์อย่างละเอียด (ห้ามคัดลอก/วาง)..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question2">
+                <strong>ข้อที่ 2:</strong> อธิบายกลไกการสร้าง MQTT Topics อัตโนมัติด้วย Device MAC Address (Auto MAC-Based Topics) และเหตุผลที่ระบบ IoT เกรดอุตสาหกรรมจำเป็นต้องมีกลไกนี้เพื่อป้องกันปัญหา Topic &amp; Client ID Collision <span style="color:#f43f5e;">*</span>
+              </label>
+              <textarea id="question2" name="question2" form="labForm" required class="anti-cheat-textarea" placeholder="พิมพ์คำอธิบายวิเคราะห์อย่างละเอียด (ห้ามคัดลอก/วาง)..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="question3">
+                <strong>ข้อที่ 3:</strong> อธิบายขั้นตอนการทำงานของกลไกความปลอดภัยฉุกเฉิน <strong>Factory Reset Button (การกดปุ่ม Flash GPIO 0 ค้างไว้ &ge; 3 วินาที)</strong> และระบบ <strong>Fallback Captive Portal AP Mode (192.168.4.1)</strong> เมื่อบอร์ดไม่สามารถเชื่อมต่อ Wi-Fi ได้ <span style="color:#f43f5e;">*</span>
+              </label>
+              <textarea id="question3" name="question3" form="labForm" required class="anti-cheat-textarea" placeholder="พิมพ์คำอธิบายวิเคราะห์อย่างละเอียด (ห้ามคัดลอก/วาง)..."></textarea>
+            </div>
+          </div>
+
+          <!-- 3. Challenge Code Submission -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-code"></i> ซอร์สโค้ดโจทย์ท้าทาย (Challenge Code Solution)
+            </div>
+            <div class="form-group">
+              <label for="challengeCode">วางโค้ดฟังก์ชัน C++ สำหรับการจัดการ WebConfig, LittleFS, Auto MAC Topics หรือ Factory Reset ที่พัฒนาสำเร็จ:</label>
+              <textarea id="challengeCode" name="challengeCode" form="labForm" required style="font-family: var(--mono-font); min-height: 120px; font-size: 0.82rem;" placeholder="// วางโค้ดภาษา C++/Arduino ที่คุณพัฒนาสำหรับโจทย์ท้าทายที่นี่..."></textarea>
+            </div>
+          </div>
+
+          <!-- 4. Attachments Upload -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-paperclip"></i> แนบไฟล์ผลงานและภาพถ่ายการทดลอง (Attachments)
+            </div>
+            
+            <div class="upload-area" id="screenshotDropArea" onclick="document.getElementById('screenshotInput').click()">
+              <input type="file" id="screenshotInput" accept="image/*" style="display:none;" onchange="handleImageUpload(this)">
+              <i class="fa-regular fa-image upload-icon"></i>
+              <div style="font-weight: 600; font-size: 0.88rem; color: #f8fafc;">คลิกเพื่ออัปโหลดภาพถ่ายแดชบอร์ด WebConfig &amp; PWA หรือลากไฟล์มาวาง</div>
+              <div class="upload-hint">รองรับไฟล์ JPG, PNG, WebP ขนาดไม่เกิน 10MB</div>
+              <div class="file-preview-badge" id="screenshotPreview">
+                <span id="screenshotFileName"><i class="fa-solid fa-check-circle"></i> ภาพถ่ายเรียบร้อย</span>
+                <button type="button" onclick="event.stopPropagation(); removeUploadedScreenshot();" style="background:none; border:none; color:#f87171; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+
+            <div class="upload-area" id="codeDropArea" onclick="document.getElementById('codeInput').click()">
+              <input type="file" id="codeInput" accept=".ino,.cpp,.c,.h,.zip,.json" style="display:none;" onchange="handleCodeFileUpload(this)">
+              <i class="fa-regular fa-file-code upload-icon"></i>
+              <div style="font-weight: 600; font-size: 0.88rem; color: #f8fafc;">คลิกเพื่อแนบไฟล์ซอร์สโค้ด (.ino / .cpp / .json / .zip)</div>
+              <div class="upload-hint">ไฟล์โปรเจกต์ PlatformIO หรือ Arduino IDE</div>
+              <div class="file-preview-badge" id="codePreview">
+                <span id="codeFileNameDisplay"><i class="fa-solid fa-check-circle"></i> แนบไฟล์โค้ดเรียบร้อย</span>
+                <button type="button" onclick="event.stopPropagation(); removeUploadedCodeFile();" style="background:none; border:none; color:#f87171; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Conclusion -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-feather-pointed"></i> สรุปผลการทดลองและข้อเสนอแนะ (Conclusion &amp; Reflections)
+            </div>
+            <div class="form-group">
+              <label for="conclusion">สรุปองค์ความรู้ที่ได้รับ, ปัญหาที่พบในการพัฒนา WebConfig และแนวทางการประยุกต์ใช้ในงานอุตสาหกรรม (อย่างน้อย 100 ตัวอักษร) <span style="color:#f43f5e;">*</span></label>
+              <textarea id="conclusion" name="conclusion" form="labForm" required class="anti-cheat-textarea" style="min-height: 95px;" oninput="updateConclusionCharCount(this)" placeholder="พิมพ์สรุปผลการทดลองของคุณที่นี่..."></textarea>
+              <div style="text-align: right; font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">
+                จำนวนตัวอักษร: <span id="conclusionCharCount">0</span> / 100
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Multiple Choice Quiz (5 Questions) -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fa-solid fa-list-check"></i> แบบทดสอบวัดผลการเรียนรู้ (5-Question Mastery Quiz)
+            </div>
+
+            <!-- Quiz Q1 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 1</span>
+                <span>ประโยชน์สำคัญที่สุดของการแยกหน้าตั้งค่าระบบฮาร์ดแวร์ออกเป็น <strong>WebConfig (<code>config.html</code>) และบันทึกลง LittleFS</strong> คืออะไร?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1a" form="labForm" required>
+                  <span>ก. ทำให้ความเร็วของ CPU ESP32 เพิ่มขึ้นเป็นสองเท่า</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1b" form="labForm" required>
+                  <span>ข. ทำให้สามารถปรับเปลี่ยนพินเซ็นเซอร์, ขารีเลย์ และ Wi-Fi/MQTT Credentials ได้แบบไดนามิกผ่านเว็บ โดยไม่ต้องต่อสายแฟลชโค้ดใหม่ (Dynamic Config)</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1c" form="labForm" required>
+                  <span>ค. ช่วยลดขนาดไฟล์ HTML ลงเหลือศูนย์</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz1" value="1d" form="labForm" required>
+                  <span>ง. ป้องกันไม่ให้บุคคลอื่นมองเห็นรหัสผ่าน Wi-Fi ได้ 100%</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q2 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 2</span>
+                <span>เหตุใดในระบบ IoT เกรดอุตสาหกรรมที่มีอุปกรณ์จำนวนมาก จึงควรนำ <strong>Device MAC Address (<code>WiFi.macAddress()</code>)</strong> มาสร้างชื่อ Client ID และ Topic (เช่น <code>esp-node/&lt;MAC&gt;/state</code>)?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2a" form="labForm" required>
+                  <span>ก. เพื่อให้สัญญาณ Wi-Fi ส่งได้ระยะทางไกลขึ้น</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2b" form="labForm" required>
+                  <span>ข. เพื่อให้ค่าอุณหภูมิที่อ่านได้มีความแม่นยำสูงขึ้น</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2c" form="labForm" required>
+                  <span>ค. เพื่อรับประกันความไม่ซ้ำกันของ ID และ Topic (Globally Unique) ป้องกันปัญหา Broker Disconnect จากการแย่ง Client ID และแยกสตรีมข้อมูลของแต่ละโหนดได้อย่างชัดเจน</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz2" value="2d" form="labForm" required>
+                  <span>ง. เพื่อเข้ารหัสข้อมูลแบบ 256-bit AES โดยอัตโนมัติ</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q3 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 3</span>
+                <span>ในการออกแบบระบบกู้คืนระบบฉุกเฉิน (Factory Reset) ด้วยปุ่มกดฮาร์ดแวร์ เหตุใดจึงต้องเขียนโค้ดตรวจสอบการ <strong>กดปุ่มค้างไว้อย่างน้อย 3 วินาที (Long-Press Detection)</strong>?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3a" form="labForm" required>
+                  <span>ก. เพื่อป้องกันการสั่งลบการตั้งค่าและรีเซ็ตระบบโดยไม่ตั้งใจ (Accidental Trigger / Noise Debounce) จากการกดพลาดหรือสัญญาณรบกวนทางไฟฟ้า</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3b" form="labForm" required>
+                  <span>ข. เพื่อให้หน่วยความจำ Flash มีเวลาชาร์จประจุไฟฟ้าสำรอง</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3c" form="labForm" required>
+                  <span>ค. เพราะตัวประมวลผล ESP32 ต้องใช้เวลา 3 วินาทีในการอ่านค่าปุ่มกด</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz3" value="3d" form="labForm" required>
+                  <span>ง. เพื่อส่งอีเมลแจ้งเตือนผู้ดูแลระบบล่วงหน้า</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q4 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 4</span>
+                <span>หากนำบอร์ดที่ตั้งค่า Wi-Fi ผิดพลาดหรือย้ายไปยังไซต์งานใหม่ ระบบ <strong>Captive Portal AP Mode (192.168.4.1)</strong> จะมีลำดับการทำงานอย่างไร?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4a" form="labForm" required>
+                  <span>ก. บอร์ดจะปิดตัวเองลงทันทีเพื่อประหยัดพลังงาน</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4b" form="labForm" required>
+                  <span>ข. บอร์ดจะวนลูปต่อ Wi-Fi เดิมไปเรื่อยๆ จนกว่าไฟจะดับ</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4c" form="labForm" required>
+                  <span>ค. เมื่อเชื่อมต่อ Wi-Fi ไม่สำเร็จตามเวลา Timeout บอร์ดจะเปิด Wi-Fi Hotspot ของตัวเอง (AP Mode) พร้อมระบบ DNS Redirect เพื่อให้ผู้ใช้เปิดหน้า <code>config.html</code> ไปตั้งค่าใหม่ได้ทันที</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz4" value="4d" form="labForm" required>
+                  <span>ง. บอร์ดจะลบโปรแกรมใน Flash Memory ทิ้งทั้งหมด</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quiz Q5 -->
+            <div class="quiz-card">
+              <div class="quiz-q-title">
+                <span class="quiz-q-badge">ข้อที่ 5</span>
+                <span>การบันทึกพารามิเตอร์การตั้งค่าลงไฟล์ <code>/config.json</code> ใน LittleFS มีข้อได้เปรียบอย่างไรเมื่อเทียบกับ EEPROM ดั้งเดิม?</span>
+              </div>
+              <div class="quiz-options-grid">
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5a" form="labForm" required>
+                  <span>ก. LittleFS มีโครงสร้างไฟล์ที่เป็นระบบ (File System), ใช้งานร่วมกับไลบรารี ArduinoJson ได้โดยตรง, รองรับ Wear-Leveling และสามารถอัปโหลดไฟล์ HTML/CSS ร่วมได้ในที่เดียว</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5b" form="labForm" required>
+                  <span>ข. LittleFS ทำงานได้โดยไม่ต้องใช้ไฟเลี้ยง</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5c" form="labForm" required>
+                  <span>ค. EEPROM ไม่สามารถเขียนทับข้อมูลได้</span>
+                </label>
+                <label class="quiz-option-label">
+                  <input type="radio" name="quiz5" value="5d" form="labForm" required>
+                  <span>ง. LittleFS ช่วยเพิ่มความถี่ของเสาอากาศ WiFi</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit & Action Button Group -->
+          <div style="display:flex; flex-direction:column; gap:0.75rem; margin-top:1.5rem;">
+            <button type="button" class="btn-check-score" id="checkScoreBtn" onclick="checkPreSubmissionScore()">
+              <i class="fa-solid fa-calculator"></i> ตรวจสอบคะแนนประเมินสด (Pre-check Score: 10.0 คะแนน)
+            </button>
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" id="submitBtn" onclick="openSubmitConfirmModal()" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;">
+                <i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="window.print()" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;">
+                <i class="fa-solid fa-file-pdf"></i> พิมพ์/บันทึกเป็น PDF
+              </button>
+            </div>
+            <button type="button" class="btn btn-secondary" id="newStudentBtn" onclick="confirmResetForNewStudent()" style="display:none; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#ffffff; width:100%; align-items:center; justify-content:center; gap:0.5rem; padding:0.75rem; font-weight:600; border:none; border-radius:8px; cursor:pointer; margin-top:0.25rem;">
+              <i class="fa-solid fa-user-plus"></i> เริ่มทำใบงานใหม่ (สำหรับนักศึกษาคนใหม่)
+            </button>
+          </div>
+        </form>
       </div>
-      <div id="submitResult" style="margin-top: 15px; display: none;"></div>
     </div>
   </div>
 
-  <script>
-    async function submitLabReport() {
-      const name = document.getElementById('studentName').value.trim();
-      const id = document.getElementById('studentId').value.trim();
-      const group = document.getElementById('studentGroup').value.trim();
-      const mac = document.getElementById('deviceMacInput').value.trim();
-      const ans1 = document.getElementById('ans1').value.trim();
-      const ans2 = document.getElementById('ans2').value.trim();
-      const ansCode = document.getElementById('ansCode').value.trim();
-
-      if (!name || !id) {
-        alert('กรุณากรอกชื่อ-นามสกุล และรหัสนักศึกษาให้ครบถ้วน');
-        return;
-      }
-
-      const resDiv = document.getElementById('submitResult');
-      resDiv.style.display = 'block';
-      resDiv.innerHTML = '<div style="color: var(--primary);">⏳ กำลังส่งข้อมูลไปยังระบบประเมินผล...</div>';
-
-      try {
-        const payload = {
-          lab: 'LAB6_Perform',
-          studentName: name,
-          studentId: id,
-          studentGroup: group,
-          deviceMac: mac,
-          answers: { q1: ans1, q2: ans2, code: ansCode }
-        };
-
-        const res = await fetch('/api/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        resDiv.innerHTML = `<div style="padding: 15px; background: rgba(46, 196, 182, 0.2); border: 1px solid var(--success-green); border-radius: 8px; color: #6ee7b7;">
-          🎉 <strong>ส่งใบงานสำเร็จ!</strong> คะแนนประเมินเบื้องต้น: <strong>${data.score || '10/10'}</strong> (บันทึกลงฐานข้อมูลเรียบร้อยแล้ว)
-        </div>`;
-      } catch (e) {
-        resDiv.innerHTML = `<div style="padding: 15px; background: rgba(78, 168, 222, 0.2); border: 1px solid var(--primary); border-radius: 8px; color: #38bdf8;">
-          ✓ บันทึกข้อมูลใบงานในระดับเครื่องเรียบร้อยแล้ว
-        </div>`;
-      }
-    }
-  </script>
-
-  <!-- Theory Content Modal -->
+  <!-- Theory Content Modal (Multi-Tab) -->
   <div class="modal-overlay" id="theoryModal" style="display: none;">
     <div class="theory-modal-content">
       <div class="theory-modal-header">
-        <h2><i class="fa-solid fa-graduation-cap" style="color: #48cae4;"></i> ทฤษฎีที่เกี่ยวข้อง: การบูรณาการโครงงาน Hybrid Node (WS + MQTT)</h2>
+        <h2><i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> ทฤษฎีที่เกี่ยวข้อง: การพัฒนาระบบ IoT เกรดอุตสาหกรรม (WebConfig &amp; Auto MAC)</h2>
         <button type="button" class="theory-close-x" onclick="closeTheoryModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="theory-modal-body">
         <div class="theory-tab-bar">
-          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('hybrid', this)">1. สถาปัตยกรรม Hybrid</button>
-          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('nonblock', this)">2. Non-blocking System</button>
-          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('hysteresis', this)">3. Dual-Loop Control</button>
+          <button type="button" class="theory-tab-btn active" onclick="switchTheoryTab('webconfig', this)"><i class="fa-solid fa-sliders"></i> 1. Dynamic WebConfig</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('mactopics', this)"><i class="fa-solid fa-key"></i> 2. Auto MAC Topics</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('resetflow', this)"><i class="fa-solid fa-rotate-left"></i> 3. Factory Reset &amp; Debounce</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('captiveap', this)"><i class="fa-solid fa-wifi"></i> 4. Captive Portal AP Mode</button>
+          <button type="button" class="theory-tab-btn" onclick="switchTheoryTab('littlefs', this)"><i class="fa-solid fa-hard-drive"></i> 5. LittleFS File System</button>
         </div>
 
-        <div class="theory-tab-panel active" id="theory-tab-hybrid">
+        <div class="theory-tab-panel active" id="theory-tab-webconfig">
           <div class="theory-card">
-            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">1.1 Dual-Channel Communication (Local + Cloud)</h4>
-            <p>ระบบ Hybrid IoT Node รองรับช่องทางสื่อสาร 2 ทางพร้อมกัน:</p>
-            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-              <li><strong>Local WebSocket (Port 81):</strong> ทำงานบนเครือข่ายภายในบ้าน/โรงงาน รวดเร็ว ตอบสนองระดับมิลลิวินาที และยังควบคุมได้แม้เน็ตภายนอกดับ</li>
-              <li><strong>Cloud MQTT (Port 1883):</strong> ส่งข้อมูลขึ้นสู่ Cloud Broker ทำให้สามารถติดตามและสั่งการจากระยะไกลผ่านอินเทอร์เน็ตได้ทุกที่ทั่วโลก</li>
+            <h4><i class="fa-solid fa-sliders"></i> 1.1 สถาปัตยกรรมการแยกหน้าเว็บ Dashboard และ WebConfig Portal</h4>
+            <p>ในการพัฒนาอุปกรณ์ IoT ทางอุตสาหกรรม การฝังชื่อ Wi-Fi, รหัสผ่าน หรือหมายเลขขาพินลงในซอร์สโค้ดโดยตรง (Hardcoding) จะทำให้ไม่สามารถนำบอร์ดไปติดตั้งในพื้นที่อื่นได้โดยไม่ต่อคอมพิวเตอร์เพื่อแฟลชโปรแกรมใหม่</p>
+            <p style="margin-top:0.5rem;"><strong>การแก้ไขด้วย Dynamic WebConfig:</strong> แยกหน้าเว็บออกเป็น 2 ส่วน:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.35rem; line-height: 1.6;">
+              <li><b>Main Dashboard (<code>/index.html</code>):</b> หน้าจอหลักสำหรับผู้ใช้งานทั่วไป มอนิเตอร์ค่าเซ็นเซอร์และกดเปิด-ปิดรีเลย์</li>
+              <li><b>WebConfig Portal (<code>/config.html</code>):</b> หน้าจอสำหรับช่างเทคนิคหรือผู้ดูแลระบบ เพื่อปรับเปลี่ยนพินฮาร์ดแวร์และค่าเครือข่าย แล้วบันทึกเป็น <code>/config.json</code> ลงใน LittleFS</li>
             </ul>
           </div>
         </div>
 
-        <div class="theory-tab-panel" id="theory-tab-nonblock">
+        <div class="theory-tab-panel" id="theory-tab-mactopics">
           <div class="theory-card">
-            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">2.1 Multi-tasking แบบ Non-blocking ด้วย millis()</h4>
-            <p>ในระบบที่ซับซ้อน ห้ามใช้คำสั่ง <code>delay()</code> เด็ดขาด เพราะจะทำให้ระบบเว็บเซิร์ฟเวอร์, การวาดจอ OLED และการเชื่อมต่อ MQTT ค้าง การใช้ตัวแปรจับเวลาแบบ <code>millis()</code> ช่วยให้ CPU สามารถสลับประมวลผลงานย่อยทั้งหมดได้อย่างราบรื่น</p>
+            <h4><i class="fa-solid fa-key"></i> 2.1 การสร้าง Unique Topic ด้วย Device MAC Address</h4>
+            <p>เมื่ออุปกรณ์หลายร้อยตัวเชื่อมต่อไปยัง Cloud MQTT Broker เดียวกัน หากใช้ Topic พื้นฐานเหมือนกัน เช่น <code>home/fan/cmd</code> ทุกโหนดจะได้รับคำสั่งเดียวกันและแย่ง Client ID กันจนเกิดอาการหลุดเชื่อมต่อ (Client Collision Loop)</p>
+            <div class="theory-formula">
+              // ดึง MAC Address ของชิป Wi-Fi และตัดเครื่องหมายโคลอน (:)<br>
+              String rawMac = WiFi.macAddress();<br>
+              rawMac.replace(":", "");<br>
+              String subTopic = "esp-node/" + rawMac + "/control/cmd";<br>
+              String pubTopic = "esp-node/" + rawMac + "/state";
+            </div>
+            <p>กลไกนี้ทำให้แต่ละโหนดมีหัวข้อรับ-ส่งข้อมูลเฉพาะตัวที่ไม่ซ้ำกับโหนดอื่นในโลก (Globally Unique) อย่างแท้จริง</p>
           </div>
         </div>
 
-        <div class="theory-tab-panel" id="theory-tab-hysteresis">
+        <div class="theory-tab-panel" id="theory-tab-resetflow">
           <div class="theory-card">
-            <h4 style="color: #48cae4; font-size: 1.1rem; margin-bottom: 0.5rem;">3.1 ระบบควบคุมอัตโนมัติ 2 ลูปแบบอิสระ</h4>
-            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-              <li><strong>ลูปพัดลม (Temperature Loop):</strong> สั่งเปิดเมื่อ <code>อุณหภูมิ &gt; เกณฑ์ Threshold</code> และปิดเมื่อ <code>อุณหภูมิ &lt; (Threshold - 0.5&deg;C)</code></li>
-              <li><strong>ลูปพ่นหมอก (Humidity/Soil Loop):</strong> สั่งเปิดเมื่อความชื้นในดินหรือบรรยากาศต่ำกว่า 40% และปิดเมื่อเกิน 50%</li>
-            </ul>
+            <h4><i class="fa-solid fa-rotate-left"></i> 3.1 ระบบกู้คืนค่าโรงงานฉุกเฉิน (Factory Reset via Long-Press)</h4>
+            <p>หากผู้ใช้ตั้งค่า Wi-Fi หรือพินฮาร์ดแวร์ผิดพลาดจนบอร์ดค้างหรือไม่สามารถเข้าหน้าเว็บได้ ระบบมีกลไกตรวจสอบการกดปุ่ม Flash (GPIO 0) ค้างไว้ &ge; 3 วินาที:</p>
+            <div class="theory-formula">
+              if (digitalRead(RESET_PIN) == LOW) {<br>
+              &nbsp;&nbsp;if (pressStart == 0) pressStart = millis();<br>
+              &nbsp;&nbsp;if (millis() - pressStart >= 3000) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;LittleFS.remove("/config.json"); // ลบไฟล์คอนฟิก<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;ESP.restart(); // รีบูตเข้าสู่โหมดค่าเริ่มต้นโรงงาน<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-captiveap">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-wifi"></i> 4.1 Fallback Captive Portal AP Mode (192.168.4.1)</h4>
+            <p>เมื่อบอร์ดพยายามต่อ Wi-Fi แต่ไม่สำเร็จภายใน 15-20 วินาที บอร์ดจะสลับเข้าสู่โหมด <code>WIFI_AP</code> โดยอัตโนมัติ พร้อมรัน DNS Server เพื่อดักจับทุกคำขอของเบราว์เซอร์ให้เปิดหน้า <code>http://192.168.4.1/config.html</code> ทันทีที่เชื่อมต่อ Wi-Fi ของบอร์ด</p>
+          </div>
+        </div>
+
+        <div class="theory-tab-panel" id="theory-tab-littlefs">
+          <div class="theory-card">
+            <h4><i class="fa-solid fa-hard-drive"></i> 5.1 การจัดการไฟล์ด้วย LittleFS และ ArduinoJson</h4>
+            <p>LittleFS คือระบบไฟล์บน SPI Flash Memory ของ ESP32/ESP8266 ที่มีระบบ Wear-Leveling ป้องกันหน่วยความจำเสื่อมสภาพจากการเขียนซ้ำ:</p>
+            <div class="theory-formula">
+              // ตัวอย่างการบันทึก JSON Config ลง Flash:<br>
+              File file = LittleFS.open("/config.json", "w");<br>
+              serializeJson(doc, file);<br>
+              file.close();
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="theory-modal-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end;">
-        <button type="button" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer;" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
+      <div class="theory-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeTheoryModal()">ปิดหน้าต่างทฤษฎี</button>
       </div>
     </div>
   </div>
 
-<script>
+  <!-- Score Pre-check Modal -->
+  <div class="modal-overlay" id="scoreCheckModal" style="display: none;">
+    <div class="theory-modal-content" style="max-width: 650px;">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-calculator" style="color: var(--accent);"></i> ผลการประเมินคะแนนสด (Pre-Submission Score Check)</h2>
+        <button type="button" class="theory-close-x" onclick="closeScoreCheckModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
+      <div class="theory-modal-body">
+        <div style="text-align: center; padding: 1rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 1rem;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">คะแนนรวมประเมินเบื้องต้น</div>
+          <div id="preScoreTotal" style="font-size: 2.8rem; font-weight: 800; color: #38bdf8; font-family: var(--mono-font);">0.0 <span style="font-size: 1.1rem; color: #94a3b8; font-weight: 400;">/ 10.0</span></div>
+          <div id="preScoreBadge" style="margin-top: 0.5rem;" class="score-status-badge">กำลังประเมิน...</div>
+        </div>
+
+        <div id="preScoreBreakdown">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <div class="theory-modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn btn-secondary" onclick="closeScoreCheckModal()">ปิด</button>
+        <button type="button" class="btn btn-primary" onclick="submitFromScoreModal()">ยืนยันและส่งใบงานออนไลน์</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Submit Modal -->
+  <div class="modal-overlay" id="confirmSubmitModal" style="display: none;">
+    <div class="theory-modal-content" style="max-width: 500px;">
+      <div class="theory-modal-header">
+        <h2><i class="fa-solid fa-circle-question" style="color: #fbbf24;"></i> ยืนยันการส่งรายงาน</h2>
+        <button type="button" class="theory-close-x" onclick="closeSubmitConfirmModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="theory-modal-body" style="line-height: 1.6; font-size: 0.9rem;">
+        <p>คุณกำลังจะส่งรายงานใบงานที่ 6.1 (Perform) ในชื่อ:</p>
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 0.75rem; border-radius: 8px; margin: 0.75rem 0; border-left: 3px solid #38bdf8;">
+          <div><strong>ชื่อ-นามสกุล:</strong> <span id="confirmStudentName">-</span></div>
+          <div><strong>รหัสนักศึกษา:</strong> <span id="confirmStudentId">-</span></div>
+        </div>
+        <p style="color: #f87171; font-size: 0.82rem;">⚠️ หมายเหตุ: เมื่อส่งแล้วจะไม่สามารถแก้ไขข้อมูลได้ กรุณาตรวจสอบความถูกต้อง</p>
+      </div>
+      <div class="theory-modal-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeSubmitConfirmModal()">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="executeFinalSubmit()">ยืนยันส่งข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Anti-Cheat Toast Warning -->
+  <div class="anti-cheat-toast" id="antiCheatToast">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span>⚠️ ระบบตรวจจับการลอก: กรุณาพิมพ์คำตอบด้วยตนเอง ห้ามคัดลอก/วางข้อความ</span>
+  </div>
+
+  <script>
+    const _LAB_STORAGE_KEY = 'submitted_iot_lab6_1_';
+
+    // ── 1. Online / Offline Status Detection ──
+    function initOnlineStatus() {
+      const badge = document.getElementById('onlineStatusBadge');
+      const text = document.getElementById('onlineStatusText');
+      if (!badge || !text) return;
+
+      function updateStatus() {
+        if (navigator.onLine) {
+          badge.className = 'status-badge online';
+          text.textContent = 'ออนไลน์ (พร้อมส่งรายงาน)';
+        } else {
+          badge.className = 'status-badge offline';
+          text.textContent = 'ออฟไลน์ (ไม่มีการเชื่อมต่อเครือข่าย)';
+        }
+      }
+
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+      updateStatus();
+    }
+
+    // ── 2. Modal Controller ──
     function openTheoryModal() {
       const m = document.getElementById('theoryModal');
       if (m) m.style.display = 'flex';
     }
+
     function closeTheoryModal() {
       const m = document.getElementById('theoryModal');
       if (m) m.style.display = 'none';
     }
+
     function switchTheoryTab(tabKey, btn) {
       document.querySelectorAll('.theory-tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.theory-tab-panel').forEach(p => p.classList.remove('active'));
+      
       if (btn) btn.classList.add('active');
-      const panel = document.getElementById('theory-tab-' + tabKey);
-      if (panel) panel.classList.add('active');
+      const target = document.getElementById('theory-tab-' + tabKey);
+      if (target) target.classList.add('active');
     }
 
+    // ── 3. Wokwi View Mode & Fullscreen ──
+    function toggleSimOrDiagram(btn) {
+      const iframeWrapper = document.getElementById('wokwiIframeWrapper');
+      const diagramWrapper = document.getElementById('wokwiDiagramWrapper');
+      const btnSim = document.getElementById('btnToggleSimMode');
+      const btnDiag = document.getElementById('btnToggleDiagramMode');
 
-    // Anti-Cheat System (Prohibit Copy/Paste/Cut/Drop in Questions & Conclusion)
-    function initAntiCheat() {
-      const protectedSelectors = [
-        '#question1', '#question2', '#question3', '#question4', '#question5',
-        '#conclusion', '#discussion', '#answer1', '#answer2', '#answer3',
-        'textarea:not(#challengeCode)'
-      ];
-      
-      let toast = document.getElementById('antiCheatToast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'antiCheatToast';
-        toast.className = 'anti-cheat-toast';
-        toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>⚠️ ระบบตรวจจับการลอก: ห้ามคัดลอก/วางข้อความ กรุณาพิมพ์คำตอบด้วยตนเอง</span>';
-        document.body.appendChild(toast);
+      if (btn === btnDiag) {
+        iframeWrapper.style.display = 'none';
+        diagramWrapper.style.display = 'block';
+        btnDiag.classList.add('active');
+        btnSim.classList.remove('active');
+      } else {
+        iframeWrapper.style.display = 'block';
+        diagramWrapper.style.display = 'none';
+        btnSim.classList.add('active');
+        btnDiag.classList.remove('active');
       }
+    }
 
-      let toastTimeout = null;
-      function triggerWarning(msg) {
-        if (msg) {
-          toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i> <span>${msg}</span>`;
-        }
-        toast.classList.add('show');
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          toast.classList.remove('show');
-        }, 2800);
+    function toggleWokwiFullscreen() {
+      const card = document.getElementById('wokwiSectionCard');
+      const fsText = document.getElementById('wokwiFsText');
+      const fsIcon = document.getElementById('wokwiFsIcon');
+
+      if (!document.fullscreenElement) {
+        if (card.requestFullscreen) card.requestFullscreen();
+        else if (card.webkitRequestFullscreen) card.webkitRequestFullscreen();
+        if (fsText) fsText.textContent = 'ย่อหน้าจอ';
+        if (fsIcon) fsIcon.className = 'fa-solid fa-compress';
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        if (fsText) fsText.textContent = 'เต็มหน้าจอ';
+        if (fsIcon) fsIcon.className = 'fa-solid fa-expand';
       }
+    }
 
-      protectedSelectors.forEach(sel => {
-        document.querySelectorAll(sel).forEach(el => {
-          if (el.id === 'challengeCode') return;
-
-          el.addEventListener('paste', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ห้ามวางข้อความ (Paste)! กรุณาพิมพ์คำตอบและวิเคราะห์ผลด้วยตนเอง');
-          });
-
-          el.addEventListener('copy', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ห้ามคัดลอกข้อความ (Copy) จากส่วนนี้');
-          });
-
-          el.addEventListener('cut', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ไม่อนุญาตให้ตัดข้อความ (Cut)');
-          });
-
-          el.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ปิดการใช้งานเมนูคลิกขวาในส่วนคำตอบ');
-          });
-
-          el.addEventListener('drop', (e) => {
-            e.preventDefault();
-            triggerWarning('⚠️ ไม่อนุญาตให้ลากวางข้อความ (Drag & Drop)');
-          });
+    function copyVsCodeCommand() {
+      const cmd = 'pio run -t uploadfs && pio run -t upload';
+      navigator.clipboard.writeText(cmd).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'คัดลอกคำสั่ง VS Code แล้ว!',
+          text: cmd,
+          background: '#0f172a',
+          color: '#f8fafc',
+          timer: 2000,
+          showConfirmButton: false
         });
       });
     }
-    window.addEventListener('DOMContentLoaded', initAntiCheat);
 
+    function copySkeletonCode() {
+      const pre = document.querySelector('.code-container pre');
+      if (pre) {
+        // Clone and get text with filled blanks
+        const clone = pre.cloneNode(true);
+        clone.querySelectorAll('input').forEach(inp => {
+          inp.replaceWith(inp.value || '[ช่องว่าง]');
+        });
+        navigator.clipboard.writeText(clone.innerText).then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'คัดลอกโค้ดสำเร็จ!',
+            background: '#0f172a',
+            color: '#f8fafc',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        });
+      }
+    }
+
+    // ── 4. Web Serial API Controller ──
+    let serialPort = null;
+    let serialReader = null;
+    let serialWriter = null;
+
+    async function toggleWebSerial() {
+      const btn = document.getElementById('btnConnectSerial');
+      const badge = document.getElementById('serialStatusBadge');
+      const text = document.getElementById('serialStatusText');
+      const btnText = document.getElementById('btnConnectSerialText');
+
+      if (!navigator.serial) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ไม่รองรับ Web Serial API',
+          text: 'กรุณาใช้งานบนเบราว์เซอร์ Chrome, Edge หรือ Opera บนคอมพิวเตอร์',
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+        return;
+      }
+
+      if (serialPort) {
+        // Disconnect
+        try {
+          if (serialReader) await serialReader.cancel();
+          if (serialWriter) await serialWriter.close();
+          await serialPort.close();
+        } catch (e) {
+          console.error(e);
+        }
+        serialPort = null;
+        badge.className = 'status-badge offline';
+        text.textContent = 'ยังไม่ได้เชื่อมต่อ USB';
+        btnText.textContent = 'เชื่อมต่อบอร์ดจริง (USB)';
+        btn.className = 'feature-btn primary';
+        return;
+      }
+
+      try {
+        serialPort = await navigator.serial.requestPort();
+        const baud = parseInt(document.getElementById('serialBaudRateSelect').value) || 115200;
+        await serialPort.open({ baudRate: baud });
+        
+        // Auto-release RTS/DTR for ESP32 Normal Run Mode
+        try {
+          await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        } catch (e) {}
+
+        badge.className = 'status-badge online';
+        text.textContent = `เชื่อมต่อแล้ว (${baud} baud)`;
+        btnText.textContent = 'ตัดการเชื่อมต่อ USB';
+        btn.className = 'feature-btn warning';
+
+        readSerialLoop();
+      } catch (err) {
+        console.error('Serial Error:', err);
+      }
+    }
+
+    async function readSerialLoop() {
+      const term = document.getElementById('serialTerminalWindow');
+      const decoder = new TextDecoderStream();
+      const inputDone = serialPort.readable.pipeTo(decoder.writable);
+      const inputStream = decoder.readable;
+      serialReader = inputStream.getReader();
+
+      try {
+        while (true) {
+          const { value, done } = await serialReader.read();
+          if (done) break;
+          if (value) {
+            term.textContent += value;
+            term.scrollTop = term.scrollHeight;
+          }
+        }
+      } catch (err) {
+        console.error('Serial Read error:', err);
+      } finally {
+        serialReader.releaseLock();
+      }
+    }
+
+    async function resetEsp32Board() {
+      if (!serialPort) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ยังไม่ได้เชื่อมต่อบอร์ด',
+          text: 'กรุณากดปุ่มเชื่อมต่อบอร์ดจริงผ่าน USB ก่อนกดรีเซ็ต',
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+        return;
+      }
+      try {
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: true });
+        await new Promise(r => setTimeout(r, 150));
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+        
+        const term = document.getElementById('serialTerminalWindow');
+        term.textContent += '\n\n[HARDWARE RESET SIGNAL SENT (DTR=0, RTS=0)]\n';
+        term.scrollTop = term.scrollHeight;
+      } catch (e) {
+        console.error('Reset error:', e);
+      }
+    }
+
+    async function sendSerialText() {
+      const inp = document.getElementById('serialInputText');
+      const txt = (inp.value || '').trim();
+      if (!txt || !serialPort) return;
+
+      const encoder = new TextEncoderStream();
+      const outputDone = encoder.readable.pipeTo(serialPort.writable);
+      const outputStream = encoder.writable;
+      const writer = outputStream.getWriter();
+
+      await writer.write(txt + '\n');
+      writer.releaseLock();
+      
+      const term = document.getElementById('serialTerminalWindow');
+      term.textContent += `\n>> TX: ${txt}\n`;
+      term.scrollTop = term.scrollHeight;
+      inp.value = '';
+    }
+
+    function clearSerialTerminal() {
+      document.getElementById('serialTerminalWindow').textContent = '[TERMINAL CLEARED]\n';
+    }
+
+    function onBaudRateChange() {
+      if (serialPort) {
+        toggleWebSerial().then(() => toggleWebSerial());
+      }
+    }
+
+    // ── 5. File Upload Handling ──
+    let uploadedScreenshotBase64 = '';
+    let uploadedCodeBase64 = '';
+
+    function handleImageUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedScreenshotBase64 = e.target.result;
+          document.getElementById('screenshotPreview').style.display = 'flex';
+          document.getElementById('screenshotFileName').innerHTML = `<i class="fa-solid fa-check-circle"></i> ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeUploadedScreenshot() {
+      uploadedScreenshotBase64 = '';
+      document.getElementById('screenshotInput').value = '';
+      document.getElementById('screenshotPreview').style.display = 'none';
+    }
+
+    function handleCodeFileUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedCodeBase64 = e.target.result;
+          document.getElementById('codePreview').style.display = 'flex';
+          document.getElementById('codeFileNameDisplay').innerHTML = `<i class="fa-solid fa-check-circle"></i> ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeUploadedCodeFile() {
+      uploadedCodeBase64 = '';
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codePreview').style.display = 'none';
+    }
+
+    function updateConclusionCharCount(el) {
+      const len = (el.value || '').trim().length;
+      const countEl = document.getElementById('conclusionCharCount');
+      if (countEl) {
+        countEl.textContent = len;
+        countEl.style.color = (len >= 100) ? '#34d399' : '#f87171';
+      }
+    }
+
+    // ── 6. Anti-Cheat Engine ──
+    function initAntiCheat() {
+      const textareas = document.querySelectorAll('.anti-cheat-textarea');
+      const toast = document.getElementById('antiCheatToast');
+
+      function showToast() {
+        if (!toast) return;
+        toast.style.display = 'flex';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      }
+
+      textareas.forEach(ta => {
+        ta.addEventListener('paste', e => {
+          e.preventDefault();
+          showToast();
+        });
+        ta.addEventListener('copy', e => {
+          e.preventDefault();
+          showToast();
+        });
+        ta.addEventListener('contextmenu', e => {
+          e.preventDefault();
+        });
+      });
+    }
+
+    // ── 7. Regex Evaluation Engines (Lab 6.1 Perform) ──
+    function evaluateLab61Blanks() {
+      const b1 = (document.getElementById('codeBlank1')?.value || '').trim();
+      const b2 = (document.getElementById('codeBlank2')?.value || '').trim();
+      const b3 = (document.getElementById('codeBlank3')?.value || '').trim();
+      const b4 = (document.getElementById('codeBlank4')?.value || '').trim();
+      const b5 = (document.getElementById('codeBlank5')?.value || '').trim();
+
+      const b1Ok = /^(\/config\.json|"\/config\.json"|'\/config\.json'|"r"|'r'|LittleFS\.open)/i.test(b1);
+      const b2Ok = /^(deserializeJson|deserializeJson\(doc,\s*file\)|ArduinoJson)/i.test(b2);
+      const b3Ok = /^(WiFi\.macAddress\(\)|WiFi\.macAddress|macAddress)/i.test(b3);
+      const b4Ok = /^(subTopic\.c_str\(\)|subTopic|sub_topic)/i.test(b4);
+      const b5Ok = /^(LittleFS\.remove|LittleFS\.remove\("\/config\.json"\)|remove|LittleFS\.format\(\))/i.test(b5);
+
+      let correct = 0;
+      if (b1Ok) correct++;
+      if (b2Ok) correct++;
+      if (b3Ok) correct++;
+      if (b4Ok) correct++;
+      if (b5Ok) correct++;
+
+      const score = Number(((correct / 5) * 1.5).toFixed(1));
+      return { score, correctCount: correct, totalCount: 5 };
+    }
+
+    function evaluateLab61Challenge(code) {
+      if (!code || code.trim().length === 0) {
+        return { score: 0.0, feedback: '⚠️ ยังไม่ได้เขียนโค้ดโจทย์ท้าทาย' };
+      }
+      let score = 0.0;
+      let matched = [];
+
+      // 1. LittleFS Config Loading & Saving
+      if (/(LittleFS|config\.json|loadConfiguration|saveConfiguration)/i.test(code)) {
+        score += 0.5;
+        matched.push('✓ มีฟังก์ชันโหลด/บันทึกการตั้งค่าลง LittleFS (/config.json)');
+      } else {
+        matched.push('✗ ขาดคำสั่ง LittleFS / config.json');
+      }
+
+      // 2. Auto MAC Topics
+      if (/(WiFi\.macAddress|cleanMac|subTopic|pubTopic)/i.test(code)) {
+        score += 0.5;
+        matched.push('✓ มีกลไกสร้าง Topic อัตโนมัติด้วย Device MAC Address');
+      } else {
+        matched.push('✗ ขาดการดึง WiFi.macAddress() มาสร้าง Topic');
+      }
+
+      // 3. WebSockets & MQTT Hybrid Protocol
+      if (/(WebSocketsServer|PubSubClient|broadcastAndPublishState|broadcastTXT)/i.test(code)) {
+        score += 0.5;
+        matched.push('✓ มีการจัดการ Dual Protocol (WebSockets :81 + Cloud MQTT)');
+      } else {
+        matched.push('✗ ขาดคำสั่ง WebSocketsServer / PubSubClient');
+      }
+
+      // 4. Hardware Factory Reset
+      if (/(resetButtonPin|resetHolding|LittleFS\.remove|ESP\.restart|pressStart)/i.test(code)) {
+        score += 0.5;
+        matched.push('✓ มีตรรกะตรวจจับการกดปุ่มค้าง &ge; 3s สำหรับ Factory Reset');
+      } else {
+        matched.push('✗ ขาดตรรกะ Factory Reset (LittleFS.remove / ESP.restart)');
+      }
+
+      // 5. Dynamic Pin Assignment
+      if (/(dhtPin|analogPin|fanRelayPin|mistRelayPin|fanButtonPin)/i.test(code)) {
+        score += 0.5;
+        matched.push('✓ มีการอ้างอิงพินอุปกรณ์ผ่านโครงสร้าง config แบบไดนามิก');
+      } else {
+        matched.push('✗ ขาดตัวแปรพินไดนามิก (fanRelayPin, mistRelayPin, dhtPin)');
+      }
+
+      return {
+        score: Number(score.toFixed(1)),
+        feedback: matched.join('<br>')
+      };
+    }
+
+    // ── 8. Pre-Submission Score Check System (10.0 Points Standard) ──
+    function checkPreSubmissionScore() {
+      const nameVal = (document.getElementById('studentName')?.value || '').trim();
+      const idVal = (document.getElementById('studentId')?.value || '').trim();
+      const groupVal = (document.getElementById('studentGroup')?.value || '').trim();
+      const isInfoComplete = !!(nameVal && idVal && groupVal);
+
+      const blanksResult = evaluateLab61Blanks();
+      const blankScore = blanksResult.score;
+
+      const quizAnswerKeys = {
+        quiz1: '1b',
+        quiz2: '2c',
+        quiz3: '3a',
+        quiz4: '4c',
+        quiz5: '5a'
+      };
+      let correctQuiz = 0;
+      let answeredQuiz = 0;
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="quiz${i}"]:checked`);
+        if (selected) {
+          answeredQuiz++;
+          if (selected.value === quizAnswerKeys[`quiz${i}`]) correctQuiz++;
+        }
+      }
+      const quizScore = Number(((correctQuiz / 5) * 2.0).toFixed(1));
+
+      const rawCode = (document.getElementById('challengeCode')?.value || '').trim();
+      const chEval = evaluateLab61Challenge(rawCode);
+      const chScore = chEval.score;
+
+      const qIds = ['question1', 'question2', 'question3'];
+      let answeredQ = 0;
+      qIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.value.trim().length > 10) answeredQ++;
+      });
+      const qScore = Number(((answeredQ / 3) * 2.5).toFixed(1));
+
+      let attachScore = 0;
+      const hasScreenshot = !!uploadedScreenshotBase64;
+      const hasCodeFile = !!uploadedCodeBase64;
+      if (hasScreenshot) attachScore += 0.5;
+      if (hasCodeFile) attachScore += 0.5;
+
+      const conclusion = (document.getElementById('conclusion')?.value || '').trim();
+      const hasConclusion = conclusion.length >= 100;
+      const conclScore = hasConclusion ? 0.5 : 0.0;
+
+      const totalScore = Number((blankScore + quizScore + chScore + qScore + attachScore + conclScore).toFixed(1));
+      document.getElementById('preScoreTotal').innerHTML = `${totalScore.toFixed(1)} <span style="font-size:1.1rem;color:#94a3b8;font-weight:400;">/ 10.0</span>`;
+
+      const badgeEl = document.getElementById('preScoreBadge');
+      if (totalScore >= 8.0 && isInfoComplete && hasConclusion) {
+        badgeEl.className = 'score-status-badge';
+        badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งรายงาน ยอดเยี่ยม!';
+      } else if (totalScore >= 5.0) {
+        badgeEl.className = 'score-status-badge warning';
+        badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> พอใช้ - ควรตรวจทานเพิ่ม';
+      } else {
+        badgeEl.className = 'score-status-badge danger';
+        badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ยังไม่สมบูรณ์';
+      }
+
+      document.getElementById('preScoreBreakdown').innerHTML = `
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-user-graduate" style="color:${isInfoComplete?'#34d399':'#f87171'};"></i> <b>ข้อมูลนักศึกษา:</b> ${isInfoComplete ? `${nameVal} (${idVal})` : 'กรอกไม่ครบ'}</div>
+          <div style="color:${isInfoComplete?'#34d399':'#f87171'};">${isInfoComplete?'สมบูรณ์':'ไม่ครบ'}</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-puzzle-piece" style="color:${blankScore>=1.5?'#34d399':(blankScore>0?'#fbbf24':'#f87171')};"></i> <b>ช่องว่างโค้ด (5 ช่อง):</b> ถูกต้อง ${blanksResult.correctCount}/5</div>
+          <div>${blankScore.toFixed(1)} / 1.5</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-list-check" style="color:${quizScore>=2.0?'#34d399':(quizScore>0?'#fbbf24':'#f87171')};"></i> <b>แบบทดสอบ (5 ข้อ):</b> ถูกต้อง ${correctQuiz}/5</div>
+          <div>${quizScore.toFixed(1)} / 2.0</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-trophy" style="color:${chScore>=2.5?'#34d399':(chScore>0?'#fbbf24':'#f87171')};"></i> <b>โจทย์ท้าทาย:</b> ${chEval.feedback}</div>
+          <div>${chScore.toFixed(1)} / 2.5</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-regular fa-comments" style="color:${qScore>=2.5?'#34d399':(qScore>0?'#fbbf24':'#f87171')};"></i> <b>คำถามท้ายบท (3 ข้อ):</b> ตอบแล้ว ${answeredQ}/3</div>
+          <div>${qScore.toFixed(1)} / 2.5</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-paperclip" style="color:${attachScore>=1.0?'#34d399':(attachScore>0?'#fbbf24':'#f87171')};"></i> <b>ไฟล์แนบ:</b> ภาพ ${hasScreenshot?'✓':'✗'} | โค้ด ${hasCodeFile?'✓':'✗'}</div>
+          <div>${attachScore.toFixed(1)} / 1.0</div>
+        </div>
+        <div class="score-item-row">
+          <div><i class="fa-solid fa-feather-pointed" style="color:${hasConclusion?'#34d399':'#f87171'};"></i> <b>สรุปผล:</b> ${hasConclusion ? `ครบถ้วน (${conclusion.length} ตัวอักษร)` : `ต้องมี &ge; 100 ตัวอักษร (${conclusion.length}/100)`}</div>
+          <div>${conclScore.toFixed(1)} / 0.5</div>
+        </div>
+      `;
+
+      document.getElementById('scoreCheckModal').style.display = 'flex';
+    }
+
+    function closeScoreCheckModal() {
+      document.getElementById('scoreCheckModal').style.display = 'none';
+    }
+
+    function submitFromScoreModal() {
+      closeScoreCheckModal();
+      openSubmitConfirmModal();
+    }
+
+    // ── 9. Form Submission Controller ──
+    function openSubmitConfirmModal() {
+      const form = document.getElementById('labForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const idVal = (document.getElementById('studentId')?.value || '').trim();
+      const nameVal = (document.getElementById('studentName')?.value || '').trim();
+
+      const prevSubmitted = localStorage.getItem(_LAB_STORAGE_KEY + idVal);
+      if (prevSubmitted) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ไม่สามารถส่งซ้ำได้',
+          text: `รหัสนักศึกษา ${idVal} ได้ส่งใบงานนี้ไปแล้วเมื่อ ${prevSubmitted}`,
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+        return;
+      }
+
+      document.getElementById('confirmStudentName').textContent = nameVal || '-';
+      document.getElementById('confirmStudentId').textContent = idVal || '-';
+      document.getElementById('confirmSubmitModal').style.display = 'flex';
+    }
+
+    function closeSubmitConfirmModal() {
+      document.getElementById('confirmSubmitModal').style.display = 'none';
+    }
+
+    function executeFinalSubmit() {
+      closeSubmitConfirmModal();
+      _doActualSubmit();
+    }
+
+    function _doActualSubmit() {
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+
+      const studentId = document.getElementById('studentId').value.trim();
+      const studentName = document.getElementById('studentName').value.trim();
+      const studentGroup = document.getElementById('studentGroup').value.trim();
+
+      localStorage.setItem('studentId', studentId);
+      localStorage.setItem('studentName', studentName);
+      localStorage.setItem('studentGroup', studentGroup);
+
+      const payload = {
+        studentName: studentName,
+        studentId: studentId,
+        studentGroup: studentGroup,
+        labDate: document.getElementById('labDate').value,
+        codeBlank1: document.getElementById('codeBlank1')?.value || '',
+        codeBlank2: document.getElementById('codeBlank2')?.value || '',
+        codeBlank3: document.getElementById('codeBlank3')?.value || '',
+        codeBlank4: document.getElementById('codeBlank4')?.value || '',
+        codeBlank5: document.getElementById('codeBlank5')?.value || '',
+        quiz1: document.querySelector('input[name="quiz1"]:checked')?.value || '',
+        quiz2: document.querySelector('input[name="quiz2"]:checked')?.value || '',
+        quiz3: document.querySelector('input[name="quiz3"]:checked')?.value || '',
+        quiz4: document.querySelector('input[name="quiz4"]:checked')?.value || '',
+        quiz5: document.querySelector('input[name="quiz5"]:checked')?.value || '',
+        question1: document.getElementById('question1').value,
+        question2: document.getElementById('question2').value,
+        question3: document.getElementById('question3').value,
+        challengeCode: document.getElementById('challengeCode').value,
+        conclusion: document.getElementById('conclusion').value,
+        screenshotBase64: uploadedScreenshotBase64,
+        codeBase64: uploadedCodeBase64
+      };
+
+      const customGasUrl = localStorage.getItem('teacher_gas_url_LAB6.1Perform') || '';
+
+      if (customGasUrl) {
+        // Submit to Teacher's Google Apps Script
+        fetch(customGasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+          const nowFormatted = new Date().toLocaleString('th-TH');
+          localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
+          lockFormAsSubmitted(nowFormatted);
+          Swal.fire({
+            icon: 'success',
+            title: 'ส่งรายงานสำเร็จ!',
+            text: 'ระบบได้บันทึกคะแนนและส่งข้อมูลเข้าสู่ Google Sheets ผู้สอนเรียบร้อยแล้ว',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+        }).catch(err => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: err.toString(),
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+        });
+      } else {
+        // Submit via local Node Server / API
+        fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lab: 'LAB6.1Perform', data: payload })
+        }).then(res => res.json())
+          .then(res => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+            if (res.status === 'success') {
+              const nowFormatted = new Date().toLocaleString('th-TH');
+              localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
+              lockFormAsSubmitted(nowFormatted);
+              Swal.fire({
+                icon: 'success',
+                title: 'ส่งรายงานสำเร็จ!',
+                text: `ระบบบันทึกผลการประเมินคะแนน ${res.score || '10.0 / 10.0'} เรียบร้อยแล้ว`,
+                background: '#0f172a',
+                color: '#f8fafc'
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'ข้อผิดพลาด',
+                text: res.message || 'บันทึกไม่สำเร็จ',
+                background: '#0f172a',
+                color: '#f8fafc'
+              });
+            }
+          }).catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+            Swal.fire({
+              icon: 'success',
+              title: 'บันทึกข้อมูลในเครื่องเรียบร้อย!',
+              text: 'สามารถพิมพ์เป็น PDF เพื่อใช้เป็นหลักฐานการส่งงานได้ทันที',
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          });
+      }
+    }
+
+    function lockFormAsSubmitted(timestamp) {
+      document.querySelectorAll('#labForm input, #labForm textarea, #labForm select, #labForm button').forEach(el => {
+        if (el.id !== 'newStudentBtn') el.disabled = true;
+      });
+      const newBtn = document.getElementById('newStudentBtn');
+      if (newBtn) newBtn.style.display = 'inline-flex';
+    }
+
+    function confirmResetForNewStudent() {
+      Swal.fire({
+        icon: 'warning',
+        title: 'เริ่มทำใบงานสำหรับนักศึกษาคนใหม่?',
+        text: 'กรุณาตรวจสอบว่าได้บันทึกไฟล์ PDF เรียบร้อยแล้วก่อนเริ่มทำใหม่',
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยันเริ่มใหม่',
+        cancelButtonText: 'ยกเลิก',
+        background: '#0f172a',
+        color: '#f8fafc'
+      }).then(r => {
+        if (r.isConfirmed) {
+          location.reload();
+        }
+      });
+    }
+
+    // ── 10. Teacher Google Sheets Integration ──
+    function saveTeacherGasUrl(labKey) {
+      const inp = document.getElementById('teacherGasUrlInput');
+      const val = (inp.value || '').trim();
+      if (!val) {
+        localStorage.removeItem('teacher_gas_url_' + labKey);
+        updateTeacherGasBadge(labKey);
+        Swal.fire({ icon: 'info', title: 'รีเซ็ต URL เรียบร้อย', background: '#0f172a', color: '#f8fafc', timer: 1500, showConfirmButton: false });
+        return;
+      }
+      localStorage.setItem('teacher_gas_url_' + labKey, val);
+      updateTeacherGasBadge(labKey);
+      Swal.fire({ icon: 'success', title: 'บันทึก URL ผู้สอนสำเร็จ!', text: val, background: '#0f172a', color: '#f8fafc' });
+    }
+
+    function copyStudentShareLink(labKey) {
+      const url = localStorage.getItem('teacher_gas_url_' + labKey) || '';
+      const shareUrl = window.location.origin + window.location.pathname + (url ? `?gas=${encodeURIComponent(url)}` : '');
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์ให้นักเรียนแล้ว!', text: shareUrl, background: '#0f172a', color: '#f8fafc' });
+      });
+    }
+
+    function testTeacherGasUrl(labKey) {
+      const url = localStorage.getItem('teacher_gas_url_' + labKey) || document.getElementById('teacherGasUrlInput')?.value;
+      if (!url) {
+        Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ URL', text: 'กรุณาวาง URL ของ Google Apps Script ก่อนทดสอบ', background: '#0f172a', color: '#f8fafc' });
+        return;
+      }
+      Swal.fire({ title: 'กำลังทดสอบการเชื่อมต่อ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, background: '#0f172a', color: '#f8fafc' });
+      
+      fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ping', test: true })
+      }).then(() => {
+        Swal.fire({ icon: 'success', title: 'เชื่อมต่อสำเร็จ!', text: 'สามารถส่งข้อมูลไปยัง Google Apps Script ได้เรียบร้อย', background: '#0f172a', color: '#f8fafc' });
+      }).catch(err => {
+        Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่สำเร็จ', text: err.toString(), background: '#0f172a', color: '#f8fafc' });
+      });
+    }
+
+    function updateTeacherGasBadge(labKey) {
+      const badge = document.getElementById('teacherGasBadge');
+      const saved = localStorage.getItem('teacher_gas_url_' + labKey);
+      if (saved && badge) {
+        badge.style.background = 'rgba(16, 185, 129, 0.15)';
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        badge.style.color = '#34d399';
+        badge.innerHTML = '<i class="fa-solid fa-cloud-check"></i> เชื่อมต่อชีตผู้สอนแล้ว';
+        document.getElementById('teacherGasUrlInput').value = saved;
+      }
+    }
+
+    function copyCodeGsContent(labKey) {
+      fetch('./Code.gs')
+        .then(res => res.text())
+        .then(code => {
+          navigator.clipboard.writeText(code).then(() => {
+            Swal.fire({ icon: 'success', title: 'คัดลอกโค้ด Code.gs สำเร็จ!', text: 'สามารถนำไปวางใน Google Apps Script ได้ทันที', background: '#0f172a', color: '#f8fafc' });
+          });
+        });
+    }
+
+    // ── 11. Initializer ──
+    window.addEventListener('DOMContentLoaded', () => {
+      initOnlineStatus();
+      initAntiCheat();
+      
+      // Load stored student profile
+      if (localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
+      if (localStorage.getItem('studentId')) document.getElementById('studentId').value = localStorage.getItem('studentId');
+      if (localStorage.getItem('studentGroup')) document.getElementById('studentGroup').value = localStorage.getItem('studentGroup');
+      
+      // Default date to today
+      const today = new Date().toISOString().split('T')[0];
+      const dateEl = document.getElementById('labDate');
+      if (dateEl && !dateEl.value) dateEl.value = today;
+
+      // URL query params for GAS URL
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('gas')) {
+        const gasUrl = params.get('gas');
+        localStorage.setItem('teacher_gas_url_LAB6.1Perform', gasUrl);
+      }
+      updateTeacherGasBadge('LAB6.1Perform');
+    });
   </script>
 </body>
 </html>
