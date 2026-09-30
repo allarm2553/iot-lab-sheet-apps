@@ -356,7 +356,9 @@ const validLabs = [
   'lab0', 'lab0-basic', 'lab-basic', 'lab1', 'lab1.1', 'lab2', 'lab3', 'lab3.1', 'lab3.2_Wifi_UI_config', 'lab3.2',
   'lab4', 'lab4.1', 'lab5', 'LAB5_Dev', 'lab5_dev', 'LAB6_Dev', 'lab6_dev',
   'LAB6.1Perform', 'lab6.1perform', 'LAB6.1_Perform', 'LAB6_2Perform', 'LAB6_Perform', 'lab6_perform', 'lab6', 'lab-extra', 'lab7', 'lab8', 'lab9', 'lab-webconfig_wifi',
-  'LAB6_Fleet', 'LAB6_AppInstall', 'LAB_Convert2app'
+  'LAB_Fleet', 'lab_fleet', 'LAB6_Fleet', 'lab6_fleet', 'LAB6_3Fleet', 'lab6_3fleet',
+  'LAB_AppInstall', 'lab_appinstall', 'LAB6_AppInstall', 'lab6_appinstall',
+  'LAB_Convert2app', 'lab_convert2app', 'LAB6_Convert2app', 'lab6_convert2app'
 ];
 
 validLabs.forEach(lab => {
@@ -364,7 +366,10 @@ validLabs.forEach(lab => {
                        (lab === 'lab6_dev') ? 'LAB6_Dev' : 
                        (lab === 'lab5_dev') ? 'LAB5_Dev' : 
                        (lab === 'lab3.2') ? 'lab3.2_Wifi_UI_config' :
-                       (lab === 'lab-basic') ? 'lab0-basic' : lab;
+                       (lab === 'lab-basic') ? 'lab0-basic' : 
+                       (lab === 'LAB6_Fleet' || lab === 'lab6_fleet' || lab === 'LAB6_3Fleet' || lab === 'lab6_3fleet' || lab === 'lab_fleet') ? 'LAB_Fleet' :
+                       (lab === 'LAB6_AppInstall' || lab === 'lab6_appinstall' || lab === 'lab_appinstall') ? 'LAB_AppInstall' :
+                       (lab === 'LAB6_Convert2app' || lab === 'lab6_convert2app' || lab === 'lab_convert2app') ? 'LAB_Convert2app' : lab;
   
   // Handle HTML rendering with polyfill
   app.get([`/${lab}`, `/${lab}/`, `/${lab}/index.html`], (req, res) => {
