@@ -32,7 +32,7 @@
 | **LED On-board** | `GPIO 2` หรือ `GPIO 18` | `GPIO 2` (`D4`) หรือ `GPIO 16` (`D0`) | LED แสดงสถานะบนตัวบอร์ด |
 | **External Red LED (LED1)** | `GPIO 23` (ผ่าน R 220Ω) | `GPIO 14` (`D5`) | LED ภายนอกดวงที่ 1 |
 | **External Blue LED (LED2)** | `GPIO 19` (ผ่าน R 220Ω) | `GPIO 12` (`D6`) | LED ภายนอกดวงที่ 2 |
-| **Push Button (SW1)** | `GPIO 18` หรือ `GPIO 0` (Active LOW) | `GPIO 0` (`D3` - FLASH Button) | ปุ่มกดทดสอบอินพุต (INPUT_PULLUP) |
+| **Push Button (SW1)** | `GPIO 0` (หรือปุ่ม BOOT บนบอร์ด, Active LOW) | `GPIO 0` (`D3` - FLASH Button) | ปุ่มกดทดสอบอินพุต (INPUT_PULLUP) |
 | **Input-Only Pins** | `GPIO 34, 35, 36 (VP), 39 (VN)` | `ADC0` (`A0`) | ขาอินพุต ไม่มี Internal Pull-up/down |
 | **Strapping Pins** | `GPIO 0, 2, 5, 12, 15` | `GPIO 0, 2, 15` | ขากำหนด Boot Mode ห้ามต่อดึงแรงดันค้างไว้ |
 

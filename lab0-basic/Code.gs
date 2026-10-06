@@ -17,7 +17,7 @@ function doGet(e) {
 // Auto-grading logic for Lab 0 (10.0 Points Total)
 function gradeSubmission(data) {
   var blankKeywords = ["pinMode|pin_mode", "OUTPUT", "digitalWrite|digital_write", "HIGH", "LOW|delay"];
-  var challengeKeywords = ["millis|currentMillis|previousMillis", "interval|blink|toggle|state", "digitalWrite|HIGH|LOW", "Serial|printf|println", "LED|2|23|19|18"];
+  var challengeKeywords = ["millis|currentMillis|previousMillis", "interval|blink|toggle|state", "digitalWrite|HIGH|LOW", "Serial|printf|println", "LED|2|23|19|18|0|BUTTON_PIN|INPUT_PULLUP"];
   var controlLogicKeywords = ["setup|loop", "output|กระแส|ขับโหลด|จ่ายแรงดัน", "delay|หน่วงเวลา|บล็อก|ค้าง|blocking|millis"];
   var q1Keywords = ["setup|รอบเดียว|ครั้งเดียว|เริ่มต้น|init", "loop|วนซ้ำ|ตลอดเวลา|ไม่รู้จบ|repeat", "ลำดับ|initialization|execution|start"];
   var q2Keywords = ["input only|รับค่าอย่างเดียว|ไม่มี pull-up|pull down|34|35|36|39", "strapping|boot mode|gpio 0|gpio 2|gpio 15", "ระดับแรงดัน|flash boot|ดาวน์โหลด|บูตไม่ขึ้น"];

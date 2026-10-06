@@ -11,7 +11,7 @@
 #define ONBOARD_LED_PIN   2   // ESP32 On-board Built-in LED (GPIO 2)
 #define EXT_LED1_PIN      23  // External Red LED (GPIO 23)
 #define EXT_LED2_PIN      19  // External Blue LED (GPIO 19)
-#define BUTTON_PIN        18  // Push Button Switch (GPIO 18, INPUT_PULLUP)
+#define BUTTON_PIN        0   // Push Button Switch (GPIO 0 / BOOT button, INPUT_PULLUP)
 
 // --- Timing Variables for Non-blocking Blink ---
 unsigned long previousMillis = 0;
@@ -41,7 +41,7 @@ void setup() {
   digitalWrite(EXT_LED2_PIN, LOW);
 
   Serial.println("✅ GPIO Pins configured successfully.");
-  Serial.println("💡 Onboard LED: GPIO 2, Ext LED1: GPIO 23, Ext LED2: GPIO 19, Button: GPIO 18\n");
+  Serial.println("💡 Onboard LED: GPIO 2, Ext LED1: GPIO 23, Ext LED2: GPIO 19, Button: GPIO 0\n");
 }
 
 void loop() {
