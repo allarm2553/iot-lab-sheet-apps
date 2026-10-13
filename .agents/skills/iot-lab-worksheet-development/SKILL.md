@@ -566,3 +566,195 @@ Allows direct browser-to-ESP32 USB connection via modern Chromium standard (`nav
      - Fail-Safe trigger: Automatically identifies `nan` or `[FAIL-SAFE]` lines to engage UI safe-mode chips.
 
 
+---
+
+## 16. Google Apps Script URL (`?gas=`) Propagation System
+
+ระบบส่ง GAS URL จากครูไปยังนักเรียนผ่าน query parameter `?gas=` ใน URL แทนการพิมพ์ URL ซ้ำๆ
+
+### 16.1 สถาปัตยกรรมกลาง — `config.js`
+
+ทุกใบงานต้องนำเข้า `config.js` ใน `<head>` ก่อน `</head>`:
+```html
+<script src="../config.js"></script>
+```
+
+`config.js` ให้ฟังก์ชันกลาง 3 ตัว:
+
+| ฟังก์ชัน | หน้าที่ |
+| :--- | :--- |
+| `getLabScriptUrl(labId)` | อ่าน GAS URL จาก `?gas=` param ก่อน → ตรวจ localStorage หลาย key → ตรวจ `LAB_CONFIG` |
+| `setLabScriptUrl(labId, url)` | บันทึก GAS URL ไปทุก localStorage key ที่เกี่ยวข้องและอัปเดต `LAB_CONFIG` in-memory |
+| `getRelatedGasStorageKeys(labId)` | คืนรายการ localStorage key ทั้งหมดที่ใช้กับ labId นั้น (รองรับ alias เช่น `lab0`, `lab0-basic`, `lab-basic`) |
+
+### 16.2 กลยุทธ์ localStorage Key (Multi-Key Sync)
+
+ระบบ legacy ใช้ key ต่างชุดกัน — `config.js` sync ทุก key พร้อมกันเพื่อไม่ให้ขาด:
+
+| ชุด Key | ตัวอย่าง | ใช้ใน |
+| :--- | :--- | :--- |
+| `gas_url_{labId}` | `gas_url_lab1` | labs ทั่วไปที่ใช้ `config.js` |
+| `teacher_gas_url_{labId}` | `teacher_gas_url_lab2` | `lab2`, `LAB6.1Perform` |
+| `iot_{labId}_gas_url` | `iot_lab0_gas_url` | `lab0`, `lab0-basic` (legacy) |
+
+### 16.3 Pattern มาตรฐาน — Labs ทั่วไป (lab1, lab3, lab4 ฯลฯ)
+
+ใช้ฟังก์ชัน `initTeacherGasBox(labId)`, `saveTeacherGasUrl(labId)`, `copyStudentShareLink(labId)` pattern:
+
+```javascript
+function initTeacherGasBox(labId) {
+  const saved = getLabScriptUrl(labId);
+  // ตรวจ ?gas= query param ก่อน
+  const urlParams = new URLSearchParams(window.location.search);
+  const gasParam = urlParams.get('gas');
+  if (gasParam) {
+    const decoded = decodeURIComponent(gasParam);
+    if (decoded.startsWith('https://')) {
+      localStorage.setItem('gas_url_' + labId, decoded);
+      setLabScriptUrl(labId, decoded);
+      // อัปเดต URL bar โดยไม่ reload
+      window.history.replaceState(null, '', '?gas=' + encodeURIComponent(decoded));
+    }
+  }
+  const input = document.getElementById('teacherGasUrlInput');
+  if (input && saved) input.value = saved;
+  updateTeacherGasBadge(labId);
+}
+
+function saveTeacherGasUrl(labId) {
+  const input = document.getElementById('teacherGasUrlInput');
+  const url = input ? input.value.trim() : '';
+  if (url && url.startsWith('https://')) {
+    setLabScriptUrl(labId, url);
+    localStorage.setItem('gas_url_' + labId, url);
+    window.history.replaceState(null, '', '?gas=' + encodeURIComponent(url));
+  } else if (!url) {
+    localStorage.removeItem('gas_url_' + labId);
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+  updateTeacherGasBadge(labId);
+}
+
+function copyStudentShareLink(labId) {
+  const input = document.getElementById('teacherGasUrlInput');
+  const gasUrl = input ? input.value.trim() : getLabScriptUrl(labId);
+  if (!gasUrl || !gasUrl.startsWith('https://')) {
+    alert('⚠️ กรุณากรอก URL ของ Google Apps Script ก่อน');
+    return;
+  }
+  // Auto-save ก่อน copy
+  setLabScriptUrl(labId, gasUrl);
+  localStorage.setItem('gas_url_' + labId, gasUrl);
+  window.history.replaceState(null, '', '?gas=' + encodeURIComponent(gasUrl));
+  initTeacherGasBox(labId);
+
+  const shareUrl = window.location.origin + window.location.pathname
+    + '?gas=' + encodeURIComponent(gasUrl);
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    alert('✅ คัดลอกลิงก์สำหรับนักเรียนแล้ว!\n' + shareUrl);
+  });
+}
+```
+
+> [!IMPORTANT]
+> `copyStudentShareLink()` ต้องเพิ่ม `?gas=...` ต่อท้าย `window.location.pathname` เท่านั้น (ไม่รวม `window.location.href`) เพื่อป้องกัน GAS URL เดิมซ้ำซ้อนใน link ที่ copy
+
+### 16.4 Portal (`index.html`) — `syncPortalLaunchLinksWithGas()`
+
+Portal ต้องอัปเดต link ปุ่ม "เปิดใบงาน" ให้ติด `?gas=` โดยอัตโนมัติ:
+```javascript
+function syncPortalLaunchLinksWithGas() {
+  document.querySelectorAll('.btn-launch[data-lab-id]').forEach(btn => {
+    const labId = btn.dataset.labId;
+    const gasUrl = getLabScriptUrl(labId);
+    const baseHref = btn.dataset.baseHref || btn.getAttribute('href').split('?')[0];
+    btn.dataset.baseHref = baseHref;
+    if (gasUrl) {
+      btn.href = baseHref + '?gas=' + encodeURIComponent(gasUrl);
+    } else {
+      btn.href = baseHref;
+    }
+  });
+}
+// เรียกเมื่อ DOMContentLoaded และหลัง save/reset GAS URL
+document.addEventListener('DOMContentLoaded', syncPortalLaunchLinksWithGas);
+```
+
+### 16.5 ลำดับการค้นหา GAS URL (Priority)
+
+```
+1. ?gas= query parameter ใน URL (URL-decoded)
+2. localStorage key ทุก key ที่ getRelatedGasStorageKeys() คืนมา
+3. LAB_CONFIG[labId].gasUrl (ค่า default ใน config.js)
+```
+
+---
+
+## 17. Challenge Code (`#challengeCode`) — Paste Unlock Button
+
+กล่อง `#challengeCode` ต้องรองรับการวางโค้ดจาก IDE ได้ แม้ระบบ anti-cheat จะบล็อก paste ทั่วไป:
+
+### HTML Pattern
+```html
+<div style="position: relative; margin-bottom: 0.5rem;">
+  <textarea id="challengeCode" name="challengeCode" form="labForm" rows="8"
+    placeholder="วางโค้ดของคุณที่นี่..."
+    style="width:100%; font-family: monospace; font-size:0.85rem; resize:vertical;"></textarea>
+  <button type="button" onclick="pasteToChallenge()"
+    style="margin-top:0.4rem; padding:0.35rem 0.9rem; border-radius:6px;
+           background:rgba(99,102,241,0.25); border:1px solid #818cf8;
+           color:#a5b4fc; cursor:pointer; font-size:0.8rem;">
+    <i class="fa-solid fa-paste"></i> วางโค้ดจากคลิปบอร์ด
+  </button>
+</div>
+```
+
+### JavaScript
+```javascript
+async function pasteToChallenge() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const ta = document.getElementById('challengeCode');
+    if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
+  } catch(e) {
+    alert('⚠️ ไม่สามารถอ่านคลิปบอร์ดได้ กรุณาวาง (Ctrl+V) ในช่องโดยตรง');
+  }
+}
+```
+
+> [!NOTE]
+> `#challengeCode` ต้องถูก **whitelist** ออกจาก anti-cheat event listeners (ดู Section 8) เพื่อให้ paste ด้วย `Ctrl+V` ทำงานได้ด้วย
+
+---
+
+## 18. ESP32 Hardware Pin Rules (Board-Specific)
+
+### บอร์ด IPST-WiFi (ESP32)
+
+| GPIO | การใช้งานบนบอร์ด | กฎ |
+| :--- | :--- | :--- |
+| **GPIO 18** | Built-in LED (ต่อ LED บนบอร์ดอยู่แล้ว) | ❌ **ห้ามใช้ต่อสวิตช์/ปุ่ม** |
+| **GPIO 0** | Push Button SW1 (ปุ่ม FLASH) — Active LOW | ✅ ใช้ต่อปุ่มกด `INPUT_PULLUP` |
+| **GPIO 33** | DHT11 Data | ✅ เซ็นเซอร์อุณหภูมิ/ความชื้น |
+| **GPIO 36** | Potentiometer / Knob-S (ADC Input Only) | ✅ อ่านค่า Analog (0–4095) |
+| **GPIO 5** | Relay 1 (พัดลม) | ✅ Active HIGH |
+| **GPIO 23** | Relay 2 (ปั๊มน้ำ/หัวพ่นหมอก) | ✅ Active HIGH |
+| **GPIO 21/22** | I2C SDA/SCL (OLED) | ✅ จอ SSD1306 |
+
+> [!CAUTION]
+> ถ้าใบงานใดใช้ `GPIO 18` ต่อสวิตช์ **ต้องเปลี่ยนเป็น `GPIO 0`** ทันที เนื่องจาก GPIO 18 ต่อกับ LED บนบอร์ดอยู่แล้ว ทำให้ค่า INPUT อ่านไม่ถูกต้อง
+
+### ตัวอย่าง Arduino Code สำหรับ Push Button บน ESP32
+```cpp
+#define BTN_PIN 0   // GPIO 0 (SW1 — Active LOW, ใช้ INPUT_PULLUP)
+
+void setup() {
+  pinMode(BTN_PIN, INPUT_PULLUP);
+}
+
+void loop() {
+  if (digitalRead(BTN_PIN) == LOW) {
+    // ปุ่มถูกกด
+  }
+}
+```

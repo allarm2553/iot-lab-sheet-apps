@@ -2316,9 +2316,12 @@ from(bucket: &quot;esp32_iot_data&quot;)
       const badge = document.getElementById('teacherGasBadge');
       if (!input || !badge) return;
 
-      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab9') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      const queryGas = (window.location && window.location.search) ? (new URLSearchParams(window.location.search).get('gas') || new URLSearchParams(window.location.search).get('gas_url') || '') : '';
+      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab9') : '') || (queryGas && queryGas.trim().startsWith('https://script.google.com') ? queryGas.trim() : '') || localStorage.getItem('gas_url_lab9') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL') && !currentUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
         input.value = currentUrl;
+        try { localStorage.setItem('gas_url_lab9', currentUrl); } catch (e) {}
+        try { window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(currentUrl)); } catch (e) {}
         badge.style.background = 'rgba(16, 185, 129, 0.15)';
         badge.style.border = '1px solid rgba(16, 185, 129, 0.4)';
         badge.style.color = '#6ee7b7';
@@ -2357,6 +2360,7 @@ from(bucket: &quot;esp32_iot_data&quot;)
         }
       } else {
         localStorage.removeItem('gas_url_' + labId);
+        try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
         if (typeof Swal !== 'undefined') {
           Swal.fire({ icon: 'info', title: 'ล้างการเชื่อมต่อ', text: 'ล้างค่า URL แล้ว ระบบจะกลับไปทำงานในโหมดจำลองผลออฟไลน์' });
         } else if (typeof showModal === 'function') {
@@ -2405,6 +2409,12 @@ from(bucket: &quot;esp32_iot_data&quot;)
         }
         return;
       }
+      try {
+        localStorage.setItem('gas_url_' + labId, val);
+        if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[labId] = val;
+        initTeacherGasBox();
+        window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(val));
+      } catch (e) {}
       const shareUrl = window.location.origin + window.location.pathname + '?gas=' + encodeURIComponent(val);
       navigator.clipboard.writeText(shareUrl).then(() => {
         if (typeof Swal !== 'undefined') {

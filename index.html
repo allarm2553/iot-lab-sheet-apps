@@ -1483,7 +1483,7 @@
 
     // ===== TEACHER GAS CONFIGURATION MODAL =====
     const LABS_CONFIG_META = [
-      { id: 'lab-basic', label: 'BASIC', name: 'Lab Basic: ติดตั้ง Arduino IDE & Pinout ESP32/ESP8266' },
+      { id: 'lab0-basic', label: 'BASIC', name: 'Lab 0 (Basic): ติดตั้ง Arduino IDE & Pinout ESP32/ESP8266' },
       { id: 'lab1', label: 'LAB 01', name: 'Lab 1: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)' },
       { id: 'lab1.1', label: 'LAB 1.1', name: 'Lab 1.1: การควบคุมเอาต์พุตด้วยสวิตช์ปุ่มกด (Debounce)' },
       { id: 'lab2', label: 'LAB 02', name: 'Lab 2: การแสดงผลผ่านจอ OLED SSD1306 (I2C)' },
@@ -1495,12 +1495,32 @@
       { id: 'lab5', label: 'LAB 05', name: 'Lab 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT Broker' },
       { id: 'LAB5_Dev', label: 'LAB 05 DEV', name: 'Lab 5 Dev: MQTT Telemetry Node (DHT Sensor)' },
       { id: 'lab6', label: 'LAB 06', name: 'Lab 6: โครงงานบูรณาการ Hybrid Node ขั้นสูง (Grand Challenge)' },
+      { id: 'LAB6.1Perform', label: 'LAB 6.1', name: 'Lab 6.1 Perform: Industrial Hybrid Node Performance & Config' },
       { id: 'lab7', label: 'LAB 07', name: 'Lab 7: การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED' },
       { id: 'lab8', label: 'LAB 08', name: 'Lab 8: การบันทึกสถิติตามเวลาด้วย InfluxDB (Data Logging)' },
       { id: 'lab9', label: 'LAB 09', name: 'Lab 9: การวิเคราะห์และแสดงผลข้อมูลด้วย Grafana' },
       { id: 'lab-extra', label: 'EXTRA', name: 'Lab Extra: พัฒนา Web Dashboard ด้วย HTML, CSS & JS' },
       { id: 'lab-webconfig_wifi', label: 'WEBCONFIG', name: 'Lab WebConfig: การตั้งค่า Wi-Fi ผ่าน Captive Portal' }
     ];
+
+    function syncPortalLaunchLinksWithGas() {
+      document.querySelectorAll('a.btn-launch').forEach(link => {
+        const rawHref = link.getAttribute('data-base-href') || link.getAttribute('href') || '';
+        if (!rawHref) return;
+        const baseHref = rawHref.split('?')[0];
+        link.setAttribute('data-base-href', baseHref);
+        const folder = baseHref.split('/')[0];
+        if (!folder) return;
+        const gasUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(folder) : '') || '';
+        if (gasUrl && gasUrl.startsWith('https://script.google.com') && !gasUrl.includes('YOUR_GAS_URL')) {
+          link.setAttribute('href', baseHref + '?gas=' + encodeURIComponent(gasUrl));
+        } else {
+          link.setAttribute('href', baseHref);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', syncPortalLaunchLinksWithGas);
 
     function openGasSettingsModal() {
       renderGasModalList();
@@ -1526,6 +1546,7 @@
       container.innerHTML = LABS_CONFIG_META.map(lab => {
         const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(lab.id) : '') || (typeof LAB_CONFIG !== 'undefined' ? (LAB_CONFIG[lab.id] || '') : '');
         const isConfigured = currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL');
+        const displayVal = isConfigured ? currentUrl : '';
         const graderUrl = isConfigured ? (currentUrl.split('?')[0] + '?page=grader') : '#';
 
         return `
@@ -1542,15 +1563,17 @@
                 <button type="button" class="gas-btn-sm" onclick="copyCodeGsFromModal('${lab.id}')" style="color:#c084fc; border-color:rgba(192,132,252,0.4); cursor:pointer;" title="คัดลอกโค้ด Code.gs ไปวางใน Apps Script">
                   <i class="fa-solid fa-copy"></i> คัดลอก
                 </button>
+                <button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน">
+                  <i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน
+                </button>
                 ${isConfigured 
-                  ? `<button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน"><i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน</button>
-                     <a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
+                  ? `<a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
                   : `<span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> ยังไม่ได้ใส่ลิงก์</span>`
                 }
               </div>
             </div>
             <div class="gas-input-wrap">
-              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${currentUrl}" placeholder="https://script.google.com/macros/s/.../exec">
+              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${displayVal}" placeholder="https://script.google.com/macros/s/.../exec">
               ${isConfigured 
                 ? `<a href="${currentUrl}" target="_blank" class="gas-btn-sm" title="ทดสอบเปิด URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` 
                 : ''}
@@ -1566,14 +1589,22 @@
         if (input && window.localStorage) {
           const val = input.value.trim();
           if (val && val.startsWith('https://script.google.com')) {
-            localStorage.setItem('gas_url_' + lab.id, val);
-            if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[lab.id] = val;
+            if (typeof setLabScriptUrl === 'function') {
+              setLabScriptUrl(lab.id, val);
+            } else {
+              localStorage.setItem('gas_url_' + lab.id, val);
+            }
           } else {
-            localStorage.removeItem('gas_url_' + lab.id);
+            if (typeof setLabScriptUrl === 'function') {
+              setLabScriptUrl(lab.id, '');
+            } else {
+              localStorage.removeItem('gas_url_' + lab.id);
+            }
           }
         }
       });
 
+      syncPortalLaunchLinksWithGas();
       renderGasModalList();
       closeGasSettingsModal();
       alert('✅ บันทึกลิงก์ Google Apps Script ลงในเบราว์เซอร์เรียบร้อยแล้ว! ทุกใบงานจะส่งคะแนนตรงไปยัง Google Sheets ตามที่ท่านกำหนด');
@@ -1582,8 +1613,13 @@
     function resetGasSettingsToDefault() {
       if (!confirm('ต้องการล้างค่าลิงก์ที่บันทึกไว้ในเบราว์เซอร์นี้แล้วกลับไปใช้ค่าเริ่มต้นหรือไม่?')) return;
       LABS_CONFIG_META.forEach(lab => {
-        localStorage.removeItem('gas_url_' + lab.id);
+        if (typeof setLabScriptUrl === 'function') {
+          setLabScriptUrl(lab.id, '');
+        } else {
+          localStorage.removeItem('gas_url_' + lab.id);
+        }
       });
+      syncPortalLaunchLinksWithGas();
       renderGasModalList();
       alert('รีเซ็ตการตั้งค่าเรียบร้อยแล้ว');
     }
@@ -1592,7 +1628,12 @@
       const configObj = {};
       LABS_CONFIG_META.forEach(lab => {
         const input = document.getElementById('modal_url_' + lab.id);
-        configObj[lab.id] = (input && input.value.trim()) ? input.value.trim() : ('YOUR_GAS_URL_FOR_' + lab.id.toUpperCase().replace(/[-\.]/g, '_'));
+        const val = (input && input.value.trim()) ? input.value.trim() : ('YOUR_GAS_URL_FOR_' + lab.id.toUpperCase().replace(/[-\.]/g, '_'));
+        configObj[lab.id] = val;
+        if (lab.id === 'lab0-basic') {
+          configObj['lab0'] = val;
+          configObj['lab-basic'] = val;
+        }
       });
 
       const snippet = "const LAB_CONFIG = " + JSON.stringify(configObj, null, 2) + ";\n\nfunction getLabScriptUrl(labId) {\n  if (typeof window !== 'undefined') {\n    if (window.location && window.location.search) {\n      const params = new URLSearchParams(window.location.search);\n      const queryGas = params.get('gas') || params.get('gas_url');\n      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) {\n        const cleanGas = queryGas.trim();\n        if (window.localStorage && labId) {\n          try { window.localStorage.setItem('gas_url_' + labId, cleanGas); } catch(e){}\n        }\n        return cleanGas;\n      }\n    }\n    if (window.localStorage) {\n      const custom = window.localStorage.getItem('gas_url_' + labId);\n      if (custom && custom.trim().startsWith('https://script.google.com')) return custom.trim();\n    }\n  }\n  const url = LAB_CONFIG[labId] || '';\n  return (url && !url.includes('YOUR_GAS_URL')) ? url.trim() : '';\n}\n\nif (typeof module !== 'undefined' && module.exports) module.exports = { LAB_CONFIG, getLabScriptUrl };";
@@ -1627,12 +1668,20 @@
       const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
       if (!val || !val.startsWith('https://script.google.com')) {
         alert('⚠️ ยังไม่ได้ระบุลิงก์ GAS สำหรับ ' + labId + '\nกรุณาใส่ Web App URL ในช่องก่อนคัดลอกลิงก์ให้นักเรียน');
+        if (input) input.focus();
         return;
       }
-      const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + labId + '/';
+      if (typeof setLabScriptUrl === 'function') {
+        setLabScriptUrl(labId, val);
+      } else {
+        localStorage.setItem('gas_url_' + labId, val);
+      }
+      syncPortalLaunchLinksWithGas();
+      const targetFolder = (labId === 'lab-basic') ? 'lab0-basic' : labId;
+      const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + targetFolder + '/';
       const shareUrl = baseUrl + '?gas=' + encodeURIComponent(val);
       navigator.clipboard.writeText(shareUrl).then(() => {
-        alert('🎉 คัดลอกลิงก์สำเร็จ!\n\n' + shareUrl + '\n\nส่งลิงก์นี้ให้นักเรียนเข้าทำ ' + labId + ' ได้ทันที!');
+        alert('🎉 คัดลอกลิงก์สำเร็จ!\n\n' + shareUrl + '\n\nส่งลิงก์นี้ให้นักเรียนเข้าทำ ' + targetFolder + ' ได้ทันที!');
       }).catch(() => {
         prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
       });

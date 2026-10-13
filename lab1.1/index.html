@@ -2463,8 +2463,13 @@ void loop() {
 
           <!-- Challenge Code Box -->
           <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div class="form-section-title" style="margin: 0;">
+                <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+              </div>
+              <button type="button" class="copy-btn" onclick="pasteChallengeCodeFromClipboard()" style="padding: 0.32rem 0.75rem; font-size: 0.8rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="วางซอร์สโค้ดที่คัดลอกไว้">
+                <i class="fa-solid fa-paste"></i> วางโค้ดจากคลิปบอร์ด
+              </button>
             </div>
             <div class="form-group">
               <label for="challengeCode">เขียนโค้ดภาษา C++ ปรับปรุงตรรกะในฟังก์ชัน loop() เพื่อรองรับเงื่อนไขโจทย์ท้าทาย:</label>
@@ -4344,9 +4349,12 @@ void loop() {
       const input = document.getElementById('teacherGasUrlInput');
       const badge = document.getElementById('teacherGasBadge');
       if (!input || !badge) return;
-      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab1.1') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      const queryGas = (window.location && window.location.search) ? (new URLSearchParams(window.location.search).get('gas') || new URLSearchParams(window.location.search).get('gas_url') || '') : '';
+      const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab1.1') : '') || (queryGas && queryGas.trim().startsWith('https://script.google.com') ? queryGas.trim() : '') || localStorage.getItem('gas_url_lab1.1') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL')) {
         input.value = currentUrl;
+        try { localStorage.setItem('gas_url_lab1.1', currentUrl); } catch (e) {}
+        try { window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(currentUrl)); } catch (e) {}
         badge.style.background = 'rgba(16, 185, 129, 0.15)';
         badge.style.border = '1px solid rgba(16, 185, 129, 0.4)';
         badge.style.color = '#6ee7b7';
@@ -4368,6 +4376,7 @@ void loop() {
         alert('บันทึกสำเร็จ! เชื่อมต่อ Web App เรียบร้อยแล้ว');
       } else {
         localStorage.removeItem('gas_url_' + labId);
+        try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
         alert('ล้างค่า URL แล้ว');
       }
       initTeacherGasBox();
@@ -4389,6 +4398,12 @@ void loop() {
         alert('ยังไม่ได้ระบุลิงก์ GAS: กรุณาวาง Web App URL ในช่องแล้วกดบันทึกก่อนคัดลอกลิงก์');
         return;
       }
+      try {
+        localStorage.setItem('gas_url_' + labId, val);
+        if (typeof LAB_CONFIG !== 'undefined') LAB_CONFIG[labId] = val;
+        initTeacherGasBox();
+        window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(val));
+      } catch (e) {}
       const shareUrl = window.location.origin + window.location.pathname + '?gas=' + encodeURIComponent(val);
       navigator.clipboard.writeText(shareUrl).then(() => alert('คัดลอกลิงก์ให้นักเรียนสำเร็จ!\n\n' + shareUrl));
     }

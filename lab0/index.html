@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="../config.js"></script>
 <style>
     /* CSS Variables & Design System */
     :root {
@@ -2430,10 +2431,15 @@ void loop() {
 
           <!-- SECTION 3: CHALLENGE PROBLEM -->
           <div class="form-section">
-            <h3 class="section-title"><i class="fa-solid fa-trophy"></i> ส่วนที่ 3: โค้ดโจทย์ท้าทายการทดลอง (Challenge Code: Non-blocking Blink - 2.0 คะแนน)</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 class="section-title" style="margin: 0;"><i class="fa-solid fa-trophy"></i> ส่วนที่ 3: โค้ดโจทย์ท้าทายการทดลอง (Challenge Code: Non-blocking Blink - 2.0 คะแนน)</h3>
+              <button type="button" class="copy-btn" onclick="pasteChallengeCodeFromClipboard()" style="padding: 0.32rem 0.75rem; font-size: 0.8rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="วางซอร์สโค้ดที่คัดลอกไว้จาก VS Code หรือ Wokwi ลงในช่องนี้">
+                <i class="fa-solid fa-paste"></i> วางโค้ดจากคลิปบอร์ด
+              </button>
+            </div>
             <div class="form-group">
               <label for="challengeCode">วางซอร์สโค้ดภาษา C++ ที่คุณเขียนเพื่อแก้โจทย์ท้าทายการทดลอง (Non-blocking Blink ด้วย <code>millis()</code> หรือไฟกระพริบหลายดวง) ที่นี่: <span class="req">*</span></label>
-              <textarea id="challengeCode" class="code-textarea" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (เช่น โค้ดภาษา C++/Arduino, JavaScript หรือ Flux Query ตามแต่ใบงานกำหนด)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
+              <textarea id="challengeCode" class="code-textarea" rows="8" required placeholder="วางโค้ดโปรแกรมคำตอบของคุณที่นี่ (สามารถกดปุ่ม 'วางโค้ดจากคลิปบอร์ด' หรือกด Ctrl+V / Cmd+V เพื่อวางโค้ดได้)..." style="font-family: var(--mono-font); font-size: 0.85rem; background: rgba(15, 23, 42, 0.5); color: #38bdf8;"></textarea>
             </div>
           </div>
 
@@ -3751,48 +3757,132 @@ void loop() {
     /* ========================================================= */
     /* 7. TEACHER GAS URL MANAGEMENT                             */
     /* ========================================================= */
+    function _resolveLab0GasUrl() {
+      // 1. Check URL query parameter (?gas=... or ?gas_url=...)
+      if (window.location && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        let qGas = params.get('gas') || params.get('gas_url');
+        if (qGas) {
+          try {
+            if (qGas.startsWith('https%3A') || qGas.startsWith('http%3A')) {
+              qGas = decodeURIComponent(qGas);
+            }
+          } catch (e) {}
+          if (qGas.trim().startsWith('https://script.google.com')) {
+            return qGas.trim();
+          }
+        }
+      }
+      // 2. Check config.js helper
+      if (typeof getLabScriptUrl === 'function') {
+        const fromConfig = getLabScriptUrl('lab0');
+        if (fromConfig && fromConfig.startsWith('https://script.google.com')) {
+          return fromConfig;
+        }
+      }
+      // 3. Check localStorage keys directly
+      const keys = ['iot_lab0_gas_url', 'gas_url_lab0', 'gas_url_lab0-basic', 'gas_url_lab-basic', 'teacher_gas_url_lab0'];
+      for (const k of keys) {
+        const v = localStorage.getItem(k);
+        if (v && v.trim().startsWith('https://script.google.com')) {
+          return v.trim();
+        }
+      }
+      return '';
+    }
+
+    function _persistLab0GasUrl(url) {
+      const clean = (url || '').trim();
+      const keys = ['iot_lab0_gas_url', 'gas_url_lab0', 'gas_url_lab0-basic', 'gas_url_lab-basic', 'teacher_gas_url_lab0'];
+      if (clean && clean.startsWith('https://script.google.com')) {
+        keys.forEach(k => localStorage.setItem(k, clean));
+        if (typeof setLabScriptUrl === 'function') setLabScriptUrl('lab0', clean);
+        try {
+          window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(clean));
+        } catch (e) {}
+      } else if (!clean) {
+        keys.forEach(k => localStorage.removeItem(k));
+        if (typeof setLabScriptUrl === 'function') setLabScriptUrl('lab0', '');
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {}
+      }
+    }
+
     function loadTeacherGasUrl() {
-      const savedUrl = localStorage.getItem('iot_lab0_gas_url');
+      const savedUrl = _resolveLab0GasUrl();
       const input = document.getElementById('teacherGasUrlInput');
       const badge = document.getElementById('teacherGasBadge');
-      if (savedUrl && input) {
-        input.value = savedUrl;
+      if (savedUrl && savedUrl.startsWith('https://script.google.com')) {
+        _persistLab0GasUrl(savedUrl);
+        if (input) input.value = savedUrl;
         if (badge) {
-          badge.style.background = 'rgba(16, 185, 129, 0.12)';
-          badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
           badge.style.color = '#34d399';
-          badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมส่งข้อมูลเข้าชีต';
+          badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> เชื่อมต่อ Google Sheets ผู้สอนแล้ว';
+        }
+      } else {
+        if (badge) {
+          badge.style.background = 'rgba(56, 189, 248, 0.12)';
+          badge.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+          badge.style.color = '#7dd3fc';
+          badge.innerHTML = '<i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)';
         }
       }
     }
 
     function saveTeacherGasUrl() {
       const input = document.getElementById('teacherGasUrlInput');
-      if (!input || !input.value.trim()) {
-        alert('กรุณากรอก Google Apps Script Web App URL');
+      const val = input ? input.value.trim() : '';
+      if (!val) {
+        _persistLab0GasUrl('');
+        loadTeacherGasUrl();
+        showModal('ล้างการเชื่อมต่อ', 'ล้างค่า URL แล้ว ระบบจะกลับไปทำงานในโหมดจำลองในเครื่อง', 'success');
         return;
       }
-      localStorage.setItem('iot_lab0_gas_url', input.value.trim());
+      if (!val.startsWith('https://script.google.com')) {
+        showModal('URL ไม่ถูกต้อง', 'กรุณาวาง Google Apps Script Web App URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/.../exec', 'error');
+        return;
+      }
+      _persistLab0GasUrl(val);
       loadTeacherGasUrl();
       showModal('บันทึกสำเร็จ', 'บันทึก Google Apps Script URL เรียบร้อยแล้ว พร้อมส่งข้อมูลเข้าชีต', 'success');
     }
 
     function copyStudentShareLink() {
       const input = document.getElementById('teacherGasUrlInput');
-      const url = input ? input.value.trim() : '';
-      const shareUrl = window.location.origin + window.location.pathname + (url ? '?gas=' + encodeURIComponent(url) : '');
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        showModal('คัดลอกลิงก์สำเร็จ', 'คัดลอกลิงก์ใบงานสำหรับส่งให้นักศึกษาเรียบร้อยแล้ว:\n' + shareUrl, 'success');
-      });
+      const url = (input && input.value.trim()) || _resolveLab0GasUrl();
+      if (!url || !url.startsWith('https://script.google.com')) {
+        showModal('ยังไม่ได้ระบุลิงก์ GAS', 'กรุณาวาง Google Apps Script Web App URL (https://script.google.com/macros/s/.../exec) ในช่องก่อนคัดลอกลิงก์ส่งให้นักเรียน', 'error');
+        if (input) input.focus();
+        return;
+      }
+      // Auto-save and update URL bar so the GAS link is always persisted
+      _persistLab0GasUrl(url);
+      loadTeacherGasUrl();
+
+      const shareUrl = window.location.origin + window.location.pathname + '?gas=' + encodeURIComponent(url);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showModal('คัดลอกลิงก์สำเร็จ! 🎉', 'คัดลอกลิงก์ใบงานที่แนบ Google Apps Script สำหรับส่งให้นักศึกษาเรียบร้อยแล้ว:\n\n' + shareUrl, 'success');
+        }).catch(() => {
+          prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
+        });
+      } else {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
+      }
     }
 
     async function testGasConnection() {
       const input = document.getElementById('teacherGasUrlInput');
-      const gasUrl = input ? input.value.trim() : '';
-      if (!gasUrl) {
+      const gasUrl = (input && input.value.trim()) || _resolveLab0GasUrl();
+      if (!gasUrl || !gasUrl.startsWith('https://script.google.com')) {
         alert('กรุณากรอก Google Apps Script Web App URL ก่อนทดสอบ');
         return;
       }
+      _persistLab0GasUrl(gasUrl);
+      loadTeacherGasUrl();
       try {
         const res = await fetch(gasUrl, {
           method: 'POST',
@@ -3806,7 +3896,7 @@ void loop() {
           showModal('ผลการเชื่อมต่อ', data.message || 'ไม่สามารถเชื่อมต่อได้', 'error');
         }
       } catch (err) {
-        showModal('เชื่อมต่อไม่สำเร็จ', 'ข้อผิดพลาด: ' + err.message + '\nกรุณาตรวจสอบว่าได้ตั้งค่าสิทธิ์ Web App เป็น Anyone หรือยัง', 'error');
+        window.open(gasUrl.split('?')[0] + '?page=grader', '_blank');
       }
     }
 
@@ -3867,16 +3957,37 @@ function doPost(e) {
       if (target) target.value = val;
     }
 
+    async function pasteChallengeCodeFromClipboard() {
+      const ta = document.getElementById('challengeCode');
+      if (!ta) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text && text.trim().length > 0) {
+            ta.value = text;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            ta.focus();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Clipboard readText permission denied or not supported:', err);
+      }
+      ta.focus();
+      alert('คุณสามารถกดแป้นพิมพ์ Ctrl + V (หรือ Cmd + V บน Mac) เพื่อวางโค้ดลงในช่องนี้ได้ทันที');
+    }
+
     /* ========================================================= */
     /* 8. ANTI-CHEAT ENGINE (PROHIBIT COPY/PASTE/CUT/DROP)       */
     /* ========================================================= */
     function initAntiCheat() {
       const protectedSelectors = [
         '#codeBlank1', '#codeBlank2', '#codeBlank1Input', '#codeBlank2Input',
-        '#challengeCode', '#controlLogic',
+        '#controlLogic',
         '#question1', '#question2', '#question3',
         '#conclusion',
-        'textarea'
+        'textarea:not(#challengeCode)'
       ];
       
       let toast = document.getElementById('antiCheatToast');
@@ -4264,11 +4375,11 @@ function doPost(e) {
 
     async function _doActualSubmit() {
       const btn = document.getElementById('submitBtn');
-      const gasUrl = (document.getElementById('teacherGasUrlInput').value || '').trim();
+      const gasUrl = (document.getElementById('teacherGasUrlInput')?.value || '').trim() || _resolveLab0GasUrl();
 
-      if (!gasUrl) {
+      if (!gasUrl && !(typeof google !== 'undefined' && google.script && google.script.run)) {
         alert('กรุณากรอกและบันทึก Google Apps Script Web App URL ด้านบนก่อนส่งรายงาน');
-        document.getElementById('teacherGasUrlInput').focus();
+        document.getElementById('teacherGasUrlInput')?.focus();
         return;
       }
 
@@ -4309,7 +4420,43 @@ function doPost(e) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งรายงานเข้าระบบ Google Sheets...';
       }
 
+      if (!gasUrl && typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((res) => {
+            if (res && res.status === 'success') {
+              const nowStr = new Date().toLocaleString('th-TH');
+              localStorage.setItem(_LAB_STORAGE_KEY + payload.studentId, nowStr);
+              lockFormAsSubmitted(nowStr);
+              showModal('ส่งใบงานสำเร็จ!', res.message + '\n\n' + (res.feedback || ''), 'success');
+            } else {
+              showModal('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถส่งรายงานได้', 'error');
+              if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+              }
+            }
+          })
+          .withFailureHandler((err) => {
+            showModal('เกิดข้อผิดพลาด', err.toString(), 'error');
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+            }
+          })
+          .submitLabData(payload);
+        return;
+      }
+
       try {
+        // Also record locally if running on local server
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          fetch('/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lab: 'lab0', data: payload })
+          }).catch(() => {});
+        }
+
         const response = await fetch(gasUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

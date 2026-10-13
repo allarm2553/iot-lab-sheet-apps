@@ -15,6 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- MQTT.js for live telemetry test -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="../config.js"></script>
 
   <style>
     :root {
@@ -3056,32 +3057,59 @@ void loop() {
     // ── 10. Teacher Google Sheets Integration ──
     function saveTeacherGasUrl(labKey) {
       const inp = document.getElementById('teacherGasUrlInput');
-      const val = (inp.value || '').trim();
+      const val = (inp ? inp.value : '').trim();
       if (!val) {
         localStorage.removeItem('teacher_gas_url_' + labKey);
+        localStorage.removeItem('gas_url_' + labKey);
+        if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, '');
+        try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
         updateTeacherGasBadge(labKey);
         Swal.fire({ icon: 'info', title: 'รีเซ็ต URL เรียบร้อย', background: '#0f172a', color: '#f8fafc', timer: 1500, showConfirmButton: false });
         return;
       }
+      if (!val.startsWith('https://script.google.com')) {
+        Swal.fire({ icon: 'error', title: 'URL ไม่ถูกต้อง', text: 'กรุณาวาง URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/.../exec', background: '#0f172a', color: '#f8fafc' });
+        return;
+      }
       localStorage.setItem('teacher_gas_url_' + labKey, val);
+      localStorage.setItem('gas_url_' + labKey, val);
+      if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, val);
+      try { window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(val)); } catch (e) {}
       updateTeacherGasBadge(labKey);
       Swal.fire({ icon: 'success', title: 'บันทึก URL ผู้สอนสำเร็จ!', text: val, background: '#0f172a', color: '#f8fafc' });
     }
 
     function copyStudentShareLink(labKey) {
-      const url = localStorage.getItem('teacher_gas_url_' + labKey) || '';
-      const shareUrl = window.location.origin + window.location.pathname + (url ? `?gas=${encodeURIComponent(url)}` : '');
+      const inp = document.getElementById('teacherGasUrlInput');
+      const url = (inp && inp.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labKey) : '') || localStorage.getItem('teacher_gas_url_' + labKey) || localStorage.getItem('gas_url_' + labKey) || '';
+      if (!url || !url.startsWith('https://script.google.com')) {
+        Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุลิงก์ GAS', text: 'กรุณาวาง Google Apps Script Web App URL ในช่องก่อนคัดลอกลิงก์ให้นักเรียน', background: '#0f172a', color: '#f8fafc' });
+        if (inp) inp.focus();
+        return;
+      }
+      localStorage.setItem('teacher_gas_url_' + labKey, url);
+      localStorage.setItem('gas_url_' + labKey, url);
+      if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, url);
+      try { window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(url)); } catch (e) {}
+      updateTeacherGasBadge(labKey);
+
+      const shareUrl = window.location.origin + window.location.pathname + `?gas=${encodeURIComponent(url)}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
-        Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์ให้นักเรียนแล้ว!', text: shareUrl, background: '#0f172a', color: '#f8fafc' });
+        Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์ให้นักเรียนแล้ว! 🎉', text: shareUrl, background: '#0f172a', color: '#f8fafc' });
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
       });
     }
 
     function testTeacherGasUrl(labKey) {
-      const url = localStorage.getItem('teacher_gas_url_' + labKey) || document.getElementById('teacherGasUrlInput')?.value;
+      const url = document.getElementById('teacherGasUrlInput')?.value.trim() || localStorage.getItem('teacher_gas_url_' + labKey) || localStorage.getItem('gas_url_' + labKey);
       if (!url) {
         Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ URL', text: 'กรุณาวาง URL ของ Google Apps Script ก่อนทดสอบ', background: '#0f172a', color: '#f8fafc' });
         return;
       }
+      localStorage.setItem('teacher_gas_url_' + labKey, url);
+      localStorage.setItem('gas_url_' + labKey, url);
+      updateTeacherGasBadge(labKey);
       Swal.fire({ title: 'กำลังทดสอบการเชื่อมต่อ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, background: '#0f172a', color: '#f8fafc' });
       
       fetch(url, {
@@ -3098,13 +3126,22 @@ void loop() {
 
     function updateTeacherGasBadge(labKey) {
       const badge = document.getElementById('teacherGasBadge');
-      const saved = localStorage.getItem('teacher_gas_url_' + labKey);
-      if (saved && badge) {
+      const saved = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labKey) : '') || localStorage.getItem('teacher_gas_url_' + labKey) || localStorage.getItem('gas_url_' + labKey);
+      if (saved && saved.startsWith('https://script.google.com') && badge) {
+        localStorage.setItem('teacher_gas_url_' + labKey, saved);
+        localStorage.setItem('gas_url_' + labKey, saved);
+        try { window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(saved)); } catch (e) {}
         badge.style.background = 'rgba(16, 185, 129, 0.15)';
         badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         badge.style.color = '#34d399';
         badge.innerHTML = '<i class="fa-solid fa-cloud-check"></i> เชื่อมต่อชีตผู้สอนแล้ว';
-        document.getElementById('teacherGasUrlInput').value = saved;
+        const inp = document.getElementById('teacherGasUrlInput');
+        if (inp) inp.value = saved;
+      } else if (badge) {
+        badge.style.background = 'rgba(56, 189, 248, 0.12)';
+        badge.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+        badge.style.color = '#7dd3fc';
+        badge.innerHTML = '<i class="fa-solid fa-globe"></i> โหมดจำลองในเครื่อง (ยังไม่เชื่อมต่อชีต)';
       }
     }
 
@@ -3135,9 +3172,11 @@ void loop() {
 
       // URL query params for GAS URL
       const params = new URLSearchParams(window.location.search);
-      if (params.has('gas')) {
-        const gasUrl = params.get('gas');
-        localStorage.setItem('teacher_gas_url_LAB6.1Perform', gasUrl);
+      const qGas = params.get('gas') || params.get('gas_url');
+      if (qGas && qGas.trim().startsWith('https://script.google.com')) {
+        const cleanGas = qGas.trim();
+        localStorage.setItem('teacher_gas_url_LAB6.1Perform', cleanGas);
+        localStorage.setItem('gas_url_LAB6.1Perform', cleanGas);
       }
       updateTeacherGasBadge('LAB6.1Perform');
     });

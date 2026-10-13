@@ -2327,8 +2327,13 @@ void loop() {
 
           <!-- 3. Challenge Code Box -->
           <div class="form-section">
-            <div class="form-section-title">
-              <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div class="form-section-title" style="margin: 0;">
+                <i class="fa-solid fa-trophy"></i> ส่วนการตอบโจทย์ท้าทาย (Challenge Code)
+              </div>
+              <button type="button" class="copy-btn" onclick="pasteChallengeCodeFromClipboard()" style="padding: 0.32rem 0.75rem; font-size: 0.8rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="วางซอร์สโค้ดที่คัดลอกไว้">
+                <i class="fa-solid fa-paste"></i> วางโค้ดจากคลิปบอร์ด
+              </button>
             </div>
             <div class="form-group">
               <label for="challengeCode">เขียนโค้ดภาษา C++ บูรณาการนำค่าเซ็นเซอร์และสถานะอุปกรณ์ทั้งหมดมาแสดงผลบนจอ OLED (128x64):</label>
@@ -3695,14 +3700,35 @@ void loop() {
       }
     }
 
+    async function pasteChallengeCodeFromClipboard() {
+      const ta = document.getElementById('challengeCode');
+      if (!ta) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text && text.trim().length > 0) {
+            ta.value = text;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            ta.focus();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Clipboard readText permission denied or not supported:', err);
+      }
+      ta.focus();
+      alert('คุณสามารถกดแป้นพิมพ์ Ctrl + V (หรือ Cmd + V บน Mac) เพื่อวางโค้ดลงในช่องนี้ได้ทันที');
+    }
+
     // Anti-Cheat System (Prohibit Copy/Paste/Cut/Drop in Questions & Answer Fields)
     function initAntiCheat() {
       const protectedSelectors = [
         '#codeBlank1', '#codeBlank2',
-        '#challengeCode', '#controlLogic',
+        '#controlLogic',
         '#question1', '#question2', '#question3',
         '#conclusion',
-        'textarea'
+        'textarea:not(#challengeCode)'
       ];
       
       let toast = document.getElementById('antiCheatToast');
@@ -3863,18 +3889,44 @@ void loop() {
     /* 10. TEACHER GAS URL MANAGEMENT                            */
     /* ========================================================= */
     function getActiveGasUrl(labKey) {
-      const saved = localStorage.getItem(`teacher_gas_url_${labKey}`);
-      if (saved && saved.startsWith('https://script.google.com/')) return saved;
+      if (window.location && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        let qGas = params.get('gas') || params.get('gas_url');
+        if (qGas) {
+          try {
+            if (qGas.startsWith('https%3A') || qGas.startsWith('http%3A')) qGas = decodeURIComponent(qGas);
+          } catch (e) {}
+          if (qGas.trim().startsWith('https://script.google.com/')) {
+            const clean = qGas.trim();
+            localStorage.setItem(`teacher_gas_url_${labKey}`, clean);
+            localStorage.setItem(`gas_url_${labKey}`, clean);
+            return clean;
+          }
+        }
+      }
+      if (typeof getLabScriptUrl === 'function') {
+        const fromCfg = getLabScriptUrl(labKey);
+        if (fromCfg && fromCfg.startsWith('https://script.google.com/')) return fromCfg;
+      }
+      const saved = localStorage.getItem(`teacher_gas_url_${labKey}`) || localStorage.getItem(`gas_url_${labKey}`);
+      if (saved && saved.trim().startsWith('https://script.google.com/')) return saved.trim();
       if (typeof SCRIPT_URL !== 'undefined' && SCRIPT_URL.startsWith('https://script.google.com/')) return SCRIPT_URL;
       return null;
     }
 
     function loadTeacherGasUrl(labKey) {
-      const saved = localStorage.getItem(`teacher_gas_url_${labKey}`);
+      const saved = getActiveGasUrl(labKey);
       const input = document.getElementById('teacherGasUrlInput');
       const badge = document.getElementById('teacherGasBadge');
 
-      if (saved && input) input.value = saved;
+      if (saved && saved.startsWith('https://script.google.com/')) {
+        localStorage.setItem(`teacher_gas_url_${labKey}`, saved);
+        localStorage.setItem(`gas_url_${labKey}`, saved);
+        try {
+          window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(saved));
+        } catch (e) {}
+        if (input) input.value = saved;
+      }
       if (badge) {
         if (saved && saved.startsWith('https://script.google.com/')) {
           badge.style.background = 'rgba(16, 185, 129, 0.15)';
@@ -3894,29 +3946,60 @@ void loop() {
       const input = document.getElementById('teacherGasUrlInput');
       if (!input) return;
       const url = input.value.trim();
-      if (url && !url.startsWith('https://script.google.com/macros/s/')) {
+      if (url && !url.startsWith('https://script.google.com')) {
         showAlert('URL ไม่ถูกต้อง', 'กรุณาระบุ URL ที่ขึ้นต้นด้วย https://script.google.com/macros/s/...', 'warning');
         return;
       }
-      localStorage.setItem(`teacher_gas_url_${labKey}`, url);
+      if (url) {
+        localStorage.setItem(`teacher_gas_url_${labKey}`, url);
+        localStorage.setItem(`gas_url_${labKey}`, url);
+        if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, url);
+        try {
+          window.history.replaceState(null, '', window.location.pathname + '?gas=' + encodeURIComponent(url));
+        } catch (e) {}
+      } else {
+        localStorage.removeItem(`teacher_gas_url_${labKey}`);
+        localStorage.removeItem(`gas_url_${labKey}`);
+        if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, '');
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {}
+      }
       loadTeacherGasUrl(labKey);
       showAlert('บันทึกเรียบร้อย', 'บันทึก Teacher Google Apps Script URL สำเร็จ', 'success');
     }
 
     function copyStudentShareLink(labKey) {
-      const gasUrl = getActiveGasUrl(labKey) || '';
+      const input = document.getElementById('teacherGasUrlInput');
+      const gasUrl = (input && input.value.trim()) || getActiveGasUrl(labKey) || '';
+      if (!gasUrl || !gasUrl.startsWith('https://script.google.com')) {
+        showAlert('ยังไม่ได้ระบุลิงก์ GAS', 'กรุณาวาง Google Apps Script Web App URL ในช่องก่อนคัดลอกลิงก์ส่งให้นักเรียน', 'warning');
+        if (input) input.focus();
+        return;
+      }
+      localStorage.setItem(`teacher_gas_url_${labKey}`, gasUrl);
+      localStorage.setItem(`gas_url_${labKey}`, gasUrl);
+      if (typeof setLabScriptUrl === 'function') setLabScriptUrl(labKey, gasUrl);
+      loadTeacherGasUrl(labKey);
+
       const shareUrl = `${window.location.origin}${window.location.pathname}?gas=${encodeURIComponent(gasUrl)}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
-        showAlert('คัดลอกลิงก์สำเร็จ', 'คัดลอกลิงก์สำหรับส่งให้นักเรียนเรียบร้อยแล้ว', 'success');
+        showAlert('คัดลอกลิงก์สำเร็จ! 🎉', 'คัดลอกลิงก์สำหรับส่งให้นักเรียนเรียบร้อยแล้ว:\n' + shareUrl, 'success');
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้ส่งให้นักเรียน:', shareUrl);
       });
     }
 
     async function testTeacherGasUrl(labKey) {
-      const gasUrl = getActiveGasUrl(labKey);
+      const input = document.getElementById('teacherGasUrlInput');
+      const gasUrl = (input && input.value.trim()) || getActiveGasUrl(labKey);
       if (!gasUrl) {
         showAlert('ยังไม่ได้ระบุ URL', 'กรุณาวางลิงก์ Google Apps Script ก่อนทดสอบเชื่อมต่อ', 'warning');
         return;
       }
+      localStorage.setItem(`teacher_gas_url_${labKey}`, gasUrl);
+      localStorage.setItem(`gas_url_${labKey}`, gasUrl);
+      loadTeacherGasUrl(labKey);
       try {
         await fetch(gasUrl, { method: 'GET', mode: 'no-cors' });
         showAlert('ทดสอบเชื่อมต่อสำเร็จ', 'สามารถส่งคำขอไปยัง Google Apps Script ได้เรียบร้อย', 'success');
