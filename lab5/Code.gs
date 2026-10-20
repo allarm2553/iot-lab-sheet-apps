@@ -236,6 +236,21 @@ function submitLabData(data) {
       sheet.getRange(1, 1, 1, 24).setFontWeight("bold").setBackground("#e0e7ff");
     }
 
+    // ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    var existingData = sheet.getDataRange().getValues();
+    var targetId = String(data.studentId || '').trim().replace(/^'/, '');
+    if (targetId) {
+      for (var r = 1; r < existingData.length; r++) {
+        var existingId = String(existingData[r][2] || '').trim().replace(/^'/, '');
+        if (existingId === targetId) {
+          return {
+            status: 'duplicate',
+            message: '❌ รหัสนักศึกษา ' + targetId + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
+          };
+        }
+      }
+    }
+
     sheet.appendRow([
       new Date(),
       data.studentName || '',

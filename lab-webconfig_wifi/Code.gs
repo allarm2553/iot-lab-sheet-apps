@@ -195,6 +195,18 @@ function submitLabData(data) {
       codeFileUrl = file.getUrl();
     }
     
+    // ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    var existingData = sheet.getDataRange().getValues();
+    for (var r = 1; r < existingData.length; r++) {
+      if (String(existingData[r][2]).trim() === String(data.studentId).trim()) {
+        return {
+          status: "duplicate",
+          success: false,
+          message: "❌ รหัสนักศึกษา " + data.studentId + " ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้"
+        };
+      }
+    }
+
     var rowData = [
       new Date(),
       data.studentName,

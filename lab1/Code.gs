@@ -235,7 +235,19 @@ function submitLabData(data) {
       codeFileUrl = file.getUrl();
     }
     
-    // 3. Log data to Spreadsheet
+    // 3. ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    var existingData = sheet.getDataRange().getValues();
+    // Column index 2 (0-based) = รหัสนักศึกษา (Student ID) — แถว 0 คือ header
+    for (var r = 1; r < existingData.length; r++) {
+      if (String(existingData[r][2]).trim() === String(data.studentId).trim()) {
+        return {
+          status: "duplicate",
+          message: "❌ รหัสนักศึกษา " + data.studentId + " ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้"
+        };
+      }
+    }
+
+    // 4. Log data to Spreadsheet
     var rowData = [
       new Date(),
       data.studentName,

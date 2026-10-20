@@ -3031,11 +3031,33 @@ void loop() {
 
     function lockFormAsSubmitted(timestamp) {
       document.querySelectorAll('#labForm input, #labForm textarea, #labForm select, #labForm button').forEach(el => {
-        if (el.id !== 'newStudentBtn') el.disabled = true;
+        if (el.id !== 'newStudentBtn' && el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary') && !el.classList.contains('btn-print')) {
+          el.disabled = true;
+        }
       });
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> ส่งงานเรียบร้อยแล้ว (${timestamp})`;
+      }
       const newBtn = document.getElementById('newStudentBtn');
       if (newBtn) newBtn.style.display = 'inline-flex';
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const sIdEl = document.getElementById('studentId');
+      if (sIdEl) {
+        const checkLock = () => {
+          const val = sIdEl.value.trim();
+          if (val) {
+            const prev = localStorage.getItem(_LAB_STORAGE_KEY + val);
+            if (prev) lockFormAsSubmitted(prev);
+          }
+        };
+        checkLock();
+        sIdEl.addEventListener('change', checkLock);
+      }
+    });
 
     function confirmResetForNewStudent() {
       Swal.fire({
@@ -3049,6 +3071,9 @@ void loop() {
         color: '#f8fafc'
       }).then(r => {
         if (r.isConfirmed) {
+          ['studentId', 'studentName', 'studentGroup'].forEach(k => localStorage.removeItem(k));
+          const form = document.getElementById('labForm');
+          if (form) form.reset();
           location.reload();
         }
       });

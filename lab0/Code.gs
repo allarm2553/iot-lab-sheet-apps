@@ -270,6 +270,21 @@ function doPost(e) {
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#1e293b").setFontColor("#ffffff");
     }
 
+    // ตรวจสอบการส่งซ้ำ (Duplicate Submission Check) — คอลัมน์ที่ 2 (index 1) คือ Student ID
+    var existingData = sheet.getDataRange().getValues();
+    var targetStudentId = String(data.studentId || '').trim().replace(/^'/, '');
+    if (targetStudentId && targetStudentId !== '-') {
+      for (var r = 1; r < existingData.length; r++) {
+        var existingId = String(existingData[r][1] || '').trim().replace(/^'/, '');
+        if (existingId === targetStudentId) {
+          return ContentService.createTextOutput(JSON.stringify({
+            status: 'duplicate',
+            message: '❌ รหัสนักศึกษา ' + targetStudentId + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+    }
+
     var grading = gradeSubmission(data);
     var timestamp = new Date();
 

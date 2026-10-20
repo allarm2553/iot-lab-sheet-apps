@@ -3581,12 +3581,21 @@ void loop() {
     /* ========================================================= */
     /* 8. SUBMISSION LOGIC & ANTI-CHEAT ENGINE                   */
     /* ========================================================= */
+    const _LAB_STORAGE_KEY = 'submitted_iot_lab2_';
+
     function openSubmitConfirmModal() {
       const name = document.getElementById('studentName').value.trim();
       const sId = document.getElementById('studentId').value.trim();
 
       if (!name || !sId) {
         showAlert('กรุณากรอกข้อมูลให้ครบ', 'โปรดระบุชื่อ-นามสกุล และรหัสนักศึกษาก่อนส่งใบงาน', 'warning');
+        return;
+      }
+
+      const prevSubmitTime = localStorage.getItem(_LAB_STORAGE_KEY + sId);
+      if (prevSubmitTime) {
+        showAlert('ไม่สามารถส่งซ้ำได้', `รหัสนักศึกษา ${sId} ได้ส่งใบงานนี้ไปแล้วเมื่อ ${prevSubmitTime}\nระบบอนุญาตให้ส่งได้เพียง 1 ครั้งเท่านั้น`, 'error');
+        lockSubmissionState(sId, prevSubmitTime);
         return;
       }
 
@@ -3664,7 +3673,6 @@ void loop() {
       } catch (err) {
         console.error('Submit error:', err);
         showAlert('เกิดข้อผิดพลาดในการส่ง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง หรือพิมพ์รายงานเป็น PDF', 'error');
-      } finally {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
@@ -3672,20 +3680,35 @@ void loop() {
       }
     }
 
-    function lockSubmissionState(studentId) {
+    function lockSubmissionState(studentId, customTime) {
+      const nowStr = customTime || new Date().toLocaleString('th-TH');
+      if (studentId) {
+        localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowStr);
+      }
       localStorage.setItem('lab2_submitted_id', studentId);
-      localStorage.setItem('lab2_submitted_time', new Date().toISOString());
+      localStorage.setItem('lab2_submitted_time', nowStr);
       checkSubmissionLock();
     }
 
     function checkSubmissionLock() {
-      const submittedId = localStorage.getItem('lab2_submitted_id');
-      if (submittedId) {
+      const currentId = (document.getElementById('studentId')?.value || '').trim();
+      const submittedTime = (currentId && localStorage.getItem(_LAB_STORAGE_KEY + currentId)) || localStorage.getItem('lab2_submitted_time');
+      const isLocked = (currentId && !!localStorage.getItem(_LAB_STORAGE_KEY + currentId)) || (!!localStorage.getItem('lab2_submitted_id') && (!currentId || currentId === localStorage.getItem('lab2_submitted_id')));
+      if (isLocked) {
+        const form = document.getElementById('labForm');
+        if (form) {
+          form.querySelectorAll('input, textarea, select, button[type="submit"], .upload-area, .remove-file-btn').forEach(el => {
+            if (el.id !== 'checkScoreBtn' && !el.classList.contains('btn-secondary') && !el.classList.contains('btn-print') && !el.classList.contains('btn-new-student') && el.id !== 'newStudentBtn') {
+              el.disabled = true;
+              if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = true;
+            }
+          });
+        }
         const btn = document.getElementById('submitBtn');
         const newBtn = document.getElementById('newStudentBtn');
         if (btn) {
           btn.disabled = true;
-          btn.innerHTML = '<i class="fa-solid fa-lock"></i> ส่งรายงานแล้ว (Lock 1 ครั้ง)';
+          btn.innerHTML = `<i class="fa-solid fa-lock"></i> ส่งรายงานแล้ว (${submittedTime || 'Lock 1 ครั้ง'})`;
           btn.style.background = '#475569';
         }
         if (newBtn) newBtn.style.display = 'flex';
@@ -3693,9 +3716,12 @@ void loop() {
     }
 
     function confirmResetForNewStudent() {
-      if (confirm('คุณต้องการรีเซ็ตแบบฟอร์มเพื่อให้นักศึกษาคนใหม่เริ่มทำใบงานใช่หรือไม่?')) {
+      if (confirm('คุณต้องการรีเซ็ตแบบฟอร์มเพื่อให้นักศึกษาคนใหม่เริ่มทำใบงานใช่หรือไม่? (ประวัติการส่งของรหัสเดิมจะยังคงถูกล็อกไว้)')) {
         localStorage.removeItem('lab2_submitted_id');
         localStorage.removeItem('lab2_submitted_time');
+        ['studentId', 'studentName', 'studentGroup'].forEach(k => localStorage.removeItem(k));
+        const form = document.getElementById('labForm');
+        if (form) form.reset();
         location.reload();
       }
     }

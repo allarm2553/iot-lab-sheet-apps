@@ -118,6 +118,21 @@ function processForm(formData) {
     var studentId = formData.studentId || '';
     var group = formData.studentGroup || '';
     var labDate = formData.labDate || '';
+
+    // ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    var existingData = sheet.getDataRange().getValues();
+    var targetId = String(studentId).trim().replace(/^'/, '');
+    if (targetId) {
+      for (var r = 1; r < existingData.length; r++) {
+        var existingId = String(existingData[r][1] || '').trim().replace(/^'/, '');
+        if (existingId === targetId) {
+          return {
+            status: 'duplicate',
+            message: '❌ รหัสนักศึกษา ' + targetId + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
+          };
+        }
+      }
+    }
     
     sheet.appendRow([
       timestamp,

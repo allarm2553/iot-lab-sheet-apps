@@ -4470,6 +4470,11 @@ function doPost(e) {
           lockFormAsSubmitted(nowStr);
 
           showModal('ส่งใบงานสำเร็จ!', res.message + '\n\n' + (res.feedback || ''), 'success');
+        } else if (res.status === 'duplicate') {
+          const dupTime = localStorage.getItem(_LAB_STORAGE_KEY + payload.studentId) || 'บันทึกในระบบแล้ว';
+          localStorage.setItem(_LAB_STORAGE_KEY + payload.studentId, dupTime);
+          lockFormAsSubmitted(dupTime);
+          showModal('ไม่สามารถส่งซ้ำได้', res.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว', 'error');
         } else {
           showModal('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถส่งรายงานได้', 'error');
           if (btn) {
@@ -4495,6 +4500,11 @@ function doPost(e) {
       }
     }
 
+    window.addEventListener('DOMContentLoaded', () => {
+      checkSubmissionLock();
+      document.getElementById('studentId')?.addEventListener('change', checkSubmissionLock);
+    });
+
     function lockFormAsSubmitted(submittedTime) {
       const form = document.getElementById('labForm');
       if (form) {
@@ -4516,9 +4526,10 @@ function doPost(e) {
     }
 
     function confirmResetForNewStudent() {
-      if (confirm('คุณต้องการรีเซ็ตแบบฟอร์มเพื่อให้นักศึกษาคนใหม่เริ่มทำใบงานใช่หรือไม่?')) {
-        const idVal = (document.getElementById('studentId')?.value || '').trim();
-        if (idVal) localStorage.removeItem(_LAB_STORAGE_KEY + idVal);
+      if (confirm('คุณต้องการรีเซ็ตแบบฟอร์มเพื่อให้นักศึกษาคนใหม่เริ่มทำใบงานใช่หรือไม่? (ประวัติการส่งของรหัสเดิมจะยังคงถูกล็อกไว้)')) {
+        ['studentId', 'studentName', 'studentGroup'].forEach(k => localStorage.removeItem(k));
+        const form = document.getElementById('labForm');
+        if (form) form.reset();
         location.reload();
       }
     }

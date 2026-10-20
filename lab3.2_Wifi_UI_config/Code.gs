@@ -132,6 +132,20 @@ function submitLabData(formObject) {
     // Total Score
     const totalScore = parseFloat((blankScore + quizScore + challengeScore + qScore + attachScore + conclScore).toFixed(1));
 
+    // ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    const existingData = sheet.getDataRange().getValues();
+    const targetId = String(formObject.studentId || "").trim();
+    if (targetId && targetId !== "-") {
+      for (let r = 1; r < existingData.length; r++) {
+        if (String(existingData[r][1]).trim() === targetId) {
+          return {
+            status: "duplicate",
+            message: `❌ รหัสนักศึกษา ${targetId} ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้`
+          };
+        }
+      }
+    }
+
     // Append to Sheet
     const rowData = [
       new Date(),

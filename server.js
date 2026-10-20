@@ -460,13 +460,16 @@ app.post('/api/submit', (req, res) => {
       logData = JSON.parse(raw);
     }
 
-    // Check for previous submission by this student ID in this lab, and replace it (to allow re-submission)
-    const existingIndex = logData.findIndex(s => s.studentId === data.studentId);
+    // Check for duplicate submission by this student ID in this lab
+    const existingIndex = logData.findIndex(s => String(s.studentId).trim() === String(data.studentId).trim());
     if (existingIndex !== -1) {
-      logData[existingIndex] = submissionRecord;
-    } else {
-      logData.push(submissionRecord);
+      return res.json({
+        status: 'duplicate',
+        message: `❌ รหัสนักศึกษา ${data.studentId} ได้ส่งใบงาน (${lab}) ไปแล้ว ไม่สามารถส่งซ้ำได้`
+      });
     }
+
+    logData.push(submissionRecord);
 
     fs.writeFileSync(logFilePath, JSON.stringify(logData, null, 2), 'utf8');
 

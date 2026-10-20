@@ -271,7 +271,18 @@ function submitLabData(data) {
       codeFileUrl = file.getUrl();
     }
 
-    // 3. Log data to Spreadsheet
+    // 3. ตรวจสอบการส่งซ้ำ (Duplicate Submission Check)
+    var existingData = sheet.getDataRange().getValues();
+    for (var r = 1; r < existingData.length; r++) {
+      if (String(existingData[r][2]).trim() === String(data.studentId).trim()) {
+        return {
+          status: "duplicate",
+          message: "❌ รหัสนักศึกษา " + data.studentId + " ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้"
+        };
+      }
+    }
+
+    // 4. Log data to Spreadsheet
     var scanBlanks = [data.codeBlank1, data.codeBlank2, data.codeBlank3, data.codeBlank4, data.codeBlank5].join(', ');
     var connBlanks = [data.codeBlank6, data.codeBlank7, data.codeBlank8, data.codeBlank9].join(', ');
 
