@@ -2955,22 +2955,43 @@ void loop() {
         // Submit to Teacher's Google Apps Script
         fetch(customGasUrl, {
           method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
-        }).then(() => {
+        }).then(res => res.json())
+        .then(res => {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
-          const nowFormatted = new Date().toLocaleString('th-TH');
-          localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
-          lockFormAsSubmitted(nowFormatted);
-          Swal.fire({
-            icon: 'success',
-            title: 'ส่งรายงานสำเร็จ!',
-            text: 'ระบบได้บันทึกคะแนนและส่งข้อมูลเข้าสู่ Google Sheets ผู้สอนเรียบร้อยแล้ว',
-            background: '#0f172a',
-            color: '#f8fafc'
-          });
+          if (res && res.status === 'duplicate') {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+            Swal.fire({
+              icon: 'error',
+              title: 'ไม่สามารถส่งซ้ำได้',
+              text: res.message || `รหัสนักศึกษา ${studentId} ได้ส่งใบงานนี้ไปแล้ว`,
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else if (res && res.status === 'success') {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem(_LAB_STORAGE_KEY + studentId, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+            Swal.fire({
+              icon: 'success',
+              title: 'ส่งรายงานสำเร็จ!',
+              text: res.message || 'ระบบได้บันทึกคะแนนและส่งข้อมูลเข้าสู่ Google Sheets ผู้สอนเรียบร้อยแล้ว',
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'ข้อผิดพลาด',
+              text: (res && res.message) || 'บันทึกไม่สำเร็จ',
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          }
         }).catch(err => {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
@@ -3126,27 +3147,71 @@ void loop() {
       });
     }
 
-    function testTeacherGasUrl(labKey) {
-      const url = document.getElementById('teacherGasUrlInput')?.value.trim() || localStorage.getItem('teacher_gas_url_' + labKey) || localStorage.getItem('gas_url_' + labKey);
-      if (!url) {
-        Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ URL', text: 'กรุณาวาง URL ของ Google Apps Script ก่อนทดสอบ', background: '#0f172a', color: '#f8fafc' });
+    async function testTeacherGasUrl(labId) {
+      labId = labId || 'LAB6.1Perform';
+      const input = document.getElementById('teacherGasUrlInput');
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '') || (typeof getActiveGasUrl === 'function' ? getActiveGasUrl(labId) : '') || localStorage.getItem('teacher_gas_url_' + labId) || localStorage.getItem('gas_url_' + labId) || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      if (!val || !val.startsWith('https://script.google.com')) {
+        const warningMsg = 'กรุณากรอกหรือวาง Google Apps Script Web App URL ก่อนกดทดสอบ';
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ Web App URL', text: warningMsg, background: '#0f172a', color: '#f8fafc' });
+        } else if (typeof showAlertModal === 'function') {
+          showAlertModal('ยังไม่ได้ระบุ Web App URL', warningMsg, 'error');
+        } else if (typeof showAlert === 'function') {
+          showAlert('ยังไม่ได้ระบุ Web App URL', warningMsg, 'warning');
+        } else if (typeof showModal === 'function') {
+          showModal('ยังไม่ได้ระบุ Web App URL', warningMsg, false);
+        } else {
+          alert(warningMsg);
+        }
         return;
       }
-      localStorage.setItem('teacher_gas_url_' + labKey, url);
-      localStorage.setItem('gas_url_' + labKey, url);
-      updateTeacherGasBadge(labKey);
-      Swal.fire({ title: 'กำลังทดสอบการเชื่อมต่อ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, background: '#0f172a', color: '#f8fafc' });
-      
-      fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ping', test: true })
-      }).then(() => {
-        Swal.fire({ icon: 'success', title: 'เชื่อมต่อสำเร็จ!', text: 'สามารถส่งข้อมูลไปยัง Google Apps Script ได้เรียบร้อย', background: '#0f172a', color: '#f8fafc' });
-      }).catch(err => {
-        Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่สำเร็จ', text: err.toString(), background: '#0f172a', color: '#f8fafc' });
-      });
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'กำลังทดสอบเชื่อมต่อ...',
+          text: 'กำลังส่งสัญญาณทดสอบไปยัง Google Apps Script',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); },
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+      }
+
+      try {
+        const res = await fetch(val, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'testConnection' })
+        });
+        const data = await res.json();
+        if (data && data.status === 'success') {
+          const succMsg = data.message || 'เชื่อมต่อ Google Apps Script สำเร็จพร้อมบันทึกคะแนนลง Google Sheets';
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'เชื่อมต่อสำเร็จ! 🎉',
+              text: succMsg,
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else if (typeof showAlertModal === 'function') {
+            showAlertModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showAlert === 'function') {
+            showAlert('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showModal === 'function') {
+            showModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, true);
+          } else {
+            alert('เชื่อมต่อสำเร็จ! 🎉\n' + succMsg);
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('POST test fallback to open window:', e);
+      }
+
+      // Fallback: เปิดหน้าตรวจสอบสถานะ Web App
+      window.open(val.split('?')[0], '_blank');
     }
 
     function updateTeacherGasBadge(labKey) {

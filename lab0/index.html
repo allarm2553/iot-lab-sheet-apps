@@ -3896,7 +3896,7 @@ void loop() {
           showModal('ผลการเชื่อมต่อ', data.message || 'ไม่สามารถเชื่อมต่อได้', 'error');
         }
       } catch (err) {
-        window.open(gasUrl.split('?')[0] + '?page=grader', '_blank');
+        window.open(gasUrl.split('?')[0], '_blank');
       }
     }
 
@@ -3908,11 +3908,15 @@ void loop() {
  * Web App Backend for Lab 0: Environment Setup (Arduino IDE, VS Code, PlatformIO, Wokwi) & Blink Test
  */
 function doGet(e) {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('ใบงานที่ 0: การเตรียมสภาพแวดล้อมการพัฒนา และทดสอบไฟกระพริบ')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('ใบงานที่ 0: การเตรียมสภาพแวดล้อมการพัฒนา')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch (err) {
+    return HtmlService.createHtmlOutput('<div style="font-family:sans-serif;padding:24px;background:#f0fdf4;color:#166534;border-radius:8px;border:1px solid #bbf7d0;"><h2>✅ Google Apps Script Web App ทำงานปกติ</h2><p>ระบบพร้อมรับข้อมูลส่งใบงานจากหน้าระบบหลัก</p></div>');
+  }
 }
 
 function doPost(e) {

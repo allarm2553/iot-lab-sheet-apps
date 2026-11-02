@@ -4,11 +4,39 @@
  */
 
 function doGet(e) {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch (err) {
+    // กรณีผู้ใช้นำเฉพาะ Code.gs ไปวางใน Google Apps Script เพื่อใช้เป็น API เชื่อมต่อ Google Sheets
+    if (e && e.parameter && (e.parameter.action === 'testConnection' || e.parameter.action === 'ping' || e.parameter.format === 'json')) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'เชื่อมต่อ Google Apps Script (Lab 5) สำเร็จพร้อมใช้งาน!'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>IoT Lab 5 Web App - พร้อมใช้งาน</title>' +
+      '<style>' +
+      'body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0b1120;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:1.25rem;box-sizing:border-box;}' +
+      '.card{background:#1e293b;border:1px solid #334155;padding:2.25rem 2rem;border-radius:16px;text-align:center;max-width:540px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.5);}' +
+      '.badge{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.4);padding:0.4rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:600;display:inline-block;margin-bottom:1.25rem;}' +
+      'h2{color:#38bdf8;margin:0 0 0.75rem 0;font-size:1.4rem;font-weight:700;}p{color:#94a3b8;line-height:1.6;margin:0 0 1.25rem 0;font-size:0.95rem;}' +
+      '.info{background:rgba(15,23,42,0.8);border:1px solid #334155;border-radius:10px;padding:1rem;font-size:0.875rem;color:#cbd5e1;text-align:left;line-height:1.5;}' +
+      '</style></head><body><div class="card">' +
+      '<div class="badge">✓ เชื่อมต่อสำเร็จ (Active)</div>' +
+      '<h2>Google Apps Script API พร้อมทำงาน</h2>' +
+      '<p>เว็บเซอร์วิสของ <strong>ใบงานที่ 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT</strong> เชื่อมต่อกับ Google Sheets เรียบร้อยแล้ว พร้อมรับผลการประเมินและบันทึกคะแนนจากหน้าเว็บใบงาน</p>' +
+      '<div class="info">💡 <strong>คำแนะนำ:</strong> การเชื่อมต่อสมบูรณ์แล้ว ท่านสามารถปิดแท็บนี้และกลับไปที่หน้าใบงานปฏิบัติการเพื่อทำการทดลองและกดส่งรายงานได้ตามปกติครับ</div>' +
+      '</div></body></html>';
+    return HtmlService.createHtmlOutput(html)
+      .setTitle('IoT Lab 5 Web App - พร้อมใช้งาน')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
 }
 
 // Auto-grading logic for Lab 5
@@ -289,5 +317,35 @@ function submitLabData(data) {
       status: 'error',
       message: 'เกิดข้อผิดพลาด: ' + e.toString()
     };
+  }
+}
+
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(15000);
+
+  try {
+    var raw = (e && e.postData && e.postData.contents) ? e.postData.contents : '{}';
+    var data = JSON.parse(raw);
+
+    // ตรวจสอบการ Ping / ทดสอบเชื่อมต่อ
+    if (data.action === 'testConnection' || data.action === 'ping' || data.test === true) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'เชื่อมต่อ Google Apps Script (Lab 5) สำเร็จพร้อมบันทึกคะแนน!'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var result = submitLabData(data);
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: 'เกิดข้อผิดพลาดในการประมวลผล: ' + err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
   }
 }

@@ -2713,28 +2713,48 @@ void loop() {
       codeFileType: codeFileData.type
     };
 
-    const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab3') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+    const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab3') : '') || (document.getElementById('teacherGasUrlInput')?.value || '').trim() || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      const onSubmissionSuccess = function(response) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+        if (response && response.status === 'success') {
+          const nowFormatted = new Date().toLocaleString('th-TH');
+          localStorage.setItem(_LAB_STORAGE_KEY + formData.studentId, nowFormatted);
+          lockFormAsSubmitted(nowFormatted);
+          showAlertModal('ส่งรายงานสำเร็จ!', response.message || 'บันทึกคะแนนเรียบร้อยแล้ว', 'success');
+        } else if (response && response.status === 'duplicate') {
+          const nowFormatted = new Date().toLocaleString('th-TH');
+          localStorage.setItem(_LAB_STORAGE_KEY + formData.studentId, nowFormatted);
+          lockFormAsSubmitted(nowFormatted);
+          showAlertModal('ไม่สามารถส่งซ้ำได้', response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว', 'error');
+        } else {
+          showAlertModal('เกิดข้อผิดพลาด', (response && response.message) || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+        }
+      };
+
       if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(function(response) {
+        google.script.run
+          .withSuccessHandler(onSubmissionSuccess)
+          .withFailureHandler(function(err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
+            showAlertModal('เกิดข้อผิดพลาด', err.toString(), 'error');
+          })
+          .submitLabData(formData);
+      } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
+        fetch(effectiveScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(formData)
+        })
+        .then(res => res.json())
+        .then(onSubmissionSuccess)
+        .catch(err => {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
-          if (response.status === 'success') {
-            const nowFormatted = new Date().toLocaleString('th-TH');
-            localStorage.setItem(_LAB_STORAGE_KEY + formData.studentId, nowFormatted);
-            lockFormAsSubmitted(nowFormatted);
-            showAlertModal('ส่งรายงานสำเร็จ!', response.message, 'success');
-          } else {
-            showAlertModal('เกิดข้อผิดพลาด', response.message, 'error');
-          }
-        })
-        .withFailureHandler(function(err) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานออนไลน์';
-          showAlertModal('เกิดข้อผิดพลาด', err.toString(), 'error');
-        })
-        .submitLabData(formData);
-    } else {
+          showAlertModal('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'ไม่สามารถส่งรายงานไปยัง Google Apps Script ได้: ' + err.toString(), 'error');
+        });
+      } else {
       // Offline Mock Handler
       setTimeout(function() {
         submitBtn.disabled = false;
@@ -2924,20 +2944,71 @@ void loop() {
       });
     }
 
-    function testTeacherGasUrl(labId) {
+    async function testTeacherGasUrl(labId) {
+      labId = labId || 'lab3';
       const input = document.getElementById('teacherGasUrlInput');
-      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '') || (typeof getActiveGasUrl === 'function' ? getActiveGasUrl(labId) : '') || localStorage.getItem('teacher_gas_url_' + labId) || localStorage.getItem('gas_url_' + labId) || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (!val || !val.startsWith('https://script.google.com')) {
+        const warningMsg = 'กรุณากรอกหรือวาง Google Apps Script Web App URL ก่อนกดทดสอบ';
         if (typeof Swal !== 'undefined') {
-          Swal.fire({ icon: 'error', title: 'ไม่พบคอนฟิก URL', text: 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ' });
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ Web App URL', text: warningMsg, background: '#0f172a', color: '#f8fafc' });
+        } else if (typeof showAlertModal === 'function') {
+          showAlertModal('ยังไม่ได้ระบุ Web App URL', warningMsg, 'error');
+        } else if (typeof showAlert === 'function') {
+          showAlert('ยังไม่ได้ระบุ Web App URL', warningMsg, 'warning');
         } else if (typeof showModal === 'function') {
-          showModal('ไม่พบคอนฟิก URL', 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ', false);
+          showModal('ยังไม่ได้ระบุ Web App URL', warningMsg, false);
         } else {
-          alert('ไม่พบคอนฟิก URL: กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ');
+          alert(warningMsg);
         }
         return;
       }
-      window.open(val.split('?')[0] + '?page=grader', '_blank');
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'กำลังทดสอบเชื่อมต่อ...',
+          text: 'กำลังส่งสัญญาณทดสอบไปยัง Google Apps Script',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); },
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+      }
+
+      try {
+        const res = await fetch(val, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'testConnection' })
+        });
+        const data = await res.json();
+        if (data && data.status === 'success') {
+          const succMsg = data.message || 'เชื่อมต่อ Google Apps Script สำเร็จพร้อมบันทึกคะแนนลง Google Sheets';
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'เชื่อมต่อสำเร็จ! 🎉',
+              text: succMsg,
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else if (typeof showAlertModal === 'function') {
+            showAlertModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showAlert === 'function') {
+            showAlert('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showModal === 'function') {
+            showModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, true);
+          } else {
+            alert('เชื่อมต่อสำเร็จ! 🎉\n' + succMsg);
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('POST test fallback to open window:', e);
+      }
+
+      // Fallback: เปิดหน้าตรวจสอบสถานะ Web App
+      window.open(val.split('?')[0], '_blank');
     }
     
     window.addEventListener('DOMContentLoaded', () => {

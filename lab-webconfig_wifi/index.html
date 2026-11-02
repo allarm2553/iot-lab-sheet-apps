@@ -915,7 +915,16 @@ void loop() {
         google.script.run
           .withSuccessHandler((response) => {
             submitBtn.disabled = false;
-            if (response.success || response.status === 'success') {
+            if (response.status === 'duplicate') {
+              statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> ไม่สามารถส่งซ้ำได้: ' + (response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว') + '</span>';
+              alert('ไม่สามารถส่งซ้ำได้: ' + (response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว'));
+              const idVal = dataPayload.studentId || '';
+              if (idVal) {
+                const nowFormatted = new Date().toLocaleString('th-TH');
+                localStorage.setItem('submitted_iot_lab_webconfig_' + idVal, nowFormatted);
+                lockFormAsSubmitted(nowFormatted);
+              }
+            } else if (response.success || response.status === 'success') {
               statusMsg.innerHTML = '<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> บันทึกข้อมูลสำเร็จ!</span>';
               showModal(response.score || '10/10', response.feedback || 'ผ่านเกณฑ์', dataPayload.studentName);
               const idVal = dataPayload.studentId || '';
@@ -944,7 +953,16 @@ void loop() {
         .then(r => r.json())
         .then(response => {
           submitBtn.disabled = false;
-          if (response.status === 'success' || response.success || response.result === 'success') {
+          if (response.status === 'duplicate') {
+            statusMsg.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> ไม่สามารถส่งซ้ำได้: ' + (response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว') + '</span>';
+            alert('ไม่สามารถส่งซ้ำได้: ' + (response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว'));
+            const idVal = dataPayload.studentId || '';
+            if (idVal) {
+              const nowFormatted = new Date().toLocaleString('th-TH');
+              localStorage.setItem('submitted_iot_lab_webconfig_' + idVal, nowFormatted);
+              lockFormAsSubmitted(nowFormatted);
+            }
+          } else if (response.status === 'success' || response.success || response.result === 'success') {
             statusMsg.innerHTML = '<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> บันทึกข้อมูลสำเร็จ!</span>';
             showModal(response.score || '10/10', response.feedback || response.message || 'บันทึกคะแนนเข้าสู่ระบบ Google Sheets เรียบร้อยแล้ว', dataPayload.studentName);
             const idVal = dataPayload.studentId || '';
@@ -1547,20 +1565,71 @@ void loop() {
       });
     }
 
-    function testTeacherGasUrl(labId) {
+    async function testTeacherGasUrl(labId) {
+      labId = labId || 'lab-webconfig_wifi';
       const input = document.getElementById('teacherGasUrlInput');
-      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
+      const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '') || (typeof getActiveGasUrl === 'function' ? getActiveGasUrl(labId) : '') || localStorage.getItem('teacher_gas_url_' + labId) || localStorage.getItem('gas_url_' + labId) || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
       if (!val || !val.startsWith('https://script.google.com')) {
+        const warningMsg = 'กรุณากรอกหรือวาง Google Apps Script Web App URL ก่อนกดทดสอบ';
         if (typeof Swal !== 'undefined') {
-          Swal.fire({ icon: 'error', title: 'ไม่พบคอนฟิก URL', text: 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ' });
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ Web App URL', text: warningMsg, background: '#0f172a', color: '#f8fafc' });
+        } else if (typeof showAlertModal === 'function') {
+          showAlertModal('ยังไม่ได้ระบุ Web App URL', warningMsg, 'error');
+        } else if (typeof showAlert === 'function') {
+          showAlert('ยังไม่ได้ระบุ Web App URL', warningMsg, 'warning');
         } else if (typeof showModal === 'function') {
-          showModal('ไม่พบคอนฟิก URL', 'กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ', false);
+          showModal('ยังไม่ได้ระบุ Web App URL', warningMsg, false);
         } else {
-          alert('ไม่พบคอนฟิก URL: กรุณากรอกหรือวาง Web App URL ก่อนกดทดสอบ');
+          alert(warningMsg);
         }
         return;
       }
-      window.open(val.split('?')[0] + '?page=grader', '_blank');
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'กำลังทดสอบเชื่อมต่อ...',
+          text: 'กำลังส่งสัญญาณทดสอบไปยัง Google Apps Script',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); },
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+      }
+
+      try {
+        const res = await fetch(val, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'testConnection' })
+        });
+        const data = await res.json();
+        if (data && data.status === 'success') {
+          const succMsg = data.message || 'เชื่อมต่อ Google Apps Script สำเร็จพร้อมบันทึกคะแนนลง Google Sheets';
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'เชื่อมต่อสำเร็จ! 🎉',
+              text: succMsg,
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else if (typeof showAlertModal === 'function') {
+            showAlertModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showAlert === 'function') {
+            showAlert('เชื่อมต่อสำเร็จ! 🎉', succMsg, 'success');
+          } else if (typeof showModal === 'function') {
+            showModal('เชื่อมต่อสำเร็จ! 🎉', succMsg, true);
+          } else {
+            alert('เชื่อมต่อสำเร็จ! 🎉\n' + succMsg);
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('POST test fallback to open window:', e);
+      }
+
+      // Fallback: เปิดหน้าตรวจสอบสถานะ Web App
+      window.open(val.split('?')[0], '_blank');
     }
     
     window.addEventListener('DOMContentLoaded', () => {

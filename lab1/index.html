@@ -3770,44 +3770,71 @@ void loop() {
 
       // Call Google Apps Script backend
       const effectiveScriptUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl('lab1') : '') || (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+      
+      const onSubmissionSuccess = (response) => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+        if (response && response.status === 'success') {
+          if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
+          showModal('ส่งใบงานสำเร็จ', response.message, true);
+          const idVal = document.getElementById('studentId')?.value.trim() || '';
+          if (idVal) {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem('submitted_iot_lab1_' + idVal, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+          }
+          // Clear variables and files
+          removeFile('screenshot');
+          removeFile('code');
+          // Clear code blanks & conclusions, but retain profile
+          document.getElementById('codeBlank1').value = '';
+          document.getElementById('codeBlank2').value = '';
+          document.getElementById('codeBlank3').value = '';
+          document.getElementById('codeBlank4').value = '';
+          document.getElementById('codeBlank5').value = '';
+          document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+          document.getElementById('question1').value = '';
+          document.getElementById('question2').value = '';
+          if (document.getElementById('question3')) document.getElementById('question3').value = '';
+          document.getElementById('conclusion').value = '';
+        } else if (response && response.status === 'duplicate') {
+          showModal('ไม่สามารถส่งซ้ำได้', response.message || 'รหัสนักศึกษานี้ได้ส่งใบงานไปแล้ว', false);
+          const idVal = document.getElementById('studentId')?.value.trim() || '';
+          if (idVal) {
+            const nowFormatted = new Date().toLocaleString('th-TH');
+            localStorage.setItem('submitted_iot_lab1_' + idVal, nowFormatted);
+            lockFormAsSubmitted(nowFormatted);
+          }
+        } else {
+          showModal('ส่งใบงานไม่สำเร็จ', (response && response.message) || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', false);
+        }
+      };
+
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
-          .withSuccessHandler((response) => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
-            if (response.status === 'success') {
-              if (document.getElementById('challengeCode')) document.getElementById('challengeCode').value = '';
-              showModal('ส่งใบงานสำเร็จ', response.message, true);
-              const idVal = document.getElementById('studentId')?.value.trim() || '';
-              if (idVal) {
-                const nowFormatted = new Date().toLocaleString('th-TH');
-                localStorage.setItem('submitted_iot_lab1_' + idVal, nowFormatted);
-                lockFormAsSubmitted(nowFormatted);
-              }
-              // Clear variables and files
-              removeFile('screenshot');
-              removeFile('code');
-              // Clear code blanks & conclusions, but retain profile
-              document.getElementById('codeBlank1').value = '';
-              document.getElementById('codeBlank2').value = '';
-              document.getElementById('codeBlank3').value = '';
-              document.getElementById('codeBlank4').value = '';
-              document.getElementById('codeBlank5').value = '';
-              document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
-              document.getElementById('question1').value = '';
-              document.getElementById('question2').value = '';
-              if (document.getElementById('question3')) document.getElementById('question3').value = '';
-              document.getElementById('conclusion').value = '';
-            } else {
-              showModal('ส่งใบงานไม่สำเร็จ', response.message, false);
-            }
-          })
+          .withSuccessHandler(onSubmissionSuccess)
           .withFailureHandler((error) => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
             showModal('เกิดข้อผิดพลาดรุนแรง', error.toString(), false);
           })
           .submitLabData(payload);
+      } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
+        // ส่งตรงเข้า Google Apps Script ผ่าน HTTP POST จากภายนอก (GitHub Pages / Standalone Web)
+        fetch(effectiveScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(resData => {
+          onSubmissionSuccess(resData);
+        })
+        .catch(err => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+          showModal('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'ไม่สามารถส่งรายงานไปยัง Google Apps Script ได้: ' + err.toString(), false);
+        });
       } else {
         // Local preview simulation
         setTimeout(() => {
@@ -4548,7 +4575,7 @@ void loop() {
       });
     }
 
-    function testTeacherGasUrl(labId) {
+    async function testTeacherGasUrl(labId) {
       const input = document.getElementById('teacherGasUrlInput');
       const val = (input && input.value.trim()) || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '');
       if (!val || !val.startsWith('https://script.google.com')) {
@@ -4561,7 +4588,43 @@ void loop() {
         }
         return;
       }
-      window.open(val.split('?')[0] + '?page=grader', '_blank');
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'กำลังทดสอบเชื่อมต่อ...',
+          text: 'กำลังส่งสัญญาณทดสอบไปยัง Google Apps Script',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+      }
+
+      try {
+        const res = await fetch(val, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'testConnection' })
+        });
+        const data = await res.json();
+        if (data && data.status === 'success') {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'เชื่อมต่อสำเร็จ! 🎉',
+              text: data.message || 'เชื่อมต่อ Google Apps Script สำเร็จพร้อมบันทึกคะแนนลง Google Sheets'
+            });
+          } else if (typeof showModal === 'function') {
+            showModal('เชื่อมต่อสำเร็จ! 🎉', data.message || 'เชื่อมต่อ Google Apps Script สำเร็จ', true);
+          } else {
+            alert('เชื่อมต่อสำเร็จ! 🎉\n' + (data.message || ''));
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('POST test fallback to open window:', e);
+      }
+
+      // Fallback: เปิดหน้าตรวจสอบสถานะ Web App
+      window.open(val.split('?')[0], '_blank');
     }
     
     // =========================================================
