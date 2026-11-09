@@ -4571,6 +4571,7 @@ function doPost(e) {
         codeFileType: uploadedCodeFileType
       };
       payload.allowResubmit = !!window._teacherAllowResubmit;
+      payload.labId = "lab0";
 
       if (btn) {
         btn.disabled = true;

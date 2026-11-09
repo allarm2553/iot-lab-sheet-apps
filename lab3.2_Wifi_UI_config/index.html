@@ -3088,6 +3088,7 @@ void loop() {
           .submitLabData(formData);
       } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
         formData.allowResubmit = !!window._teacherAllowResubmit;
+      formData.labId = "lab3.2_Wifi_UI_config";
         fetch(effectiveScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

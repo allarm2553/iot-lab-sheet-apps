@@ -1484,6 +1484,7 @@
 
     // ===== TEACHER GAS CONFIGURATION MODAL =====
     const LABS_CONFIG_META = [
+      { id: 'lab0', label: 'LAB 00', name: 'Lab 0: การเตรียมสภาพแวดล้อมและไฟกระพริบ LED (ESP32/ESP8266)' },
       { id: 'lab-basic', label: 'BASIC', name: 'Lab Basic: ติดตั้ง Arduino IDE & Pinout ESP32/ESP8266' },
       { id: 'lab1', label: 'LAB 01', name: 'Lab 1: การอ่านค่าเซ็นเซอร์และควบคุมเอาต์พุต (GPIO/Relay)' },
       { id: 'lab1.1', label: 'LAB 1.1', name: 'Lab 1.1: การควบคุมเอาต์พุตด้วยสวิตช์ปุ่มกด (Debounce)' },
@@ -1496,6 +1497,7 @@
       { id: 'lab5', label: 'LAB 05', name: 'Lab 5: การส่งข้อมูลระดับคลาวด์ผ่าน Cloud MQTT Broker' },
       { id: 'LAB5_Dev', label: 'LAB 05 DEV', name: 'Lab 5 Dev: MQTT Telemetry Node (DHT Sensor)' },
       { id: 'lab6', label: 'LAB 06', name: 'Lab 6: โครงงานบูรณาการ Hybrid Node ขั้นสูง (Grand Challenge)' },
+      { id: 'LAB6.1Perform', label: 'LAB 06.1', name: 'Lab 6.1: การประเมินสมรรถนะการสื่อสารข้อมูล IoT และ Throughput' },
       { id: 'lab7', label: 'LAB 07', name: 'Lab 7: การเชื่อมโยงข้อมูลและแดชบอร์ดด้วย Node-RED' },
       { id: 'lab8', label: 'LAB 08', name: 'Lab 8: การบันทึกสถิติตามเวลาด้วย InfluxDB (Data Logging)' },
       { id: 'lab9', label: 'LAB 09', name: 'Lab 9: การวิเคราะห์และแสดงผลข้อมูลด้วย Grafana' },
@@ -1520,13 +1522,112 @@
       }
     }
 
+    function copyMasterCodeGs() {
+      fetch('./Master_Code.gs')
+        .then(res => {
+          if (!res.ok) throw new Error('File not found');
+          return res.text();
+        })
+        .then(code => {
+          navigator.clipboard.writeText(code).then(() => {
+            alert('🌟 คัดลอก Master_Code.gs เรียบร้อยแล้ว!\n\nขั้นตอนการนำไปใช้:\n1. ไปที่ Google Sheet ของอาจารย์\n2. ไปที่เมนู "ส่วนขยาย (Extensions) > Apps Script"\n3. ลบโค้ดเดิมแล้วกดวาง (Ctrl+V หรือ Cmd+V)\n4. กดบันทึก (Save) แล้วเลือก Deploy > New deployment > Web app\n5. สิทธิ์เข้าถึง (Who has access): "ทุกคน (Anyone)"\n6. นำ Web App URL ที่ได้มาวางในช่อง Master URL ได้ทันทีครับ');
+          }).catch(() => {
+            prompt('คัดลอก Master_Code.gs จากกล่องข้อความนี้:', code);
+          });
+        })
+        .catch(() => {
+          window.open('./Master_Code.gs', '_blank');
+        });
+    }
+
+    function saveMasterGasUrl() {
+      const input = document.getElementById('masterGasUrlInput');
+      const val = input ? input.value.trim() : '';
+      if (val && !val.startsWith('https://script.google.com')) {
+        alert('⚠️ กรุณาระบุ Web App URL ที่ขึ้นต้นด้วย https://script.google.com เท่านั้นครับ');
+        return;
+      }
+      if (typeof setMasterScriptUrl === 'function') {
+        setMasterScriptUrl(val);
+      } else if (window.localStorage) {
+        if (val) localStorage.setItem('master_gas_url', val);
+        else localStorage.removeItem('master_gas_url');
+      }
+      renderGasModalList();
+      if (val) {
+        alert('✅ บันทึก Master Web App URL สำเร็จแล้ว!\nทุกใบงานปฏิบัติการ (ทั้ง 19 แล็บ) จะส่งคะแนนและสร้างแท็บแยกใน Google Sheet นี้โดยอัตโนมัติ');
+      } else {
+        alert('ล้างค่า Master Web App URL เรียบร้อยแล้ว (จะกลับไปใช้การตั้งค่าแยกรายแล็บตามปกติ)');
+      }
+    }
+
+    function testMasterConnection() {
+      const input = document.getElementById('masterGasUrlInput');
+      const val = (input && input.value.trim()) || (typeof getMasterScriptUrl === 'function' ? getMasterScriptUrl() : '');
+      const feedback = document.getElementById('masterStatusFeedback');
+
+      if (!val || !val.startsWith('https://script.google.com')) {
+        alert('⚠️ กรุณาระบุ Master Web App URL ก่อนทดสอบครับ');
+        return;
+      }
+
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.innerHTML = '<span style="color:#38bdf8;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังทดสอบเชื่อมต่อ Master Google Sheet...</span>';
+      }
+
+      fetch(val, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'testConnection' })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (feedback) {
+          if (res.status === 'success') {
+            feedback.innerHTML = `<span style="color:#34d399;font-weight:600;"><i class="fa-solid fa-circle-check"></i> ${res.message || 'เชื่อมต่อสำเร็จ! พร้อมใช้งานทุกแท็บ'} ${res.spreadsheetName ? 'ชีต: "' + res.spreadsheetName + '"' : ''}</span>`;
+          } else {
+            feedback.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ไม่สามารถบันทึกข้อมูลได้: ${res.message || 'ข้อผิดพลาด'}</span>`;
+          }
+        }
+      })
+      .catch(err => {
+        if (feedback) {
+          feedback.innerHTML = `<span style="color:#fbbf24;"><i class="fa-solid fa-circle-info"></i> ส่งคำขอแล้ว (อาจติดนโยบาย CORS ของเบราว์เซอร์): <a href="${val}" target="_blank" style="color:#38bdf8;text-decoration:underline;font-weight:600;">คลิกเพื่อเปิดดูหน้าสถานะ Master Web App</a> (หากแสดงหน้าสีเขียวถือว่าพร้อมใช้งาน 100%)</span>`;
+        }
+      });
+    }
+
+    function clearMasterGasUrl() {
+      if (!confirm('ต้องการล้างค่า Master Web App URL หรือไม่?')) return;
+      const input = document.getElementById('masterGasUrlInput');
+      if (input) input.value = '';
+      if (typeof setMasterScriptUrl === 'function') {
+        setMasterScriptUrl('');
+      } else if (window.localStorage) {
+        localStorage.removeItem('master_gas_url');
+      }
+      const feedback = document.getElementById('masterStatusFeedback');
+      if (feedback) feedback.style.display = 'none';
+      renderGasModalList();
+      alert('ล้างค่า Master Web App URL เรียบร้อยแล้ว');
+    }
+
     function renderGasModalList() {
+      const masterUrl = (typeof getMasterScriptUrl === 'function' ? getMasterScriptUrl() : '') || (typeof MASTER_GAS_URL !== 'undefined' ? MASTER_GAS_URL : '');
+      const masterInput = document.getElementById('masterGasUrlInput');
+      if (masterInput && !masterInput.value && masterUrl) {
+        masterInput.value = masterUrl;
+      }
+
       const container = document.getElementById('gasModalLabList');
       if (!container) return;
 
       container.innerHTML = LABS_CONFIG_META.map(lab => {
+        const storedLabUrl = (window.localStorage ? window.localStorage.getItem('gas_url_' + lab.id) : '') || '';
         const currentUrl = (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(lab.id) : '') || (typeof LAB_CONFIG !== 'undefined' ? (LAB_CONFIG[lab.id] || '') : '');
         const isConfigured = currentUrl && currentUrl.startsWith('https://script.google.com') && !currentUrl.includes('YOUR_GAS_URL');
+        const isInheritedFromMaster = !storedLabUrl && masterUrl && currentUrl === masterUrl;
         const graderUrl = isConfigured ? (currentUrl.split('?')[0] + '?page=grader') : '#';
 
         return `
@@ -1537,21 +1638,23 @@
                 <span>${lab.name}</span>
               </div>
               <div style="display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;">
-                <a href="./${lab.id}/Code.gs" download="Code_${lab.id}.gs" class="gas-btn-sm" style="color:#60a5fa; border-color:rgba(96,165,250,0.4);" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้">
+                <a href="./${lab.id}/Code.gs" download="Code_${lab.id}.gs" class="gas-btn-sm" style="color:#60a5fa; border-color:rgba(96,165,250,0.4);" title="ดาวน์โหลดไฟล์ Code.gs ของแล็บนี้ (กรณีต้องการแยกชีตต่างหาก)">
                   <i class="fa-solid fa-download"></i> Code.gs
                 </a>
-                <button type="button" class="gas-btn-sm" onclick="copyCodeGsFromModal('${lab.id}')" style="color:#c084fc; border-color:rgba(192,132,252,0.4); cursor:pointer;" title="คัดลอกโค้ด Code.gs ไปวางใน Apps Script">
+                <button type="button" class="gas-btn-sm" onclick="copyCodeGsFromModal('${lab.id}')" style="color:#c084fc; border-color:rgba(192,132,252,0.4); cursor:pointer;" title="คัดลอกโค้ด Code.gs ประจำแล็บนี้">
                   <i class="fa-solid fa-copy"></i> คัดลอก
                 </button>
-                ${isConfigured 
-                  ? `<button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน"><i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน</button>
-                     <a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
-                  : `<span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> ยังไม่ได้ใส่ลิงก์</span>`
+                ${isInheritedFromMaster
+                  ? `<span style="font-size:0.75rem; color:#34d399; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:0.2rem 0.5rem; border-radius:6px;"><i class="fa-solid fa-circle-check"></i> ร่วมใช้ Master Sheet</span>`
+                  : (isConfigured 
+                    ? `<button type="button" class="gas-btn-sm" onclick="copyStudentShareLinkFromModal('${lab.id}')" style="color:#34d399; border-color:rgba(52,211,153,0.4); cursor:pointer;" title="คัดลอกลิงก์ใบงานที่แนบส่งให้นักเรียน"><i class="fa-solid fa-share-nodes"></i> ลิงก์นักเรียน</button>
+                       <a href="${graderUrl}" target="_blank" class="gas-btn-sm" style="color:#fbbf24; border-color:rgba(251,191,36,0.4);"><i class="fa-solid fa-clipboard-check"></i> หน้าตรวจงานครู</a>` 
+                    : `<span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> ยังไม่ได้ใส่ลิงก์</span>`)
                 }
               </div>
             </div>
             <div class="gas-input-wrap">
-              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${currentUrl}" placeholder="https://script.google.com/macros/s/.../exec">
+              <input type="text" id="modal_url_${lab.id}" class="gas-input" value="${storedLabUrl || (isInheritedFromMaster ? '' : currentUrl)}" placeholder="${isInheritedFromMaster ? 'ใช้งานผ่าน Master Web App URL ด้านบน (เว้นว่างไว้เพื่อใช้ชีตรวม)' : 'https://script.google.com/macros/s/.../exec'}">
               ${isConfigured 
                 ? `<a href="${currentUrl}" target="_blank" class="gas-btn-sm" title="ทดสอบเปิด URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` 
                 : ''}
@@ -1590,13 +1693,15 @@
     }
 
     function copyConfigJsSnippet() {
+      const masterInput = document.getElementById('masterGasUrlInput');
+      const masterVal = (masterInput && masterInput.value.trim()) || (typeof getMasterScriptUrl === 'function' ? getMasterScriptUrl() : '');
       const configObj = {};
       LABS_CONFIG_META.forEach(lab => {
         const input = document.getElementById('modal_url_' + lab.id);
         configObj[lab.id] = (input && input.value.trim()) ? input.value.trim() : ('YOUR_GAS_URL_FOR_' + lab.id.toUpperCase().replace(/[-\.]/g, '_'));
       });
 
-      const snippet = "const LAB_CONFIG = " + JSON.stringify(configObj, null, 2) + ";\n\nfunction getLabScriptUrl(labId) {\n  if (typeof window !== 'undefined') {\n    if (window.location && window.location.search) {\n      const params = new URLSearchParams(window.location.search);\n      const queryGas = params.get('gas') || params.get('gas_url');\n      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) {\n        const cleanGas = queryGas.trim();\n        if (window.localStorage && labId) {\n          try { window.localStorage.setItem('gas_url_' + labId, cleanGas); } catch(e){}\n        }\n        return cleanGas;\n      }\n    }\n    if (window.localStorage) {\n      const custom = window.localStorage.getItem('gas_url_' + labId);\n      if (custom && custom.trim().startsWith('https://script.google.com')) return custom.trim();\n    }\n  }\n  const url = LAB_CONFIG[labId] || '';\n  return (url && !url.includes('YOUR_GAS_URL')) ? url.trim() : '';\n}\n\nif (typeof module !== 'undefined' && module.exports) module.exports = { LAB_CONFIG, getLabScriptUrl };";
+      const snippet = "const MASTER_GAS_URL = " + JSON.stringify(masterVal) + ";\n\nconst LAB_CONFIG = " + JSON.stringify(configObj, null, 2) + ";\n\nfunction getLabScriptUrl(labId) {\n  if (typeof window !== 'undefined') {\n    if (window.location && window.location.search) {\n      const params = new URLSearchParams(window.location.search);\n      const queryGas = params.get('gas') || params.get('gas_url');\n      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) return queryGas.trim();\n    }\n    if (window.localStorage && labId) {\n      const custom = window.localStorage.getItem('gas_url_' + labId);\n      if (custom && custom.trim().startsWith('https://script.google.com')) return custom.trim();\n    }\n    if (window.localStorage) {\n      const masterUrl = window.localStorage.getItem('master_gas_url');\n      if (masterUrl && masterUrl.trim().startsWith('https://script.google.com')) return masterUrl.trim();\n    }\n  }\n  const url = LAB_CONFIG[labId] || '';\n  if (url && !url.includes('YOUR_GAS_URL')) return url.trim();\n  if (typeof MASTER_GAS_URL !== 'undefined' && MASTER_GAS_URL && MASTER_GAS_URL.startsWith('https://script.google.com')) return MASTER_GAS_URL.trim();\n  return '';\n}\n\nif (typeof module !== 'undefined' && module.exports) module.exports = { MASTER_GAS_URL, LAB_CONFIG, getLabScriptUrl };";
 
       navigator.clipboard.writeText(snippet).then(() => {
         alert('📋 คัดลอกโค้ดคอนฟิกเรียบร้อยแล้ว! สามารถนำไปวางแทนที่เนื้อหาในไฟล์ config.js แล้ว commit ขึ้น GitHub ได้ทันที');
@@ -1645,17 +1750,49 @@
     <div class="gas-modal">
       <div class="gas-modal-header">
         <div class="gas-modal-title">
-          <i class="fa-solid fa-sliders" style="color:#818cf8;"></i> ตั้งค่าลิงก์ส่งคะแนน Google Apps Script (17 Labs)
+          <i class="fa-solid fa-sliders" style="color:#818cf8;"></i> จัดการลิงก์ส่งคะแนน Google Sheets (Master Gradebook & 19 Labs)
         </div>
         <button type="button" class="gas-modal-close" onclick="closeGasSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="gas-modal-body">
+        <!-- 🌟 Master Universal Backend Card -->
+        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1.5px solid #6366f1; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <span style="background: #6366f1; color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px; letter-spacing: 0.5px;">⭐ แนะนำที่สุด</span>
+              <h3 style="margin:0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">ระบบรวมศูนย์ชีตเดียว (Universal Master Gradebook)</h3>
+            </div>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+              <a href="./Master_Code.gs" download="Master_Code.gs" class="gas-btn-sm" style="color:#38bdf8; border-color:rgba(56,189,248,0.4); text-decoration:none;" title="ดาวน์โหลดไฟล์ Master_Code.gs">
+                <i class="fa-solid fa-download"></i> Master_Code.gs
+              </a>
+              <button type="button" class="gas-btn-sm" onclick="copyMasterCodeGs()" style="color:#a78bfa; border-color:rgba(167,139,250,0.4); cursor:pointer;" title="คัดลอกโค้ด Master_Code.gs ไปวางใน Apps Script">
+                <i class="fa-solid fa-copy"></i> คัดลอก Master_Code.gs
+              </button>
+            </div>
+          </div>
+          <p style="margin:0 0 0.85rem 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">
+            ใช้ไฟล์ Google Sheet เดียวกันสำหรับทุกใบงาน ระบบจะสร้างแท็บแยกของแต่ละแล็บให้อัตโนมัติ (Lab 0, Lab 1, Lab 1.1, ..., Lab 9, Extra) พร้อมแท็บหน้าแรก <strong>"📊 สรุปคะแนนรวม"</strong> สรุปคะแนนผู้เรียนทุกคนแบบ Real-time
+          </p>
+          <div class="gas-input-wrap" style="margin-bottom:0.5rem;">
+            <input type="text" id="masterGasUrlInput" class="gas-input" style="border-color: rgba(99, 102, 241, 0.5); font-weight: 500;" placeholder="วาง Master Web App URL ที่นี่ (https://script.google.com/macros/s/.../exec)">
+            <button type="button" class="gas-btn-sm" onclick="testMasterConnection()" style="background:rgba(56,189,248,0.15); color:#38bdf8; border-color:rgba(56,189,248,0.4); cursor:pointer; white-space:nowrap;">
+              <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
+            </button>
+            <button type="button" class="gas-btn-sm" onclick="saveMasterGasUrl()" style="background:#4f46e5; color:#fff; border-color:#4f46e5; cursor:pointer; white-space:nowrap;">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึก Master URL
+            </button>
+            <button type="button" class="gas-btn-sm" onclick="clearMasterGasUrl()" style="color:#f87171; border-color:rgba(248,113,113,0.3); cursor:pointer;" title="ล้างค่า Master URL">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <div id="masterStatusFeedback" style="font-size:0.82rem; margin-top:0.35rem; display:none;"></div>
+        </div>
+
         <div class="gas-guide-tip">
-          <strong><i class="fa-solid fa-circle-info"></i> คำแนะนำสำหรับอาจารย์ผู้สอน:</strong><br>
-          1. กดปุ่ม <strong>"📥 Code.gs"</strong> หรือ <strong>"📋 คัดลอก"</strong> เพื่อนำโค้ดประจำแล็บไปสร้าง Google Apps Script ได้ทันที<br>
-          2. นำ <strong>Web App URL</strong> ที่ได้จากการ Deploy มาวางในช่อง แล้วกด <strong>"💾 บันทึก"</strong> หรือกด <strong>"🔗 ลิงก์นักเรียน"</strong> เพื่อส่งให้นักศึกษาเข้าทำใบงาน<br>
-          3. กด <strong>"📋 คัดลอกโค้ดสำหรับ config.js"</strong> หากต้องการนำไปอัปเดตไฟล์ config.js บน GitHub เพื่อแชร์ให้ทุกคนใช้ร่วมกัน
+          <strong><i class="fa-solid fa-circle-info"></i> หรือเลือกตั้งค่าแบบแยก Google Sheet ตามรายใบงาน:</strong><br>
+          หากท่านต้องการแยก Google Sheet ออกจากกันเป็นรายแล็บ สามารถนำ <strong>Web App URL</strong> ของแต่ละแล็บมาวางในช่องด้านล่างนี้ได้ตามปกติ (หากเว้นว่างไว้ ระบบจะส่งคะแนนผ่าน Master Sheet ด้านบนโดยอัตโนมัติ)
         </div>
 
         <div class="gas-lab-list" id="gasModalLabList">

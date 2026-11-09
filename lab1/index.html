@@ -3825,6 +3825,7 @@ void loop() {
       } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
         // ส่งตรงเข้า Google Apps Script ผ่าน HTTP POST จากภายนอก (GitHub Pages / Standalone Web)
         payload.allowResubmit = !!window._teacherAllowResubmit;
+      payload.labId = "lab1";
         fetch(effectiveScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

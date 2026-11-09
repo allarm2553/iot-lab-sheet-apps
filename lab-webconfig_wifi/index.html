@@ -774,7 +774,7 @@ void loop() {
 
             <div class="input-group" style="margin-top: 1.5rem;">
               <label>สรุปผลและอภิปรายผลการทดลอง</label>
-              <textarea name="conclusion, allowResubmit: !!window._teacherAllowResubmit" required class="form-control" rows="4" placeholder="เขียนสรุปประโยชน์ของการประยุกต์ใช้งานในการติดตั้งระบบ IoT จริง..."></textarea>
+              <textarea name="conclusion" required class="form-control" rows="4" placeholder="เขียนสรุปประโยชน์ของการประยุกต์ใช้งานในการติดตั้งระบบ IoT จริง..."></textarea>
             </div>
           </div>
 
@@ -892,6 +892,8 @@ void loop() {
 
       const formData = new FormData(formElement);
       const dataPayload = {
+        labId: "lab-webconfig_wifi",
+        allowResubmit: !!window._teacherAllowResubmit,
         studentName: formData.get("studentName"),
         studentId: formData.get("studentId"),
         studentGroup: formData.get("studentGroup"),

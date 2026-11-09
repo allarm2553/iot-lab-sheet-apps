@@ -2358,6 +2358,7 @@ function toggleFan(state) {
           .submitLabData(payload);
       } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
         payload.allowResubmit = !!window._teacherAllowResubmit;
+      payload.labId = "lab4";
         fetch(effectiveScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

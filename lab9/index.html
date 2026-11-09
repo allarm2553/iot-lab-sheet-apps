@@ -1785,6 +1785,7 @@ from(bucket: &quot;esp32_iot_data&quot;)
           .submitLabData(payload);
       } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
         payload.allowResubmit = !!window._teacherAllowResubmit;
+      payload.labId = "lab9";
         fetch(effectiveScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

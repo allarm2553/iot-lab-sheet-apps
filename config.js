@@ -1,11 +1,14 @@
 /**
  * IoT Lab Worksheets — Global Configuration
- * ตั้งค่าลิงก์ Google Apps Script Web App URL แยกทีละใบงาน สำหรับส่งคะแนนเข้า Google Sheets ของอาจารย์ผู้สอน
+ * ตั้งค่าลิงก์ Google Apps Script Web App URL แยกทีละใบงาน หรือใช้ Master URL รวมศูนย์ เพื่อส่งคะแนนเข้า Google Sheets ของอาจารย์ผู้สอน
  * 
- * 💡 วิธีใช้งาน:
- * นำ Web App URL ที่ได้จากการ Deploy (Deploy > New Deployment > Web app) ใน Google Apps Script
- * ของแต่ละใบงาน มาวางในช่องด้านล่างนี้ หรือแก้ไขผ่านหน้าต่าง "ตั้งค่าลิงก์ส่งงาน" บนหน้ารวม Master Portal ได้ทันที
+ * 💡 วิธีใช้งานแบบใหม่ (แนะนำ):
+ * สร้าง Google Apps Script ตัวเดียวจากไฟล์ Master_Code.gs แล้วนำ Web App URL มาใส่ใน MASTER_GAS_URL ด้านล่างนี้
+ * ทุกใบงานปฏิบัติการ (ทั้ง 19 แล็บ) จะเชื่อมต่อเข้าสู่ Google Sheet เดียวกัน และแยกแท็บให้อัตโนมัติทันที!
  */
+
+// 🌟 ลิงก์รวมศูนย์ส่งคะแนนทุกแล็บลง Google Sheet เดียวกัน (Master Universal Backend)
+const MASTER_GAS_URL = "";
 
 const LAB_CONFIG = {
   // หมวดที่ 1: พื้นฐานฮาร์ดแวร์และการเชื่อมต่ออินพุต/เอาต์พุต (Module 1)
@@ -63,6 +66,48 @@ function getRelatedGasStorageKeys(labId) {
 }
 
 /**
+ * บันทึก Master GAS URL ลงใน localStorage
+ */
+function setMasterScriptUrl(url) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  const cleanUrl = (url || '').trim();
+  try {
+    if (cleanUrl && cleanUrl.startsWith('https://script.google.com')) {
+      window.localStorage.setItem('master_gas_url', cleanUrl);
+      window.localStorage.setItem('iot_master_gas_url', cleanUrl);
+    } else if (!cleanUrl) {
+      window.localStorage.removeItem('master_gas_url');
+      window.localStorage.removeItem('iot_master_gas_url');
+    }
+  } catch (e) {}
+}
+
+/**
+ * ดึง Master GAS URL ที่ตั้งไว้
+ */
+function getMasterScriptUrl() {
+  if (typeof window !== 'undefined') {
+    if (window.location && window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      let queryGas = params.get('master_gas') || params.get('master_gas_url');
+      if (queryGas && queryGas.trim().startsWith('https://script.google.com')) {
+        return queryGas.trim();
+      }
+    }
+    if (window.localStorage) {
+      const custom = window.localStorage.getItem('master_gas_url') || window.localStorage.getItem('iot_master_gas_url');
+      if (custom && custom.trim().startsWith('https://script.google.com')) {
+        return custom.trim();
+      }
+    }
+  }
+  if (typeof MASTER_GAS_URL !== 'undefined' && MASTER_GAS_URL && MASTER_GAS_URL.trim().startsWith('https://script.google.com')) {
+    return MASTER_GAS_URL.trim();
+  }
+  return '';
+}
+
+/**
  * บันทึก GAS URL ลงใน localStorage ทุกคีย์ที่เกี่ยวข้องกับ labId
  */
 function setLabScriptUrl(labId, url) {
@@ -92,8 +137,10 @@ function setLabScriptUrl(labId, url) {
  * ดึง Web App URL ที่พร้อมใช้งาน
  * ลำดับการตรวจสอบ:
  * 1. ตรวจสอบจาก URL Query Parameter (?gas=... หรือ ?gas_url=...) ก่อน (สำหรับลิงก์ที่อาจารย์แนบส่งให้นักศึกษา)
- * 2. ตรวจสอบจาก localStorage (หากอาจารย์บันทึกผ่านหน้าเว็บในเบราว์เซอร์นี้)
- * 3. ใช้ค่าเริ่มต้นจาก LAB_CONFIG ใน config.js
+ * 2. ตรวจสอบจาก localStorage เฉพาะแล็บนั้นๆ
+ * 3. ตรวจสอบ Master Universal GAS URL (จาก localStorage)
+ * 4. ใช้ค่าเริ่มต้นเฉพาะแล็บจาก LAB_CONFIG ใน config.js
+ * 5. Fallback เป็น MASTER_GAS_URL ส่วนกลาง
  */
 function getLabScriptUrl(labId) {
   if (typeof window !== 'undefined') {
@@ -114,7 +161,7 @@ function getLabScriptUrl(labId) {
         }
       }
     }
-    // 2. ตรวจสอบ localStorage ในเครื่อง (ทุกคีย์ที่เกี่ยวข้อง)
+    // 2. ตรวจสอบ localStorage ในเครื่อง เฉพาะแล็บ
     if (window.localStorage && labId) {
       const keys = getRelatedGasStorageKeys(labId);
       for (let i = 0; i < keys.length; i++) {
@@ -124,16 +171,27 @@ function getLabScriptUrl(labId) {
         }
       }
     }
+    // 3. ตรวจสอบ Master GAS URL จาก localStorage
+    if (window.localStorage) {
+      const masterUrl = window.localStorage.getItem('master_gas_url') || window.localStorage.getItem('iot_master_gas_url');
+      if (masterUrl && masterUrl.trim().startsWith('https://script.google.com')) {
+        return masterUrl.trim();
+      }
+    }
   }
-  // 3. Fallback เป็นค่าใน config.js
+  // 4. Fallback ตรวจสอบจาก LAB_CONFIG ใน config.js
   const url = LAB_CONFIG[labId] || ((labId === 'lab0' || labId === 'lab0-basic') ? LAB_CONFIG['lab-basic'] : '') || '';
   if (url && !url.includes('YOUR_GAS_URL')) {
     return url.trim();
+  }
+  // 5. Fallback ตรวจสอบจาก MASTER_GAS_URL ส่วนกลาง
+  if (typeof MASTER_GAS_URL !== 'undefined' && MASTER_GAS_URL && MASTER_GAS_URL.trim().startsWith('https://script.google.com')) {
+    return MASTER_GAS_URL.trim();
   }
   return '';
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { LAB_CONFIG, getLabScriptUrl, setLabScriptUrl };
+  module.exports = { MASTER_GAS_URL, LAB_CONFIG, getLabScriptUrl, setLabScriptUrl, getMasterScriptUrl, setMasterScriptUrl };
 }
 
