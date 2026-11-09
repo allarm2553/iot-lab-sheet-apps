@@ -92,18 +92,18 @@ function doGet(e) {
 
 // Auto-grading logic for Lab 0 (10.0 Points Total)
 function gradeSubmission(data) {
-  var blankKeywords = ["pinMode|pin_mode", "OUTPUT", "digitalWrite|digital_write", "HIGH", "LOW|delay"];
+  var blankKeywords = ["OUTPUT", "HIGH|1"];
   var challengeKeywords = ["millis|currentMillis|previousMillis", "interval|blink|toggle|state", "digitalWrite|HIGH|LOW", "Serial|printf|println", "LED|2|23|19|18|0|BUTTON_PIN|INPUT_PULLUP"];
   var controlLogicKeywords = ["setup|loop", "output|กระแส|ขับโหลด|จ่ายแรงดัน", "delay|หน่วงเวลา|บล็อก|ค้าง|blocking|millis"];
   var q1Keywords = ["setup|รอบเดียว|ครั้งเดียว|เริ่มต้น|init", "loop|วนซ้ำ|ตลอดเวลา|ไม่รู้จบ|repeat", "ลำดับ|initialization|execution|start"];
   var q2Keywords = ["input only|รับค่าอย่างเดียว|ไม่มี pull-up|pull down|34|35|36|39", "strapping|boot mode|gpio 0|gpio 2|gpio 15", "ระดับแรงดัน|flash boot|ดาวน์โหลด|บูตไม่ขึ้น"];
-  var q3Keywords = ["จำลอง|simulation|wokwi|virtual", "ตรวจสอบโค้ด|debug|ลดความเสียหาย|ประหยัดเวลา|ไม่ต้องต่อวงจรจริง", "platformio|vs code|สะดวก|รวดเร็ว"];
-  var conclusionKeywords = ["สรุป|ติดตั้ง|vscode|platformio|wokwi", "อัปโหลด|ไฟกระพริบ|blink|gpio", "ผลการทดลอง|สำเร็จ|วิเคราะห์|non-blocking"];
+  var q3Keywords = ["จำลอง|simulation|wokwi|virtual", "ตรวจสอบโค้ด|debug|ลดความเสียหาย|ประหยัดเวลา|ไม่ต้องต่อวงจรจริง", "platformio|vs code|สะดวก|รวดเร็ว|arduino"];
+  var conclusionKeywords = ["สรุป|ติดตั้ง|vscode|platformio|wokwi|arduino", "อัปโหลด|ไฟกระพริบ|blink|gpio", "ผลการทดลอง|สำเร็จ|วิเคราะห์|non-blocking"];
 
   // เฉลยแบบทดสอบเลือกตอบ (Quiz Answer Keys)
   var quizKeys = {
     quiz1: "1b", // setup() ทำงานรอบเดียว
-    quiz2: "2c", // pinMode(2, OUTPUT);
+    quiz2: "2a", // File -> Preferences (Additional Boards Manager URLs)
     quiz3: "3a", // GPIO 34, 35, 36, 39 เป็น Input-Only
     quiz4: "4c", // monitor_speed = 115200
     quiz5: "5a"  // Non-blocking CPU ทำงานอื่นได้

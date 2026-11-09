@@ -37,7 +37,7 @@
   WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
-  #define LED_PIN       2       // GPIO 2 (LED Built-in บน ESP32 DevKit, Active HIGH)
+  #define LED_PIN       18      // GPIO 18 (LED Built-in บน ESP32 IPST-WiFi, Active HIGH)
   #define LED_ON        HIGH
   #define LED_OFF       LOW
   #define ENC_OPEN      WIFI_AUTH_OPEN

@@ -29,7 +29,7 @@
 
 | ฟังก์ชัน / อุปกรณ์ | บอร์ด ESP32 (IPST-WiFi / DevKit) | บอร์ด ESP8266 (NodeMCU) | คำอธิบาย |
 | :--- | :--- | :--- | :--- |
-| **LED On-board** | `GPIO 2` หรือ `GPIO 18` | `GPIO 2` (`D4`) หรือ `GPIO 16` (`D0`) | LED แสดงสถานะบนตัวบอร์ด |
+| **LED On-board** | `GPIO 18` | `GPIO 2` (`D4`) หรือ `GPIO 16` (`D0`) | LED แสดงสถานะบนตัวบอร์ด |
 | **External Red LED (LED1)** | `GPIO 23` (ผ่าน R 220Ω) | `GPIO 14` (`D5`) | LED ภายนอกดวงที่ 1 |
 | **External Blue LED (LED2)** | `GPIO 19` (ผ่าน R 220Ω) | `GPIO 12` (`D6`) | LED ภายนอกดวงที่ 2 |
 | **Push Button (SW1)** | `GPIO 0` (หรือปุ่ม BOOT บนบอร์ด, Active LOW) | `GPIO 0` (`D3` - FLASH Button) | ปุ่มกดทดสอบอินพุต (INPUT_PULLUP) |
@@ -42,15 +42,17 @@
 
 ### 1. โค้ดเติมช่องว่าง (Code Blanks)
 ```cpp
+#define ONBOARD_LED_PIN 18  // LED บนบอร์ด ESP32 IPST-WiFi (GPIO 18)
+
 void setup() {
   Serial.begin(115200);
-  pinMode(2, OUTPUT);       // [ช่องว่าง 1: pinMode(2, OUTPUT)]
+  pinMode(ONBOARD_LED_PIN, OUTPUT);     // [ช่องว่าง 1: OUTPUT]
 }
 
 void loop() {
-  digitalWrite(2, HIGH);    // [ช่องว่าง 2: digitalWrite(2, HIGH)]
+  digitalWrite(ONBOARD_LED_PIN, HIGH);  // [ช่องว่าง 2: HIGH]
   delay(500);
-  digitalWrite(2, LOW);     // [ช่องว่าง 3: digitalWrite(2, LOW)]
+  digitalWrite(ONBOARD_LED_PIN, LOW);
   delay(500);
 }
 ```
@@ -60,8 +62,8 @@ void loop() {
 ### 2. เฉลยแบบทดสอบแบบเลือกตอบ (5-Question Multiple Choice Quiz)
 1. **ข้อ 1: ฟังก์ชันใดในโปรแกรม Arduino C++ ที่จะทำงานเพียงรอบเดียวตอนเริ่มต้นบูตระบบ?**
    - **เฉลย:** `b) setup()`
-2. **ข้อ 2: คำสั่งใดใช้กำหนดให้ขา GPIO 2 ทำหน้าที่เป็นขาเอาต์พุตสำหรับขับโหลด LED?**
-   - **เฉลย:** `c) pinMode(2, OUTPUT);`
+2. **ข้อ 2: ในโปรแกรม Arduino IDE การเพิ่มการรองรับบอร์ด ESP32 ต้องนำลิงก์ Package URL ไปใส่ที่เมนูใด?**
+   - **เฉลย:** `a) File -> Preferences (Additional Boards Manager URLs)`
 3. **ข้อ 3: ขา GPIO ชุดใดของ ESP32 ที่เป็น Input-Only (รับค่าได้เท่านั้น ห้ามสั่ง Output)?**
    - **เฉลย:** `a) GPIO 34, 35, 36 (VP), 39 (VN)`
 4. **ข้อ 4: ในไฟล์ platformio.ini หากต้องการตั้งค่าความเร็วของ Serial Monitor เป็น 115200 ต้องเขียนอย่างไร?**

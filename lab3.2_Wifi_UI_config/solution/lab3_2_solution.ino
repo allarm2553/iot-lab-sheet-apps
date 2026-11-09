@@ -35,7 +35,7 @@ bool hasOLED = false;
   #include <WebServer.h>
   WebServer server(80);
   #define BUTTON_PIN 0
-  #define LED_PIN    2
+  #define LED_PIN    18
   #define LED_ON     HIGH
   #define LED_OFF    LOW
   #define SDA_PIN    21

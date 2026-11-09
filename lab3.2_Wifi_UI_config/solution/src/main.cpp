@@ -51,7 +51,7 @@ bool hasOLED = false;
   #include <WebServer.h>
   WebServer server(80);
   #define BUTTON_PIN 0    // GPIO 0 (ปุ่ม SW1 บนบอร์ด IPST-WiFi)
-  #define LED_PIN    2    // GPIO 2 (Built-in LED บนบอร์ด ESP32 / Active HIGH)
+  #define LED_PIN    18   // GPIO 18 (Built-in LED บนบอร์ด ESP32 IPST-WiFi / Active HIGH)
   #define LED_ON     HIGH
   #define LED_OFF    LOW
   #define SDA_PIN    21   // GPIO 21

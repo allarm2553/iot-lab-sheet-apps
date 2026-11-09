@@ -1186,7 +1186,7 @@
                 </tr>
                 <tr>
                   <td>ไฟแสดงสถานะ (Status LED)</td>
-                  <td>LED Onboard (GPIO 2) หรือ LED ภายนอกพร้อมตัวต้านทาน 330Ω</td>
+                  <td>LED Onboard (GPIO 18) หรือ LED ภายนอกพร้อมตัวต้านทาน 330Ω</td>
                   <td style="text-align: center;">1 ชุด</td>
                 </tr>
                 <tr>
@@ -1224,7 +1224,7 @@
                 <tr>
                   <td>Status LED</td>
                   <td>Anode (+)</td>
-                  <td><span class="badge-pin">GPIO 2</span> (Built-in)</td>
+                  <td><span class="badge-pin">GPIO 18</span> (Built-in)</td>
                   <td><span class="badge-pin">GPIO 2 (D4)</span> (SLED)</td>
                   <td>Active HIGH (ESP32) / Active LOW (ESP8266)</td>
                 </tr>
@@ -2154,7 +2154,7 @@ void loop() {
   WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #elif defined(ESP32)
   #include <WiFi.h>
-  #define LED_PIN 2
+  #define LED_PIN 18
   #define LED_ON  HIGH
   #define LED_OFF LOW
 #endif

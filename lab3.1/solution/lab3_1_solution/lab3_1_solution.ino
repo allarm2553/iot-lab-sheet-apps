@@ -22,7 +22,7 @@
  *   - Analog Sensor (VR / LDR)    : GPIO 36 (VP / ADC1)
  *   - Relay 1 (พัดลมระบายความร้อน) : GPIO 5 (Active-LOW)
  *   - Relay 2 (ปั๊มพ่นหมอก / รดน้ำ) : GPIO 23 (Active-LOW)
- *   - Status LED                  : GPIO 2
+ *   - Status LED                  : GPIO 18
  * =====================================================================
  */
 
@@ -51,7 +51,7 @@ const char* password = "iot123456";
 #define ANALOG_PIN     36   // Analog Input (ADC1_CH0 / VP)
 #define RELAY1_PIN      5   // Relay 1 พัดลม (Active-LOW)
 #define RELAY2_PIN     23   // Relay 2 ปั๊มพ่นหมอก (Active-LOW)
-#define STATUS_LED_PIN  2   // Onboard LED
+#define STATUS_LED_PIN  18  // Onboard LED (ESP32 IPST-WiFi: GPIO 18)
 
 DHT dht(DHTPIN, DHTTYPE);
 

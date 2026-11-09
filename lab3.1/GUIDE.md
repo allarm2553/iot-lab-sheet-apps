@@ -22,7 +22,7 @@
 | **Analog Sensor** (Potentiometer / VR) | `GPIO 36` (VP / A0) | `A0` | `ANALOG INPUT` | อ่านสัญญาณแรงดันอนาล็อก (0–4095) |
 | **Relay 1 Module** (พัดลมระบายความร้อน) | `GPIO 5` | `D7` (`GPIO 13`) | `OUTPUT (Active-LOW)` | ควบคุมพัดลมตามเงื่อนไขอุณหภูมิ DHT11 / สั่งผ่าน Web |
 | **Relay 2 Module** (ปั๊มพ่นหมอก / รดน้ำ) | `GPIO 23` | `D0` (`GPIO 16`) | `OUTPUT (Active-LOW)` | ควบคุมปั๊มหมอกตามเงื่อนไขสัญญาณอนาล็อก / สั่งผ่าน Web |
-| **Status LED** (Onboard LED) | `GPIO 2` | `D4` (`GPIO 2`) | `OUTPUT` | แสดงสถานะการเชื่อมต่อ Wi-Fi และการเรียก API |
+| **Status LED** (Onboard LED) | `GPIO 18` | `D4` (`GPIO 2`) | `OUTPUT` | แสดงสถานะการเชื่อมต่อ Wi-Fi และการเรียก API |
 
 ---
 

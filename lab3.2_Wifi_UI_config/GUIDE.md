@@ -28,7 +28,7 @@
 | **OLED SDA (Data)** | ขาสัญญาณข้อมูล I2C Data | <span class="badge-pin">GPIO 21</span> | <span class="badge-pin">GPIO 4 (D2)</span> | I2C Address `0x3C` |
 | **OLED SCL (Clock)** | ขาสัญญาณนาฬิกา I2C Clock | <span class="badge-pin">GPIO 22</span> | <span class="badge-pin">GPIO 5 (D1)</span> | I2C Clock Line |
 | **Push Button (SW1 / FLASH)** | ปุ่ม Factory Reset (กดค้าง 3 วินาที) | <span class="badge-pin">GPIO 0</span> (SW1) | <span class="badge-pin">GPIO 0 (D3)</span> (FLASH) | Active LOW (มี Internal Pull-up) |
-| **Status LED** | ไฟแสดงสถานะเชื่อมต่อ / กะพริบแจ้งเตือน | <span class="badge-pin">GPIO 2</span> (Built-in) | <span class="badge-pin">GPIO 2 (D4)</span> (SLED) | Active HIGH (ESP32) / Active LOW (ESP8266) |
+| **Status LED** | ไฟแสดงสถานะเชื่อมต่อ / กะพริบแจ้งเตือน | <span class="badge-pin">GPIO 18</span> (Built-in) | <span class="badge-pin">GPIO 2 (D4)</span> (SLED) | Active HIGH (ESP32) / Active LOW (ESP8266) |
 | **SoftAP Default IP** | IP Address โหมดปล่อยสัญญาณตั้งค่า | `192.168.4.1` | `192.168.4.1` | พอร์ต HTTP: 80 / พอร์ต DNS: 53 |
 
 ---
