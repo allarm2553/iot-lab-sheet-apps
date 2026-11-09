@@ -2378,6 +2378,9 @@ void loop() {
               <button type="button" onclick="testGasConnection()" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.48rem 0.85rem; border-radius: 7px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
                 <i class="fa-solid fa-plug"></i> ทดสอบเชื่อมต่อ
               </button>
+                        <button type="button" onclick="teacherClearLabCache('lab0-basic')" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="สำหรับครูผู้สอน: ปลดล็อก/เคลียร์แคชส่งงานเพื่อให้นักเรียนส่งใหม่ได้">
+                          <i class="fa-solid fa-unlock-keyhole"></i> เคลียร์แคชส่งงาน
+                        </button>
             </div>
           </div>
 
@@ -3900,6 +3903,155 @@ void loop() {
       }
     }
 
+    // ===== TEACHER CLEAR CACHE & UNLOCK FUNCTION =====
+    function teacherClearLabCache(labId) {
+      labId = labId || 'lab0-basic';
+      const idInput = document.getElementById('studentId');
+      const studentId = (idInput ? idInput.value : '').trim() || localStorage.getItem('studentId') || '';
+
+      const doUnlock = (clearAll) => {
+        const prefixes = [
+          'submitted_iot_' + labId + '_',
+          'submitted_iot_' + labId.toLowerCase() + '_',
+          'submitted_iot_' + labId.replace('.', '_') + '_',
+          'submitted_iot_' + labId.replace('.', '') + '_',
+          'submitted_iot_lab' + labId + '_',
+          typeof _LAB_STORAGE_KEY !== 'undefined' ? _LAB_STORAGE_KEY : '',
+          typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : ''
+        ].filter(Boolean);
+
+        if (clearAll) {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (prefixes.some(p => k && k.startsWith(p)) || 
+                (k && k.includes('submitted') && k.includes(labId)) ||
+                (k && k.startsWith('lab' + labId + '_submitted')) ||
+                (k && k.startsWith(labId + '_submitted'))) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.removeItem(labId + '_submitted_id');
+          localStorage.removeItem(labId + '_submitted_time');
+          localStorage.removeItem('studentId_submitted_' + labId);
+        } else if (studentId) {
+          prefixes.forEach(p => localStorage.removeItem(p + studentId));
+          localStorage.removeItem(labId + '_submitted_id');
+          localStorage.removeItem(labId + '_submitted_time');
+          localStorage.removeItem('studentId_submitted_' + labId);
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.endsWith(studentId) && (k.includes('submitted') || k.includes('iot'))) {
+              localStorage.removeItem(k);
+            }
+          }
+        } else {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (prefixes.some(p => k && k.startsWith(p))) {
+              localStorage.removeItem(k);
+            }
+          }
+        }
+
+        // Set teacher unlock flag to permit resubmission in backend
+        window._teacherAllowResubmit = true;
+
+        // Try to inform Google Apps Script backend to remove duplicate row if teacher GAS URL is set
+        const gasUrl = (document.getElementById('teacherGasUrlInput')?.value || '').trim() || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '') || (typeof getActiveGasUrl === 'function' ? getActiveGasUrl(labId) : '') || localStorage.getItem('teacher_gas_url_' + labId) || '';
+        if (gasUrl && gasUrl.startsWith('https://script.google.com') && studentId) {
+          fetch(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'clearStudentLock', studentId: studentId })
+          }).catch(e => console.log('Backend lock clear note:', e));
+        }
+
+        // Unlock all form fields
+        const form = document.getElementById('labForm');
+        if (form) {
+          form.querySelectorAll('input, textarea, select, button, .upload-area, .remove-file-btn').forEach(el => {
+            el.disabled = false;
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = false;
+          });
+        }
+
+        // Restore submit button
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.background = '';
+          submitBtn.style.cursor = 'pointer';
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+        }
+
+        // Remove notice banner and reset student button
+        const banner = document.getElementById('submittedNoticeBanner');
+        if (banner) banner.remove();
+
+        const newBtn = document.getElementById('newStudentBtn');
+        if (newBtn) newBtn.style.display = 'none';
+
+        const successTitle = 'ปลดล็อก / เคลียร์แคชสำเร็จ! 🎉';
+        const successMsg = studentId 
+          ? 'ปลดล็อกการส่งงานสำหรับรหัส ' + studentId + ' เรียบร้อยแล้ว!\n\nข้อมูลและคำตอบในใบงานยังคงอยู่ครบถ้วน นักศึกษาสามารถตรวจสอบความถูกต้องและกด \"ส่งใบงาน\" ใหม่อีกครั้งได้ทันที'
+          : 'ล้างแคชประวัติการส่งงานของแล็บนี้เรียบร้อยแล้ว!\n\nฟอร์มถูกปลดล็อกพร้อมให้นักศึกษาทำการส่งใบงานใหม่ได้ทันที';
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: successTitle,
+            html: successMsg.replace(/\n/g, '<br>'),
+            background: '#0f172a',
+            color: '#f8fafc',
+            confirmButtonColor: '#3b82f6'
+          });
+        } else if (typeof showAlertModal === 'function') {
+          showAlertModal(successTitle, successMsg, 'success');
+        } else if (typeof showAlert === 'function') {
+          showAlert(successTitle, successMsg, 'success');
+        } else if (typeof showModal === 'function') {
+          showModal(successTitle, successMsg, true);
+        } else {
+          alert(successTitle + '\n\n' + successMsg);
+        }
+      };
+
+      const promptText = studentId 
+        ? 'คุณครูต้องการปลดล็อกการส่งงานสำหรับรหัสนักศึกษา \"' + studentId + '\" หรือไม่?\n\n(ระบบจะปลดล็อกให้ส่งใหม่ได้ทันที โดยคำตอบและไฟล์เดิมยังคงอยู่ ไม่สูญหาย)'
+        : 'คุณครูต้องการล้างแคชประวัติการส่งงานของแล็บนี้ทั้งหมดในเครื่องนี้ เพื่อให้นักศึกษาส่งใหม่ได้ใช่หรือไม่?';
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'ปลดล็อกการส่งใบงาน (สำหรับครู)',
+          html: promptText.replace(/\n/g, '<br>'),
+          icon: 'warning',
+          showCancelButton: true,
+          showDenyButton: !!studentId,
+          confirmButtonText: studentId ? '<i class="fa-solid fa-unlock"></i> ปลดล็อกคนนี้ (คงคำตอบไว้)' : '<i class="fa-solid fa-trash-can"></i> ยืนยันล้างแคชส่งงาน',
+          denyButtonText: '<i class="fa-solid fa-broom"></i> ล้างแคชทุกคนในเครื่องนี้',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#f59e0b',
+          denyButtonColor: '#ef4444',
+          cancelButtonColor: '#64748b',
+          background: '#0f172a',
+          color: '#f8fafc'
+        }).then((res) => {
+          if (res.isConfirmed) {
+            doUnlock(false);
+          } else if (res.isDenied) {
+            doUnlock(true);
+          }
+        });
+      } else {
+        if (confirm(promptText)) {
+          doUnlock(false);
+        }
+      }
+    }
+
+
     function showCodeGsModal() {
       const m = document.getElementById('codeGsModal');
       const block = document.getElementById('codeGsPreBlock');
@@ -4418,6 +4570,7 @@ function doPost(e) {
         codeFileName: uploadedCodeFileName,
         codeFileType: uploadedCodeFileType
       };
+      payload.allowResubmit = !!window._teacherAllowResubmit;
 
       if (btn) {
         btn.disabled = true;
@@ -4510,6 +4663,33 @@ function doPost(e) {
     });
 
     function lockFormAsSubmitted(submittedTime) {
+
+      const form2 = document.getElementById('labForm');
+      if (form2) {
+        let notice = document.getElementById('submittedNoticeBanner');
+        if (!notice) {
+          notice = document.createElement('div');
+          notice.id = 'submittedNoticeBanner';
+          notice.style.cssText = 'background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.4);color:#34d399;padding:0.85rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;font-weight:500;';
+          const firstSection = form2.querySelector('.form-section, .section-card, .glass-card, div');
+          if (firstSection) form2.insertBefore(notice, firstSection);
+          else form2.prepend(notice);
+        }
+        notice.innerHTML = `
+          <div style="display:flex;align-items:center;gap:0.6rem;flex:1;min-width:240px;">
+            <i class="fa-solid fa-lock" style="font-size:1.1rem;"></i>
+            <span>ใบงานนี้ถูกส่งเรียบร้อยแล้วเมื่อ <strong>${submittedTime || ''}</strong> (โหมดดูอย่างเดียว)</span>
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn-new-student" onclick="confirmResetForNewStudent()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#ffffff;padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;">
+              <i class="fa-solid fa-user-plus"></i> นศ. คนใหม่
+            </button>
+            <button type="button" class="btn-teacher-unlock" onclick="teacherClearLabCache('lab0-basic')" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#ffffff;padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 2px 8px rgba(217,119,6,0.3);">
+              <i class="fa-solid fa-unlock-keyhole"></i> ครูผู้สอน: ปลดล็อกส่งใหม่
+            </button>
+          </div>
+        `;
+      }
       const form = document.getElementById('labForm');
       if (form) {
         form.querySelectorAll('input, textarea, select, button[type="submit"], .upload-area, .remove-file-btn').forEach(el => {

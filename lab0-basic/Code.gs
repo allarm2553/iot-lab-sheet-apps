@@ -22,6 +22,26 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // เคลียร์ประวัติการส่งงานเพื่อให้นักเรียนส่งใหม่ได้ (กรณีครูผู้สอนกดปลดล็อก)
+    if (data.action === 'clearStudentLock' || data.action === 'clearStudent') {
+      var sId = String(data.studentId || '').trim();
+      if (sId) {
+        var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+        var vals = targetSheet.getDataRange().getValues();
+        for (var r = 1; r < vals.length; r++) {
+          if (String(vals[r][1] || '').trim().replace(/^'/, '') === sId || String(vals[r][2] || '').trim().replace(/^'/, '') === sId) {
+            targetSheet.deleteRow(r + 1);
+            break;
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'ปลดล็อกและลบประวัติเดิมใน Google Sheets เรียบร้อยแล้ว'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+
     var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
       '<title>IoT Lab 0 (Basic) Web App - พร้อมใช้งาน</title>' +
       '<style>' +
@@ -304,12 +324,16 @@ function doPost(e) {
     if (targetStudentId && targetStudentId !== '-') {
       for (var r = 1; r < existingData.length; r++) {
         var existingId = String(existingData[r][1] || '').trim().replace(/^'/, '');
-        if (existingId === targetStudentId) {
+        if (existingId === (typeof targetStudentId !== 'undefined' ? targetStudentId : targetId)) {
+        if (!data.allowResubmit) {
           return ContentService.createTextOutput(JSON.stringify({
             status: 'duplicate',
-            message: '❌ รหัสนักศึกษา ' + targetStudentId + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
+            message: '❌ รหัสนักศึกษา ' + (typeof targetStudentId !== 'undefined' ? targetStudentId : targetId) + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
           })).setMimeType(ContentService.MimeType.JSON);
         }
+        sheet.deleteRow(r + 1);
+        break;
+      }
       }
     }
 

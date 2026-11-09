@@ -19,6 +19,26 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // เคลียร์ประวัติการส่งงานเพื่อให้นักเรียนส่งใหม่ได้ (กรณีครูผู้สอนกดปลดล็อก)
+    if (data.action === 'clearStudentLock' || data.action === 'clearStudent') {
+      var sId = String(data.studentId || '').trim();
+      if (sId) {
+        var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+        var vals = targetSheet.getDataRange().getValues();
+        for (var r = 1; r < vals.length; r++) {
+          if (String(vals[r][1] || '').trim().replace(/^'/, '') === sId || String(vals[r][2] || '').trim().replace(/^'/, '') === sId) {
+            targetSheet.deleteRow(r + 1);
+            break;
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'ปลดล็อกและลบประวัติเดิมใน Google Sheets เรียบร้อยแล้ว'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+
     var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
       '<title>IoT Lab 5 (Dev) Web App - พร้อมใช้งาน</title>' +
       '<style>' +
@@ -271,11 +291,15 @@ function submitLabData(data) {
       for (var r = 1; r < existingData.length; r++) {
         var existingId = String(existingData[r][2] || '').trim().replace(/^'/, '');
         if (existingId === targetId) {
+        if (!data.allowResubmit) {
           return {
             status: 'duplicate',
             message: '❌ รหัสนักศึกษา ' + targetId + ' ได้ส่งใบงานนี้ไปแล้ว ไม่สามารถส่งซ้ำได้'
           };
         }
+        sheet.deleteRow(r + 1);
+        break;
+      }
       }
     }
 

@@ -2337,6 +2337,9 @@ void loop() {
                         <button type="button" onclick="testTeacherGasUrl('LAB5_Dev')" style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;">
                           <i class="fa-solid fa-bolt"></i> ทดสอบเชื่อมต่อ
                         </button>
+                        <button type="button" onclick="teacherClearLabCache('LAB5_Dev')" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #fff; padding: 0.48rem 0.95rem; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; transition: all 0.2s;" title="สำหรับครูผู้สอน: ปลดล็อก/เคลียร์แคชส่งงานเพื่อให้นักเรียนส่งใหม่ได้">
+                          <i class="fa-solid fa-unlock-keyhole"></i> เคลียร์แคชส่งงาน
+                        </button>
                       </div>
                     </div>
 
@@ -3424,6 +3427,7 @@ void loop() {
           })
           .submitLabData(payload);
       } else if (effectiveScriptUrl && effectiveScriptUrl.startsWith('https://script.google.com')) {
+        payload.allowResubmit = !!window._teacherAllowResubmit;
         fetch(effectiveScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -3514,6 +3518,9 @@ void loop() {
           </div>
           <button type="button" class="btn-new-student" onclick="confirmResetForNewStudent()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#ffffff;padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all 0.2s;">
             <i class="fa-solid fa-user-plus"></i> เริ่มทำสำหรับ นศ. คนใหม่
+          </button>
+          <button type="button" class="btn-teacher-unlock" onclick="teacherClearLabCache('LAB5_Dev')" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #ffffff; padding: 0.45rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3); transition: all 0.2s;" title="สำหรับครูผู้สอน: ปลดล็อกเพื่อให้นักเรียนคนนี้ส่งใหม่ได้ โดยคำตอบเดิมยังคงอยู่">
+            <i class="fa-solid fa-unlock-keyhole"></i> ครูผู้สอน: ปลดล็อกส่งใหม่
           </button>
         `;
       }
@@ -3833,6 +3840,155 @@ void loop() {
       // Fallback: เปิดหน้าตรวจสอบสถานะ Web App
       window.open(val.split('?')[0], '_blank');
     }
+
+    // ===== TEACHER CLEAR CACHE & UNLOCK FUNCTION =====
+    function teacherClearLabCache(labId) {
+      labId = labId || 'LAB5_Dev';
+      const idInput = document.getElementById('studentId');
+      const studentId = (idInput ? idInput.value : '').trim() || localStorage.getItem('studentId') || '';
+
+      const doUnlock = (clearAll) => {
+        const prefixes = [
+          'submitted_iot_' + labId + '_',
+          'submitted_iot_' + labId.toLowerCase() + '_',
+          'submitted_iot_' + labId.replace('.', '_') + '_',
+          'submitted_iot_' + labId.replace('.', '') + '_',
+          'submitted_iot_lab' + labId + '_',
+          typeof _LAB_STORAGE_KEY !== 'undefined' ? _LAB_STORAGE_KEY : '',
+          typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : ''
+        ].filter(Boolean);
+
+        if (clearAll) {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (prefixes.some(p => k && k.startsWith(p)) || 
+                (k && k.includes('submitted') && k.includes(labId)) ||
+                (k && k.startsWith('lab' + labId + '_submitted')) ||
+                (k && k.startsWith(labId + '_submitted'))) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.removeItem(labId + '_submitted_id');
+          localStorage.removeItem(labId + '_submitted_time');
+          localStorage.removeItem('studentId_submitted_' + labId);
+        } else if (studentId) {
+          prefixes.forEach(p => localStorage.removeItem(p + studentId));
+          localStorage.removeItem(labId + '_submitted_id');
+          localStorage.removeItem(labId + '_submitted_time');
+          localStorage.removeItem('studentId_submitted_' + labId);
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.endsWith(studentId) && (k.includes('submitted') || k.includes('iot'))) {
+              localStorage.removeItem(k);
+            }
+          }
+        } else {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (prefixes.some(p => k && k.startsWith(p))) {
+              localStorage.removeItem(k);
+            }
+          }
+        }
+
+        // Set teacher unlock flag to permit resubmission in backend
+        window._teacherAllowResubmit = true;
+
+        // Try to inform Google Apps Script backend to remove duplicate row if teacher GAS URL is set
+        const gasUrl = (document.getElementById('teacherGasUrlInput')?.value || '').trim() || (typeof getLabScriptUrl === 'function' ? getLabScriptUrl(labId) : '') || (typeof getActiveGasUrl === 'function' ? getActiveGasUrl(labId) : '') || localStorage.getItem('teacher_gas_url_' + labId) || '';
+        if (gasUrl && gasUrl.startsWith('https://script.google.com') && studentId) {
+          fetch(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'clearStudentLock', studentId: studentId })
+          }).catch(e => console.log('Backend lock clear note:', e));
+        }
+
+        // Unlock all form fields
+        const form = document.getElementById('labForm');
+        if (form) {
+          form.querySelectorAll('input, textarea, select, button, .upload-area, .remove-file-btn').forEach(el => {
+            el.disabled = false;
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.readOnly = false;
+          });
+        }
+
+        // Restore submit button
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.background = '';
+          submitBtn.style.cursor = 'pointer';
+          submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งใบงานปฏิบัติการ';
+        }
+
+        // Remove notice banner and reset student button
+        const banner = document.getElementById('submittedNoticeBanner');
+        if (banner) banner.remove();
+
+        const newBtn = document.getElementById('newStudentBtn');
+        if (newBtn) newBtn.style.display = 'none';
+
+        const successTitle = 'ปลดล็อก / เคลียร์แคชสำเร็จ! 🎉';
+        const successMsg = studentId 
+          ? 'ปลดล็อกการส่งงานสำหรับรหัส ' + studentId + ' เรียบร้อยแล้ว!\n\nข้อมูลและคำตอบในใบงานยังคงอยู่ครบถ้วน นักศึกษาสามารถตรวจสอบความถูกต้องและกด \"ส่งใบงาน\" ใหม่อีกครั้งได้ทันที'
+          : 'ล้างแคชประวัติการส่งงานของแล็บนี้เรียบร้อยแล้ว!\n\nฟอร์มถูกปลดล็อกพร้อมให้นักศึกษาทำการส่งใบงานใหม่ได้ทันที';
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: successTitle,
+            html: successMsg.replace(/\n/g, '<br>'),
+            background: '#0f172a',
+            color: '#f8fafc',
+            confirmButtonColor: '#3b82f6'
+          });
+        } else if (typeof showAlertModal === 'function') {
+          showAlertModal(successTitle, successMsg, 'success');
+        } else if (typeof showAlert === 'function') {
+          showAlert(successTitle, successMsg, 'success');
+        } else if (typeof showModal === 'function') {
+          showModal(successTitle, successMsg, true);
+        } else {
+          alert(successTitle + '\n\n' + successMsg);
+        }
+      };
+
+      const promptText = studentId 
+        ? 'คุณครูต้องการปลดล็อกการส่งงานสำหรับรหัสนักศึกษา \"' + studentId + '\" หรือไม่?\n\n(ระบบจะปลดล็อกให้ส่งใหม่ได้ทันที โดยคำตอบและไฟล์เดิมยังคงอยู่ ไม่สูญหาย)'
+        : 'คุณครูต้องการล้างแคชประวัติการส่งงานของแล็บนี้ทั้งหมดในเครื่องนี้ เพื่อให้นักศึกษาส่งใหม่ได้ใช่หรือไม่?';
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'ปลดล็อกการส่งใบงาน (สำหรับครู)',
+          html: promptText.replace(/\n/g, '<br>'),
+          icon: 'warning',
+          showCancelButton: true,
+          showDenyButton: !!studentId,
+          confirmButtonText: studentId ? '<i class="fa-solid fa-unlock"></i> ปลดล็อกคนนี้ (คงคำตอบไว้)' : '<i class="fa-solid fa-trash-can"></i> ยืนยันล้างแคชส่งงาน',
+          denyButtonText: '<i class="fa-solid fa-broom"></i> ล้างแคชทุกคนในเครื่องนี้',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#f59e0b',
+          denyButtonColor: '#ef4444',
+          cancelButtonColor: '#64748b',
+          background: '#0f172a',
+          color: '#f8fafc'
+        }).then((res) => {
+          if (res.isConfirmed) {
+            doUnlock(false);
+          } else if (res.isDenied) {
+            doUnlock(true);
+          }
+        });
+      } else {
+        if (confirm(promptText)) {
+          doUnlock(false);
+        }
+      }
+    }
+
     
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(initTeacherGasBox, 100);
