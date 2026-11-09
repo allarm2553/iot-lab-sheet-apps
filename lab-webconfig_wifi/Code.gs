@@ -3,6 +3,34 @@
  * Designed by Antigravity AI (Auto-Grading Version)
  */
 
+// =========================================================================
+// ⚙️ การตั้งค่า Google Spreadsheet ปลายทาง (Spreadsheet Configuration)
+// =========================================================================
+// • หากสร้างสคริปต์นี้จาก Google Sheets โดยตรง (ส่วนขยาย > Apps Script) สามารถเว้นว่างไว้ได้
+// • หากสร้างเป็น Standalone Script หรือต้องการเจาะจงให้บันทึกลงชีตไฟล์อื่น ให้ใส่ Spreadsheet ID หรือ URL ด้านล่างนี้:
+var TARGET_SPREADSHEET_ID = "";
+
+function getTargetSpreadsheet() {
+  if (typeof TARGET_SPREADSHEET_ID !== 'undefined' && TARGET_SPREADSHEET_ID && TARGET_SPREADSHEET_ID.trim().length > 0) {
+    var rawId = TARGET_SPREADSHEET_ID.trim();
+    if (rawId.indexOf('http') !== -1) {
+      var match = rawId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (match) rawId = match[1];
+    }
+    try {
+      return SpreadsheetApp.openById(rawId);
+    } catch (e) {
+      console.warn("ไม่สามารถเปิด Spreadsheet ตาม TARGET_SPREADSHEET_ID ได้:", e);
+    }
+  }
+  try {
+    return SpreadsheetApp.getActiveSpreadsheet();
+  } catch (err) {
+    return null;
+  }
+}
+
+
 function doGet(e) {
   try {
     return HtmlService.createTemplateFromFile('index')
@@ -23,7 +51,7 @@ function doGet(e) {
     if (data.action === 'clearStudentLock' || data.action === 'clearStudent') {
       var sId = String(data.studentId || '').trim();
       if (sId) {
-        var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+        var targetSs = getTargetSpreadsheet(); var targetSheet = targetSs ? targetSs.getActiveSheet() : null;
         var vals = targetSheet.getDataRange().getValues();
         for (var r = 1; r < vals.length; r++) {
           if (String(vals[r][1] || '').trim().replace(/^'/, '') === sId || String(vals[r][2] || '').trim().replace(/^'/, '') === sId) {
@@ -189,14 +217,20 @@ function gradeSubmission(data) {
 
 function submitLabData(data) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = getTargetSpreadsheet();
     var sheetName = "Lab WebConfig Wi-Fi Submissions";
     var sheet = ss.getSheetByName(sheetName);
     
     var grading = gradeSubmission(data);
     
     if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
+      var allSheets = ss.getSheets();
+      if (allSheets.length === 1 && allSheets[0].getLastRow() === 0) {
+        sheet = allSheets[0];
+        sheet.setName(sheetName);
+      } else {
+        sheet = ss.insertSheet(sheetName);
+      }
       var headers = [
         "Timestamp", "ชื่อ-นามสกุล", "รหัสนักศึกษา", "กลุ่ม/ห้อง", "วันที่ทำการทดลอง",
         "โค้ดโจทย์ท้าทาย (Challenge Code)", "คำตอบ Code ช่องที่ 1", "คำตอบ Code ช่องที่ 2",
@@ -304,7 +338,7 @@ function doPost(e) {
     if (data.action === 'testConnection' || data.action === 'ping' || data.test === true) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
-        message: 'เชื่อมต่อ Google Apps Script (Lab WebConfig) สำเร็จพร้อมบันทึกคะแนน!'
+        message: 'เชื่อมต่อ Google Apps Script (Lab WebConfig) สำเร็จพร้อมบันทึกคะแนน!' + (getTargetSpreadsheet() ? (' (ไฟล์: "' + getTargetSpreadsheet().getName() + '")') : '') + '
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
