@@ -110,7 +110,7 @@ function getMasterScriptUrl() {
 /**
  * บันทึก GAS URL ลงใน localStorage ทุกคีย์ที่เกี่ยวข้องกับ labId
  */
-function setLabScriptUrl(labId, url) {
+function setLabScriptUrl(labId, url, isOverride = false) {
   if (typeof window === 'undefined' || !window.localStorage || !labId) return;
   const cleanUrl = (url || '').trim();
   const keys = getRelatedGasStorageKeys(labId);
@@ -122,6 +122,11 @@ function setLabScriptUrl(labId, url) {
         window.localStorage.removeItem(k);
       }
     });
+    if (isOverride && cleanUrl) {
+      window.localStorage.setItem('override_' + labId, 'true');
+    } else if (!cleanUrl) {
+      window.localStorage.removeItem('override_' + labId);
+    }
     if (cleanUrl && cleanUrl.startsWith('https://script.google.com')) {
       LAB_CONFIG[labId] = cleanUrl;
       if (labId === 'lab0' || labId === 'lab0-basic' || labId === 'lab-basic') {
@@ -137,9 +142,11 @@ function setLabScriptUrl(labId, url) {
  * ดึง Web App URL ที่พร้อมใช้งาน
  * ลำดับการตรวจสอบ:
  * 1. ตรวจสอบจาก URL Query Parameter (?gas=... หรือ ?gas_url=...) ก่อน (สำหรับลิงก์ที่อาจารย์แนบส่งให้นักศึกษา)
- * 2. ตรวจสอบจาก localStorage เฉพาะแล็บนั้นๆ
- * 3. ตรวจสอบ Master Universal GAS URL (จาก localStorage)
- * 4. ใช้ค่าเริ่มต้นเฉพาะแล็บจาก LAB_CONFIG ใน config.js
+ * 2. หากมีการเปิดใช้งาน Master GAS URL (จาก localStorage 'master_gas_url' หรือตัวแปร MASTER_GAS_URL)
+ *    และแล็บนี้ไม่ได้ระบุ override แยกต่างหาก (override_<labId> !== 'true'):
+ *    ให้ใช้ Master GAS URL ทันที! (เพื่อป้องกันคีย์เก่าที่เคยบันทึกไว้ในเบราว์เซอร์ดึงคะแนนไปชีตอื่น)
+ * 3. ตรวจสอบจาก localStorage ในเครื่องเฉพาะแล็บนั้นๆ (กรณีอาจารย์จงใจแยกชีตสำหรับแล็บนี้)
+ * 4. ตรวจสอบจาก LAB_CONFIG ใน config.js
  * 5. Fallback เป็น MASTER_GAS_URL ส่วนกลาง
  */
 function getLabScriptUrl(labId) {
@@ -161,7 +168,16 @@ function getLabScriptUrl(labId) {
         }
       }
     }
-    // 2. ตรวจสอบ localStorage ในเครื่อง เฉพาะแล็บ
+
+    // 2. หากมีการเปิดใช้งาน Master GAS URL และไม่มีการระบุ override ให้ใช้ Master GAS URL ทันที
+    const masterUrl = (window.localStorage ? (window.localStorage.getItem('master_gas_url') || window.localStorage.getItem('iot_master_gas_url')) : '') || (typeof MASTER_GAS_URL !== 'undefined' ? MASTER_GAS_URL : '');
+    const isExplicitOverride = window.localStorage && labId && (window.localStorage.getItem('override_' + labId) === 'true');
+
+    if (masterUrl && masterUrl.trim().startsWith('https://script.google.com') && !isExplicitOverride) {
+      return masterUrl.trim();
+    }
+
+    // 3. ตรวจสอบ localStorage ในเครื่อง เฉพาะแล็บ (กรณีไม่ได้ตั้ง Master หรือมีการสั่ง override)
     if (window.localStorage && labId) {
       const keys = getRelatedGasStorageKeys(labId);
       for (let i = 0; i < keys.length; i++) {
@@ -169,13 +185,6 @@ function getLabScriptUrl(labId) {
         if (custom && custom.trim().startsWith('https://script.google.com')) {
           return custom.trim();
         }
-      }
-    }
-    // 3. ตรวจสอบ Master GAS URL จาก localStorage
-    if (window.localStorage) {
-      const masterUrl = window.localStorage.getItem('master_gas_url') || window.localStorage.getItem('iot_master_gas_url');
-      if (masterUrl && masterUrl.trim().startsWith('https://script.google.com')) {
-        return masterUrl.trim();
       }
     }
   }
