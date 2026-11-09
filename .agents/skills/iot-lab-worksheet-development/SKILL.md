@@ -267,7 +267,7 @@ All worksheets must present equipment requirements in a clean, responsive table:
 
 | อุปกรณ์ / โมดูล | ขาสัญญาณ | ESP32 (IPST-WiFi) | ESP8266 (AX-WiFi) | หมายเหตุ / คำอธิบาย |
 | :--- | :--- | :--- | :--- | :--- |
-| **เซ็นเซอร์ DHT11** | DATA | `GPIO 33` | `GPIO 0 / D3` | อุณหภูมิและความชื้น (ไฟเลี้ยง 3.3V) |
+| **เซ็นเซอร์ DHT11** | DATA | `GPIO 33` | `GPIO 2 / D4` | อุณหภูมิและความชื้น (ไฟเลี้ยง 3.3V) |
 | **Analog Potentiometer** | Signal | `GPIO 36` (KNOB-S) | `A0` (จัมเปอร์ VR) | ESP32 (12-bit, 0-4095) / ESP8266 (10-bit, 0-1023) |
 | **Push Button** | SW / Input | `GPIO 0` (ปุ่ม SW1) | `GPIO 0 / D3` (ปุ่ม FLASH) | ขาอินพุตแบบ Active LOW (`INPUT_PULLUP`) |
 | **Onboard LED** | Built-in LED | `GPIO 18` | `GPIO 2 / D4` | ไฟแสดงผล Built-in บนบอร์ด |

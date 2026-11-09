@@ -18,7 +18,7 @@
 
 | อุปกรณ์ / โมดูล | ขา ESP32 | ขา ESP8266 | โหมดการทำงาน | หน้าที่การทำงาน |
 | :--- | :---: | :---: | :---: | :--- |
-| **DHT11 Sensor** (Temp & Humidity) | `GPIO 33` | `D3` (`GPIO 0`) | `DIGITAL INPUT` | วัดค่าอุณหภูมิ (°C) และความชื้นสัมพัทธ์ (%RH) |
+| **DHT11 Sensor** (Temp & Humidity) | `GPIO 33` | `GPIO 2` (`D4`) | `DIGITAL INPUT` | วัดค่าอุณหภูมิ (°C) และความชื้นสัมพัทธ์ (%RH) |
 | **Analog Sensor** (Potentiometer / VR) | `GPIO 36` (VP / A0) | `A0` | `ANALOG INPUT` | อ่านสัญญาณแรงดันอนาล็อก (0–4095) |
 | **Relay 1 Module** (พัดลมระบายความร้อน) | `GPIO 5` | `D7` (`GPIO 13`) | `OUTPUT (Active-LOW)` | ควบคุมพัดลมตามเงื่อนไขอุณหภูมิ DHT11 / สั่งผ่าน Web |
 | **Relay 2 Module** (ปั๊มพ่นหมอก / รดน้ำ) | `GPIO 23` | `D0` (`GPIO 16`) | `OUTPUT (Active-LOW)` | ควบคุมปั๊มหมอกตามเงื่อนไขสัญญาณอนาล็อก / สั่งผ่าน Web |

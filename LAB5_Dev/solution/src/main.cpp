@@ -51,7 +51,7 @@ bool oledAvailable = false;
 
 // Hardware Pin Definitions
 #if defined(ESP8266)
-#define DHTPIN 2            // D4/GPIO 2 สำหรับ AX-WiFi (หรือ GPIO 0 / D3)
+#define DHTPIN 2            // GPIO 2 / D4 สำหรับ ESP8266 (NodeMCU / AX-WiFi)
 #define ANALOG_PIN A0       // A0 (ตัวต้านทานปรับค่าได้ VR สำหรับ AX-WiFi)
 #define FAN_RELAY_PIN 13    // D7/GPIO 13 สำหรับ AX-WiFi
 #define MIST_RELAY_PIN 16   // D0/GPIO 16 สำหรับ AX-WiFi

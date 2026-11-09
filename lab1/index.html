@@ -1943,7 +1943,7 @@
               <tr>
                 <td>DATA</td>
                 <td><code>GPIO 33</code></td>
-                <td><code>D3 / GPIO 0</code></td>
+                <td><code>GPIO 2 / D4</code></td>
               </tr>
               <tr>
                 <td style="font-weight: 600;">Analog Input (Potentiometer / KNOB)</td>
@@ -2505,7 +2505,7 @@
 <pre><code>#include &lt;Arduino.h&gt;
 #include &lt;DHT.h&gt;
 
-#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับบอร์ด AX-WiFi)
+#define DHTPIN 33 // (หรือ GPIO 2 / D4 สำหรับบอร์ด ESP8266 NodeMCU / AX-WiFi)
 #define DHTTYPE DHT11
 #define ANALOG_PIN 36 // (GPIO 36/KNOB-S สำหรับ IPST-WiFi, หรือ A0 สำหรับบอร์ด AX-WiFi)
 #define FAN_RELAY_PIN 5 // (หรือ D7/GPIO 13 สำหรับบอร์ด AX-WiFi)
@@ -3560,7 +3560,7 @@ void loop() {
 #include <Arduino.h>
 #include <DHT.h>
 
-#define DHTPIN 33 // (หรือ D3/GPIO 0 สำหรับบอร์ด AX-WiFi)
+#define DHTPIN 33 // (หรือ GPIO 2 / D4 สำหรับบอร์ด ESP8266 NodeMCU / AX-WiFi)
 #define DHTTYPE DHT11
 #define ANALOG_PIN 36 // (GPIO 36/KNOB-S สำหรับ IPST-WiFi, หรือ A0 สำหรับบอร์ด AX-WiFi)
 #define FAN_RELAY_PIN 5 // (หรือ D7/GPIO 13 สำหรับบอร์ด AX-WiFi)

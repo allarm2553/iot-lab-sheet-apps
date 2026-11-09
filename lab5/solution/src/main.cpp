@@ -43,7 +43,7 @@ PubSubClient mqttClient(espClient);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #if defined(ESP8266)
-#define DHTPIN 0            // D3/GPIO 0 สำหรับ AX-WiFi
+#define DHTPIN 2            // GPIO 2 / D4 สำหรับ ESP8266 (NodeMCU / AX-WiFi)
 #define ANALOG_PIN A0       // A0 (ตัวต้านทานปรับค่าได้ VR สำหรับ AX-WiFi)
 #define FAN_RELAY_PIN 13    // D7/GPIO 13 สำหรับ AX-WiFi
 #define BUTTON_PIN 0        // D3/GPIO 0 (ปุ่ม FLASH บนบอร์ด AX-WiFi)

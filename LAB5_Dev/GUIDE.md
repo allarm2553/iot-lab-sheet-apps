@@ -54,7 +54,7 @@ flowchart LR
 
 | อุปกรณ์ / ฟังก์ชัน | บอร์ด IPST-WiFi (ESP32) | บอร์ด AX-WiFi (ESP8266) | หมายเหตุ |
 |---|---|---|---|
-| **DHT11 Sensor** | GPIO 33 | GPIO 2 (D4) หรือ GPIO 0 (D3) | วัดอุณหภูมิและความชื้น |
+| **DHT11 Sensor** | GPIO 33 | GPIO 2 (D4) | วัดอุณหภูมิและความชื้น |
 | **Analog KNOB / VR** | GPIO 36 (KNOB-S) | A0 (VR) | แอนะล็อกแปลงเป็น 0 - 100% |
 | **Fan Relay** | GPIO 5 | GPIO 13 (D7) | ควบคุมพัดลมจำลอง |
 | **Mist Relay** | GPIO 23 | GPIO 16 (D0) | ควบคุมปั๊มพ่นหมอกจำลอง |

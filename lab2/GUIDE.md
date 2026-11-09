@@ -21,7 +21,7 @@
 | | GND | `GND` | `GND` | กราวด์ร่วม |
 | | SDA (Data) | `GPIO 21` | `GPIO 4 / D2` | สัญญาณข้อมูล I2C (Address `0x3C`) |
 | | SCL (Clock) | `GPIO 22` | `GPIO 5 / D1` | สัญญาณนาฬิกา I2C (100–400 kHz) |
-| **เซ็นเซอร์ DHT11 / DHT22** | DATA | `GPIO 33` | `GPIO 0 / D3` | อุณหภูมิและความชื้น |
+| **เซ็นเซอร์ DHT11 / DHT22** | DATA | `GPIO 33` | `GPIO 2 / D4` | อุณหภูมิและความชื้น |
 | **Analog Input (VR / KNOB)** | Signal | `GPIO 36` (KNOB-S) | `A0` (จัมเปอร์ VR) | แรงดันแอนะล็อก ADC (0 - 3.3V) |
 | **สวิตช์ปุ่มกด (Switch Button)** | Input | `GPIO 0` (SW1) | `GPIO 0 / D3` (FLASH) | สลับสถานะและนับรอบ (Active LOW) |
 | **LED / Relay Output** | Control | `GPIO 18` (LED) / `GPIO 5` (Relay) | `GPIO 2 / D4` (LED) / `GPIO 14` (Relay) | แสดงสถานะสอดคล้องกับหน้าจอ |
