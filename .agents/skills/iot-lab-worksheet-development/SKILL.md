@@ -758,3 +758,89 @@ void loop() {
   }
 }
 ```
+
+---
+
+## 19. Universal Master Backend (`Master_Code.gs`) & Single-Sheet Multi-Tab Architecture
+
+เพื่อลดภาระการจัดการ Google Sheets 19 ไฟล์แยกกัน ระบบรองรับ **Universal Master Backend (`Master_Code.gs`)** ที่รวบรวมการส่งคะแนนจากทุกใบงานลงใน Google Sheet เดียวกัน พร้อมฟังก์ชันแยกแท็บอัตโนมัติ
+
+```mermaid
+flowchart TD
+    subgraph Worksheets ["19 IoT Lab Worksheets"]
+        W0["Lab 0 (Basic)"]
+        W1["Lab 1 & 1.1"]
+        W3["Lab 3, 3.1, 3.2"]
+        W6["Lab 6 & 6.1"]
+        W9["Lab 7, 8, 9, Extra"]
+    end
+
+    Router["Universal Master API Router (Master_Code.gs)<br>doPost() / resolveLabKey()"]
+
+    subgraph MasterSheet ["Single Master Google Sheet"]
+        Dash["📊 สรุปคะแนนรวม (Dashboard แท็บแรก)"]
+        T0["Lab 0 Submissions"]
+        T1["Lab 1 Submissions"]
+        T11["Lab 1.1 Submissions"]
+        T3["Lab 3 Submissions"]
+        TAll["... ทุกแท็บแยกตามแล็บ"]
+    end
+
+    Worksheets -->|payload.labId + auto-grading| Router
+    Router -->|สร้างแท็บ & บันทึกคะแนน| T0
+    Router -->|สร้างแท็บ & บันทึกคะแนน| T1
+    Router -->|สร้างแท็บ & บันทึกคะแนน| T11
+    Router -->|สร้างแท็บ & บันทึกคะแนน| T3
+    Router -->|สร้างแท็บ & บันทึกคะแนน| TAll
+    Router -->|คำนวณคะแนนรวม & Real-time Update| Dash
+```
+
+### คุณสมบัติหลักของ Master_Code.gs
+1. **Master Lab Registry (`LAB_REGISTRY`):**
+   - มีฐานข้อมูลแล็บครบทั้ง 19 แล็บ พร้อมสีแท็บ, ชื่อชีต, และหัวข้อแล็บ
+   - รองรับคีย์แล็บมาตรฐาน: `lab0`, `lab0-basic`, `lab1`, `lab1.1`, `lab2`, `lab3`, `lab3.1`, `lab3.2_Wifi_UI_config`, `lab4`, `lab4.1`, `lab5`, `LAB5_Dev`, `lab6`, `LAB6.1Perform`, `lab7`, `lab8`, `lab9`, `lab-extra`, `lab-webconfig_wifi`
+2. **Auto-Tab Creation & Formatting:**
+   - เมื่อมีนักเรียนส่งแล็บใดเข้ามาเป็นครั้งแรก หากแท็บของแล็บนั้นยังไม่มี ระบบจะสร้างแท็บใหม่พร้อมจัดหัวคอลัมน์สีเข้ม ตรึงแถวแรก (Frozen Row) และจัดขนาดให้อัตโนมัติ
+   - ทำความสะอาดชีตเริ่มต้นว่างเปล่า (`ชีต1` / `Sheet1`) ให้ไม่รก
+3. **Master Summary Dashboard (`📊 สรุปคะแนนรวม`):**
+   - แท็บแรกสุดของสเปรดชีตแสดงรายชื่อนักศึกษาทุกคน (รหัส, ชื่อ-นามสกุล, กลุ่ม)
+   - สรุปคะแนนแต่ละแล็บแบบ Real-time, คำนวณคะแนนรวมทั้งหมด, และนับจำนวนแล็บที่ส่ง
+4. **ลำดับความสำคัญของ Master URL ใน `config.js`:**
+   - ใน `getLabScriptUrl(labId)` กำหนดให้ **Master GAS URL มีลำดับความสำคัญสูงกว่าแคชเก่าใน localStorage** เพื่อป้องกันไม่ให้ประวัติเดิมส่งผลให้นักเรียนส่งไปชีตอื่น
+   - มีปุ่ม `[ 🔄 บังคับใช้ Master กับทุกแล็บ ]` (`applyMasterToAllLabs()`) ในหน้าตั้งค่า เพื่อล้างประวัติชีตเก่าและสลับมาใช้ Master ชีตเดียวทันที
+5. **ข้อกำหนด Payload ของ Frontend:**
+   - ใบงานทุกใบต้องแนบ `payload.labId = '<labKey>'` ใน JSON body ก่อนส่ง เพื่อให้ Master Router ชี้เป้าแท็บได้ถูกต้อง 100%
+
+---
+
+## 20. Teacher Clear Cache & Unlock Resubmission Mechanism
+
+กรณีที่นักเรียนกดส่งใบงานแล้วเกิดปัญหาทางเครือข่าย หรือต้องการให้นักเรียนปรับปรุงส่งใหม่ ระบบได้ออกแบบฟังก์ชันปลดล็อกระดับครูผู้สอน (`teacherClearLabCache`)
+
+### ปัญหาที่พบในระบบเดิม
+- เบราว์เซอร์นักเรียนบันทึก `localStorage.setItem(_LAB_STORAGE_KEY + studentId, timestamp)` ทำให้ฟอร์มถูกล็อก ไม่สามารถกดส่งได้
+- หากปลดล็อกเฉพาะหน้าเว็บ Google Sheets ก็จะบล็อกการส่งซ้ำด้วยระบบ Anti-Duplicate (`duplicate`) ทำให้นักเรียนส่งคะแนนใหม่ไม่เข้า
+
+### โซลูชันแบบครบวงจร
+1. **Teacher Action Box ในใบงาน (`.gas-connect-box`):**
+   - มีปุ่ม `[ เคลียร์ประวัติส่งซ้ำ ]` ป้องกันด้วยรหัสผ่านครูผู้สอน (`1234` หรือที่กำหนด)
+2. **การทำงานฝั่ง Frontend:**
+   - ลบ `_LAB_STORAGE_KEY + studentId` ออกจาก `localStorage`
+   - ปลดล็อกฟอร์มให้กรอกใหม่ได้ (`el.disabled = false`)
+   - ส่งคำขอไปยัง Google Apps Script:
+     ```javascript
+     fetch(effectiveScriptUrl, {
+       method: 'POST',
+       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+       body: JSON.stringify({
+         action: 'clearStudentLock',
+         studentId: targetStudentId,
+         labId: '<labKey>'
+       })
+     });
+     ```
+   - ตั้งค่าแฟล็ก `window._teacherAllowResubmit = true` และส่ง `payload.allowResubmit = true`
+3. **การทำงานฝั่ง Backend (Master_Code.gs & Code.gs):**
+   - คำขอ `action: 'clearStudentLock'` จะค้นหาแถวเดิมของรหัสนักศึกษานั้นในแท็บของแล็บ และลบแถวเดิมออก
+   - หากมีการส่งซ้ำและตรวจพบ `data.allowResubmit == true` ระบบจะยอมให้เขียนทับข้อมูลเดิมและคำนวณคะแนนใหม่โดยไม่แจ้งข้อผิดพลาด `duplicate`
+
