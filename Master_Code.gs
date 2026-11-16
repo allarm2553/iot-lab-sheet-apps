@@ -104,7 +104,26 @@ function menuCleanTestRows() {
 }
 
 function normalizeStudentId(rawId) {
-  return String(rawId || '').trim().replace(/^'+/, '').trim();
+  return String(rawId || '').replace(/[\s\u200B-\u200D\uFEFF']/g, '').trim();
+}
+
+/**
+ * แปลงค่ากลุ่ม/ห้อง ที่ถูก Google Sheets แปลงเป็นวันที่ (เช่น "4/5" -> Mon May 04 2026...GMT+0700) ให้กลับมาเป็น "4/5" หรือ "4/6"
+ */
+function sanitizeGroupValue(rawVal, fallbackGroup) {
+  if (rawVal === null || typeof rawVal === 'undefined') return fallbackGroup || '';
+  if (Object.prototype.toString.call(rawVal) === '[object Date]' && !isNaN(rawVal.getTime())) {
+    return rawVal.getDate() + '/' + (rawVal.getMonth() + 1);
+  }
+  var str = String(rawVal).trim();
+  if (str.indexOf('GMT') !== -1 || str.indexOf('เวลาอินโดจีน') !== -1 || /^[A-Z][a-z]{2}\s+[A-Z][a-z]{2}\s+\d{2}\s+\d{4}/.test(str)) {
+    var parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getDate() + '/' + (parsed.getMonth() + 1);
+    }
+    if (fallbackGroup) return fallbackGroup;
+  }
+  return str || fallbackGroup || '';
 }
 
 // =========================================================================
@@ -543,12 +562,50 @@ function syncAllScoresToMasterRoster(ss, useFormulas) {
     if (!labSheet || labSheet.getLastRow() <= 1) return;
 
     var lVals = labSheet.getDataRange().getValues();
+    var lDisp = labSheet.getDataRange().getDisplayValues();
+    var headers = lVals[0] || [];
+
+    // ค้นหาคอลัมน์คะแนนรวมจาก Header อัตโนมัติ (รองรับทั้งรูปแบบ Master_Code.gs และ Code.gs แยกแล็บเดิม)
+    var scoreColIndices = [5];
+    for (var h = 0; h < headers.length; h++) {
+      var hText = String(headers[h] || '').toLowerCase();
+      if (hText.indexOf('คะแนน') !== -1 || hText.indexOf('score') !== -1) {
+        if (scoreColIndices.indexOf(h) === -1) scoreColIndices.unshift(h);
+      }
+    }
+
     for (var r = 1; r < lVals.length; r++) {
-      // โครงสร้างแท็บย่อย: [0]=Timestamp, [1]=รหัสนักศึกษา, [2]=ชื่อ-นามสกุล, [3]=กลุ่ม/ห้อง, [4]=วันที่ทำแล็บ, [5]=คะแนนรวม
-      var sId = normalizeStudentId(lVals[r][1]);
-      var sName = String(lVals[r][2] || '').trim();
-      var sGroup = String(lVals[r][3] || '').trim();
-      var rawScore = parseFloat(lVals[r][5]);
+      // ตรวจจับรหัสนักศึกษาและชื่อ (รองรับกรณีสลับคอลัมน์ B กับ C จากชีตเก่า)
+      var col1 = normalizeStudentId(lDisp[r][1] || lVals[r][1]);
+      var col2 = normalizeStudentId(lDisp[r][2] || lVals[r][2]);
+      var sId = '';
+      var sName = '';
+      if (/^\d{4,15}$/.test(col1) || (!/^\d{4,15}$/.test(col2) && col1)) {
+        sId = col1;
+        sName = String(lDisp[r][2] || lVals[r][2] || '').trim();
+      } else if (/^\d{4,15}$/.test(col2)) {
+        sId = col2;
+        sName = String(lDisp[r][1] || lVals[r][1] || '').trim();
+      } else {
+        sId = col1;
+        sName = String(lDisp[r][2] || lVals[r][2] || '').trim();
+      }
+
+      var sGroup = sanitizeGroupValue(lVals[r][3], lDisp[r][3]);
+      var rawScore = NaN;
+      for (var scIdx = 0; scIdx < scoreColIndices.length; scIdx++) {
+        var idx = scoreColIndices[scIdx];
+        var candidate = lVals[r][idx];
+        if (typeof candidate === 'number' && !isNaN(candidate) && candidate >= 0 && candidate <= 10.5) {
+          rawScore = candidate;
+          break;
+        }
+        var parsedCand = parseFloat(String(candidate || '').trim());
+        if (!isNaN(parsedCand) && parsedCand >= 0 && parsedCand <= 10.5 && String(candidate).trim().length <= 5) {
+          rawScore = parsedCand;
+          break;
+        }
+      }
 
       if (!sId) continue;
       if (!isNaN(rawScore)) {
@@ -573,13 +630,23 @@ function syncAllScoresToMasterRoster(ss, useFormulas) {
     var currentCols = Math.max(sheet.getLastColumn(), totalCols);
     var rosterRange = sheet.getRange(2, 1, lastRow - 1, currentCols);
     var rosterVals = rosterRange.getValues();
+    var rosterDisp = rosterRange.getDisplayValues();
     var updatedMatrix = [];
+
+    // ตั้งค่ารูปแบบคอลัมน์ A (รหัสนักศึกษา) และคอลัมน์ C (กลุ่ม/ห้อง) เป็นข้อความธรรมดา (Plain Text) เพื่อป้องกัน Google Sheets แปลง "4/5" เป็นวันที่!
+    sheet.getRange(2, 1, lastRow - 1, 1).setNumberFormat("@");
+    sheet.getRange(2, 3, lastRow - 1, 1).setNumberFormat("@");
 
     for (var i = 0; i < rosterVals.length; i++) {
       var row = rosterVals[i];
-      var rId = normalizeStudentId(row[0]);
-      var rName = String(row[1] || '').trim();
-      var rGroup = String(row[2] || '').trim();
+      var dispRow = rosterDisp[i];
+      var rId = normalizeStudentId(dispRow[0] || row[0]);
+      var rName = String(dispRow[1] || row[1] || '').trim();
+      var fallbackGrp = (rId && studentMetaMap[rId] && studentMetaMap[rId].group) ? studentMetaMap[rId].group : '';
+      var rGroup = sanitizeGroupValue(row[2], dispRow[2]);
+      if (rGroup.indexOf('GMT') !== -1) {
+        rGroup = sanitizeGroupValue(rGroup, fallbackGrp);
+      }
 
       if (rId) {
         existingIds[rId] = true;
@@ -587,12 +654,12 @@ function syncAllScoresToMasterRoster(ss, useFormulas) {
         if (!rName && studentMetaMap[rId] && studentMetaMap[rId].name) {
           rName = studentMetaMap[rId].name;
         }
-        if (!rGroup && studentMetaMap[rId] && studentMetaMap[rId].group) {
-          rGroup = studentMetaMap[rId].group;
+        if (!rGroup && fallbackGrp) {
+          rGroup = fallbackGrp;
         }
       }
 
-      var newRow = [row[0], rName, rGroup];
+      var newRow = [rId || row[0], rName, rGroup];
       var sum = 0.0;
       var submittedCount = 0;
       var rowNum = i + 2;
@@ -601,6 +668,13 @@ function syncAllScoresToMasterRoster(ss, useFormulas) {
         var lKey = labColumns[c].key;
         var lSheetName = labColumns[c].sheetName;
         var matchedScore = (rId && typeof scoreMap[lKey][rId] === 'number') ? scoreMap[lKey][rId] : null;
+
+        if (matchedScore === null) {
+          // หากเป็น Lab 0 หรือ Lab 0 Basic ให้เช็คข้ามกันได้ในกรณีที่ส่งมาในอีกชื่อหนึ่ง
+          if (lKey === "lab0-basic" && rId && typeof scoreMap["lab0"][rId] === 'number') {
+            matchedScore = scoreMap["lab0"][rId];
+          }
+        }
 
         if (matchedScore === null) {
           // หากในหน้าสรุปมีคะแนนตัวเลขเดิมอยู่แล้ว และแท็บของแล็บนั้นยังไม่ถูกสร้าง ให้คงค่าเดิมไว้
@@ -635,8 +709,8 @@ function syncAllScoresToMasterRoster(ss, useFormulas) {
         newRow.push(submittedCount);
       }
 
-      var prevTime = row[3 + totalLabsCount + 2];
-      newRow.push(submittedCount > 0 ? (prevTime || nowStr) : (prevTime || "-"));
+      var prevTime = dispRow[3 + totalLabsCount + 2] || row[3 + totalLabsCount + 2];
+      newRow.push(submittedCount > 0 ? (prevTime && prevTime !== "-" ? prevTime : nowStr) : (prevTime || "-"));
       updatedMatrix.push(newRow);
     }
 
