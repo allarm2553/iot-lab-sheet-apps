@@ -2444,18 +2444,27 @@ void loop() {
     }
 
     function copyVsCodeCommand() {
-      const cmd = 'pio run -t uploadfs && pio run -t upload';
-      navigator.clipboard.writeText(cmd).then(() => {
-        Swal.fire({
-          icon: 'success',
-          title: 'คัดลอกคำสั่ง VS Code แล้ว!',
-          text: cmd,
-          background: '#0f172a',
-          color: '#f8fafc',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      });
+      openProjectInVsCode('LAB6.1Perform');
+    }
+    function openProjectInVsCode(labFolder) {
+      labFolder = labFolder || 'lab2';
+      const subDir = (labFolder === 'lab5' || labFolder === 'LAB5_Dev' || labFolder === 'lab6' || labFolder === 'LAB6.1Perform')
+        ? 'solution'
+        : 'vscode-wokwi-template';
+      const workspacePath = `/Users/allarmmac/myjob_folder/MyLaB/IoT/${labFolder}/${subDir}`;
+      window.location.href = `vscode://file${workspacePath}`;
+      fetch('/api/open-vscode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lab: labFolder })
+      }).catch(() => {});
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        fetch('http://localhost:4000/api/open-vscode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lab: labFolder })
+        }).catch(() => {});
+      }
     }
 
     function copySkeletonCode() {

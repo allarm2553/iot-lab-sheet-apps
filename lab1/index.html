@@ -3400,13 +3400,27 @@ void loop() {
     }
 
     function copyVsCodeCommand() {
-      const guideText = `// PlatformIO + Wokwi Extension Setup for Lab 1:
-1. ติดตั้งส่วนขยาย 'Wokwi Simulator' ใน VS Code
-2. ดาวน์โหลด template: 'lab1_vscode_wokwi_template.zip' แล้วแตกไฟล์เปิดใน VS Code
-3. กด F1 -> พิมพ์ 'Wokwi: Start Simulator' เพื่อเริ่มจำลองวงจรใน VS Code ทันที!`;
-      navigator.clipboard.writeText(guideText).then(() => {
-        alert('คัดลอกขั้นตอนเปิดใช้งาน VS Code + Wokwi เรียบร้อยแล้วครับ!\n\nท่านสามารถดาวน์โหลดไฟล์ template .zip ไปเปิดได้ทันที');
-      });
+      openProjectInVsCode('lab1');
+    }
+    function openProjectInVsCode(labFolder) {
+      labFolder = labFolder || 'lab2';
+      const subDir = (labFolder === 'lab5' || labFolder === 'LAB5_Dev' || labFolder === 'lab6' || labFolder === 'LAB6.1Perform')
+        ? 'solution'
+        : 'vscode-wokwi-template';
+      const workspacePath = `/Users/allarmmac/myjob_folder/MyLaB/IoT/${labFolder}/${subDir}`;
+      window.location.href = `vscode://file${workspacePath}`;
+      fetch('/api/open-vscode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lab: labFolder })
+      }).catch(() => {});
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        fetch('http://localhost:4000/api/open-vscode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lab: labFolder })
+        }).catch(() => {});
+      }
     }
 
     // =========================================================

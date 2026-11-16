@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 4000;
@@ -382,6 +383,32 @@ validLabs.forEach(lab => {
 
 // Serve root static files (index.html, dashboard.html, etc.)
 app.use(express.static(__dirname));
+
+// API: Open VS Code Wokwi Template directly (matching MCU_WebApps behavior)
+app.all('/api/open-vscode', (req, res) => {
+  const lab = (req.body && req.body.lab) || (req.query && req.query.lab) || 'lab2';
+  const cleanLab = String(lab).replace(/[^a-zA-Z0-9._-]/g, '');
+  let targetDir = path.join(__dirname, cleanLab, 'vscode-wokwi-template');
+  if (!fs.existsSync(targetDir)) {
+    targetDir = path.join(__dirname, cleanLab, 'solution');
+  }
+  if (!fs.existsSync(targetDir)) {
+    return res.status(404).json({ success: false, error: 'Template directory not found: ' + targetDir });
+  }
+  const mainCpp = path.join(targetDir, 'src', 'main.cpp');
+  const diagramJson = path.join(targetDir, 'diagram.json');
+  const filesToOpen = [targetDir];
+  if (fs.existsSync(mainCpp)) filesToOpen.push(mainCpp);
+  if (fs.existsSync(diagramJson)) filesToOpen.push(diagramJson);
+  const quotedArgs = filesToOpen.map(f => `"${f}"`).join(' ');
+  exec(`/usr/local/bin/code ${quotedArgs} || code ${quotedArgs} || open -a "/Applications/Visual Studio Code.app" "${targetDir}"`, (err) => {
+    if (err) {
+      res.json({ success: false, error: err.message });
+    } else {
+      res.json({ success: true, message: 'VS Code opened successfully', path: targetDir });
+    }
+  });
+});
 
 // Submissions API POST: Handles file uploads, auto-grading, and logging
 app.post('/api/submit', (req, res) => {

@@ -2026,6 +2026,9 @@
               <a id="wokwiExternalLink" href="https://wokwi.com/projects/424368482061099009" target="_blank" rel="noopener noreferrer" class="wokwi-ctrl-btn external" title="เปิดแท็บใหม่บน Wokwi.com">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>เปิด Wokwi</span>
               </a>
+              <button type="button" class="wokwi-ctrl-btn vscode" onclick="openProjectInVsCode('lab0')" title="เปิดโปรเจกต์พร้อมโค้ด (main.cpp) และวงจร (diagram.json) ในโปรแกรม VS Code + Wokwi ทันที">
+                <i class="fa-solid fa-code"></i> <span>VS Code Wokwi</span>
+              </button>
               <a href="lab0_vscode_wokwi_template.zip" download="lab0_vscode_wokwi_template.zip" class="wokwi-ctrl-btn zip" title="ดาวน์โหลดโปรเจกต์ต้นแบบ PlatformIO + Wokwi ไปเปิดใน VS Code">
                 <i class="fa-solid fa-download"></i> <span>โหลด Template (.zip)</span>
               </a>
@@ -4815,6 +4818,28 @@ function doPost(e) {
       const m = document.getElementById('alertModal');
       if (m) m.style.display = 'none';
     }
+  
+    function openProjectInVsCode(labFolder) {
+      labFolder = labFolder || 'lab2';
+      const subDir = (labFolder === 'lab5' || labFolder === 'LAB5_Dev' || labFolder === 'lab6' || labFolder === 'LAB6.1Perform')
+        ? 'solution'
+        : 'vscode-wokwi-template';
+      const workspacePath = `/Users/allarmmac/myjob_folder/MyLaB/IoT/${labFolder}/${subDir}`;
+      window.location.href = `vscode://file${workspacePath}`;
+      fetch('/api/open-vscode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lab: labFolder })
+      }).catch(() => {});
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        fetch('http://localhost:4000/api/open-vscode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lab: labFolder })
+        }).catch(() => {});
+      }
+    }
+
   </script>
 </body>
 </html>
