@@ -22,6 +22,11 @@
 var TARGET_SPREADSHEET_ID = "1qxn6gtbsATo4ML1b1yujxVL9YFm6npvARy1m4FSIBoE";
 
 function getTargetSpreadsheet() {
+  try {
+    var active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (err) {}
+
   if (typeof TARGET_SPREADSHEET_ID !== 'undefined' && TARGET_SPREADSHEET_ID && TARGET_SPREADSHEET_ID.trim().length > 0) {
     var rawId = TARGET_SPREADSHEET_ID.trim();
     if (rawId.indexOf('http') !== -1) {
@@ -34,11 +39,72 @@ function getTargetSpreadsheet() {
       console.warn("ไม่สามารถเปิดตาม TARGET_SPREADSHEET_ID ได้:", e);
     }
   }
+  return null;
+}
+
+/**
+ * สร้างเมนูพิเศษบนแถบเครื่องมือ Google Sheets อัตโนมัติเมื่อเปิดไฟล์
+ */
+function onOpen() {
   try {
-    return SpreadsheetApp.getActiveSpreadsheet();
-  } catch (err) {
-    return null;
+    var ui = SpreadsheetApp.getUi();
+    ui.createMenu('🎓 ระบบจัดการคะแนน IoT')
+      .addItem('🔄 ดึงคะแนนทุกแล็บตามรหัสนักศึกษา (Sync Scores to Roster)', 'menuSyncAllScoresByStudentId')
+      .addItem('📐 ผูกสูตรดึงคะแนนอัตโนมัติ (Insert VLOOKUP Formulas)', 'menuApplyLookupFormulas')
+      .addSeparator()
+      .addItem('🧹 ล้างแถวทดสอบที่ไม่ใช่รหัสนักศึกษาจริง (Clean Test Rows)', 'menuCleanTestRows')
+      .addToUi();
+  } catch (e) {}
+}
+
+function menuSyncAllScoresByStudentId() {
+  var ss = getTargetSpreadsheet();
+  if (!ss) return;
+  var stats = syncAllScoresToMasterRoster(ss, false);
+  try {
+    SpreadsheetApp.getUi().alert(
+      '✅ ซิงค์คะแนนตามรหัสนักศึกษาสำเร็จ!',
+      'อัปเดตข้อมูลนักศึกษาทั้งหมด ' + stats.totalRows + ' รายการ\nดึงคะแนนจากแท็บใบงานย่อยสำเร็จ (โดยคงชื่อ-นามสกุล และกลุ่ม/ห้อง ตามใบรายชื่อของครูไว้ครบถ้วน)',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  } catch (e) {}
+}
+
+function menuApplyLookupFormulas() {
+  var ss = getTargetSpreadsheet();
+  if (!ss) return;
+  var stats = syncAllScoresToMasterRoster(ss, true);
+  try {
+    SpreadsheetApp.getUi().alert(
+      '📐 ผูกสูตรดึงคะแนนอัตโนมัติสำเร็จ!',
+      'ผูกสูตรค้นหาคะแนนตามรหัสนักศึกษา ($A) ให้กับนักศึกษา ' + stats.totalRows + ' รายการเรียบร้อยแล้ว',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  } catch (e) {}
+}
+
+function menuCleanTestRows() {
+  var ss = getTargetSpreadsheet();
+  if (!ss) return;
+  var sheet = ss.getSheetByName("📊 สรุปคะแนนรวม");
+  if (!sheet || sheet.getLastRow() <= 1) return;
+  var vals = sheet.getDataRange().getValues();
+  var removed = 0;
+  for (var r = vals.length - 1; r >= 1; r--) {
+    var id = normalizeStudentId(vals[r][0]);
+    var name = String(vals[r][1] || '').trim().toLowerCase();
+    if (!id || name.indexOf('test') !== -1 || name.indexOf('ทดสอบ') !== -1 || id === '1234567' || id === '2523' || id === '9876543' || id === '445667722') {
+      sheet.deleteRow(r + 1);
+      removed++;
+    }
   }
+  try {
+    SpreadsheetApp.getUi().alert('🧹 ล้างแถวทดสอบเรียบร้อย', 'ลบแถวข้อมูลทดสอบออกทั้งหมด ' + removed + ' แถว', SpreadsheetApp.getUi().ButtonSet.OK);
+  } catch (e) {}
+}
+
+function normalizeStudentId(rawId) {
+  return String(rawId || '').trim().replace(/^'+/, '').trim();
 }
 
 // =========================================================================
@@ -241,12 +307,31 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 1. ตรวจสอบการ Ping / ทดสอบเชื่อมต่อ
+    // 1. ตรวจสอบการ Ping / ทดสอบเชื่อมต่อ (พร้อมซิงค์คะแนนเข้าใบรายชื่ออัตโนมัติ)
     if (data.action === 'testConnection' || data.action === 'ping' || data.test === true) {
+      var syncStats = { totalRows: 0 };
+      try {
+        syncStats = syncAllScoresToMasterRoster(ss, false);
+      } catch (e) {}
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
         type: 'master',
-        message: 'เชื่อมต่อ Universal Master Google Sheet: "' + ss.getName() + '" สำเร็จพร้อมบันทึกคะแนน!',
+        message: 'เชื่อมต่อ Universal Master Google Sheet: "' + ss.getName() + '" สำเร็จพร้อมบันทึกคะแนน! (ซิงค์ใบรายชื่อ ' + syncStats.totalRows + ' คนแล้ว)',
+        spreadsheetName: ss.getName(),
+        spreadsheetUrl: ss.getUrl(),
+        syncedRows: syncStats.totalRows
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 1.5 ซิงค์คะแนนจากทุกแท็บใบงานเข้าสู่ตารางรายชื่อในหน้าสรุปคะแนนรวม (ตามรหัสนักศึกษา)
+    if (data.action === 'syncRoster' || data.action === 'syncScores') {
+      var useFormulas = (data.useFormulas === true);
+      var stats = syncAllScoresToMasterRoster(ss, useFormulas);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        type: 'master',
+        message: '✅ ดึงคะแนนจากทุกแล็บตามรหัสนักศึกษาสำเร็จ! (อัปเดตทั้งหมด ' + stats.totalRows + ' รายชื่อ โดยคงชื่อ-นามสกุล และห้องตามใบรายชื่อครู)',
+        totalRows: stats.totalRows,
         spreadsheetName: ss.getName(),
         spreadsheetUrl: ss.getUrl()
       })).setMimeType(ContentService.MimeType.JSON);
@@ -254,13 +339,13 @@ function doPost(e) {
 
     // 2. ปลดล็อกล้างประวัติส่งซ้ำ (กรณีครูกดเคลียร์แคช)
     if (data.action === 'clearStudentLock' || data.action === 'clearStudent') {
-      var sId = String(data.studentId || '').trim();
+      var sId = normalizeStudentId(data.studentId || '');
       if (sId) {
         clearStudentSubmissionFromAllSheets(ss, sId, data.labId);
       }
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
-        message: 'ปลดล็อกและลบประวัติเดิมของรหัส ' + sId + ' ใน Google Sheets เรียบร้อยแล้ว'
+        message: 'ปลดล็อกและลบประวัติเดิมของรหัส ' + sId + ' ใน Google Sheets เรียบร้อยแล้ว (โดยคงรายชื่อในหน้าสรุปคะแนนรวมไว้)'
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -385,37 +470,37 @@ function processMasterSubmission(ss, labKey, labMeta, data) {
   };
 }
 
-/**
- * สร้างหรืออัปเดตข้อมูลในแท็บแรก: "📊 Dashboard สรุปคะแนนรวม"
- */
-function updateMasterSummaryDashboard(ss, labKey, labMeta, data, labScore) {
+function getSummaryLabColumns() {
+  return [
+    { key: "lab0", label: "Lab 0", sheetName: "Lab 0 Submissions" },
+    { key: "lab0-basic", label: "Lab 0 Basic", sheetName: "Lab 0 Basic Submissions" },
+    { key: "lab1", label: "Lab 1", sheetName: "Lab 1 Submissions" },
+    { key: "lab1.1", label: "Lab 1.1", sheetName: "Lab 1.1 Submissions" },
+    { key: "lab2", label: "Lab 2", sheetName: "Lab 2 Submissions" },
+    { key: "lab3", label: "Lab 3", sheetName: "Lab 3 Submissions" },
+    { key: "lab3.1", label: "Lab 3.1", sheetName: "Lab 3.1 Submissions" },
+    { key: "lab3.2_Wifi_UI_config", label: "Lab 3.2", sheetName: "Lab 3.2 Submissions" },
+    { key: "lab4", label: "Lab 4", sheetName: "Lab 4 Submissions" },
+    { key: "lab4.1", label: "Lab 4.1", sheetName: "Lab 4.1 Submissions" },
+    { key: "lab5", label: "Lab 5", sheetName: "Lab 5 Submissions" },
+    { key: "LAB5_Dev", label: "Lab 5 Dev", sheetName: "Lab 5 Dev Submissions" },
+    { key: "lab6", label: "Lab 6", sheetName: "Lab 6 Submissions" },
+    { key: "LAB6.1Perform", label: "Lab 6.1", sheetName: "Lab 6.1 Perform Submissions" },
+    { key: "lab7", label: "Lab 7", sheetName: "Lab 7 Submissions" },
+    { key: "lab8", label: "Lab 8", sheetName: "Lab 8 Submissions" },
+    { key: "lab9", label: "Lab 9", sheetName: "Lab 9 Submissions" },
+    { key: "lab-extra", label: "Lab Extra", sheetName: "Lab Extra Submissions" },
+    { key: "lab-webconfig_wifi", label: "WebConfig", sheetName: "WebConfig Submissions" }
+  ];
+}
+
+function getOrCreateSummarySheet(ss) {
   var summarySheetName = "📊 สรุปคะแนนรวม";
   var sheet = ss.getSheetByName(summarySheetName);
-
-  var labColumns = [
-    { key: "lab0", label: "Lab 0" },
-    { key: "lab0-basic", label: "Lab 0 Basic" },
-    { key: "lab1", label: "Lab 1" },
-    { key: "lab1.1", label: "Lab 1.1" },
-    { key: "lab2", label: "Lab 2" },
-    { key: "lab3", label: "Lab 3" },
-    { key: "lab3.1", label: "Lab 3.1" },
-    { key: "lab3.2_Wifi_UI_config", label: "Lab 3.2" },
-    { key: "lab4", label: "Lab 4" },
-    { key: "lab4.1", label: "Lab 4.1" },
-    { key: "lab5", label: "Lab 5" },
-    { key: "LAB5_Dev", label: "Lab 5 Dev" },
-    { key: "lab6", label: "Lab 6" },
-    { key: "LAB6.1Perform", label: "Lab 6.1" },
-    { key: "lab7", label: "Lab 7" },
-    { key: "lab8", label: "Lab 8" },
-    { key: "lab9", label: "Lab 9" },
-    { key: "lab-extra", label: "Lab Extra" },
-    { key: "lab-webconfig_wifi", label: "WebConfig" }
-  ];
+  var labColumns = getSummaryLabColumns();
 
   if (!sheet) {
-    sheet = ss.insertSheet(summarySheetName, 0); // แทรกเป็นแท็บแรกสุด
+    sheet = ss.insertSheet(summarySheetName, 0);
     var headers = ["รหัสนักศึกษา", "ชื่อ-นามสกุล", "กลุ่ม/ห้อง"];
     labColumns.forEach(function(c) { headers.push(c.label); });
     headers.push("คะแนนรวมทั้งหมด");
@@ -430,29 +515,202 @@ function updateMasterSummaryDashboard(ss, labKey, labMeta, data, labScore) {
       .setBackground("#0f172a")
       .setFontColor("#38bdf8");
 
-    // ลบแท็บว่างเปล่าเริ่มต้น (เช่น ชีต1 หรือ Sheet1) ที่ติดมากับสเปรดชีตใหม่
     var defaultEmpty = ss.getSheetByName("ชีต1") || ss.getSheetByName("Sheet1");
     if (defaultEmpty && defaultEmpty.getLastRow() === 0 && ss.getSheets().length > 1) {
       try { ss.deleteSheet(defaultEmpty); } catch (e) {}
     }
   }
+  return sheet;
+}
 
-  var studentId = String(data.studentId || '').trim();
-  var studentName = data.studentName || '';
-  var studentGroup = data.studentGroup || '';
+/**
+ * ซิงค์และดึงคะแนนจากทุกแท็บใบงานย่อยมาใส่ในตาราง "📊 สรุปคะแนนรวม" โดยอ้างอิงจาก "รหัสนักศึกษา" (คอลัมน์ A)
+ * - รักษา "ชื่อ-นามสกุล" (Col B) และ "กลุ่ม/ห้อง" (Col C) ที่ครูพิมพ์ไว้ล่วงหน้าเสมอ (ไม่เขียนทับ)
+ * - หากนักศึกษาในแท็บย่อยยังไม่มีรหัสในหน้าสรุปรวม จะเพิ่มต่อท้ายตารางให้อัตโนมัติ
+ */
+function syncAllScoresToMasterRoster(ss, useFormulas) {
+  var sheet = getOrCreateSummarySheet(ss);
+  var labColumns = getSummaryLabColumns();
+  var totalLabsCount = labColumns.length;
+
+  // 1. กวาดคะแนนจากทุกแท็บใบงานที่มีอยู่ในไฟล์เข้าสู่หน่วยความจำ (Index by normalized studentId)
+  var scoreMap = {}; // scoreMap[labKey][studentId] = score
+  var studentMetaMap = {}; // studentMetaMap[studentId] = { name, group }
+
+  labColumns.forEach(function(col) {
+    scoreMap[col.key] = {};
+    var labSheet = ss.getSheetByName(col.sheetName);
+    if (!labSheet || labSheet.getLastRow() <= 1) return;
+
+    var lVals = labSheet.getDataRange().getValues();
+    for (var r = 1; r < lVals.length; r++) {
+      // โครงสร้างแท็บย่อย: [0]=Timestamp, [1]=รหัสนักศึกษา, [2]=ชื่อ-นามสกุล, [3]=กลุ่ม/ห้อง, [4]=วันที่ทำแล็บ, [5]=คะแนนรวม
+      var sId = normalizeStudentId(lVals[r][1]);
+      var sName = String(lVals[r][2] || '').trim();
+      var sGroup = String(lVals[r][3] || '').trim();
+      var rawScore = parseFloat(lVals[r][5]);
+
+      if (!sId) continue;
+      if (!isNaN(rawScore)) {
+        scoreMap[col.key][sId] = parseFloat(rawScore.toFixed(1));
+      }
+      if (!studentMetaMap[sId]) {
+        studentMetaMap[sId] = { name: sName, group: sGroup };
+      } else {
+        if (!studentMetaMap[sId].name && sName) studentMetaMap[sId].name = sName;
+        if (!studentMetaMap[sId].group && sGroup) studentMetaMap[sId].group = sGroup;
+      }
+    }
+  });
+
+  // 2. อ่านตารางรายชื่อปัจจุบันในหน้า "📊 สรุปคะแนนรวม"
+  var lastRow = sheet.getLastRow();
+  var existingIds = {};
+  var nowStr = new Date().toLocaleString("th-TH");
+
+  if (lastRow >= 2) {
+    var totalCols = 3 + totalLabsCount + 3;
+    var currentCols = Math.max(sheet.getLastColumn(), totalCols);
+    var rosterRange = sheet.getRange(2, 1, lastRow - 1, currentCols);
+    var rosterVals = rosterRange.getValues();
+    var updatedMatrix = [];
+
+    for (var i = 0; i < rosterVals.length; i++) {
+      var row = rosterVals[i];
+      var rId = normalizeStudentId(row[0]);
+      var rName = String(row[1] || '').trim();
+      var rGroup = String(row[2] || '').trim();
+
+      if (rId) {
+        existingIds[rId] = true;
+        // เติมชื่อ/ห้องเฉพาะกรณีที่ช่องในใบรายชื่อครูว่างอยู่เท่านั้น (ห้ามเขียนทับใบรายชื่อครู!)
+        if (!rName && studentMetaMap[rId] && studentMetaMap[rId].name) {
+          rName = studentMetaMap[rId].name;
+        }
+        if (!rGroup && studentMetaMap[rId] && studentMetaMap[rId].group) {
+          rGroup = studentMetaMap[rId].group;
+        }
+      }
+
+      var newRow = [row[0], rName, rGroup];
+      var sum = 0.0;
+      var submittedCount = 0;
+      var rowNum = i + 2;
+
+      for (var c = 0; c < totalLabsCount; c++) {
+        var lKey = labColumns[c].key;
+        var lSheetName = labColumns[c].sheetName;
+        var matchedScore = (rId && typeof scoreMap[lKey][rId] === 'number') ? scoreMap[lKey][rId] : null;
+
+        if (matchedScore === null) {
+          // หากในหน้าสรุปมีคะแนนตัวเลขเดิมอยู่แล้ว และแท็บของแล็บนั้นยังไม่ถูกสร้าง ให้คงค่าเดิมไว้
+          var existingCellVal = parseFloat(row[3 + c]);
+          if (!isNaN(existingCellVal) && !ss.getSheetByName(lSheetName)) {
+            matchedScore = parseFloat(existingCellVal.toFixed(1));
+          }
+        }
+
+        if (matchedScore !== null) {
+          sum += matchedScore;
+          submittedCount++;
+        }
+
+        if (useFormulas && ss.getSheetByName(lSheetName)) {
+          // ผูกสูตร VLOOKUP ค้นหาจากแท็บของแล็บนั้นๆ โดยตรงตามรหัสนักศึกษาในคอลัมน์ A
+          var escapedSheet = lSheetName.replace(/'/g, "''");
+          var formula = '=IF($A' + rowNum + '="","-",IFERROR(VALUE(VLOOKUP(TO_TEXT($A' + rowNum + '),{\'' + escapedSheet + '\'!$B:$B,\'' + escapedSheet + '\'!$F:$F},2,FALSE)),IFERROR(VALUE(VLOOKUP($A' + rowNum + ',\'' + escapedSheet + '\'!$B:$F,5,FALSE)),"-")))';
+          newRow.push(formula);
+        } else {
+          newRow.push(matchedScore !== null ? matchedScore : "-");
+        }
+      }
+
+      if (useFormulas) {
+        var firstLabColLetter = "D";
+        var lastLabColLetter = columnToLetter(3 + totalLabsCount); // V
+        newRow.push('=ROUND(SUM(' + firstLabColLetter + rowNum + ':' + lastLabColLetter + rowNum + '), 1)');
+        newRow.push('=COUNT(' + firstLabColLetter + rowNum + ':' + lastLabColLetter + rowNum + ')');
+      } else {
+        newRow.push(parseFloat(sum.toFixed(1)));
+        newRow.push(submittedCount);
+      }
+
+      var prevTime = row[3 + totalLabsCount + 2];
+      newRow.push(submittedCount > 0 ? (prevTime || nowStr) : (prevTime || "-"));
+      updatedMatrix.push(newRow);
+    }
+
+    sheet.getRange(2, 1, updatedMatrix.length, totalCols).setValues(updatedMatrix);
+  }
+
+  // 3. หากมีรหัสนักศึกษาที่ส่งงานในแท็บย่อย แต่ยังไม่มีรายชื่ออยู่ในหน้าสรุปรวม ให้เพิ่มต่อท้าย
+  var appendedCount = 0;
+  for (var sIdKey in studentMetaMap) {
+    if (!existingIds[sIdKey]) {
+      var meta = studentMetaMap[sIdKey];
+      var appendRow = [sIdKey, meta.name || '', meta.group || ''];
+      var sumNew = 0.0;
+      var countNew = 0;
+      for (var j = 0; j < totalLabsCount; j++) {
+        var k = labColumns[j].key;
+        var sc = (typeof scoreMap[k][sIdKey] === 'number') ? scoreMap[k][sIdKey] : null;
+        if (sc !== null) {
+          appendRow.push(sc);
+          sumNew += sc;
+          countNew++;
+        } else {
+          appendRow.push("-");
+        }
+      }
+      appendRow.push(parseFloat(sumNew.toFixed(1)));
+      appendRow.push(countNew);
+      appendRow.push(nowStr);
+      sheet.appendRow(appendRow);
+      appendedCount++;
+    }
+  }
+
+  return {
+    totalRows: Math.max(0, sheet.getLastRow() - 1),
+    appendedRows: appendedCount
+  };
+}
+
+function columnToLetter(column) {
+  var temp, letter = '';
+  while (column > 0) {
+    temp = (column - 1) % 26;
+    letter = String.fromCharCode(temp + 65) + letter;
+    column = (column - temp - 1) / 26;
+  }
+  return letter;
+}
+
+/**
+ * สร้างหรืออัปเดตข้อมูลในแท็บแรก: "📊 สรุปคะแนนรวม" เมื่อนักศึกษาส่งใบงาน
+ * - ค้นหาแถวจาก "รหัสนักศึกษา" (Col A)
+ * - คง "ชื่อ-นามสกุล" (Col B) และ "กลุ่ม/ห้อง" (Col C) ตามที่ครูวางไว้ในใบรายชื่อ
+ * - พร้อมซิงค์คะแนนทุกแล็บให้ตรงกับใบรายชื่ออัตโนมัติ
+ */
+function updateMasterSummaryDashboard(ss, labKey, labMeta, data, labScore) {
+  var sheet = getOrCreateSummarySheet(ss);
+  var labColumns = getSummaryLabColumns();
+
+  var studentId = normalizeStudentId(data.studentId || '');
+  var studentName = String(data.studentName || '').trim();
+  var studentGroup = String(data.studentGroup || '').trim();
   if (!studentId) return;
 
   var vals = sheet.getDataRange().getValues();
   var targetRow = -1;
 
   for (var r = 1; r < vals.length; r++) {
-    if (String(vals[r][0] || '').trim() === studentId) {
+    if (normalizeStudentId(vals[r][0]) === studentId) {
       targetRow = r + 1;
       break;
     }
   }
 
-  // หา Index ของคอลัมน์แล็บนี้
   var labColIdx = -1;
   for (var c = 0; c < labColumns.length; c++) {
     if (labColumns[c].key === labKey) {
@@ -466,44 +724,25 @@ function updateMasterSummaryDashboard(ss, labKey, labMeta, data, labScore) {
   var countColIdx = sumColIdx + 1;     // คอลัมน์จำนวนแล็บ
   var timeColIdx = countColIdx + 1;    // คอลัมน์อัปเดตล่าสุด
 
-  if (targetRow === -1) {
-    // สร้างแถวใหม่สำหรับนักศึกษาคนนี้
-    var newRow = [studentId, studentName, studentGroup];
-    for (var i = 0; i < totalLabsCount; i++) {
-      if (labColumns[i].key === labKey) {
-        newRow.push(labScore);
-      } else {
-        newRow.push("-");
-      }
-    }
-    newRow.push(labScore); // คะแนนรวม
-    newRow.push(1);        // ส่ง 1 แล็บ
-    newRow.push(new Date().toLocaleString("th-TH"));
-
-    sheet.appendRow(newRow);
-  } else {
-    // อัปเดตแถวเดิมที่มีอยู่
+  if (targetRow !== -1) {
+    // อัปเดตเฉพาะช่องคะแนนของแล็บที่ส่งเข้ามา
     if (labColIdx !== -1) {
       sheet.getRange(targetRow, labColIdx).setValue(labScore);
     }
-    sheet.getRange(targetRow, 2).setValue(studentName);
-    sheet.getRange(targetRow, 3).setValue(studentGroup);
-    sheet.getRange(targetRow, timeColIdx).setValue(new Date().toLocaleString("th-TH"));
-
-    // คำนวณคะแนนรวมและจำนวนแล็บใหม่
-    var rowScores = sheet.getRange(targetRow, 4, 1, totalLabsCount).getValues()[0];
-    var sum = 0.0;
-    var submittedCount = 0;
-    for (var s = 0; s < rowScores.length; s++) {
-      var val = parseFloat(rowScores[s]);
-      if (!isNaN(val)) {
-        sum += val;
-        submittedCount++;
-      }
+    // รักษาชื่อ-นามสกุล และกลุ่ม/ห้อง ตามที่ครูพิมพ์ไว้ล่วงหน้า (เติมเฉพาะกรณีที่ช่องนั้นว่างเท่านั้น)
+    var existingName = String(vals[targetRow - 1][1] || '').trim();
+    var existingGroup = String(vals[targetRow - 1][2] || '').trim();
+    if (!existingName && studentName) {
+      sheet.getRange(targetRow, 2).setValue(studentName);
     }
-    sheet.getRange(targetRow, sumColIdx).setValue(parseFloat(sum.toFixed(1)));
-    sheet.getRange(targetRow, countColIdx).setValue(submittedCount);
+    if (!existingGroup && studentGroup) {
+      sheet.getRange(targetRow, 3).setValue(studentGroup);
+    }
+    sheet.getRange(targetRow, timeColIdx).setValue(new Date().toLocaleString("th-TH"));
   }
+
+  // ซิงค์คะแนนทั้งหมดตามรหัสนักศึกษาเพื่อให้ทุกแถวในใบรายชื่อที่ครูวางไว้ได้รับคะแนนครบทุกแล็บทันที
+  syncAllScoresToMasterRoster(ss, false);
 }
 
 /**
@@ -552,25 +791,52 @@ function getOrCreateDriveFolder(name, parent) {
 }
 
 /**
- * ลบประวัติการส่งงานของนักศึกษาจากแท็บใบงานและแดชบอร์ด
+ * ลบประวัติการส่งงานของนักศึกษาจากแท็บใบงานย่อย และรีเซ็ตเฉพาะช่องคะแนนในแดชบอร์ดสรุปรวม (โดยไม่ลบแถวรายชื่อ!)
  */
 function clearStudentSubmissionFromAllSheets(ss, studentId, specificLabKey) {
+  var cleanId = normalizeStudentId(studentId);
+  if (!cleanId) return;
+
   var sheets = ss.getSheets();
   sheets.forEach(function(s) {
+    var sName = s.getName();
+    // ห้ามลบแถวรายชื่อในแท็บ "📊 สรุปคะแนนรวม" เด็ดขาด!
+    if (sName === "📊 สรุปคะแนนรวม") return;
+
     if (specificLabKey) {
       var meta = LAB_REGISTRY[specificLabKey];
-      if (meta && s.getName() !== meta.sheetName && s.getName() !== "📊 สรุปคะแนนรวม") return;
+      if (meta && sName !== meta.sheetName) return;
     }
+
     var vals = s.getDataRange().getValues();
     for (var r = vals.length - 1; r >= 1; r--) {
-      var id1 = String(vals[r][0] || '').trim().replace(/^'/, '');
-      var id2 = String(vals[r][1] || '').trim().replace(/^'/, '');
-      var id3 = String(vals[r][2] || '').trim().replace(/^'/, '');
-      if (id1 === studentId || id2 === studentId || id3 === studentId) {
+      var id1 = normalizeStudentId(vals[r][0]);
+      var id2 = normalizeStudentId(vals[r][1]);
+      var id3 = normalizeStudentId(vals[r][2]);
+      if (id1 === cleanId || id2 === cleanId || id3 === cleanId) {
         s.deleteRow(r + 1);
       }
     }
   });
+
+  // อัปเดตตารางสรุปคะแนนรวมใหม่ (ช่องคะแนนของแล็บที่ถูกลบจะกลับเป็น "-" โดยที่ชื่อ-นามสกุล และห้องยังคงอยู่)
+  try {
+    var summarySheet = ss.getSheetByName("📊 สรุปคะแนนรวม");
+    if (summarySheet && summarySheet.getLastRow() >= 2) {
+      var labColumns = getSummaryLabColumns();
+      var sVals = summarySheet.getDataRange().getValues();
+      for (var r = 1; r < sVals.length; r++) {
+        if (normalizeStudentId(sVals[r][0]) === cleanId) {
+          for (var c = 0; c < labColumns.length; c++) {
+            if (!specificLabKey || labColumns[c].key === specificLabKey) {
+              summarySheet.getRange(r + 1, 4 + c).setValue("-");
+            }
+          }
+        }
+      }
+      syncAllScoresToMasterRoster(ss, false);
+    }
+  } catch (e) {}
 }
 
 /**

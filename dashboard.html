@@ -1662,6 +1662,43 @@
       });
     }
 
+    function syncMasterRosterScores() {
+      const input = document.getElementById("masterGasUrlInput");
+      const val = (input && input.value.trim()) || (typeof getMasterScriptUrl === "function" ? getMasterScriptUrl() : "");
+      const feedback = document.getElementById("masterStatusFeedback");
+
+      if (!val || !val.startsWith("https://script.google.com")) {
+        alert("⚠️ กรุณาระบุ Master Web App URL ก่อนซิงค์คะแนนครับ");
+        return;
+      }
+
+      if (feedback) {
+        feedback.style.display = "block";
+        feedback.innerHTML = '<span style="color:#c084fc;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงคะแนนจากทุกแท็บแล็บมาจับคู่กับรหัสนักศึกษาในหน้าสรุปคะแนนรวม...</span>';
+      }
+
+      fetch(val, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "syncRoster", useFormulas: false })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (feedback) {
+          if (res.status === "success") {
+            feedback.innerHTML = '<span style="color:#34d399;font-weight:600;"><i class="fa-solid fa-circle-check"></i> ' + (res.message || "ดึงคะแนนตามรหัสนักศึกษาสำเร็จ!") + '</span>';
+          } else {
+            feedback.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ' + (res.message || "ไม่สามารถซิงค์คะแนนได้") + '</span>';
+          }
+        }
+      })
+      .catch(err => {
+        if (feedback) {
+          feedback.innerHTML = '<span style="color:#fbbf24;"><i class="fa-solid fa-circle-info"></i> ส่งคำขอซิงค์คะแนนเรียบร้อยแล้ว (กรุณาตรวจสอบว่าได้นำโค้ด Master_Code.gs ล่าสุดไป Deploy บน Apps Script แล้ว)</span>';
+        }
+      });
+    }
+
     function clearMasterGasUrl() {
       if (!confirm("ต้องการล้างค่า Master Web App URL หรือไม่?")) return;
       const input = document.getElementById("masterGasUrlInput");
@@ -1879,6 +1916,9 @@
             </button>
             <button type="button" class="gas-btn-sm" onclick="applyMasterToAllLabs()" style="background:rgba(16,185,129,0.18); color:#34d399; border-color:rgba(16,185,129,0.45); cursor:pointer; white-space:nowrap;" title="ล้างลิงก์เก่าของแล็บย่อยทั้งหมด เพื่อให้ทุกแล็บส่งเข้า Master Sheet นี้ทันที">
               <i class="fa-solid fa-arrows-rotate"></i> บังคับใช้ Master กับทุกแล็บ
+            </button>
+            <button type="button" class="gas-btn-sm" onclick="syncMasterRosterScores()" style="background:rgba(168,85,247,0.18); color:#c084fc; border-color:rgba(168,85,247,0.45); cursor:pointer; white-space:nowrap;" title="ดึงคะแนนจากทุกแท็บใบงานมาใส่ในหน้าสรุปคะแนนรวมตามรหัสนักศึกษาที่ครูวางไว้ (โดยไม่เขียนทับชื่อและห้อง)">
+              <i class="fa-solid fa-user-check"></i> ดึงคะแนนตามรหัส นศ.
             </button>
             <button type="button" class="gas-btn-sm" onclick="clearMasterGasUrl()" style="color:#f87171; border-color:rgba(248,113,113,0.3); cursor:pointer;" title="ล้างค่า Master URL">
               <i class="fa-solid fa-trash"></i>
