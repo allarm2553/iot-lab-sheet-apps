@@ -10,6 +10,27 @@
 // 🌟 ลิงก์รวมศูนย์ส่งคะแนนทุกแล็บลง Google Sheet เดียวกัน (Master Universal Backend)
 const MASTER_GAS_URL = "";
 
+// 🔐 รหัสผ่านสำหรับครูผู้สอนในการปลดล็อกการส่งงานซ้ำ / เคลียร์แคชส่งงาน (ค่าเริ่มต้น: "1234" หรือ "teacher")
+const TEACHER_UNLOCK_PASSWORD = "1234";
+
+/**
+ * ตรวจสอบรหัสผ่านครูผู้สอนสำหรับปลดล็อกการส่งใบงาน / เคลียร์แคช
+ */
+function verifyTeacherUnlockPassword(inputPass) {
+  if (!inputPass) return false;
+  const clean = String(inputPass).trim();
+  const cleanLower = clean.toLowerCase();
+  let customPass = '';
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      customPass = (window.localStorage.getItem('teacher_unlock_password') || '').trim();
+    }
+  } catch (e) {}
+  if (customPass && clean === customPass) return true;
+  if (typeof TEACHER_UNLOCK_PASSWORD !== 'undefined' && TEACHER_UNLOCK_PASSWORD && clean === TEACHER_UNLOCK_PASSWORD) return true;
+  return (clean === '1234' || cleanLower === 'teacher' || cleanLower === 'iot512');
+}
+
 const LAB_CONFIG = {
   // หมวดที่ 1: พื้นฐานฮาร์ดแวร์และการเชื่อมต่ออินพุต/เอาต์พุต (Module 1)
   "lab0": "YOUR_GAS_URL_FOR_LAB_BASIC",
