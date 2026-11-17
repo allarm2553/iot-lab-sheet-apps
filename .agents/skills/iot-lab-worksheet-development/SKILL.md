@@ -7,6 +7,12 @@ description: Standard guidelines, templates, and best practices for creating and
 
 This skill provides comprehensive standards, UI architecture, hardware pin mappings, and code templates for building and maintaining interactive web-based IoT laboratory worksheets (Google Apps Script frontends & standalone HTML forms).
 
+> [!IMPORTANT]
+> **🎯 Official Gold Standard Templates (ต้นแบบมาตรฐานสำหรับทุกใบงาน):**
+> - **ต้นแบบใบงานปฏิบัติการและชุดจำลอง VS Code + Wokwi:** ยึด **`lab2/`** (`lab2/index.html`, `lab2/vscode-wokwi-template/`, `lab2/Code.gs`, `lab2/GUIDE.md`) และ **`lab1/`** เป็น **Gold Standard Template**
+> - **ต้นแบบระบบรวมคะแนนทุกแล็บและดึงคะแนนตามรหัสนักศึกษา:** ยึด **`Master_Code.gs`**, **`config.js`**, **`index.html`**, **`dashboard.html`** และ **`server.js`** เป็น **Gold Standard Backend & Portal Template**
+> - อ่านสรุปกฎระดับ Workspace เพิ่มเติมได้ที่ไฟล์ `GEMINI.md` ที่รากของโปรเจกต์
+
 ---
 
 ## 1. Core Architecture & UI Standards
@@ -727,120 +733,167 @@ async function pasteToChallenge() {
 
 ---
 
-## 18. ESP32 Hardware Pin Rules (Board-Specific)
+## 18. ESP32 & ESP8266 Hardware Pin Rules (Board-Specific Gold Standard)
 
-### บอร์ด IPST-WiFi (ESP32)
+### 18.1 บอร์ด IPST-WiFi (ESP32)
 
-| GPIO | การใช้งานบนบอร์ด | กฎ |
+| GPIO | การใช้งานบนบอร์ด | กฎเหล็ก (Strict Rules) |
 | :--- | :--- | :--- |
-| **GPIO 18** | Built-in LED (ต่อ LED บนบอร์ดอยู่แล้ว) | ❌ **ห้ามใช้ต่อสวิตช์/ปุ่ม** |
-| **GPIO 0** | Push Button SW1 (ปุ่ม FLASH) — Active LOW | ✅ ใช้ต่อปุ่มกด `INPUT_PULLUP` |
-| **GPIO 33** | DHT11 Data | ✅ เซ็นเซอร์อุณหภูมิ/ความชื้น |
-| **GPIO 36** | Potentiometer / Knob-S (ADC Input Only) | ✅ อ่านค่า Analog (0–4095) |
-| **GPIO 5** | Relay 1 (พัดลม) | ✅ Active HIGH |
-| **GPIO 23** | Relay 2 (ปั๊มน้ำ/หัวพ่นหมอก) | ✅ Active HIGH |
-| **GPIO 21/22** | I2C SDA/SCL (OLED) | ✅ จอ SSD1306 |
+| **GPIO 18** | **Built-in Onboard LED / Status LED** | ✅ ใช้เป็น Onboard LED เพียงขาเดียว (**ห้ามระบุเป็น GPIO 2** และ **ห้ามใช้ต่อสวิตช์/ปุ่มกด**) |
+| **GPIO 0** | **Push Button SW1 (ปุ่ม BOOT/FLASH)** — Active LOW | ✅ ใช้ต่อปุ่มกด `INPUT_PULLUP` |
+| **GPIO 33** | **DHT11 / DHT22 Data** | ✅ เซ็นเซอร์วัดอุณหภูมิและความชื้น |
+| **GPIO 36 (VP)** | **Potentiometer / KNOB-S (ADC Input Only)** | ✅ อ่านค่า Analog 12-bit (`0–4095`) |
+| **GPIO 5** | **Relay 1 (พัดลม)** | ✅ เอาต์พุตขับรีเลย์ตัวที่ 1 |
+| **GPIO 23** | **Relay 2 (ปั๊มน้ำ/หัวพ่นหมอก)** | ✅ เอาต์พุตขับรีเลย์ตัวที่ 2 |
+| **GPIO 21 / 22** | **I2C SDA (21) / SCL (22)** | ✅ จอแสดงผล OLED SSD1306 (`0x3C`) |
+
+### 18.2 บอร์ด NodeMCU 1.0 / AX-WiFi (ESP8266)
+
+| พิน / GPIO | การใช้งานบนบอร์ด | กฎเหล็ก (Strict Rules) |
+| :--- | :--- | :--- |
+| **GPIO 0 (`D3`)** | **Push Button (ปุ่ม FLASH บนบอร์ด)** — Active LOW | ❌ **ห้ามนำมาต่อเซ็นเซอร์ DHT เด็ดขาด** เพราะต่ออยู่กับสวิตช์ปุ่มกด FLASH บนบอร์ด |
+| **GPIO 2 (`D4`)** | **DHT11 / DHT22 Data** (และ Onboard LED) | ✅ ใช้ต่อขาสัญญาณ DATA ของเซ็นเซอร์ DHT11/DHT22 (`#define DHTPIN 2`) |
+| **ADC0 (`A0`)** | **Potentiometer / VR** | ✅ อ่านค่า Analog 10-bit (`0–1023`) |
+| **GPIO 13 (`D7`)** | **Relay 1 (พัดลม)** | ✅ เอาต์พุตขับรีเลย์ตัวที่ 1 |
+| **GPIO 16 (`D0`)** | **Relay 2 (ปั๊มน้ำ/หัวพ่นหมอก)** | ✅ เอาต์พุตขับรีเลย์ตัวที่ 2 |
+| **GPIO 4 (`D2`) / GPIO 5 (`D1`)** | **I2C SDA (`D2`) / SCL (`D1`)** | ✅ จอแสดงผล OLED SSD1306 (`0x3C`) |
 
 > [!CAUTION]
-> ถ้าใบงานใดใช้ `GPIO 18` ต่อสวิตช์ **ต้องเปลี่ยนเป็น `GPIO 0`** ทันที เนื่องจาก GPIO 18 ต่อกับ LED บนบอร์ดอยู่แล้ว ทำให้ค่า INPUT อ่านไม่ถูกต้อง
+> 1. บนบอร์ด **ESP32 (IPST-WiFi)**: On-board LED คือ **`GPIO 18` เท่านั้น** (ไม่ใช่ `GPIO 2`)
+> 2. บนบอร์ด **ESP8266 (NodeMCU 1.0 / AX-WiFi)**: ขา `GPIO 0 (D3)` ต่อกับสวิตช์ปุ่มกด FLASH บนบอร์ดแล้ว จึง**ต้องใช้ขา `GPIO 2 (D4)` สำหรับต่อเซ็นเซอร์ DHT11/DHT22 เสมอ**
 
-### ตัวอย่าง Arduino Code สำหรับ Push Button บน ESP32
+### ตัวอย่าง Arduino Code มาตรฐานรองรับทั้ง ESP32 และ ESP8266
 ```cpp
-#define BTN_PIN 0   // GPIO 0 (SW1 — Active LOW, ใช้ INPUT_PULLUP)
-
-void setup() {
-  pinMode(BTN_PIN, INPUT_PULLUP);
-}
-
-void loop() {
-  if (digitalRead(BTN_PIN) == LOW) {
-    // ปุ่มถูกกด
-  }
-}
+#if defined(ESP8266)
+  #define DHTPIN          2     // GPIO 2 / D4 สำหรับ ESP8266 (NodeMCU / AX-WiFi)
+  #define BUTTON_PIN      0     // GPIO 0 / D3 (ปุ่ม FLASH บนบอร์ด)
+  #define ALERT_LED_PIN   2     // Onboard LED (GPIO 2 / D4)
+#elif defined(ESP32)
+  #define DHTPIN          33    // GPIO 33 สำหรับ ESP32 (IPST-WiFi)
+  #define BUTTON_PIN      0     // GPIO 0 (ปุ่ม SW1 บนบอร์ด)
+  #define ALERT_LED_PIN   18    // Onboard LED (GPIO 18 สำหรับ IPST-WiFi)
+#endif
 ```
 
 ---
 
-## 19. Universal Master Backend (`Master_Code.gs`) & Single-Sheet Multi-Tab Architecture
+## 19. Universal Master Backend (`Master_Code.gs`), Single-Sheet Multi-Tab & Roster Lookup Architecture
 
-เพื่อลดภาระการจัดการ Google Sheets 19 ไฟล์แยกกัน ระบบรองรับ **Universal Master Backend (`Master_Code.gs`)** ที่รวบรวมการส่งคะแนนจากทุกใบงานลงใน Google Sheet เดียวกัน พร้อมฟังก์ชันแยกแท็บอัตโนมัติ
+เพื่อลดภาระการจัดการ Google Sheets 19 ไฟล์แยกกัน ระบบใช้ **Universal Master Backend (`Master_Code.gs`)** ที่รวบรวมการส่งคะแนนจากทุกใบงานลงใน Google Sheet เดียวกัน พร้อมระบบ **Master Roster Protection & Student ID Score Lookup**
 
 ```mermaid
 flowchart TD
     subgraph Worksheets ["19 IoT Lab Worksheets"]
-        W0["Lab 0 (Basic)"]
-        W1["Lab 1 & 1.1"]
-        W3["Lab 3, 3.1, 3.2"]
-        W6["Lab 6 & 6.1"]
-        W9["Lab 7, 8, 9, Extra"]
+        W0["Lab 0 & Lab 0 Basic"]
+        W1["Lab 1, 1.1 & Lab 2 (Gold Standard)"]
+        W3["Lab 3, 3.1, 3.2 & WebConfig"]
+        W6["Lab 4, 4.1, 5, 5 Dev, 6, 6.1"]
+        W9["Lab 7, 8, 9 & Lab Extra"]
     end
 
-    Router["Universal Master API Router (Master_Code.gs)<br>doPost() / resolveLabKey()"]
+    Router["Universal Master API Router (Master_Code.gs)<br>doPost() / resolveLabKey() / syncAllScoresToMasterRoster()"]
 
-    subgraph MasterSheet ["Single Master Google Sheet"]
-        Dash["📊 สรุปคะแนนรวม (Dashboard แท็บแรก)"]
-        T0["Lab 0 Submissions"]
+    subgraph MasterSheet ["Single Master Google Sheet (Master_IoT_LAB)"]
+        Dash["📊 สรุปคะแนนรวม (Master Roster)<br>Col A: รหัส นศ. (PK) | Col B: ชื่อ (Locked) | Col C: ห้อง (Plain Text @)"]
+        T0["Lab 0 Basic Submissions"]
         T1["Lab 1 Submissions"]
         T11["Lab 1.1 Submissions"]
-        T3["Lab 3 Submissions"]
-        TAll["... ทุกแท็บแยกตามแล็บ"]
+        T2["Lab 2 Submissions"]
+        TAll["... แท็บแยกตามแล็บ (19 แท็บ)"]
     end
 
     Worksheets -->|payload.labId + auto-grading| Router
     Router -->|สร้างแท็บ & บันทึกคะแนน| T0
     Router -->|สร้างแท็บ & บันทึกคะแนน| T1
     Router -->|สร้างแท็บ & บันทึกคะแนน| T11
-    Router -->|สร้างแท็บ & บันทึกคะแนน| T3
+    Router -->|สร้างแท็บ & บันทึกคะแนน| T2
     Router -->|สร้างแท็บ & บันทึกคะแนน| TAll
-    Router -->|คำนวณคะแนนรวม & Real-time Update| Dash
+    T0 & T1 & T11 & T2 & TAll -->|ดึงคะแนนตามรหัสนักศึกษา (Col A)| Dash
 ```
 
-### คุณสมบัติหลักของ Master_Code.gs
+### คุณสมบัติหลักของ Master_Code.gs (Gold Standard)
 1. **Master Lab Registry (`LAB_REGISTRY`):**
-   - มีฐานข้อมูลแล็บครบทั้ง 19 แล็บ พร้อมสีแท็บ, ชื่อชีต, และหัวข้อแล็บ
-   - รองรับคีย์แล็บมาตรฐาน: `lab0`, `lab0-basic`, `lab1`, `lab1.1`, `lab2`, `lab3`, `lab3.1`, `lab3.2_Wifi_UI_config`, `lab4`, `lab4.1`, `lab5`, `LAB5_Dev`, `lab6`, `LAB6.1Perform`, `lab7`, `lab8`, `lab9`, `lab-extra`, `lab-webconfig_wifi`
-2. **Auto-Tab Creation & Formatting:**
-   - เมื่อมีนักเรียนส่งแล็บใดเข้ามาเป็นครั้งแรก หากแท็บของแล็บนั้นยังไม่มี ระบบจะสร้างแท็บใหม่พร้อมจัดหัวคอลัมน์สีเข้ม ตรึงแถวแรก (Frozen Row) และจัดขนาดให้อัตโนมัติ
-   - ทำความสะอาดชีตเริ่มต้นว่างเปล่า (`ชีต1` / `Sheet1`) ให้ไม่รก
-3. **Master Summary Dashboard (`📊 สรุปคะแนนรวม`):**
-   - แท็บแรกสุดของสเปรดชีตแสดงรายชื่อนักศึกษาทุกคน (รหัส, ชื่อ-นามสกุล, กลุ่ม)
-   - สรุปคะแนนแต่ละแล็บแบบ Real-time, คำนวณคะแนนรวมทั้งหมด, และนับจำนวนแล็บที่ส่ง
-4. **ลำดับความสำคัญของ Master URL ใน `config.js`:**
-   - ใน `getLabScriptUrl(labId)` กำหนดให้ **Master GAS URL มีลำดับความสำคัญสูงกว่าแคชเก่าใน localStorage** เพื่อป้องกันไม่ให้ประวัติเดิมส่งผลให้นักเรียนส่งไปชีตอื่น
-   - มีปุ่ม `[ 🔄 บังคับใช้ Master กับทุกแล็บ ]` (`applyMasterToAllLabs()`) ในหน้าตั้งค่า เพื่อล้างประวัติชีตเก่าและสลับมาใช้ Master ชีตเดียวทันที
-5. **ข้อกำหนด Payload ของ Frontend:**
-   - ใบงานทุกใบต้องแนบ `payload.labId = '<labKey>'` ใน JSON body ก่อนส่ง เพื่อให้ Master Router ชี้เป้าแท็บได้ถูกต้อง 100%
+   - รองรับคีย์แล็บมาตรฐานครบทั้ง 19 แล็บ: `lab0`, `lab0-basic`, `lab1`, `lab1.1`, `lab2`, `lab3`, `lab3.1`, `lab3.2_Wifi_UI_config`, `lab4`, `lab4.1`, `lab5`, `LAB5_Dev`, `lab6`, `LAB6.1Perform`, `lab7`, `lab8`, `lab9`, `lab-extra`, `lab-webconfig_wifi`
+2. **Master Roster Protection & Student ID Lookup (`syncAllScoresToMasterRoster`):**
+   - ครูสามารถวางใบรายชื่อ (`รหัสนักศึกษา | ชื่อ-นามสกุล | กลุ่ม/ห้อง`) ลงในแท็บแรก **`📊 สรุปคะแนนรวม`** ล่วงหน้าได้
+   - ยึด **`รหัสนักศึกษา` (คอลัมน์ A)** เป็น Primary Key (`normalizeStudentId`)
+   - **ห้ามเขียนทับ `ชื่อ-นามสกุล` (Col B) และ `กลุ่ม/ห้อง` (Col C)** ที่ครูวางไว้ล่วงหน้า (จะเติมให้เฉพาะกรณีที่ช่องนั้นว่างอยู่เท่านั้น)
+3. **ป้องกัน Google Sheets แปลงกลุ่ม/ห้อง (`4/5`, `4/6`) เป็นวันที่ (`sanitizeGroupValue`):**
+   - บังคับตั้งค่าคอลัมน์ A และคอลัมน์ C เป็นข้อความธรรมดา (`setNumberFormat("@")`) เสมอ
+   - มีฟังก์ชัน `sanitizeGroupValue()` แปลงค่าวันที่ (`Mon May 04 2026...GMT+0700`) กลับเป็น `"4/5"` หรือ `"4/6"` โดยอัตโนมัติ
+4. **3 ช่องทางในการซิงค์คะแนนเข้าใบรายชื่อ:**
+   - **อัตโนมัติเมื่อนักศึกษาส่งใบงาน (`updateMasterSummaryDashboard`):** อัปเดตคะแนนและซิงค์ทุกแล็บเข้าใบรายชื่อทันที
+   - **ปุ่มบนหน้าเว็บพอร์ทัล (`index.html` & `dashboard.html`):** ปุ่ม `[ 🎓 ดึงคะแนนตามรหัส นศ. ]` (`syncMasterRosterScores()`) ส่ง `action: "syncRoster"`
+   - **เมนูบนแถบเครื่องมือ Google Sheets (`onOpen` -> `🎓 ระบบจัดการคะแนน IoT`):**
+     - `🔄 ดึงคะแนนทุกแล็บตามรหัสนักศึกษา (Sync Scores to Roster)`
+     - `📐 ผูกสูตรดึงคะแนนอัตโนมัติ (Insert VLOOKUP Formulas)`
+     - `🧹 ล้างแถวทดสอบที่ไม่ใช่รหัสนักศึกษาจริง (Clean Test Rows)`
+5. **ลำดับความสำคัญของ Master URL ใน `config.js`:**
+   - ใน `getLabScriptUrl(labId)` กำหนดให้ **Master GAS URL มีลำดับความสำคัญสูงกว่าแคชเก่าใน localStorage** เว้นแต่แล็บนั้นถูกตั้ง `override_<labId> === 'true'`
+   - มีปุ่ม `[ 🔄 บังคับใช้ Master กับทุกแล็บ ]` (`applyMasterToAllLabs()`) เพื่อล้างลิงก์ชีตเก่าในเบราว์เซอร์ทั้งหมด
 
 ---
 
-## 20. Teacher Clear Cache & Unlock Resubmission Mechanism
+## 20. Submission Lock Layout & Teacher Password Protection
 
-กรณีที่นักเรียนกดส่งใบงานแล้วเกิดปัญหาทางเครือข่าย หรือต้องการให้นักเรียนปรับปรุงส่งใหม่ ระบบได้ออกแบบฟังก์ชันปลดล็อกระดับครูผู้สอน (`teacherClearLabCache`)
+เมื่อนักศึกษาส่งใบงานแล้ว หน้าเว็บจะเข้าสู่โหมดดูอย่างเดียว (Read-Only Lock) โดยมีมาตรฐานการจัดวางปุ่มและการป้องกันดังนี้:
 
-### ปัญหาที่พบในระบบเดิม
-- เบราว์เซอร์นักเรียนบันทึก `localStorage.setItem(_LAB_STORAGE_KEY + studentId, timestamp)` ทำให้ฟอร์มถูกล็อก ไม่สามารถกดส่งได้
-- หากปลดล็อกเฉพาะหน้าเว็บ Google Sheets ก็จะบล็อกการส่งซ้ำด้วยระบบ Anti-Duplicate (`duplicate`) ทำให้นักเรียนส่งคะแนนใหม่ไม่เข้า
+1. **กล่องแจ้งเตือนสีเขียวด้านบน (`#submittedNoticeBanner`):**
+   - แสดงข้อความแจ้งเวลาที่ส่งใบงาน และแสดง **เฉพาะปุ่ม `[ 🔓 ครูผู้สอน: ปลดล็อกส่งใหม่ ]`** เท่านั้น
+2. **ตำแหน่งปุ่มเริ่มทำสำหรับนักศึกษาคนใหม่ (`#newStudentTopBar` & `#newStudentBtn`):**
+   - **ห้ามวางปุ่มเริ่มทำใหม่ไว้ข้างปุ่มครูในกล่องสีเขียวด้านบน**
+   - ให้สร้าง `#newStudentTopBar` วางไว้ **ใต้กล่อง `.gas-connect-box` (ก่อนหัวข้อ ข้อมูลผู้ส่งรายงาน)** เป็นปุ่มสีน้ำเงินเต็มความกว้าง:
+     `[ 👤+ เริ่มทำสำหรับ นศ. คนใหม่ (ล้างฟอร์มเริ่มใหม่) ]`
+   - และคงปุ่ม `#newStudentBtn` ไว้ที่ท้ายฟอร์มด้านล่างสุด (ใต้ปุ่มส่งใบงาน / พิมพ์ PDF) ด้วย
+3. **ระบบรหัสผ่านครูผู้สอน (`verifyTeacherUnlockPassword` ใน `config.js` และ `teacherClearLabCache`):**
+   - เมื่อกดปุ่ม `[ 🔓 ครูผู้สอน: ปลดล็อกส่งใหม่ ]` หรือ `[ 🔓 เคลียร์แคชส่งงาน ]` **ต้องแสดงหน้าต่าง `🔒 ยืนยันสิทธิ์ครูผู้สอน` (`input: 'password'`) ให้กรอกรหัสผ่านก่อนเสมอ** เพื่อป้องกันนักศึกษากดปลดล็อกเอง
+   - รหัสผ่านเริ่มต้น: `"1234"` หรือ `"teacher"` (หรือ `"iot512"` / ตั้งค่าใน `TEACHER_UNLOCK_PASSWORD` ใน `config.js`)
+   - เมื่อปลดล็อก (`clearStudentSubmissionFromAllSheets`): ลบเฉพาะแถวในแท็บใบงานย่อย และเปลี่ยนช่องคะแนนของแล็บนั้นในหน้า `📊 สรุปคะแนนรวม` เป็น `"-"` **โดยห้ามลบแถวรายชื่อของนักศึกษาออกจากหน้าสรุปคะแนนรวมเด็ดขาด**
 
-### โซลูชันแบบครบวงจร
-1. **Teacher Action Box ในใบงาน (`.gas-connect-box`):**
-   - มีปุ่ม `[ เคลียร์ประวัติส่งซ้ำ ]` ป้องกันด้วยรหัสผ่านครูผู้สอน (`1234` หรือที่กำหนด)
-2. **การทำงานฝั่ง Frontend:**
-   - ลบ `_LAB_STORAGE_KEY + studentId` ออกจาก `localStorage`
-   - ปลดล็อกฟอร์มให้กรอกใหม่ได้ (`el.disabled = false`)
-   - ส่งคำขอไปยัง Google Apps Script:
+---
+
+## 21. VS Code + Wokwi Direct Project Launch Standard (`openProjectInVsCode`)
+
+ทุกใบงานที่มีส่วนจำลองวงจร Wokwi (`lab0`, `lab0-basic`, `lab1`, `lab1.1`, `lab2`, `lab5`, `LAB5_Dev`, `lab6`, `LAB6.1Perform`) ใช้มาตรฐานเดียวกับโปรเจกต์ `MCU_WebApps` โดยยึด **`lab2/`** เป็นต้นแบบ (Gold Standard Template):
+
+1. **ปุ่ม `</> VS Code Wokwi` (`openProjectInVsCode`):**
+   - เมื่อคลิกปุ่ม `<button type="button" class="wokwi-ctrl-btn vscode" onclick="openProjectInVsCode('lab2')">` จะทำงาน 2 ช่องทางพร้อมกันโดยไม่มี Modal กั้น:
      ```javascript
-     fetch(effectiveScriptUrl, {
-       method: 'POST',
-       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-       body: JSON.stringify({
-         action: 'clearStudentLock',
-         studentId: targetStudentId,
-         labId: '<labKey>'
-       })
-     });
+     function openProjectInVsCode(labFolder) {
+       labFolder = labFolder || 'lab2';
+       const subDir = (labFolder === 'lab5' || labFolder === 'LAB5_Dev' || labFolder === 'lab6' || labFolder === 'LAB6.1Perform')
+         ? 'solution'
+         : 'vscode-wokwi-template';
+       const workspacePath = `/Users/allarmmac/myjob_folder/MyLaB/IoT/${labFolder}/${subDir}`;
+       window.location.href = `vscode://file${workspacePath}`;
+       fetch('/api/open-vscode', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ lab: labFolder })
+       }).catch(() => {});
+       if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+         fetch('http://localhost:4000/api/open-vscode', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ lab: labFolder })
+         }).catch(() => {});
+       }
+     }
      ```
-   - ตั้งค่าแฟล็ก `window._teacherAllowResubmit = true` และส่ง `payload.allowResubmit = true`
-3. **การทำงานฝั่ง Backend (Master_Code.gs & Code.gs):**
-   - คำขอ `action: 'clearStudentLock'` จะค้นหาแถวเดิมของรหัสนักศึกษานั้นในแท็บของแล็บ และลบแถวเดิมออก
-   - หากมีการส่งซ้ำและตรวจพบ `data.allowResubmit == true` ระบบจะยอมให้เขียนทับข้อมูลเดิมและคำนวณคะแนนใหม่โดยไม่แจ้งข้อผิดพลาด `duplicate`
+2. **Backend API (`/api/open-vscode` ใน `server.js`):**
+   - รันคำสั่งเปิดโฟลเดอร์โปรเจกต์พร้อมเปิดไฟล์ `src/main.cpp` และ `diagram.json` ขึ้นมาใน VS Code ทันที
+3. **โครงสร้างโฟลเดอร์ `vscode-wokwi-template/` ต้นแบบ (`lab2/vscode-wokwi-template/`):**
+   - `src/main.cpp`: ซอร์สโค้ด C++ ฉบับสมบูรณ์พร้อมคอมเมนต์ภาษาไทย
+   - `diagram.json`: ผังวงจร Wokwi (ใช้ `board-ssd1306` สำหรับจอ OLED และมี `wokwi-logic-analyzer` สำหรับส่งออกไฟล์ `.vcd`)
+   - `platformio.ini`: ตั้งค่า `[env:esp32dev]` และ `lib_deps` ครบถ้วน
+   - `wokwi.toml`:
+     ```toml
+     [wokwi]
+     version = 1
+     firmware = '.pio/build/esp32dev/firmware.bin'
+     elf = '.pio/build/esp32dev/firmware.elf'
+     ```
+   - `.vscode/extensions.json`: แนะนำ `"platformio.platformio-ide"` และ `"wokwi.wokwi-vscode"`
+   - `.pio/build/esp32dev/firmware.bin` & `firmware.elf`: ใส่ไฟล์ Firmware ที่คอมไพล์แล้วไว้ล่วงหน้าเพื่อให้กดรันจำลอง (Play ▶) ใน VS Code ได้ทันที
+
 
